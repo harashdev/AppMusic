@@ -563,6 +563,7 @@ html.android *{scroll-behavior:auto!important}
       <div class="li ni0" data-p="history" tabindex="0"><div class="tile" style="background:#22313f;color:var(--accent)"><i data-ic="clock"></i></div><div class="meta"><b>Nghe gần đây</b><span>Lịch sử</span></div></div>
       <div class="li ni0" data-p="charts" tabindex="0"><div class="tile" style="background:#2a2f26;color:#b6e08a"><i data-ic="trend"></i></div><div class="meta"><b>Thịnh hành</b><span>Danh sách phát · 50 bài hát</span></div></div>
       <div class="li ni0" data-p="together" tabindex="0"><div class="tile" style="background:#33283f;color:#d1a8ff"><i data-ic="users"></i></div><div class="meta"><b>Nghe cùng nhau</b><span id="roomSub">Phòng nghe chung</span></div></div>
+      <div class="li ni0" data-p="friends" tabindex="0"><div class="tile" style="background:#1f3a33;color:#6fe0b5"><i data-ic="userplus"></i></div><div class="meta"><b>Bạn bè</b><span id="friendSub">Bạn bè &amp; lời mời</span></div></div>
       <div id="plList"></div>
     </div>
   </nav>
@@ -673,6 +674,7 @@ const IC={
  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
  trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+ userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/>',
  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20"/>',
  plus:'<path d="M12 5v14M5 12h14"/>',
  plusc:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
@@ -1004,18 +1006,51 @@ const pages={
   },
   async together(m){
     m.innerHTML=`<h2>Nghe cùng nhau</h2>
-    <div class="panel"><div>Phòng hiện tại: <b>${esc(room)}</b> <small>– mọi người trong phòng nghe đồng bộ và cùng điều khiển.</small></div>
-      <div class="row" style="margin-top:10px"><button class="pri" id="cpLink">Chép link phòng</button></div></div>
-    <div class="two"><div class="panel"><h3 style="margin-top:0">Bạn bè</h3>
-      <div class="row"><input id="friendCode" placeholder="Nhập mã bạn bè"><button id="addFriend">Kết bạn</button></div>
-      <small>Mã của bạn: <b>${esc(me.code)}</b></small><div id="friends"></div></div>
+    <div class="two"><div class="panel"><h3 style="margin-top:0">Phòng hiện tại</h3>
+      <div>Mã phòng: <b>${esc(room)}</b> <small>– mọi người trong phòng nghe đồng bộ và cùng điều khiển.</small></div>
+      <div class="row" style="margin-top:10px"><button class="pri" id="cpLink">Chép link phòng</button><button id="cpCode">Chép mã phòng</button></div></div>
+    <div class="panel"><h3 style="margin-top:0">Tham gia phòng</h3>
+      <small>Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.</small>
+      <div class="row" style="margin-top:8px"><input id="joinCode" placeholder="Mã phòng hoặc link phòng"><button class="pri" id="joinBtn">Tham gia</button></div></div></div>
+    <div class="two"><div class="panel"><h3 style="margin-top:0">Mời bạn bè vào phòng</h3>
+      <div id="friends"></div><div class="row" style="margin-top:8px"><button id="goFriends">Quản lý bạn bè</button></div></div>
     <div class="panel"><h3 style="margin-top:0">Chat phòng</h3><div id="chat"></div>
       <div class="row"><input id="msg" placeholder="Nhắn gì đó…"><button id="send" class="pri">Gửi</button></div></div></div>`;
     $('#cpLink').onclick=()=>copyInvite('Đã chép link phòng!');
-    $('#addFriend').onclick=async()=>{ try{ await api('/api/friends',{json:{code:$('#friendCode').value}}); $('#friendCode').value=''; loadFriends(); }catch(e){ notify(e.message); } };
+    $('#cpCode').onclick=async()=>{ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } };
+    const doJoin=()=>{ const r=parseRoom($('#joinCode').value); if(!r){ notify('Mã hoặc link phòng không hợp lệ'); return; } switchRoom(r); };
+    $('#joinBtn').onclick=doJoin; $('#joinCode').onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
+    $('#goFriends').onclick=()=>go('friends');
     $('#send').onclick=()=>{ const t=$('#msg').value.trim(); if(t){ send({type:'chat',text:t}); $('#msg').value=''; } };
     $('#msg').onkeydown=e=>{ if(e.key==='Enter') $('#send').click(); };
     $('#chat').innerHTML=chatLog.join(''); $('#chat').scrollTop=1e9; loadFriends();
+  },
+  async friends(m){
+    m.innerHTML=`<h2>Bạn bè</h2>
+    <div class="two"><div class="panel"><h3 style="margin-top:0">Thêm bạn</h3>
+      <small>Nhập mã bạn bè hoặc tên đăng nhập. Người kia sẽ nhận được lời mời và cần chấp nhận.</small>
+      <div class="row" style="margin-top:8px"><input id="friendCode" placeholder="Mã bạn bè hoặc tên đăng nhập"><button class="pri" id="addFriend">Gửi lời mời</button></div>
+      <div class="row"><small>Mã của bạn: <b>${esc(me.code)}</b></small><button id="cpMyCode">Chép mã</button></div></div>
+    <div class="panel"><h3 style="margin-top:0">Lời mời kết bạn</h3><div id="reqs"></div></div></div>
+    <div class="panel"><h3 style="margin-top:0">Danh sách bạn bè <small id="fCount"></small></h3><div id="friendList"></div></div>`;
+    const doAdd=async()=>{ const v=$('#friendCode').value.trim(); if(!v) return;
+      try{ const r=await api('/api/friends',{json:{code:v}}); $('#friendCode').value=''; notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); renderFriendsPage(); }
+      catch(e){ notify(e.message); } };
+    $('#addFriend').onclick=doAdd; $('#friendCode').onkeydown=e=>{ if(e.key==='Enter') doAdd(); };
+    $('#cpMyCode').onclick=async()=>{ try{ await navigator.clipboard.writeText(me.code); notify('Đã chép mã bạn bè'); }catch{ await askText('Mã bạn bè',me.code); } };
+    $('#reqs').onclick=async e=>{ const b=e.target.closest('button[data-a]'); if(!b) return; const id=+b.closest('[data-id]').dataset.id;
+      try{ await api('/api/friends/respond',{json:{user_id:id,action:b.dataset.a}}); if(b.dataset.a==='accept') notify('Đã chấp nhận lời mời'); renderFriendsPage(); }catch(er){ notify(er.message); } };
+    $('#friendList').onclick=async e=>{
+      const row=e.target.closest('[data-id]'); if(!row) return; const id=+row.dataset.id; const f=fmap.get(id);
+      const b=e.target.closest('button[data-a]');
+      if(!b){ if(f&&e.target.closest('.fr')){ e.stopPropagation(); showProfilePop(f,row.querySelector('.fr')); } return; }
+      if(b.dataset.a==='invite'){
+        try{ await api('/api/invite',{json:{friend_id:id,room}}); notify('Đã gửi lời mời tới '+f.display_name); }
+        catch(er){ if(await askConfirm(er.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
+      } else if(b.dataset.a==='remove'){
+        if(await askConfirm('Xoá '+f.display_name+' khỏi danh sách bạn bè?','Xoá')){ try{ await api('/api/friends/'+id,{method:'DELETE'}); notify('Đã xoá bạn'); renderFriendsPage(); }catch(er){ notify(er.message); } }
+      } };
+    await renderFriendsPage();
   },
   profile(m){
     const skins=[['','Mặc định','linear-gradient(135deg,#1a1530,#07070b)'],['dark','Tối','#000'],['ocean','Biển','linear-gradient(135deg,#0f2027,#2c5364)'],['sunset','Hoàng hôn','linear-gradient(135deg,#42275a,#734b6d)'],['forest','Rừng','linear-gradient(135deg,#1d2b1f,#3b5d3a)'],['custom','Ảnh riêng','']];
@@ -1268,13 +1303,13 @@ const pages={
 };
 async function go(p,arg,keep){
   page=p; document.querySelectorAll('.ni,.li').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
-  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','playlist'].includes(p)); }
+  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','friends','playlist'].includes(p)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
   try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
 }
 pages.library=function(m){
-  const T=[['favs','heart','Yêu thích',(typeof favs!=='undefined'&&favs.size?favs.size+' bài hát':'Danh sách phát'),'#3a2530','var(--red)',1],['history','clock','Nghe gần đây','Lịch sử','#22313f','var(--accent)',0],['charts','trend','Thịnh hành','Danh sách phát · 50 bài hát','#2a2f26','#b6e08a',0],['together','users','Nghe cùng nhau','Phòng nghe chung','#33283f','#d1a8ff',0]];
+  const T=[['favs','heart','Yêu thích',(typeof favs!=='undefined'&&favs.size?favs.size+' bài hát':'Danh sách phát'),'#3a2530','var(--red)',1],['history','clock','Nghe gần đây','Lịch sử','#22313f','var(--accent)',0],['charts','trend','Thịnh hành','Danh sách phát · 50 bài hát','#2a2f26','#b6e08a',0],['together','users','Nghe cùng nhau','Phòng nghe chung','#33283f','#d1a8ff',0],['friends','userplus','Bạn bè','Bạn bè & lời mời','#1f3a33','#6fe0b5',0]];
   const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
   m.innerHTML=`<h2>Thư viện</h2><div class="libL">${T.map(([k,i,t,sub,bg,fg,f])=>li(`data-p="${k}"`,`<div class="tile" style="background:${bg};color:${fg}">${ic(i,f?'fill':'')}</div>`,t,sub)).join('')}</div>
     <div class="sh" style="margin-top:22px"><h3>Danh sách phát</h3><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
@@ -1382,6 +1417,43 @@ function onMsg(m){
 }
 function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
 async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{await askText('Link phòng',url)} }
+const fmap=new Map();
+function parseRoom(v){
+  v=(v||'').trim(); if(!v) return '';
+  try{ const u=new URL(v); v=u.searchParams.get('room')||''; }catch{ const mm=v.match(/[?&]room=([^&#\s]+)/); if(mm) v=decodeURIComponent(mm[1]); }
+  return /^[A-Za-z0-9_-]{1,40}$/.test(v)?v:'';
+}
+function switchRoom(r){
+  if(r===room){ notify('Bạn đang ở phòng này rồi'); return; }
+  if(ws){ ws.onclose=null; ws.onmessage=null; try{ ws.close(); }catch{} }
+  room=r; leader=false; chatLog.length=0;
+  history.replaceState(null,'','?room='+encodeURIComponent(r));
+  const ri=$('#roomInfo'); ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); $('#roomSub').textContent='Phòng '+r;
+  connect();
+  if(page==='together') go('together',null,true);
+  notify('Đã tham gia phòng '+r);
+}
+async function refreshFriendBadge(){
+  try{ const r=await api('/api/friends/requests'); const n=r.incoming.length; const el=$('#friendSub'); if(el) el.textContent=n?n+' lời mời mới':'Bạn bè & lời mời'; return r; }catch{ return null; }
+}
+async function renderFriendsPage(){
+  const box=$('#friendList'), rq=$('#reqs'); if(!box||!rq) return;
+  const [list,reqs]=await Promise.all([api('/api/friends'),api('/api/friends/requests')]);
+  fmap.clear(); list.forEach(f=>fmap.set(f.id,f));
+  const el=$('#friendSub'); if(el) el.textContent=reqs.incoming.length?reqs.incoming.length+' lời mời mới':'Bạn bè & lời mời';
+  const line=(u,right)=>`<div class="item" data-id="${u.id}"><span style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${avU(u)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(u.display_name)}</span></span>${right}</div>`;
+  rq.innerHTML=(reqs.incoming.map(u=>line(u,'<button class="pri" data-a="accept">Chấp nhận</button><button data-a="decline">Từ chối</button>')).join('')
+    +reqs.outgoing.map(u=>line(u,'<small>Đang chờ</small><button data-a="cancel">Huỷ</button>')).join(''))||'<p class="empty">Không có lời mời nào.</p>';
+  $('#fCount').textContent='· '+list.length;
+  box.innerHTML=list.map(f=>`<div class="item" data-id="${f.id}"><span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button data-a="invite">Mời nghe</button><button data-a="remove">Xoá</button></div>`).join('')||'<p class="empty">Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.</p>';
+}
+function showFriendReq(m){
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> gửi lời mời kết bạn</div></div><div class="row"><button class="pri">Xem</button><button>Bỏ qua</button></div>`;
+  const [view,skip]=t.querySelectorAll('button');
+  view.onclick=()=>{ t.remove(); go('friends'); }; skip.onclick=()=>t.remove();
+  $('#toasts').appendChild(t); setTimeout(()=>t.remove(),30000);
+}
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
   const list=await api('/api/friends'); box.innerHTML='';
@@ -1398,14 +1470,18 @@ async function loadFriends(){
 }
 function connectUser(){
   const u=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws-user?token='+encodeURIComponent(token));
-  u.onmessage=e=>{ try{ const m=JSON.parse(e.data); if(m.type==='invite') showInvite(m); }catch{} };
+  u.onmessage=e=>{ try{ const m=JSON.parse(e.data);
+    if(m.type==='invite') showInvite(m);
+    else if(m.type==='friend_request'){ showFriendReq(m); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); }
+    else if(m.type==='friend_update'){ refreshFriendBadge(); if(m.accepted) notify(m.from+' đã chấp nhận lời mời kết bạn'); if(page==='friends') renderFriendsPage().catch(()=>{}); else if(page==='together') loadFriends().catch(()=>{}); }
+  }catch{} };
   u.onclose=()=>{ if(token) setTimeout(connectUser,3000); };
 }
 function showInvite(m){
   const t=document.createElement('div'); t.className='toast';
   t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> mời bạn nghe nhạc chung</div></div><div class="row"><button class="pri">Tham gia</button><button>Bỏ qua</button></div>`;
   const [join,skip]=t.querySelectorAll('button');
-  join.onclick=()=>{ location.href=location.origin+'/?room='+encodeURIComponent(m.room); }; skip.onclick=()=>t.remove();
+  join.onclick=()=>{ t.remove(); switchRoom(m.room); }; skip.onclick=()=>t.remove();
   $('#toasts').appendChild(t); setTimeout(()=>t.remove(),30000);
   try{ if('Notification' in window&&Notification.permission==='granted') new Notification('Muse',{body:m.from+' mời bạn nghe nhạc chung'}); }catch{}
 }
@@ -1906,11 +1982,11 @@ async function start(u){
       if(gp==='ok'){ notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } else notify('Kết nối Google thất bại, hãy thử lại'); } }
   document.addEventListener('visibilitychange',async()=>{ if(document.hidden||!gPending) return; gPending=false;
     try{ const s=await api('/api/google/status'); if(s.linked){ gl=s; notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } }catch{} });
-  await syncClock(6); connect(); connectUser();
+  await syncClock(6); connect(); connectUser(); refreshFriendBadge();
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
-  setInterval(()=>{ if(!document.hidden) loadFriends().catch(()=>{}); },20000);
+  setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
 }
 (async()=>{
   if(!token){ showAuth(); return; }
