@@ -52,6 +52,9 @@ button.ico{background:none;padding:8px;border-radius:50%;width:40px;height:40px}
 button.ico:hover{background:var(--hover2)}
 button.on{color:var(--accent)}
 input,select{background:var(--hover);outline:1px solid var(--line);width:100%;border-radius:12px;padding:10px 14px}
+select{color-scheme:dark}
+select option,select optgroup{background:#1c1f26;color:#f1f3f5}
+select option:checked,select option:hover{background:var(--accent);color:var(--on)}
 input:focus{outline:2px solid var(--accent)}
 input[type=checkbox]{width:auto;accent-color:var(--accent);vertical-align:middle}
 img{display:block}
@@ -659,6 +662,7 @@ html.android *{scroll-behavior:auto!important}
       <div class="npt">
         <div class="tx"><div id="npTitle">Chưa phát</div><div id="npArtist"></div></div>
         <button class="ico" id="npAdd" title="Thêm vào playlist"><i data-ic="plusc"></i></button>
+        <button class="ico" id="npDl" title="Tải nhạc"><i data-ic="download"></i></button>
         <button class="ico" id="npFav" title="Yêu thích"><i data-ic="heart"></i></button>
       </div>
       <div id="npInfoBox"></div>
@@ -748,7 +752,7 @@ html.android *{scroll-behavior:auto!important}
     'Không đọc được ảnh này':'Couldn’t read this image','Kéo ảnh để di chuyển · cuộn chuột để zoom · ảnh luôn phủ kín khung.':'Drag to move · scroll to zoom · the image always fills the frame.',
     'Đặt lại':'Reset','Hủy bỏ':'Cancel','Áp dụng':'Apply','Chỉnh sửa hồ sơ':'Edit profile','Đăng xuất':'Log out',
     'Phát':'Play','Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.':'No songs yet. Search for a song and tap ♡ or add it to a playlist.',
-    'Xoá khỏi playlist':'Remove from playlist','Xáo trộn':'Shuffle','Phát tất cả':'Play all','Cuộn trái':'Scroll left','Cuộn phải':'Scroll right',
+    'Xoá khỏi playlist':'Remove from playlist','Xáo trộn':'Shuffle','Tải tất cả':'Download all','Không có bài nào để tải':'No tracks to download','Đang tải danh sách, vui lòng chờ…':'A download is already in progress…','Phát tất cả':'Play all','Cuộn trái':'Scroll left','Cuộn phải':'Scroll right',
     'Chọn nhanh':'Quick picks','Bắt đầu một đài phát':'Start a radio','Chọn nhanh đài phát':'Quick-pick radio',
     'đã có bản cập nhật mới':'has a new update','Tải về':'Download','Để sau':'Later',
     'Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)':'No GitHub repo is set for BBeat (set ABOUT.repo in index.html)',
@@ -810,12 +814,12 @@ html.android *{scroll-behavior:auto!important}
     'Khi bật Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy, nhạc YouTube được phát qua luồng âm thanh do server chuyển tiếp (không dùng player iframe nên không có chế độ xem video). Nếu không lấy được luồng, app tự quay về player YouTube.':'When the Equalizer, Delay, Reverb or Proxy is on, YouTube music plays through an audio stream relayed by the server (no iframe player, so no video mode). If the stream can’t be fetched, the app falls back to the YouTube player.',
     'Lịch sử nghe':'Listening history','Theo dõi lịch sử nghe':'Track listening history','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản':'Save your listening history to your account’s database',
     'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube',
-    
-    
-    'Đã kết nối':'Connected','Chưa kết nối':'Not connected',
-    
-    
-    'Tích hợp Discord':'Discord integration','Đăng nhập Discord':'Sign in with Discord','Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Discord account linked. Click to unlink.',
+    'Đăng nhập Google':'Sign in with Google','Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Read access to your YouTube playlists is granted. Click to disconnect and revoke it.',
+    'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.':'Only used to read your playlist list and import it into BBeat. BBeat doesn’t use Google to log in and doesn’t store passwords or tokens.',
+    'Đã kết nối':'Connected','Chưa kết nối':'Not connected','Đăng nhập Google để nhập playlist từ YouTube':'Sign in with Google to import playlists from YouTube',
+    'Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL':'Server is missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL',
+    'Playlist của bạn trên YouTube':'Your YouTube playlists','Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.':'Choose the playlists to import. Private or deleted videos are skipped.',
+    'Tải danh sách playlist':'Load playlists','Tích hợp Discord':'Discord integration','Đăng nhập Discord':'Sign in with Discord','Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Discord account linked. Click to unlink.',
     'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)':'Sign in with Discord to link your account (required for Rich Presence)','Chưa liên kết':'Not linked',
     'Đăng nhập Discord để liên kết tài khoản':'Sign in with Discord to link your account','Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL':'Server is missing DISCORD_CLIENT_SECRET / PUBLIC_URL',
     'Kết nối Discord':'Connect Discord','Tự động dùng tài khoản đã đăng nhập, không cần mở ứng dụng Discord':'Automatically uses the signed-in account – no need to open the Discord app','Tự động':'Automatic',
@@ -830,8 +834,8 @@ html.android *{scroll-behavior:auto!important}
     'Tác giả':'Author','Hỗ trợ tôi':'Support me','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).':'BBeat is a personal, non-profit project. If you like the app, you can buy the author a coffee (totally optional).',
     'Thư viện bên thứ ba':'Third-party libraries','Các thư viện và dịch vụ mà BBeat sử dụng':'Libraries and services BBeat uses','Đăng xuất khỏi thiết bị này':'Log out of this device',
     'Đã lưu danh sách phát để xem khi offline':'Playlists saved for offline viewing','Trình duyệt không hỗ trợ Web Audio':'Your browser doesn’t support Web Audio',
-    
-    'bài':'songs',
+    'Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.':'Disconnect Google? BBeat will revoke its YouTube read access. Playlists you already imported are kept.',
+    'Ngắt kết nối':'Disconnect','Đã ngắt kết nối Google':'Google disconnected','Không thấy playlist nào trong tài khoản này':'No playlists found in this account','bài':'songs','Nhập đã chọn':'Import selected',
     'Hãy chọn ít nhất một playlist':'Select at least one playlist','Đang nhập… (playlist dài có thể mất vài chục giây)':'Importing… (long playlists can take a few tens of seconds)','Đã nhập':'Imported','bài ✔':'songs ✔',
     'Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.':'Unlink your Discord account? Rich Presence will be turned off too.','Hủy liên kết':'Unlink','Đã hủy liên kết Discord':'Discord unlinked',
     'Đã kết nối Discord':'Discord connected','Xóa toàn bộ lịch sử nghe?':'Delete all listening history?','Xóa':'Delete','Đã xóa lịch sử nghe':'Listening history cleared',
@@ -852,8 +856,8 @@ html.android *{scroll-behavior:auto!important}
     'Hãy đăng nhập Discord để liên kết tài khoản trước':'Sign in with Discord to link your account first',
     'Không kết nối được Discord – hãy mở ứng dụng Discord trên máy này rồi thử lại':'Couldn’t connect to Discord – open the Discord app on this computer and try again',
     'lỗi Discord':'Discord error','hết thời gian chờ Discord phản hồi':'Discord took too long to respond',
-    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again',
-    
+    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again','Đã kết nối Google, hãy chọn playlist để nhập':'Google connected – choose playlists to import',
+    'Kết nối Google thất bại, hãy thử lại':'Google connection failed, please try again',
     'Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe':'This song is explicit – turn on “Play explicit songs” in Settings to listen',
     /* thông báo từ server */
     'Chưa đăng nhập hoặc phiên hết hạn':'Not logged in or the session has expired','Lỗi máy chủ':'Server error','Tên đăng nhập 3-24 ký tự: chữ, số hoặc _':'Username must be 3–24 characters: letters, numbers or _',
@@ -869,17 +873,13 @@ html.android *{scroll-behavior:auto!important}
     'Tối đa 50 playlist':'Up to 50 playlists','Không tìm thấy playlist':'Playlist not found','Ảnh nền tối đa 10MB':'Background image must be 10MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP':'Only PNG, JPG, GIF or WEBP images',
     'Banner tối đa 10MB':'Banner must be 10MB or less','Chỉ admin mới đổi được icon':'Only admins can change the icon','Icon phải là file PNG, tối đa 2MB':'The icon must be a PNG file, max 2MB',
     'Thiếu từ khoá tìm kiếm':'Missing search keyword','Không kết nối được YouTube Music':'Couldn’t connect to YouTube Music','YouTube Music trả về lỗi':'YouTube Music returned an error','YouTube Music trả dữ liệu lạ':'YouTube Music returned unexpected data',
-    'Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired',
-    'Không kết nối được YouTube':'Couldn’t connect to YouTube','YouTube từ chối yêu cầu':'YouTube rejected the request',
+    'Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired','Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại':'Not signed in to Google or the session expired – please sign in again',
+    'Server chưa cấu hình đăng nhập Google':'The server isn’t set up for Google sign-in','Không kết nối được YouTube':'Couldn’t connect to YouTube','YouTube từ chối yêu cầu':'YouTube rejected the request',
     'Chưa chọn playlist nào':'No playlist selected','Playlist không hợp lệ':'Invalid playlist','Server chưa cấu hình đăng nhập Discord':'The server isn’t set up for Discord sign-in',
     'Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence':'Unlink, then sign in with Discord again to grant Rich Presence permission',
     'Phiên Discord hết hạn, hãy hủy liên kết rồi đăng nhập Discord lại':'Your Discord session expired – unlink, then sign in with Discord again','Discord không trả token':'Discord didn’t return a token',
     'mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút':'every audio source is currently blocked by YouTube – try again in a few minutes','video không phát được':'this video can’t be played',
-    'Về tôi':'About',
-    'Dán link playlist':'Paste playlist links','Dán link playlist YouTube (mỗi link một dòng, tối đa 10). Playlist phải ở chế độ Công khai hoặc Không công khai – không cần đăng nhập.':'Paste YouTube playlist links (one per line, up to 10). The playlist must be Public or Unlisted – no sign-in needed.',
-    'Nhập playlist':'Import playlists','Hãy dán ít nhất một link playlist':'Paste at least one playlist link',
-    'Không thấy link playlist YouTube nào (link phải có dạng ...list=PL...)':'No YouTube playlist link found (the link must contain ...list=PL...)',
-    'Không đọc được playlist này – hãy chắc chắn playlist đang ở chế độ Công khai hoặc Không công khai':'Couldn’t read this playlist – make sure it’s set to Public or Unlisted'
+    'Về tôi':'About'
   };
 
   const plural=(n,a,b)=>n+' '+(+n===1?a:b);
@@ -922,6 +922,7 @@ html.android *{scroll-behavior:auto!important}
     [/^· Thích (.+) · Không thích (.+)$/,(m)=>'· Likes '+m[1]+' · Dislikes '+m[2]],
     [/^Nguồn: YouTube Music( · .+)?$/,(m)=>'Source: YouTube Music'+(m[1]||'')],
     [/^(.+) • (\d+) bài$/,(m)=>m[1]+' • '+plural(m[2],'song','songs')],
+    [/^Ngắt kết nối Google\?.*$/,()=>EN_EXACT['Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.']],
     [/^(Thích|Không thích) (\d.*)$/,(m)=>(m[1]==='Thích'?'Likes ':'Dislikes ')+m[2]]
   ];
 
@@ -1045,7 +1046,8 @@ const IC={
  lyrics:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
  dots:'<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
  note:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
- trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'
+ trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+ download:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>'
 };
 $('#sprite').innerHTML=Object.entries(IC).map(([k,v])=>`<symbol id="i-${k}" viewBox="0 0 24 24">${v}</symbol>`).join('');
 const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
@@ -1247,17 +1249,19 @@ function tracksHtml(list,inPl,name){
   if(!list.length) return '<p class="empty">Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.</p>';
   const k=reg(list,name);
   return list.map((t,i)=>{ const kk=key(t), f=favs.has(kk);
-    return `<div class="tr" data-l="${k}" data-i="${i}" data-tk="${esc(kk)}"><span class="n">${i+1}</span><div class="cvx"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><span class="pbtn">${ic('play','fill sm')}</span></div><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="ar">${esc(t.artist)}</div><span class="du">${t.dur?fmt(t.dur):''}</span><div class="ac"><button class="ico ${f?'on':''}" data-a="fav" title="Yêu thích">${ic('heart',f?'fill':'')}</button><button class="ico" data-a="add" title="Thêm vào playlist">${ic('plus')}</button>${inPl?`<button class="ico" data-a="rm" title="Xoá khỏi playlist">${ic('x')}</button>`:''}</div></div>`; }).join('');
+    return `<div class="tr" data-l="${k}" data-i="${i}" data-tk="${esc(kk)}"><span class="n">${i+1}</span><div class="cvx"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><span class="pbtn">${ic('play','fill sm')}</span></div><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="ar">${esc(t.artist)}</div><span class="du">${t.dur?fmt(t.dur):''}</span><div class="ac"><button class="ico ${f?'on':''}" data-a="fav" title="Yêu thích">${ic('heart',f?'fill':'')}</button><button class="ico" data-a="add" title="Thêm vào playlist">${ic('plus')}</button><button class="ico" data-a="dl" title="Tải nhạc">${ic('download')}</button>${inPl?`<button class="ico" data-a="rm" title="Xoá khỏi playlist">${ic('x')}</button>`:''}</div></div>`; }).join('');
 }
 function hero(title,sub,list,extra=''){
   const k=reg(list,title);
-  return `<div class="hero"><div class="hcol">${collage(list)}</div><div><small>${esc(sub)}</small><h2>${esc(title)}</h2><div class="hb"><button class="pri" data-hp="${k}" data-sh="0">${ic('play','fill sm')} Phát</button><button class="out" data-hp="${k}" data-sh="1">${ic('shuffle','sm')} Xáo trộn</button>${extra}</div></div></div>`;
+  return `<div class="hero"><div class="hcol">${collage(list)}</div><div><small>${esc(sub)}</small><h2>${esc(title)}</h2><div class="hb"><button class="pri" data-hp="${k}" data-sh="0">${ic('play','fill sm')} Phát</button><button class="out" data-hp="${k}" data-sh="1">${ic('shuffle','sm')} Xáo trộn</button><button class="out" data-hd="${k}">${ic('download','sm')} Tải tất cả</button>${extra}</div></div></div>`;
 }
 const sec=(id,title,kicker,more)=>`<section class="sec"><div class="sh"><div>${kicker?`<small>${esc(kicker)}</small>`:''}<h3>${esc(title)}</h3></div><div class="shr">${more||'<a class="more" hidden>Phát tất cả</a>'}<button class="nv" data-nv="-1" title="Cuộn trái">${ic('chev','flip sm')}</button><button class="nv" data-nv="1" title="Cuộn phải">${ic('chev','sm')}</button></div></div><div id="g${id}">${skel(7)}</div></section>`;
 
 $('#main').addEventListener('click',e=>{
   const hp=e.target.closest('[data-hp]');
   if(hp){ const l=lists[hp.dataset.hp]; if(l&&l.length) playList(hp.dataset.sh==='1'?shuffled(l):l,0,lnames[hp.dataset.hp]); return; }
+  const hd=e.target.closest('[data-hd]');
+  if(hd){ downloadAll(lists[hd.dataset.hd],lnames[hd.dataset.hd]); return; }
   const nv=e.target.closest('[data-nv]');
   if(nv){ const g=nv.closest('.sec').querySelector('.grid'); if(g) g.scrollBy({left:+nv.dataset.nv*g.clientWidth*.8}); return; }
   const go_=e.target.closest('[data-go]'); if(go_){ go(go_.dataset.go); return; }
@@ -1268,6 +1272,7 @@ $('#main').addEventListener('click',e=>{
   const ab=e.target.closest('[data-a]'), a=ab&&ab.dataset.a;
   if(a==='fav') toggleFav(t);
   else if(a==='add') addMenu(t,e);
+  else if(a==='dl') downloadTrack(t);
   else if(a==='rm') removeFromPl(t);
   else playList(list,i,lnames[el.dataset.l]);
 });
@@ -1530,6 +1535,7 @@ const pages={
   async settings(m){
     try{ Object.assign(S,await api('/api/settings')); }catch{}
     if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
+    if(cfg.google_login){ try{ gl=await api('/api/google/status'); }catch{} }
     const useSdk=sdkOn(), canRpc=!!cfg.discord_app_id&&dl.linked&&(useSdk||DESK);
     const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
     const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
@@ -1568,7 +1574,10 @@ const pages={
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
     <div class="sgrp"><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
-      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Dán link playlist YouTube (mỗi link một dòng, tối đa 10). Playlist phải ở chế độ Công khai hoặc Không công khai – không cần đăng nhập.</small></div><div class="sinp v"><textarea id="ytUrls" rows="3" placeholder="https://www.youtube.com/playlist?list=PL…" style="width:100%;background:var(--hover);outline:1px solid var(--line);border:0;border-radius:12px;padding:10px 14px;color:var(--text);font:inherit;resize:vertical"></textarea><div><button class="pri" id="ytGo">Nhập playlist</button></div></div><small id="ytMsg" class="smsg"></small></div>
+      ${cfg.google_login
+        ?row('Đăng nhập Google',gl.linked?'Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.',`<span class="sbadge" id="gSt">${gl.linked?'Đã kết nối':'Chưa kết nối'}</span>`,'btn','gBtn')
+        :row('Đăng nhập Google','Đăng nhập Google để nhập playlist từ YouTube','<span class="sbadge">Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
+      ${cfg.google_login&&gl.linked?`<div class="srow col"><div class="sx"><b>Playlist của bạn trên YouTube</b><small>Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div><button class="pri" id="ytLoad">Tải danh sách playlist</button></div><div class="ytl" id="ytList"></div><small id="ytMsg" class="smsg"></small></div>`:''}
     </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${cfg.discord_login
@@ -1653,13 +1662,29 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
-    /* ---- Nhập playlist từ YouTube bằng link (playlist công khai, không cần đăng nhập) ---- */
-    if($('#ytGo')) $('#ytGo').onclick=async()=>{ const msg=$('#ytMsg'), urls=$('#ytUrls').value.trim(), b=$('#ytGo');
-      if(!urls){ msg.textContent='Hãy dán ít nhất một link playlist'; return; }
-      b.disabled=true; msg.textContent='Đang nhập… (playlist dài có thể mất vài chục giây)';
-      try{ const x=await api('/api/yt-import/url',{json:{urls}}); msg.textContent=`Đã nhập ${x.playlists} playlist, ${x.tracks} bài ✔`; $('#ytUrls').value=''; await loadPlaylists(); }
-      catch(e){ if(e.message!=='401') msg.textContent=e.message; }
-      b.disabled=false; };
+    /* ---- Nhập playlist từ YouTube (đăng nhập Google, chỉ quyền đọc) ---- */
+    if($('#gBtn')) act('gBtn',async()=>{ try{
+      if(gl.linked){
+        if(!(await askConfirm('Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.','Ngắt kết nối'))) return;
+        await api('/api/google/link',{method:'DELETE'}); gl={linked:false}; notify('Đã ngắt kết nối Google'); go('settings');
+      }else{
+        const ext=!!window.MuseNative; if(ext) gPending=true;   /* Android: Google chặn WebView nên mở bằng trình duyệt ngoài */
+        const r=await api('/api/google/link',{json:{ext}}); location.href=r.url;
+      }
+    }catch(e){ if(e.message!=='401') notify(e.message); } });
+    if($('#ytLoad')) $('#ytLoad').onclick=async()=>{ const box=$('#ytList'), msg=$('#ytMsg'); msg.textContent='Đang tải…';
+      try{
+        const ps=(await api('/api/yt-import/playlists')).playlists||[];
+        if(!ps.length){ msg.textContent='Không thấy playlist nào trong tài khoản này'; box.innerHTML=''; return; }
+        msg.textContent='';
+        box.innerHTML=ps.map((p,i)=>`<label class="yti"><input type="checkbox" data-i="${i}"><img src="${esc(p.image||'/icon-192.png')}" alt="" loading="lazy"><span><b>${esc(p.title)}</b><small>${p.count!=null?p.count+' bài':'YouTube'}</small></span></label>`).join('')+'<div><button class="pri" id="ytGo">Nhập đã chọn</button></div>';
+        $('#ytGo').onclick=async()=>{ const sel=[...box.querySelectorAll('input:checked')].map(c=>ps[+c.dataset.i]);
+          if(!sel.length){ msg.textContent='Hãy chọn ít nhất một playlist'; return; }
+          const go2=$('#ytGo'); go2.disabled=true; msg.textContent='Đang nhập… (playlist dài có thể mất vài chục giây)';
+          try{ const x=await api('/api/yt-import/import',{json:{items:sel.map(p=>({id:p.id,title:p.title}))}}); msg.textContent=`Đã nhập ${x.playlists} playlist, ${x.tracks} bài ✔`; await loadPlaylists(); }
+          catch(e){ if(e.message!=='401') msg.textContent=e.message; }
+          go2.disabled=false; };
+      }catch(e){ if(e.message!=='401') msg.textContent=e.message; } };
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
@@ -2149,6 +2174,66 @@ $('#bShuf').onclick=()=>{ shuf=!shuf; $('#bShuf').classList.toggle('on',shuf); $
 const REP=['Lặp lại: tắt','Lặp danh sách','Lặp một bài'];
 $('#bMode').onclick=()=>{ rep=(rep+1)%3; setIc($('#bMode'),rep===2?'repeat1':'repeat'); $('#bMode').classList.toggle('on',rep>0); $('#bMode').title=REP[rep]; };
 $('#bFav').onclick=$('#npFav').onclick=()=>cur&&toggleFav(cur);
+/* ===== Tải nhạc về máy ===== */
+const dlBusy=new Set();
+const blobB64=b=>new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b); });
+const DL_MIME={mp3:'audio/mpeg',webm:'audio/webm',m4a:'audio/mp4',mp4:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',flac:'audio/flac',aac:'audio/aac'};
+/* App Android (WebView) không tự lưu được file blob -> gửi từng đoạn sang native để ghi vào Music/BBeat */
+async function nativeSave(name,mime,blob){
+  const N=window.MuseNative, bad=r=>{ if(r) throw new Error(String(r).replace(/^err:/,'')); };
+  bad(N.saveBegin(name,mime));
+  try{ for(let o=0;o<blob.size;o+=786432) bad(N.saveChunk(await blobB64(blob.slice(o,o+786432)))); N.saveEnd(true); }
+  catch(x){ try{N.saveEnd(false)}catch{} throw x; }
+}
+async function downloadTrack(t,quiet){
+  if(!t) return false;
+  const safe=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,120)||'bai-hat';
+  const save=async(blob,ext)=>{ if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(safe+'.'+ext,DL_MIME[ext]||'audio/mp4',blob); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=safe+'.'+ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000); };
+  const k=key(t); if(dlBusy.has(k)){ if(!quiet) notify('Bài này đang được tải…'); return false; }
+  dlBusy.add(k);
+  try{
+    if(t.src!=='yt'){
+      if(!t.url) throw new Error('Bài này không có file để tải');
+      if(!quiet) notify('Đang tải: '+(t.title||'')+'…');
+      const r=await fetch(t.url); if(!r.ok) throw new Error('HTTP '+r.status);
+      const b=await r.blob(); await save(b,(/\.(\w{2,4})(\?|$)/.exec(t.url)||[])[1]||'mp3'); if(!quiet) notify('Đã tải xong'); return true;
+    }
+    if(!quiet) notify('Đang tải: '+(t.title||'')+'…');
+    const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
+    const parts=[]; let pos=0,total=0,mime='';
+    for(;;){
+      let r=null;
+      for(let tr=0;tr<3;tr++){
+        try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
+        catch(e){ if(tr===2) throw e; await new Promise(z=>setTimeout(z,800)); }
+      }
+      const b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng');
+      mime=r.headers.get('content-type')||mime;
+      const cr=r.headers.get('content-range');
+      total=(r.status===206&&cr)?(+cr.split('/')[1]||0):b.size;
+      parts.push(b); pos+=b.size;
+      if(r.status!==206||pos>=total) break;
+    }
+    const ext=/webm/i.test(mime)?'webm':'m4a';
+    await save(new Blob(parts,{type:mime||'audio/mp4'}),ext); if(!quiet) notify('Đã tải xong: '+(t.title||'')); return true;
+  }catch(e){ if(!quiet) notify('Không tải được: '+(e&&e.message||e)); return false; }
+  finally{ dlBusy.delete(k); }
+}
+let dlAllBusy=false;
+async function downloadAll(list,name){
+  list=(list||[]).filter(Boolean); if(!list.length){ notify('Không có bài nào để tải'); return; }
+  if(dlAllBusy){ notify('Đang tải danh sách, vui lòng chờ…'); return; }
+  if(!(await askConfirm('Tải '+list.length+' bài trong "'+(name||'danh sách')+'" về máy?','Tải về'))) return;
+  dlAllBusy=true; let ok=0, fail=0;
+  try{
+    for(let i=0;i<list.length;i++){
+      notify('Đang tải '+(i+1)+'/'+list.length+': '+(list[i].title||'')+'…');
+      (await downloadTrack(list[i],true))?ok++:fail++;
+    }
+  } finally{ dlAllBusy=false; }
+  notify('Đã tải xong '+ok+'/'+list.length+' bài'+(fail?' ('+fail+' bài lỗi)':''));
+}
+$('#npDl').onclick=()=>cur&&downloadTrack(cur);
 $('#bClose').onclick=()=>{ if(cur){ setPlaying(false); if(ytReady){ try{yt.stopVideo()}catch{} } } audYt.pause(); cur=null; playing=false; lyrLines=null; sbSegs=[]; updateBar(); };
 $('#seek').onpointerdown=()=>seeking=true;
 $('#seek').oninput=e=>e.target.style.setProperty('--p',e.target.value/10+'%');
@@ -2353,6 +2438,8 @@ const cachedPlaylist=id=>{ try{ return JSON.parse(LS.get(plTkKey(id),'null')); }
 /* ===== Discord Rich Presence (qua app desktop Tauri) ===== */
 const DESK=!!(window.__TAURI__&&window.__TAURI__.core)&&!/Android/i.test(navigator.userAgent);
 const dc={user:'',timer:0};
+let gl={linked:false};   /* đăng nhập Google chỉ để nhập playlist YouTube */
+let gPending=false;
 let dl={linked:false,name:'',sdk:false};   /* tài khoản Discord đã liên kết (OAuth) */
 const dInvoke=(c,a)=>DESK?window.__TAURI__.core.invoke(c,a):Promise.reject(new Error('Chỉ có trên app desktop'));
 /* Discord Social SDK: Rich Presence bằng token OAuth, không cần mở app Discord (app desktop + app Android bản mới) */
@@ -2423,6 +2510,11 @@ async function start(u){
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
+  { const gp=new URLSearchParams(location.search).get('google');
+    if(gp){ history.replaceState(null,'',location.pathname);
+      if(gp==='ok'){ notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } else notify('Kết nối Google thất bại, hãy thử lại'); } }
+  document.addEventListener('visibilitychange',async()=>{ if(document.hidden||!gPending) return; gPending=false;
+    try{ const s=await api('/api/google/status'); if(s.linked){ gl=s; notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } }catch{} });
   await syncClock(6); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
