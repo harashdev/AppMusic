@@ -65,7 +65,7 @@ body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custo
 /* sidebar */
 #side{display:flex;flex-direction:column;padding:12px}
 .ni{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:999px;cursor:pointer;color:var(--text);white-space:nowrap;user-select:none}
-.navLib{display:none}
+.navLib{display:none}.navFr{display:none}#roomBar{display:none}
 .ni:hover{background:var(--hover)}.ni.act{background:var(--hover2);color:var(--accent);font-weight:600}
 .sep{height:1px;background:var(--line);margin:12px 8px}
 .libh{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;font-weight:600;font-size:15px}
@@ -424,9 +424,9 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  #topChips{order:5;flex:0 0 100%;width:100%;padding:2px 0}
  #top .rb{width:40px;height:40px}
  #meAv .av,#meAv img{width:40px;height:40px}
- #main{padding:6px 16px calc(150px + env(safe-area-inset-bottom));scrollbar-width:none}
+ #main{padding:6px 16px calc(190px + env(safe-area-inset-bottom));scrollbar-width:none}
  #main::-webkit-scrollbar{display:none}
- body.has-cur #main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+ body.has-cur #main{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
  #main h2{font-size:28px;margin:6px 0 14px}
  .sec{margin-top:18px}
  .sh h3{font-size:20px}.sh small{font-size:11px}
@@ -463,13 +463,18 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  #side .sep,#side .libh,#side #libQrow,#side #lib{display:none}
  #side .ni,body.side-min #side .ni{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:4px 0;border-radius:14px;font-size:11px;font-weight:500;background:none;color:var(--sub)}
  #side .navLib{display:flex}
+ #side .navFr{display:flex}
+ #side{flex-wrap:wrap}
+ #side #roomBar{display:flex;order:9;flex:0 0 100%;justify-content:center;align-items:center;gap:6px;margin-top:6px;padding:8px 12px;border-radius:999px;background:var(--hover2);color:var(--text);font-size:13px}
+ #side #roomBar:empty{display:none}
+ #roomInfo{display:none!important}
  #side .ni span,body.side-min #side .ni span{display:block;font-size:11px;line-height:1.1}
  #side .ni>i{display:flex;align-items:center;justify-content:center;width:58px;height:30px;border-radius:999px;transition:background .2s}
  #side .ni.act{background:none;color:var(--text);font-weight:600}
  #side .ni.act>i{background:color-mix(in srgb,var(--accent) 30%,transparent);color:var(--accent)}
  #side .ni:hover{background:none}
  /* mini player nổi trên thanh điều hướng */
- #bar{left:8px;right:8px;width:auto;max-width:none;margin:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:8px 10px 12px;gap:6px;grid-template-columns:minmax(0,1fr) auto;border-radius:18px;z-index:26}
+ #bar{left:8px;right:8px;width:auto;max-width:none;margin:0;bottom:calc(112px + env(safe-area-inset-bottom));padding:8px 10px 12px;gap:6px;grid-template-columns:minmax(0,1fr) auto;border-radius:18px;z-index:26}
  #bar .bm{order:1;min-width:0}
  #bar .bc{order:2;gap:0}
  #bar #bShuf,#bar #bPrev,#bar #bMode,#bar .br{display:none}
@@ -552,9 +557,11 @@ html.android *{scroll-behavior:auto!important}
   <nav id="side" class="pnl">
     <div class="ni" data-p="home" tabindex="0"><i data-ic="home" data-f="1"></i><span>Trang chủ</span></div>
     <div class="ni" data-p="mix" tabindex="0"><i data-ic="radio"></i><span>Mix</span></div>
+    <div class="ni navFr" data-p="friends" tabindex="0"><i data-ic="userplus"></i><span>Bạn bè</span></div>
     <div class="ni" data-p="search" tabindex="0"><i data-ic="search"></i><span>Tìm kiếm</span></div>
     <div class="ni navLib" data-p="library" tabindex="0"><i data-ic="library"></i><span>Thư viện</span></div>
     <div class="sep"></div>
+    <button id="roomBar" class="roompill"></button>
     <div class="libh">
       <div class="t"><i data-ic="library"></i><span>Thư viện của bạn</span></div>
       <button class="ico" id="libSbtn" title="Lọc thư viện"><i data-ic="search"></i></button>
@@ -1307,7 +1314,7 @@ const pages={
 };
 async function go(p,arg,keep){
   page=p; document.querySelectorAll('.ni,.li').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
-  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','friends','playlist'].includes(p)); }
+  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','playlist'].includes(p)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
   try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
@@ -1333,6 +1340,7 @@ document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p)
 $('#gear').onclick=()=>go('settings');
 $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},$('#meAv'),true); };
 $('#roomInfo').onclick=()=>go('together');
+$('#roomBar').onclick=()=>go('together');
 $('#sbFriends').onclick=async e=>{
   const row=e.target.closest('.sbf'); if(!row) return; const id=+row.dataset.id; const f=fmap.get(id); if(!f) return;
   if(e.target.closest('button')){ e.stopPropagation(); try{ await api('/api/invite',{json:{friend_id:id,room}}); notify('Đã gửi lời mời tới '+f.display_name); }catch(er){ notify(er.message); } return; }
@@ -1406,7 +1414,7 @@ async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${enco
 function connect(){
   if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
     if(!p.get('room')) history.replaceState(null,'','?room='+room);
-    const r=$('#roomInfo'); r.style.display=''; r.innerHTML=ic('users','sm')+' Phòng '+esc(room); $('#roomSub').textContent='Phòng '+room; }
+    setRoomUi(room); }
   ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?token='+encodeURIComponent(token));
   ws.onopen=()=>send({type:'hello'});
   ws.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
@@ -1434,6 +1442,11 @@ function onMsg(m){
 function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
 async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{await askText('Link phòng',url)} }
 const fmap=new Map();
+function setRoomUi(r){
+  const ri=$('#roomInfo'); if(ri){ ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); }
+  const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users','sm')+' Phòng '+esc(r);
+  const sub=$('#roomSub'); if(sub) sub.textContent='Phòng '+r;
+}
 function parseRoom(v){
   v=(v||'').trim(); if(!v) return '';
   try{ const u=new URL(v); v=u.searchParams.get('room')||''; }catch{ const mm=v.match(/[?&]room=([^&#\s]+)/); if(mm) v=decodeURIComponent(mm[1]); }
@@ -1444,7 +1457,7 @@ function switchRoom(r){
   if(ws){ ws.onclose=null; ws.onmessage=null; try{ ws.close(); }catch{} }
   room=r; leader=false; chatLog.length=0;
   history.replaceState(null,'','?room='+encodeURIComponent(r));
-  const ri=$('#roomInfo'); ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); $('#roomSub').textContent='Phòng '+r;
+  setRoomUi(r);
   connect();
   if(page==='together') go('together',null,true);
   notify('Đã tham gia phòng '+r);
