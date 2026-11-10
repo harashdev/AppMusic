@@ -26,14 +26,29 @@ jobs:
       - name: Build (release)
         run: cargo build --release
 
-      # Gói sẵn: muse-server.exe + static/ + start-muse.bat (server đọc thư mục static cạnh nơi chạy).
+      # Gói sẵn đầy đủ: muse-server.exe + static/ + start-muse.bat + deno.exe + yt-dlp.exe + data/
       - name: Đóng gói
         shell: bash
         run: |
-          mkdir -p dist
+          mkdir -p dist/data
           cp target/release/muse-server.exe dist/
           cp -r static dist/static
           cp start-muse.bat dist/
+          # artifact không giữ thư mục rỗng nên thêm một file ghi chú vào data/
+          echo "Thư mục lưu dữ liệu Muse (tài khoản, playlist, ảnh). Đừng xoá khi cập nhật server." > dist/data/README.txt
+
+      # Tải sẵn yt-dlp và deno để chạy ngay, không phải tải lúc mở start-muse.bat lần đầu.
+      - name: Tải sẵn yt-dlp và deno
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile "dist/yt-dlp.exe"
+          Invoke-WebRequest "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip" -OutFile "deno.zip"
+          Expand-Archive -Force "deno.zip" -DestinationPath "dist"
+          Remove-Item "deno.zip"
+          foreach ($f in "muse-server.exe","yt-dlp.exe","deno.exe","start-muse.bat","static/index.html") {
+            if (-not (Test-Path "dist/$f")) { throw "Thiếu dist/$f" }
+          }
+          Get-ChildItem dist -Recurse | Select-Object FullName, Length
 
       - uses: actions/upload-artifact@v4
         with:
