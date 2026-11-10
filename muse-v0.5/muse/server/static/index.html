@@ -1317,10 +1317,17 @@ pages.library=function(m){
   const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
   m.innerHTML=`<h2>Thư viện</h2><div class="libL">${T.map(([k,i,t,sub,bg,fg,f])=>li(`data-p="${k}"`,`<div class="tile" style="background:${bg};color:${fg}">${ic(i,f?'fill':'')}</div>`,t,sub)).join('')}</div>
     <div class="sh" style="margin-top:22px"><h3>Danh sách phát</h3><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
-    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${ic('note')}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>`;
+    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${ic('note')}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
+    <div class="sh" style="margin-top:22px"><h3>Bạn bè</h3><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
   m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   $('#libNew').onclick=()=>$('#newPl').click();
+  $('#libFrGo').onclick=()=>go('friends');
+  api('/api/friends').then(list=>{
+    const box=$('#libFr'); if(!box) return; list.sort((a,b)=>(b.online-a.online)||a.display_name.localeCompare(b.display_name)); list.forEach(f=>fmap.set(f.id,f));
+    box.innerHTML=list.map(f=>`<div class="li" data-fid="${f.id}" tabindex="0">${avU(f)}<div class="meta"><b>${esc(f.display_name)}</b><span><span class="dot ${f.online?'on':''}" style="margin:0 6px 0 0"></span>${f.online?'Đang online':'Offline'}</span></div></div>`).join('')||'<p class="empty">Chưa có bạn bè nào.</p>';
+    box.onclick=e=>{ const r=e.target.closest('[data-fid]'); if(!r) return; const f=fmap.get(+r.dataset.fid); if(f){ e.stopPropagation(); showProfilePop(f,r); } };
+  }).catch(()=>{});
 };
 document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
 $('#gear').onclick=()=>go('settings');
