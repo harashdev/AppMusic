@@ -72,64 +72,7 @@ Put your screenshots in a `docs/` folder, then remove this comment and use a tab
 
 > Pre-built files are published in [**Releases**](https://github.com/harashdev/appmusic/releases) when available. You can also build them yourself with GitHub Actions (see [Build](#build)).
 
-| Platform | How to get it |
-| --- | --- |
-| **Server** (Windows) | Run the **Build server** workflow, or download the packaged `muse-server` from Releases |
-| **Desktop** (Windows) | Run the **Build desktop** workflow, or download the installer from Releases |
-| **Android** | Run the **Build Android** workflow, or download the APK from Releases |
-| **Web** | Open your server's address in any modern browser (installable as a PWA) |
 
-The desktop and Android apps are thin clients: they connect to a BBeat server, so you need one running somewhere.
-
-## Run the server
-
-Requirements: [Rust](https://rustup.rs) (stable). Optional but recommended: [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [Deno](https://deno.com), which help when YouTube blocks audio streams.
-
-```bash
-git clone https://github.com/harashdev/appmusic.git
-cd appmusic/muse-v0.5/muse/server
-cargo run --release        # http://localhost:3000
-```
-
-Data lives in `data/` (SQLite in WAL mode plus uploaded avatars and banners). When you back up, copy the **whole** `data/` folder.
-
-To expose it to friends, put it behind HTTPS (Caddy or Nginx). HTTPS is needed for secure WebSockets and for the YouTube player. A `Dockerfile`, `docker-compose.yml` and `Caddyfile` are included in `server/`, and on Windows you can use `start-muse.bat`.
-
-### Configuration
-
-All settings are optional environment variables:
-
-| Variable | Purpose |
-| --- | --- |
-| `DONATE_URL` | Link shown on the Donate button (defaults to the author's Ko-fi) |
-| `PUBLIC_URL` | Public address of your server, e.g. `https://muse.example.com` (needed for Discord sign-in) |
-| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | Discord application, enables account linking and Rich Presence |
-| `YT_PROXY` | HTTP or SOCKS5 proxy for YouTube requests |
-| `YTDLP_PATH` / `YT_COOKIES` / `YT_BROWSER` | yt-dlp location and cookies, to get past "Sign in to confirm you're not a bot" |
-| `ADMIN_USER` / `ADMIN_PASS` | Create or promote an admin account |
-
-More details (in Vietnamese) are in [`muse-v0.5/muse/README.md`](muse-v0.5/muse/README.md).
-
-## Build
-
-```
-muse-v0.5/muse/
-├─ server/    Axum + SQLite server and the web interface (static/index.html)
-├─ desktop/   Tauri v2 desktop app
-├─ android/   Android app (WebView + background playback service)
-└─ native/    Native Discord Rich Presence helper
-```
-
-**GitHub Actions (easiest).** Fork the repo, then go to *Settings → Secrets and variables → Actions → Variables* and add `MUSE_URL` with your server's address. Run the workflows from the *Actions* tab and download the files from the run's **Artifacts**.
-
-**Desktop, locally**
-```bash
-cargo install tauri-cli --version "^2"
-cd muse-v0.5/muse/desktop/src-tauri
-MUSE_URL=https://muse.example.com cargo tauri build
-```
-
-**Android, locally.** Open `muse-v0.5/muse/android` in Android Studio, or run `gradle assembleDebug` (JDK 17, Android SDK 34).
 
 ## Contributing
 
