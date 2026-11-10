@@ -1,0 +1,52 @@
+name: Build Android (Muse)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "muse-v0.5/muse/android/**"
+      - ".github/workflows/build-android.yml"
+
+jobs:
+  build-android:
+    # App Android native (Kotlin + Jetpack Compose + Media3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Địa chỉ server gắn sẵn vào app. Đổi bằng Settings → Variables → MUSE_URL, hoặc sửa dòng dưới.
+      MUSE_URL: ${{ vars.MUSE_URL || 'https://desktop-p2k8jsq.taild7d743.ts.net' }}
+    defaults:
+      run:
+        working-directory: muse-v0.5/muse/android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build APK (debug-signed, cài thẳng được)
+        run: gradle --no-daemon --stacktrace assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: muse-android
+          path: muse-v0.5/muse/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload build reports (khi lỗi)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-reports
+          path: muse-v0.5/muse/android/app/build/reports
+          if-no-files-found: ignore

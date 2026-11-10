@@ -3,6 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>
+/* App Android (WebView có "MuseAndroid" trong User-Agent): mặc định hiển thị đúng giao diện máy tính.
+   Bố cục máy tính bật ở viewport >=1100px nên ép viewport 1100px rồi để WebView tự thu nhỏ cho vừa màn hình.
+   Có thể đổi lại giao diện điện thoại trong Cài đặt. Xoay ngang màn hình sẽ to và dễ bấm hơn. */
+(function(){
+  var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a;
+  var m='pc'; try{ m=localStorage.getItem('uimode')||'pc'; }catch(e){}
+  window.UI_PC=a&&m==='pc';
+  if(window.UI_PC){
+    var v=document.querySelector('meta[name=viewport]');
+    if(v) v.setAttribute('content','width=1100,user-scalable=yes,minimum-scale=0.1,maximum-scale=3');
+    document.documentElement.classList.add('ui-pc');
+  }
+})();
+</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -384,6 +399,10 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
 .fxp input[type=range]{-webkit-appearance:auto;appearance:auto;accent-color:var(--accent);background:none;height:20px;padding:0;border:0}
 .fxp input[type=range]::-webkit-slider-runnable-track,.fxp input[type=range]::-webkit-slider-thumb{all:revert}
 .eqcv{display:block;width:100%;height:260px;margin-top:14px;touch-action:none;cursor:ns-resize}
+.ui-pc{-webkit-text-size-adjust:100%;touch-action:manipulation}
+.ui-pc body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+.ui-pc input,.ui-pc textarea{-webkit-user-select:text;user-select:text}
+.ui-pc #main,.ui-pc #side,.ui-pc #np{-webkit-overflow-scrolling:touch}
 /* ===== điện thoại (≤700px): thanh điều hướng dưới, thanh nhạc nổi, Đang phát toàn màn hình ===== */
 @media(max-width:700px){
  html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
@@ -950,6 +969,7 @@ const pages={
   },
   async settings(m){
     try{ Object.assign(S,await api('/api/settings')); }catch{}
+    const canRpc=DESK&&!!cfg.discord_app_id&&dl.linked;
     const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
     const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
     m.innerHTML=`<h2>Cài đặt</h2><div class="setL">
@@ -958,6 +978,7 @@ const pages={
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
         <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
     </div></div>
+    ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng bố cục điện thoại. Xoay ngang màn hình để chữ to hơn.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
       ${row('Giữ danh sách phát YouTube của bạn hiển thị khi offline','Lưu danh sách phát lại và hiển thị khi offline',tog('tOff',S.offline_pl))}
@@ -984,10 +1005,13 @@ const pages={
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
+      ${cfg.discord_login
+        ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
+        :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
       ${DESK&&cfg.discord_app_id
         ?row('Kết nối Discord','Kết nối với ứng dụng Discord đang mở trên máy này (không cần nhập mật khẩu)',`<span class="sbadge" id="dcSt">${dc.user?'Đã kết nối: '+esc(dc.user):'Chưa kết nối'}</span>`,'btn','dcBtn')
         :row('Kết nối Discord','Kết nối với ứng dụng Discord đang mở trên máy',`<span class="sbadge">${DESK?'Server chưa đặt DISCORD_CLIENT_ID':'Chỉ có trên app desktop'}</span>`,'dis')}
-      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(DESK&&cfg.discord_app_id?'':'<span class="sbadge">'+(DESK?'Cần DISCORD_CLIENT_ID':'Chỉ có trên app desktop')+'</span>')+tog('tDc',S.discord_rpc&&DESK&&!!cfg.discord_app_id,!(DESK&&cfg.discord_app_id)),DESK&&cfg.discord_app_id?'':'dis')}
+      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!DESK?'Chỉ có trên app desktop':!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':'Cần đăng nhập Discord')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}
     </div></div>
     <div class="sgrp"><div class="sgh">Sao lưu</div><div class="scard">
       ${row('Sao lưu','Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON','','btn','bkUp')}
@@ -1051,6 +1075,18 @@ const pages={
     [['dMs','delay_ms'],['dFb','delay_fb'],['dMix','delay_mix'],['rMix','reverb_mix']].forEach(([id,k])=>{ const el=$('#'+id); el.oninput=()=>live(k,+el.value); el.onchange=()=>setS(k,+el.value); });
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
+    if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
+    /* ---- Đăng nhập Discord (OAuth) ---- */
+    if($('#dlBtn')) act('dlBtn',async()=>{ try{
+      if(dl.linked){
+        if(!confirm('Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.')) return;
+        await api('/api/discord/link',{method:'DELETE'});
+        dl={linked:false,name:''}; S.discord_rpc=false; dc.user=''; if(DESK) dInvoke('discord_clear').catch(()=>{});
+        notify('Đã hủy liên kết Discord'); go('settings');
+      }else{
+        const r=await api('/api/discord/link',{method:'POST'}); location.href=r.url;
+      }
+    }catch(e){ if(e.message!=='401') notify(e.message); } });
     /* ---- Discord Rich Presence (chỉ app desktop) ---- */
     if($('#dcBtn')) act('dcBtn',async()=>{ try{ const u=await discordConnect(); $('#dcSt').textContent='Đã kết nối: '+u; notify('Đã kết nối Discord'); }catch(e){ notify(String(e&&e.message||e)); } });
     if($('#tDc')) $('#tDc').onchange=async e=>{ const on=e.target.checked;
@@ -1604,12 +1640,14 @@ const cachedPlaylists=()=>{ try{ return JSON.parse(LS.get(plKey(),'null')); }cat
 const cachedPlaylist=id=>{ try{ return JSON.parse(LS.get(plTkKey(id),'null')); }catch{ return null; } };
 
 /* ===== Discord Rich Presence (qua app desktop Tauri) ===== */
-const DESK=!!(window.__TAURI__&&window.__TAURI__.core);
+const DESK=!!(window.__TAURI__&&window.__TAURI__.core)&&!/Android/i.test(navigator.userAgent);
 const dc={user:'',timer:0};
+let dl={linked:false,name:''};   /* tài khoản Discord đã liên kết (OAuth) */
 const dInvoke=(c,a)=>DESK?window.__TAURI__.core.invoke(c,a):Promise.reject(new Error('Chỉ có trên app desktop'));
 async function discordConnect(){
   if(!DESK) throw new Error('Chỉ có trên app desktop');
   if(!cfg.discord_app_id) throw new Error('Server chưa đặt DISCORD_CLIENT_ID');
+  if(!dl.linked) throw new Error('Hãy đăng nhập Discord để liên kết tài khoản trước');
   try{ dc.user=await dInvoke('discord_connect',{appId:cfg.discord_app_id}); }
   catch(e){ dc.user=''; throw new Error('Không kết nối được Discord – hãy mở ứng dụng Discord trên máy này rồi thử lại'); }
   pushPresence(); return dc.user;
@@ -1631,13 +1669,17 @@ async function start(u){
   applyUser(u);
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
   try{ cfg=await api('/api/config'); }catch{}
+  if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
   if(cfg.donate_url){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>window.open(cfg.donate_url,'_blank','noopener'); }
   try{ Object.assign(S,await api('/api/settings')); }catch{ try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{} }
   LS.set('muse_s',JSON.stringify(S));
   try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); }catch{}
   try{ await loadPlaylists(); }catch{}
-  if(DESK&&S.discord_rpc&&cfg.discord_app_id) discordConnect().catch(()=>{});
+  if(DESK&&S.discord_rpc&&cfg.discord_app_id&&dl.linked) discordConnect().catch(()=>{});
   applyVol(); restorePlayState(); go('home');
+  { const dp=new URLSearchParams(location.search).get('discord');
+    if(dp){ history.replaceState(null,'',location.pathname);
+      if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
   await syncClock(6); connect(); connectUser();
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);

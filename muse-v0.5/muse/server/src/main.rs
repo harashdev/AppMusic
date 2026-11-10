@@ -9,7 +9,7 @@ use axum::{
         DefaultBodyLimit, Path, Query, State,
     },
     http::{header, HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Json, Router,
 };
@@ -184,9 +184,17 @@ fn init_db(path: &std::path::Path) -> Connection {
         "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN crop TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN settings TEXT NOT NULL DEFAULT '{}'",
+        "ALTER TABLE users ADD COLUMN discord_id TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_name TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_avatar TEXT NOT NULL DEFAULT ''",
     ] {
         let _ = db.execute(ddl, []);
     }
+    // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Discord OAuth2.
+    let _ = db.execute(
+        "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+        [],
+    );
     // Dọn dữ liệu SoundCloud cũ (nguồn "sc" đã bị gỡ).
     for t in ["favorites", "history", "playlist_tracks"] {
         let _ = db.execute(&format!("DELETE FROM {t} WHERE track_key LIKE 'sc:%'"), []);
@@ -293,6 +301,9 @@ async fn main() {
         .route("/api/account/name", post(account_name))
         .route("/api/account/password", post(account_password))
         .route("/api/settings", get(settings_get).post(settings_set))
+        .route("/api/discord/status", get(discord_status))
+        .route("/api/discord/link", post(discord_link).delete(discord_unlink))
+        .route("/api/discord/callback", get(discord_callback))
         .route("/api/backup", get(backup_export))
         .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
@@ -340,6 +351,7 @@ async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "proxy_available": st.http_proxy.is_some(),
         "discord_app_id": std::env::var("DISCORD_CLIENT_ID").unwrap_or_default(),
+        "discord_login": discord_cfg().is_some(),
     }))
 }
 
@@ -899,6 +911,14 @@ async fn settings_set(State(st): State<AppState>, headers: HeaderMap, Json(patch
     for (k, v) in patch {
         if BOOL_SETTINGS.contains(&k.as_str()) {
             let Some(b) = v.as_bool() else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
+            if k == "discord_rpc" && b {
+                let linked: String = db
+                    .query_row("SELECT discord_id FROM users WHERE id=?1", [u.id], |r| r.get(0))
+                    .unwrap_or_default();
+                if linked.is_empty() {
+                    return Err(bad("Hãy đăng nhập Discord để liên kết tài khoản trước"));
+                }
+            }
             cur.insert(k, json!(b));
         } else if let Some((_, lo, hi, _)) = NUM_SETTINGS.iter().find(|x| x.0 == k.as_str()) {
             let Some(n) = v.as_f64() else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
@@ -1781,4 +1801,160 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         st.audio.lock().unwrap().remove(&ckey);
     }
     (StatusCode::BAD_GATEWAY, format!("googlevideo từ chối: {notes}")).into_response()
+}
+
+
+// ===== Liên kết tài khoản Discord (OAuth2, scope "identify") =====
+// Cần 3 biến môi trường: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, PUBLIC_URL (vd. https://muse.example.com).
+// Trong discord.com/developers → OAuth2 → Redirects phải thêm đúng: {PUBLIC_URL}/api/discord/callback
+fn discord_cfg() -> Option<(String, String, String)> {
+    let id = std::env::var("DISCORD_CLIENT_ID").ok()?.trim().to_string();
+    let secret = std::env::var("DISCORD_CLIENT_SECRET").ok()?.trim().to_string();
+    let base = std::env::var("PUBLIC_URL").ok()?.trim().trim_end_matches('/').to_string();
+    if id.is_empty() || secret.is_empty() || !(base.starts_with("https://") || base.starts_with("http://")) {
+        return None;
+    }
+    Some((id, secret, format!("{base}/api/discord/callback")))
+}
+
+fn urlenc(s: &str) -> String {
+    let mut o = String::with_capacity(s.len() * 2);
+    for b in s.bytes() {
+        if b.is_ascii_alphanumeric() || b"-._~".contains(&b) {
+            o.push(b as char);
+        } else {
+            o.push_str(&format!("%{:02X}", b));
+        }
+    }
+    o
+}
+
+async fn discord_status(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let (id, name, avatar): (String, String, String) = db
+        .query_row("SELECT discord_id, discord_name, discord_avatar FROM users WHERE id=?1", [u.id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+        })
+        .map_err(|_| e500())?;
+    Ok(Json(json!({ "linked": !id.is_empty(), "name": name, "avatar": avatar })))
+}
+
+// Trả về URL đăng nhập Discord; client điều hướng tới đó. `state` dùng 1 lần, gắn với tài khoản đang đăng nhập.
+async fn discord_link(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Some((cid, _, redirect)) = discord_cfg() else {
+        return Err(bad("Server chưa cấu hình đăng nhập Discord"));
+    };
+    let state = new_token();
+    {
+        let db = st.db.lock().unwrap();
+        let _ = db.execute("DELETE FROM discord_states WHERE created_at < datetime('now','-10 minutes')", []);
+        db.execute("INSERT INTO discord_states(state,user_id) VALUES(?1,?2)", params![state, u.id])
+            .map_err(|_| e500())?;
+    }
+    let url = format!(
+        "https://discord.com/oauth2/authorize?response_type=code&client_id={}&scope=identify&redirect_uri={}&state={}",
+        urlenc(&cid),
+        urlenc(&redirect),
+        state
+    );
+    Ok(Json(json!({ "url": url })))
+}
+
+async fn discord_unlink(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET discord_id='', discord_name='', discord_avatar='' WHERE id=?1", [u.id])
+        .map_err(|_| e500())?;
+    // Hủy liên kết thì tắt luôn Rich Presence.
+    let mut cur = load_settings(&db, u.id);
+    cur.insert("discord_rpc".into(), json!(false));
+    let _ = db.execute(
+        "UPDATE users SET settings=?1 WHERE id=?2",
+        params![Value::Object(cur).to_string(), u.id],
+    );
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct DiscordCb {
+    code: Option<String>,
+    state: Option<String>,
+    error: Option<String>,
+}
+
+async fn discord_callback(State(st): State<AppState>, Query(q): Query<DiscordCb>) -> Response {
+    let back = |ok: bool| Redirect::to(if ok { "/?discord=ok" } else { "/?discord=err" }).into_response();
+    if q.error.is_some() {
+        return back(false);
+    }
+    let (Some(code), Some(state)) = (q.code, q.state) else { return back(false) };
+    let uid: Option<i64> = {
+        let db = st.db.lock().unwrap();
+        let r = db
+            .query_row(
+                "SELECT user_id FROM discord_states WHERE state=?1 AND created_at > datetime('now','-10 minutes')",
+                [&state],
+                |r| r.get(0),
+            )
+            .ok();
+        let _ = db.execute("DELETE FROM discord_states WHERE state=?1", [&state]);
+        r
+    };
+    let Some(uid) = uid else { return back(false) };
+    let Some((cid, secret, redirect)) = discord_cfg() else { return back(false) };
+
+    let body = format!(
+        "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&client_secret={}",
+        urlenc(&code),
+        urlenc(&redirect),
+        urlenc(&cid),
+        urlenc(&secret)
+    );
+    let tok: Value = match st
+        .http
+        .post("https://discord.com/api/oauth2/token")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return back(false),
+    };
+    let Some(access) = tok["access_token"].as_str() else { return back(false) };
+    let me: Value = match st.http.get("https://discord.com/api/users/@me").bearer_auth(access).send().await {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return back(false),
+    };
+    let id = me["id"].as_str().unwrap_or("");
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_digit()) {
+        return back(false);
+    }
+    let name: String = me["global_name"]
+        .as_str()
+        .filter(|s| !s.is_empty())
+        .or_else(|| me["username"].as_str())
+        .unwrap_or("Discord")
+        .chars()
+        .take(40)
+        .collect();
+    let avatar = match me["avatar"].as_str() {
+        Some(h) if !h.is_empty() && h.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') => {
+            format!("https://cdn.discordapp.com/avatars/{id}/{h}.png?size=64")
+        }
+        _ => String::new(),
+    };
+    let db = st.db.lock().unwrap();
+    if db
+        .execute(
+            "UPDATE users SET discord_id=?1, discord_name=?2, discord_avatar=?3 WHERE id=?4",
+            params![id, name, avatar, uid],
+        )
+        .is_err()
+    {
+        return back(false);
+    }
+    back(true)
 }
