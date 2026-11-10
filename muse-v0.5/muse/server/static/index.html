@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script>
-/* App Android (WebView có "MuseAndroid" trong User-Agent): mặc định hiển thị đúng giao diện máy tính.
+/* App Android (WebView có "MuseAndroid" trong User-Agent): mặc định dùng giao diện điện thoại; có thể chuyển sang giao diện máy tính trong Cài đặt.
    Bố cục máy tính bật ở viewport >=1100px nên ép viewport 1100px rồi để WebView tự thu nhỏ cho vừa màn hình.
-   Có thể đổi lại giao diện điện thoại trong Cài đặt. Xoay ngang màn hình sẽ to và dễ bấm hơn. */
+   Xoay ngang màn hình thì giao diện máy tính sẽ to và dễ bấm hơn. */
 (function(){
   var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a;
-  var m='pc'; try{ m=localStorage.getItem('uimode')||'pc'; }catch(e){}
+  var m='phone'; try{ m=localStorage.getItem('uimode')||'phone'; }catch(e){}
   window.UI_PC=a&&m==='pc';
   if(window.UI_PC){
     var v=document.querySelector('meta[name=viewport]');
@@ -64,6 +64,7 @@ body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custo
 /* sidebar */
 #side{display:flex;flex-direction:column;padding:12px}
 .ni{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:999px;cursor:pointer;color:var(--text);white-space:nowrap;user-select:none}
+.navLib{display:none}
 .ni:hover{background:var(--hover)}.ni.act{background:var(--hover2);color:var(--accent);font-weight:600}
 .sep{height:1px;background:var(--line);margin:12px 8px}
 .libh{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;font-weight:600;font-size:15px}
@@ -403,36 +404,102 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
 .ui-pc body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 .ui-pc input,.ui-pc textarea{-webkit-user-select:text;user-select:text}
 .ui-pc #main,.ui-pc #side,.ui-pc #np{-webkit-overflow-scrolling:touch}
-/* ===== điện thoại (≤700px): thanh điều hướng dưới, thanh nhạc nổi, Đang phát toàn màn hình ===== */
+/* ===== Giao diện điện thoại (≤700px): thanh điều hướng dưới, mini player nổi, Đang phát toàn màn hình ===== */
 @media(max-width:700px){
+ :root{--sw:0px;--nw:0px}
  html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
  input,select,textarea{font-size:16px}
- #app{height:100dvh;display:block;padding:0;gap:0}
+ button:hover{background:var(--hover2)}button.pri:hover{background:var(--accent)}button.ico:hover{background:none}
+ #app{display:block;height:100dvh;padding:0;gap:0}
  #center{border-radius:0;height:100dvh;display:flex;flex-direction:column}
- #top{padding-top:calc(8px + env(safe-area-inset-top))}
- #main{padding:8px 14px calc(96px + env(safe-area-inset-bottom))}
- body.has-cur #main{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
- #side{position:fixed;left:0;right:0;bottom:0;z-index:25;flex-direction:row;align-items:stretch;gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:color-mix(in srgb,var(--surf) 96%,#000);box-shadow:0 -6px 24px #0008}
- #side::-webkit-scrollbar{display:none}
- #side .sep,#side .libh,#side #libQrow{display:none}
- #lib,#plList{display:contents}
- #side .ni,#side .li{flex:0 0 auto;min-width:64px;max-width:84px;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:6px 6px;border-radius:12px;font-size:11px;text-align:center}
- #side .ni span{display:block;font-size:11px}
- #side .li .meta{display:block;min-width:0;max-width:100%}
- #side .li .meta span{display:none}
- #side .li .meta b{display:block;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- #side .tile{width:28px;height:28px;border-radius:8px}
- #side .tile img{width:100%;height:100%;object-fit:cover}
- #bar{left:8px;right:8px;width:auto;max-width:none;margin:0;bottom:calc(68px + env(safe-area-inset-bottom));padding:8px 12px;gap:10px;grid-template-columns:minmax(0,1fr) auto;border-radius:18px}
- #bar .bm{order:1;min-width:0}#bar .bc{order:2}#bar .br{display:none}
- #bar .bc{gap:2px}
- body.has-np #bar{bottom:calc(8px + env(safe-area-inset-bottom));z-index:40}
- #np{left:0;right:0;top:0;bottom:0;width:auto;height:100dvh;border-radius:0;z-index:35;padding-top:env(safe-area-inset-top);padding-bottom:calc(84px + env(safe-area-inset-bottom));transform:translateY(100%)}
+ /* đầu trang */
+ #top{padding:calc(10px + env(safe-area-inset-top)) 14px 6px;gap:8px;align-items:center}
+ #top .rb{width:40px;height:40px}
+ #meAv .av,#meAv img{width:40px;height:40px}
+ #main{padding:6px 16px calc(150px + env(safe-area-inset-bottom));scrollbar-width:none}
+ #main::-webkit-scrollbar{display:none}
+ body.has-cur #main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+ #main h2{font-size:28px;margin:6px 0 14px}
+ .sec{margin-top:18px}
+ .sh h3{font-size:20px}.sh small{font-size:11px}
+ .nv{display:none}
+ /* thẻ nhạc: hàng cuộn ngang, chạm là phát */
+ .grid{gap:12px;padding-bottom:6px;scroll-snap-type:x proximity;scroll-padding-left:16px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-behavior:auto}
+ .card{width:140px;padding:0;scroll-snap-align:start;border-radius:14px}
+ .card:hover{background:none}
+ .card.wide{width:250px}
+ .cvw{border-radius:14px}
+ .pl{opacity:1;transform:none;width:36px;height:36px;right:6px;bottom:6px;box-shadow:0 4px 12px #0006}
+ .ct{font-size:14px;margin-top:8px}.ca{font-size:12px}
+ .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .tl{height:88px;font-size:16px;padding:12px}
+ .sbox{max-width:none;margin:6px 0 16px}
+ /* danh sách bài: hàng gọn, nút luôn hiện */
+ .tr{grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:7px 4px}
+ .tr .n,.tr .ar,.tr .du{display:none}.t2{display:block}
+ .tr .ac{gap:0}.tr .ac button{opacity:1;width:38px;height:38px}
+ .tr:hover{background:none}.tr:active{background:var(--hover)}
+ .hero{flex-direction:column;align-items:center;text-align:center;gap:14px;padding:6px 0 14px}
+ .hcol{width:min(64vw,260px);height:auto;aspect-ratio:1;border-radius:16px}
+ .hero h2{font-size:26px;margin:2px 0 10px}
+ .hb{justify-content:center}
+ /* thư viện */
+ .libL{display:flex;flex-direction:column;gap:2px}
+ #main .libL .li{justify-content:flex-start;padding:8px 4px}
+ #main .libL .li .meta{display:block;flex:1}
+ .libL .tile{width:56px;height:56px;border-radius:12px}
+ .libL .li .meta b{font-size:16px}.libL .li .meta span{font-size:13px}
+ .libL .li:active{background:var(--hover)}
+ /* thanh điều hướng dưới */
+ #side{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;flex-direction:row;align-items:stretch;gap:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));height:auto;border-radius:0;overflow:visible;background:color-mix(in srgb,var(--surf) 96%,#000);box-shadow:0 -1px 0 var(--line),0 -8px 24px #0006}
+ #side .sep,#side .libh,#side #libQrow,#side #lib{display:none}
+ #side .ni,body.side-min #side .ni{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:4px 0;border-radius:14px;font-size:11px;font-weight:500;background:none;color:var(--sub)}
+ #side .navLib{display:flex}
+ #side .ni span,body.side-min #side .ni span{display:block;font-size:11px;line-height:1.1}
+ #side .ni>i{display:flex;align-items:center;justify-content:center;width:58px;height:30px;border-radius:999px;transition:background .2s}
+ #side .ni.act{background:none;color:var(--text);font-weight:600}
+ #side .ni.act>i{background:color-mix(in srgb,var(--accent) 30%,transparent);color:var(--accent)}
+ #side .ni:hover{background:none}
+ /* mini player nổi trên thanh điều hướng */
+ #bar{left:8px;right:8px;width:auto;max-width:none;margin:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:8px 10px 12px;gap:6px;grid-template-columns:minmax(0,1fr) auto;border-radius:18px;z-index:26}
+ #bar .bm{order:1;min-width:0}
+ #bar .bc{order:2;gap:0}
+ #bar #bShuf,#bar #bPrev,#bar #bMode,#bar .br{display:none}
+ #bar .bm img{width:46px;height:46px;border-radius:10px}
+ #bar .bt b{font-size:14px}.bt .l2{font-size:12px}
+ #bar #tm{display:none}
+ #bar #seek{position:absolute;left:14px;width:calc(100% - 28px);bottom:4px;margin:0;height:2px;pointer-events:none}
+ #bar #seek::-webkit-slider-thumb{width:0}
+ #bar .bc button.ico{width:44px;height:44px}
+ #pp{width:46px;height:46px}
+ /* Đang phát: toàn màn hình, bìa lớn, thanh điều khiển ở dưới */
+ #np{left:0;right:0;top:0;bottom:0;width:auto;height:100dvh;border-radius:0;z-index:35;padding-top:env(safe-area-inset-top);padding-bottom:calc(172px + env(safe-area-inset-bottom));transform:translateY(100%)}
  body.has-np #np{transform:none}
- #toasts{left:10px;right:10px;top:calc(10px + env(safe-area-inset-top))}.toast{width:auto}
+ .npv{padding:4px 22px 12px}
+ .art{width:min(86vw,max(200px,calc(100dvh - 470px)));margin:12px auto 0;border-radius:22px;box-shadow:0 24px 60px #0008}
+ body.vid .art{width:100%;border-radius:14px}
+ #vPlay.show{justify-content:center}
+ .npt{margin-top:22px;padding-top:0}
+ #npLine{margin-top:8px;min-height:0}
+ #npTitle{font-size:23px}#npArtist{font-size:15px}
+ .npb{margin-top:10px}
+ #lyrBody{font-size:24px}
+ body.has-np #bar{left:0;right:0;bottom:0;border-radius:26px 26px 0 0;padding:14px 22px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:12px;z-index:40;background:color-mix(in srgb,var(--npbg) 60%,#000);color:var(--npfg);backdrop-filter:none;box-shadow:none}
+ body.has-np #bar .bm{order:1;width:100%}
+ body.has-np #bar .bm img,body.has-np #bar .bt .l2,body.has-np #bar .bt b{display:none}
+ body.has-np #bar .bt{display:flex;flex-direction:column-reverse;gap:8px}
+ body.has-np #bar .bt .l1{justify-content:space-between}
+ body.has-np #bar #tm{display:block;margin:0;color:inherit;opacity:.75;font-size:12px}
+ body.has-np #bar #seek{position:static;width:100%;height:5px;pointer-events:auto;margin:0}
+ body.has-np #bar #seek::-webkit-slider-thumb{width:16px;height:16px}
+ body.has-np #bar .bc{order:2;justify-content:space-between;padding:0 4px}
+ body.has-np #bar #bShuf,body.has-np #bar #bPrev,body.has-np #bar #bMode{display:inline-flex}
+ body.has-np #bar .bc button.ico{width:52px;height:52px;color:inherit}
+ body.has-np #bar #pp{width:70px;height:70px;background:var(--accent);color:var(--on)}
+ body.has-np #bar #pp .i{width:32px;height:32px}
+ #toasts{left:12px;right:12px;top:calc(12px + env(safe-area-inset-top))}.toast{width:auto}
  #auth .box{width:min(360px,92vw)}
  button.ico{min-width:40px;min-height:40px}
- .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tl{height:88px;font-size:16px}
 }
 </style>
 </head>
@@ -454,6 +521,7 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
     <div class="ni" data-p="home" tabindex="0"><i data-ic="home" data-f="1"></i><span>Trang chủ</span></div>
     <div class="ni" data-p="mix" tabindex="0"><i data-ic="radio"></i><span>Mix</span></div>
     <div class="ni" data-p="search" tabindex="0"><i data-ic="search"></i><span>Tìm kiếm</span></div>
+    <div class="ni navLib" data-p="library" tabindex="0"><i data-ic="library"></i><span>Thư viện</span></div>
     <div class="sep"></div>
     <div class="libh">
       <div class="t"><i data-ic="library"></i><span>Thư viện của bạn</span></div>
@@ -978,7 +1046,7 @@ const pages={
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
         <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
     </div></div>
-    ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng bố cục điện thoại. Xoay ngang màn hình để chữ to hơn.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
+    ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
       ${row('Giữ danh sách phát YouTube của bạn hiển thị khi offline','Lưu danh sách phát lại và hiển thị khi offline',tog('tOff',S.offline_pl))}
@@ -1118,10 +1186,21 @@ const pages={
 };
 async function go(p,arg,keep){
   page=p; document.querySelectorAll('.ni,.li').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
+  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','playlist'].includes(p)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
   try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
 }
+pages.library=function(m){
+  const T=[['favs','heart','Yêu thích',(typeof favs!=='undefined'&&favs.size?favs.size+' bài hát':'Danh sách phát'),'#3a2530','var(--red)',1],['history','clock','Nghe gần đây','Lịch sử','#22313f','var(--accent)',0],['charts','trend','Thịnh hành','Danh sách phát · 50 bài hát','#2a2f26','#b6e08a',0],['together','users','Nghe cùng nhau','Phòng nghe chung','#33283f','#d1a8ff',0]];
+  const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
+  m.innerHTML=`<h2>Thư viện</h2><div class="libL">${T.map(([k,i,t,sub,bg,fg,f])=>li(`data-p="${k}"`,`<div class="tile" style="background:${bg};color:${fg}">${ic(i,f?'fill':'')}</div>`,t,sub)).join('')}</div>
+    <div class="sh" style="margin-top:22px"><h3>Danh sách phát</h3><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
+    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${ic('note')}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>`;
+  m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
+  m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
+  $('#libNew').onclick=()=>$('#newPl').click();
+};
 document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
 $('#gear').onclick=()=>go('settings');
 $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},$('#meAv'),true); };
