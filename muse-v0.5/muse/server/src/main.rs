@@ -1643,6 +1643,21 @@ async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_prox
     let fmt = if webm { "251/bestaudio[ext=webm]/bestaudio" } else { "140/bestaudio[ext=m4a]/bestaudio" };
     let mut cmd = tokio::process::Command::new(&bin);
     cmd.arg("-g").arg("--no-playlist").arg("--no-warnings").arg("-f").arg(fmt);
+    // yt-dlp cần JS runtime (Deno) để giải mã YouTube: nếu deno.exe nằm cạnh server thì chỉ thẳng đường dẫn, khỏi phụ thuộc PATH.
+    {
+        let mut cands: Vec<std::path::PathBuf> = vec![std::path::PathBuf::from("deno.exe"), std::path::PathBuf::from("deno")];
+        if let Ok(e) = std::env::current_exe() {
+            if let Some(d) = e.parent() {
+                cands.insert(0, d.join("deno.exe"));
+            }
+        }
+        if let Some(f) = cands.into_iter().find(|f| f.is_file()) {
+            if let Ok(abs) = std::fs::canonicalize(&f) {
+                let p = abs.to_string_lossy().trim_start_matches(r"\\?\").to_string();
+                cmd.arg("--js-runtimes").arg(format!("deno:{p}"));
+            }
+        }
+    }
     if let Ok(c) = std::env::var("YT_COOKIES") {
         let c = c.trim().to_string();
         if !c.is_empty() {
