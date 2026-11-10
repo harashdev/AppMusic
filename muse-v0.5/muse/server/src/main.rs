@@ -1559,6 +1559,13 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
         return Err(bad("Thiếu từ khoá tìm kiếm"));
     }
     let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    // Cache 10 phút: trang chủ mở lại là có ngay, không phải chờ YouTube Music.
+    let ckey = format!("{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = search_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 600 {
+            return Ok(Json(v.clone()));
+        }
+    }
     let body = json!({
         "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
         "query": text,
@@ -1583,7 +1590,20 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
         out.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
     }
     out.truncate(30);
-    Ok(Json(Value::Array(out)))
+    let val = Value::Array(out);
+    if !val.as_array().map(|a| a.is_empty()).unwrap_or(true) {
+        let mut c = search_cache().lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+static SEARCH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    SEARCH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 // ===== Luồng âm thanh YouTube (để áp dụng Bộ chỉnh âm / Độ trễ / Độ vang bằng Web Audio) =====
