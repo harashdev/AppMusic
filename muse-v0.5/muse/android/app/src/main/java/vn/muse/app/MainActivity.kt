@@ -92,7 +92,6 @@ class MainActivity : ComponentActivity() {
         ) askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
         // Dịch vụ nền được MuseBridge bật khi bắt đầu phát nhạc, không bật ngay lúc mở app.
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
-        askBatteryOnce()
 
         // Xoá cache của WebView mỗi lần mở app để luôn nhận giao diện mới nhất từ server (không bị kẹt bản cũ).
         web.clearCache(true)
@@ -251,24 +250,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         web.onResume(); web.resumeTimers()
-    }
-
-    /** Hỏi một lần: cho Muse không bị tối ưu pin để Android không cắt nhạc khi tắt màn hình lâu. */
-    private fun askBatteryOnce() {
-        if (prefs.getBoolean("battery_asked", false)) return
-        val pm = getSystemService(PowerManager::class.java)
-        if (pm.isIgnoringBatteryOptimizations(packageName)) return
-        prefs.edit().putBoolean("battery_asked", true).apply()
-        AlertDialog.Builder(this)
-            .setTitle("Giữ nhạc chạy khi tắt màn hình")
-            .setMessage("Để Android không tự ngắt nhạc khi để lâu, hãy cho Muse chạy không bị hạn chế pin.")
-            .setPositiveButton("Cho phép") { _, _ ->
-                runCatching {
-                    startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
-                }
-            }
-            .setNegativeButton("Để sau", null)
-            .show()
     }
 
     override fun onDestroy() {
