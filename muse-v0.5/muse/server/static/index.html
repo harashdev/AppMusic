@@ -380,11 +380,15 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .row.wrapr{flex-wrap:wrap}
 .bnrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
-.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 12px}
-.qk{display:flex;gap:12px;align-items:center;padding:6px;padding-right:12px;border-radius:12px;cursor:pointer;background:var(--hover);min-width:0}
-.qk:hover{background:var(--hover2)}
-.qk img{width:52px;height:52px;border-radius:8px;object-fit:cover;flex:none;background:#ffffff0d}
-.qk .qt{min-width:0}.qk b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qk span{display:block;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Chọn nhanh (kiểu SimpMusic): mỗi trang 4 hàng, vuốt ngang từng trang, trang kế ló ra bên phải */
+.qpager{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-behavior:auto}
+.qpager::-webkit-scrollbar{display:none}
+.qcol{flex:none;width:min(88%,380px);display:flex;flex-direction:column;scroll-snap-align:start;contain:layout paint style}
+.qk{display:flex;gap:14px;align-items:center;padding:7px 10px 7px 0;border-radius:12px;cursor:pointer;min-width:0;height:72px;box-sizing:border-box}
+.qk:hover{background:var(--hover)}
+.qk:active{background:var(--hover2)}
+.qk img{width:56px;height:56px;border-radius:8px;object-fit:cover;flex:none;background:#ffffff0d}
+.qk .qt{min-width:0;flex:1}.qk b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qk span{display:block;font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .qk.now b{color:var(--accent)}
 #cm{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:12px}
 .cbox{width:min(640px,100%);max-height:100%;overflow:auto;background:#2b2d31;border-radius:16px;padding:20px 22px;box-shadow:0 20px 70px #000}
@@ -444,6 +448,8 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  .grid{gap:12px;padding-bottom:6px;scroll-snap-type:x proximity;scroll-padding-left:16px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-behavior:auto}
  .card{width:140px;padding:0;scroll-snap-align:start;border-radius:14px}
  .card:hover{background:none}
+ .qpager{margin:0 -16px;padding:0 0 0 16px;scroll-padding-left:16px}
+ .qk:hover{background:none}.qk:active{background:var(--hover2)}
  .card.wide{width:250px}
  .cvw{border-radius:14px}
  .pl{opacity:1;transform:none;width:36px;height:36px;right:6px;bottom:6px;box-shadow:0 4px 12px #0006}
@@ -890,8 +896,21 @@ function showProfilePop(u,anchor,mine){
 
 /* ===== YouTube Music (tìm qua server → InnerTube) ===== */
 const ytCache={};
-function ytSearch(q){
-  if(!ytCache[q]) ytCache[q]=api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]).catch(e=>{ delete ytCache[q]; throw e; });
+/* Trang chủ dùng cache bền: có dữ liệu cũ thì hiện ngay (<24h), dữ liệu quá 10 phút thì tải lại ngầm cho lần mở sau. */
+const ycKey=q=>'muse_yc_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
+const ytFetch=q=>api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
+function ytSearch(q,swr){
+  if(ytCache[q]) return ytCache[q];
+  const save=r=>{ if(swr&&r.length) LS.set(ycKey(q),JSON.stringify({t:Date.now(),r})); return r; };
+  if(swr){
+    let hit=null; try{ hit=JSON.parse(LS.get(ycKey(q),'null')); }catch{}
+    if(hit&&Array.isArray(hit.r)&&hit.r.length&&Date.now()-hit.t<864e5){
+      ytCache[q]=Promise.resolve(hit.r);
+      if(Date.now()-hit.t>6e5) ytFetch(q).then(save).catch(()=>{});
+      return ytCache[q];
+    }
+  }
+  ytCache[q]=ytFetch(q).then(save).catch(e=>{ delete ytCache[q]; throw e; });
   return ytCache[q];
 }
 async function ytInfo(id){
@@ -939,6 +958,17 @@ $('#main').addEventListener('click',e=>{
   else if(a==='rm') removeFromPl(t);
   else playList(list,i,lnames[el.dataset.l]);
 });
+/* Chạm vào bài là bảo server lấy sẵn luồng âm thanh (cache 3 giờ) -> lúc bấm phát gần như không phải chờ */
+const warmed={};
+function warmTrack(t){
+  try{
+    if(!t||t.src!=='yt'||warmed[t.id]||!wantStream(t)) return; warmed[t.id]=1;
+    fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
+  }catch{}
+}
+$('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
+  const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrack(t); },{passive:true});
+function warmFirst(list,n=4){ (list||[]).slice(0,n).forEach(warmTrack); }
 $('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classList.contains('card')||e.target.classList.contains('qk'))) e.target.click(); });
 
 /* ===== Danh sách tâm trạng (menu dài) ===== */
@@ -957,8 +987,10 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMoodPop(); })
 /* ===== Trang ===== */
 function fillQuick(list){
   const q=$('#qp'); if(!q) return; const k=reg(list,'Chọn nhanh');
-  q.innerHTML=`<section class="sec"><div class="sh"><div><small>Bắt đầu nghe ngay</small><h3>Chọn nhanh</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="1">Phát ngẫu nhiên</a></div></div><div class="qgrid">${list.map((t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`).join('')}</div></section>`;
-  markNow();
+  const row=(t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" decoding="async" ${j<8?'fetchpriority="high"':'loading="lazy"'} alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
+  let cols=''; for(let a=0;a<list.length;a+=4) cols+=`<div class="qcol">${list.slice(a,a+4).map((t,j)=>row(t,a+j)).join('')}</div>`;
+  q.innerHTML=`<section class="sec"><div class="sh"><div><small>Bắt đầu một đài phát</small><h3>Chọn nhanh đài phát</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a></div></div><div class="qpager">${cols}</div></section>`;
+  markNow(); if(window.ANDROID_APP) warmFirst(list,2);
 }
 const pages={
   async home(m,ci){
@@ -1007,7 +1039,7 @@ const pages={
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
-    secs.forEach(async([name,q],i)=>{ const el=$('#g'+i); try{ const r=await ytSearch(q); const el2=$('#g'+i); if(!el2) return;
+    secs.forEach(async([name,q],i)=>{ const el=$('#g'+i); try{ const r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
       let items=r.slice(0,20);
       if(ci===0&&i===0&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,name);
