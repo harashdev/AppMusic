@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -595,6 +595,7 @@ html.android *{scroll-behavior:auto!important}
   <div class="row"><input id="aPass" type="password" placeholder="Mật khẩu (≥ 8 ký tự)" autocomplete="current-password"></div>
   <div id="authErr"></div>
   <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
+  <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
 </div></div>
 
 <div id="app">
@@ -702,6 +703,262 @@ html.android *{scroll-behavior:auto!important}
 
 <div id="toasts"></div>
 <audio id="aud"></audio>
+<script>
+/* ===== Ngôn ngữ / Language (English mặc định · Tiếng Việt) =====
+   Giao diện gốc viết bằng tiếng Việt. Khi chọn English, mọi chữ tiếng Việt hiện ra trên màn hình
+   (nội dung, placeholder, tooltip, thông báo, hộp thoại) được dịch bằng bảng dưới đây.
+   Muốn đổi/sửa bản dịch hoặc thêm ngôn ngữ mới: sửa EN_EXACT / EN_RULES. */
+(function(){
+  let L='en'; try{ L=localStorage.getItem('bb_lang')||'en'; }catch{}
+  if(L!=='vi'&&L!=='en') L='en';
+  window.BB_LANG=L;
+  window.bbSetLang=l=>{ try{ localStorage.setItem('bb_lang',l); }catch{} location.reload(); };
+  document.documentElement.lang=L;
+  { const al=document.getElementById('aLang'); if(al) al.value=L; }
+  if(L==='vi') return;
+
+  /* Khớp nguyên văn (đã cắt khoảng trắng đầu/cuối) */
+  const EN_EXACT={
+    /* đăng nhập */
+    'Đăng nhập':'Log in','Đăng ký':'Sign up','Tên đăng nhập':'Username','Tên hiển thị':'Display name',
+    'Mật khẩu (≥ 8 ký tự)':'Password (8+ characters)','Tạo tài khoản':'Create account',
+    /* điều hướng */
+    'Trang chủ':'Home','Bạn bè':'Friends','Thư viện':'Library','Tìm kiếm':'Search','Thư viện của bạn':'Your library',
+    'Lọc thư viện':'Filter library','Thu gọn':'Collapse','Yêu thích':'Favorites','Danh sách phát':'Playlists',
+    'Nghe gần đây':'Recently played','Lịch sử':'History','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
+    'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
+    'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Đang phát':'Now playing',
+    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
+    'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
+    'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
+    'Bài sau':'Next','Lặp lại':'Repeat','Mở Đang phát bên phải':'Open Now playing panel','Bấm để xem đang phát':'Click to see what’s playing',
+    'Mở / đóng Đang phát':'Open / close Now playing','Âm lượng':'Volume','Dừng phát':'Stop playback',
+    /* thư viện libs */
+    'Trình phát YouTube chính thức':'Official YouTube player',
+    'Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0':'Skip-segment data (ads, intros, outros) – © Ajay Ramachandran and community, CC BY-NC-SA 4.0',
+    'Số lượt thích/không thích':'Like / dislike counts','Lời bài hát (nguồn chính)':'Lyrics (primary source)',
+    'Lời bài hát có thời gian (dự phòng)':'Time-synced lyrics (fallback)','Lấy luồng âm thanh khi nguồn khác bị chặn':'Fetches the audio stream when other sources are blocked',
+    'Nguồn luồng âm thanh dự phòng':'Fallback audio stream source','Chạy bất đồng bộ (Rust)':'Async runtime (Rust)','Phục vụ file tĩnh':'Static file serving',
+    'Gọi HTTP từ server':'HTTP client for the server','Cơ sở dữ liệu':'Database','Băm mật khẩu':'Password hashing','Đọc ghi JSON':'JSON read/write',
+    'Đóng gói app máy tính':'Desktop app packaging','Thành phần app Android':'Android app components',
+    'Web server (Rust)':'Web server (Rust)',
+    /* lỗi chung */
+    'Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)':'Cannot reach the server (it may be offline, or the uploaded file is too large)',
+    'Hủy':'Cancel','Xác nhận':'Confirm','Bạn vừa mời người này rồi, đợi vài giây nhé':'You just invited this person – wait a few seconds',
+    'Không đọc được ảnh này':'Couldn’t read this image','Kéo ảnh để di chuyển · cuộn chuột để zoom · ảnh luôn phủ kín khung.':'Drag to move · scroll to zoom · the image always fills the frame.',
+    'Đặt lại':'Reset','Hủy bỏ':'Cancel','Áp dụng':'Apply','Chỉnh sửa hồ sơ':'Edit profile','Đăng xuất':'Log out',
+    'Phát':'Play','Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.':'No songs yet. Search for a song and tap ♡ or add it to a playlist.',
+    'Xoá khỏi playlist':'Remove from playlist','Xáo trộn':'Shuffle','Phát tất cả':'Play all','Cuộn trái':'Scroll left','Cuộn phải':'Scroll right',
+    'Chọn nhanh':'Quick picks','Bắt đầu một đài phát':'Start a radio','Chọn nhanh đài phát':'Quick-pick radio',
+    'đã có bản cập nhật mới':'has a new update','Tải về':'Download','Để sau':'Later',
+    'Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)':'No GitHub repo is set for BBeat (set ABOUT.repo in index.html)',
+    'Chưa có bản phát hành nào trên GitHub':'No releases on GitHub yet','GitHub trả về lỗi':'GitHub returned an error',
+    /* tâm trạng / chủ đề */
+    'Tất cả':'All','Nhạc Việt thịnh hành':'Trending Vietnamese music','Nhạc trẻ mới nhất':'Latest young pop','Top hits quốc tế':'Top international hits',
+    'Thư giãn':'Relax','Acoustic nhẹ nhàng':'Soft acoustic','Piano thư giãn':'Relaxing piano','Tập luyện':'Workout','EDM bùng nổ':'Explosive EDM',
+    'Rap Việt':'Vietnamese rap','Tập trung':'Focus','Nhạc không lời':'Instrumentals','Lofi học bài':'Lofi study','Nhạc cổ điển':'Classical music',
+    'Vui vẻ':'Happy','Pop sôi động':'Upbeat pop','Nhạc Hoa':'Chinese music','Buồn':'Sad','Ballad buồn':'Sad ballads','Tâm trạng':'Moods',
+    'Lãng mạn':'Romantic','Nhạc tình yêu':'Love songs','Acoustic tình cảm':'Romantic acoustic','Tiệc tùng':'Party','Đi đường':'Road trip',
+    'Nhạc lái xe':'Driving music','Ngủ ngon':'Sleep','Nhạc ru ngủ':'Lullabies','Piano êm dịu':'Soothing piano','Âm thanh thiên nhiên':'Nature sounds',
+    'Học bài':'Study','Piano tập trung':'Focus piano','Buổi sáng':'Morning','Khởi đầu ngày mới':'Start the day','Acoustic sáng':'Morning acoustic',
+    'Pop nhẹ nhàng':'Gentle pop','Đêm khuya':'Late night','R&B đêm':'Night R&B','Lofi đêm':'Night lofi','Hoài niệm':'Nostalgia','Nhạc xưa':'Oldies',
+    'Hits thập niên 2000':'2000s hits','Nhạc Việt 8x 9x':'Vietnamese 80s–90s','Tràn năng lượng':'Energetic','Rock mạnh mẽ':'Hard rock','Nhạc điện tử':'Electronic',
+    'Chill cuối tuần':'Weekend chill','Chill cùng bạn bè':'Chill with friends','Nấu ăn & dọn nhà':'Cooking & cleaning','Nhạc vui làm việc nhà':'Upbeat chore music',
+    'Pop dễ nghe':'Easy pop',
+    'Nhạc từ YouTube Music, phát bằng player của YouTube.':'Music from YouTube Music, played with YouTube’s own player.',
+    'bài hát':'songs','Nghe lại':'Listen again','Những bản nhạc bạn yêu thích':'Music you love','Mix yêu thích':'Favorites mix','Mix nghe lại':'Listen-again mix',
+    'Mix nhạc Việt':'Vietnamese mix','Mix quốc tế':'International mix','Bấm vào một mix để nghe ngẫu nhiên.':'Tap a mix to listen on shuffle.','Phát ngẫu nhiên':'Shuffle play',
+    'Việt Nam':'Vietnam','Quốc tế':'International','Đang tải…':'Loading…',
+    'Tìm bài hát, nghệ sĩ… hoặc dán link YouTube':'Search songs, artists… or paste a YouTube link',
+    'Đang offline – hiển thị bản đã lưu':'Offline – showing the saved copy','Xoá playlist':'Delete playlist','Xoá playlist này?':'Delete this playlist?','Xoá':'Delete',
+    /* phòng + bạn bè */
+    'Phòng hiện tại':'Current room','Mã phòng:':'Room code:','– mọi người trong phòng nghe đồng bộ và cùng điều khiển.':'– everyone in the room listens in sync and shares control.',
+    'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
+    'Mã phòng hoặc link phòng':'Room code or room link','Mời bạn bè vào phòng':'Invite friends to the room','Quản lý bạn bè':'Manage friends','Chat phòng':'Room chat',
+    'Nhắn gì đó…':'Say something…','Gửi':'Send','Đã chép link phòng!':'Room link copied!','Đã chép mã phòng':'Room code copied','Mã phòng':'Room code',
+    'Mã hoặc link phòng không hợp lệ':'Invalid room code or link','Thêm bạn':'Add friend',
+    'Nhập mã bạn bè hoặc tên đăng nhập. Người kia sẽ nhận được lời mời và cần chấp nhận.':'Enter a friend code or username. They’ll get an invite and need to accept it.',
+    'Mã bạn bè hoặc tên đăng nhập':'Friend code or username','Gửi lời mời':'Send invite','Mã của bạn:':'Your code:','Chép mã':'Copy code','Lời mời kết bạn':'Friend requests',
+    'Danh sách bạn bè':'Friends list','Hai bạn đã trở thành bạn bè!':'You’re now friends!','Đã gửi lời mời kết bạn':'Friend request sent','Đã chép mã bạn bè':'Friend code copied',
+    'Mã bạn bè':'Friend code','Đã chấp nhận lời mời':'Invite accepted','Chép link':'Copy link','Đã xoá bạn':'Friend removed',
+    'Link phòng':'Room link','Bạn đang ở phòng này rồi':'You’re already in this room','Đã tham gia phòng':'Joined the room','Mời nghe chung':'Invite to listen together',
+    'Chấp nhận':'Accept','Từ chối':'Decline','Đang chờ':'Pending','Huỷ':'Cancel','Không có lời mời nào.':'No invites.','Xem hồ sơ':'View profile','Mời nghe':'Invite to listen',
+    'Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.':'No friends yet. Send an invite using a friend code above.','Mời':'Invite','Xem':'View','Bỏ qua':'Dismiss','Tham gia':'Join',
+    'Đang online':'Online','Chưa có bạn bè nào.':'No friends yet.','Quản lý':'Manage',
+    /* hồ sơ */
+    'Mặc định':'Default','Tối':'Dark','Biển':'Ocean','Hoàng hôn':'Sunset','Rừng':'Forest','Ảnh riêng':'Custom image','Lưu':'Save','Đổi banner':'Change banner','Gỡ banner':'Remove banner',
+    'Đổi avatar':'Change avatar','Chép tên đăng nhập':'Copy username',
+    'Di chuột vào banner hoặc avatar rồi bấm vào cây bút để đổi ảnh. Banner: PNG/JPG/GIF/WEBP ≤ 10MB (GIF được). Avatar ≤ 3MB. Đổi tên hiển thị và mật khẩu trong Cài đặt.':'Hover over the banner or avatar and click the pen to change the image. Banner: PNG/JPG/GIF/WEBP ≤ 10MB (GIFs allowed). Avatar ≤ 3MB. Change your display name and password in Settings.',
+    'Trạng thái':'Status','Trạng thái (hiện thành nhãn dưới avatar)':'Status (shown as a label under your avatar)','Nền hồ sơ':'Profile background',
+    'Tải ảnh nền (GIF được)':'Upload background (GIFs allowed)','…hoặc dán link https://…/anh-nen.jpg':'…or paste a link https://…/background.jpg',
+    'Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.':'Background ≤ 10MB. Applied to the app right away – click Save to keep it.','Màu chủ đạo':'Accent color',
+    'Đã chép tên đăng nhập':'Username copied','Chỉnh sửa banner':'Edit banner','Chỉnh sửa avatar':'Edit avatar','Đang lưu…':'Saving…','Đã lưu ✔':'Saved ✔',
+    /* cài đặt */
+    'Tài khoản':'Account','Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.':'The name others see in listening rooms and on your profile.','Đổi mật khẩu':'Change password',
+    'Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.':'After changing it, your other devices will be logged out. The new password must be 8–128 characters.',
+    'Mật khẩu hiện tại':'Current password','Mật khẩu mới':'New password','Nhập lại mật khẩu mới':'Repeat new password','Giao diện app Android':'Android app layout','Giao diện máy tính':'Desktop layout',
+    'Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.':'Same layout as the PC version (scaled to fit the screen). Turn off to use the phone layout. Rotate the screen to landscape when enabled.',
+    'Phát bài hát chứa nội dung nhạy cảm':'Play explicit songs','Bật để phát cả những bài hát nhạy cảm':'Turn on to play songs with explicit content',
+    'Giữ danh sách phát YouTube của bạn hiển thị khi offline':'Keep your YouTube playlists visible offline','Lưu danh sách phát lại và hiển thị khi offline':'Save playlists and show them while offline',
+    'Sử dụng Proxy để vượt qua trình chặn nội dung':'Use a proxy to get around content blocking','(áp dụng cho tìm kiếm và luồng âm thanh qua server)':'(applies to search and audio streams via the server)',
+    '– cần đặt biến môi trường YT_PROXY trên server':'– set the YT_PROXY environment variable on the server','Server chưa cấu hình':'Server not configured','Phát lại':'Playback',
+    'Bộ chỉnh âm':'Equalizer','Tinh chỉnh âm thanh bằng đường cong mười dải tần':'Fine-tune the sound with a ten-band curve','Mẫu thiết lập':'Preset','Tùy chỉnh':'Custom',
+    'Tiền khuếch đại':'Preamp','Độ trễ':'Delay','Echo âm thanh với độ trễ lặp lại':'Echo with repeating delay','Thời gian':'Time','Mức echo':'Echo level','Độ vang':'Reverb',
+    'Đưa âm nhạc vào trong một phòng, hội trường hoặc tấm kim loại':'Place the music in a room, a hall or a metal plate','Không gian':'Space','Phòng':'Room','Hội trường':'Hall','Tấm kim loại':'Plate',
+    'Mức vang':'Reverb level','Lưu trạng thái phát lại':'Save playback state','Lưu chế độ trộn và phát lại':'Remember shuffle and repeat modes','Chuyển bài mượt mà (BETA)':'Smooth track transitions (BETA)',
+    'Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.':'Crossfade between songs by fading out the current one while fading in the next.',
+    'Khi bật Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy, nhạc YouTube được phát qua luồng âm thanh do server chuyển tiếp (không dùng player iframe nên không có chế độ xem video). Nếu không lấy được luồng, app tự quay về player YouTube.':'When the Equalizer, Delay, Reverb or Proxy is on, YouTube music plays through an audio stream relayed by the server (no iframe player, so no video mode). If the stream can’t be fetched, the app falls back to the YouTube player.',
+    'Lịch sử nghe':'Listening history','Theo dõi lịch sử nghe':'Track listening history','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản':'Save your listening history to your account’s database',
+    'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube',
+    'Đăng nhập Google':'Sign in with Google','Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Read access to your YouTube playlists is granted. Click to disconnect and revoke it.',
+    'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.':'Only used to read your playlist list and import it into BBeat. BBeat doesn’t use Google to log in and doesn’t store passwords or tokens.',
+    'Đã kết nối':'Connected','Chưa kết nối':'Not connected','Đăng nhập Google để nhập playlist từ YouTube':'Sign in with Google to import playlists from YouTube',
+    'Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL':'Server is missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL',
+    'Playlist của bạn trên YouTube':'Your YouTube playlists','Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.':'Choose the playlists to import. Private or deleted videos are skipped.',
+    'Tải danh sách playlist':'Load playlists','Tích hợp Discord':'Discord integration','Đăng nhập Discord':'Sign in with Discord','Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Discord account linked. Click to unlink.',
+    'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)':'Sign in with Discord to link your account (required for Rich Presence)','Chưa liên kết':'Not linked',
+    'Đăng nhập Discord để liên kết tài khoản':'Sign in with Discord to link your account','Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL':'Server is missing DISCORD_CLIENT_SECRET / PUBLIC_URL',
+    'Kết nối Discord':'Connect Discord','Tự động dùng tài khoản đã đăng nhập, không cần mở ứng dụng Discord':'Automatically uses the signed-in account – no need to open the Discord app','Tự động':'Automatic',
+    'Kết nối với ứng dụng Discord đang mở trên máy này (không cần nhập mật khẩu)':'Connect to the Discord app running on this computer (no password needed)','Kết nối với ứng dụng Discord':'Connect to the Discord app',
+    'Server chưa đặt DISCORD_CLIENT_ID':'Server is missing DISCORD_CLIENT_ID','Chỉ có trên app desktop/Android bản mới':'Only in the latest desktop/Android app','Kích hoạt Rich Presence':'Enable Rich Presence',
+    'Hiển thị phiên phát nhạc trên tài khoản Discord':'Show your listening session on your Discord profile','Cần DISCORD_CLIENT_ID':'DISCORD_CLIENT_ID required','Cần đăng nhập Discord':'Discord sign-in required',
+    'Hủy liên kết rồi đăng nhập lại Discord':'Unlink, then sign in with Discord again','Chỉ có trên app desktop':'Desktop app only','Sao lưu':'Back up',
+    'Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON':'Save your favorites, history and all playlists to a JSON file','Khôi phục':'Restore',
+    'Khôi phục dữ liệu từ file sao lưu (thay thế yêu thích, lịch sử và danh sách phát hiện có)':'Restore data from a backup file (replaces your current favorites, history and playlists)','Nhập danh sách phát':'Import playlists',
+    'Nhập danh sách phát từ file JSON (giữ nguyên dữ liệu hiện có)':'Import playlists from a JSON file (keeps your existing data)','Phiên bản':'Version','Kiểm tra cập nhật tự động':'Check for updates automatically',
+    'Kiểm tra cập nhật mỗi khi bạn mở ứng dụng':'Check for updates every time you open the app','Kênh cập nhật':'Update channel','Kiểm tra cập nhật':'Check for updates','Chưa kiểm tra lần nào':'Never checked',
+    'Tác giả':'Author','Hỗ trợ tôi':'Support me','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).':'BBeat is a personal, non-profit project. If you like the app, you can buy the author a coffee (totally optional).',
+    'Thư viện bên thứ ba':'Third-party libraries','Các thư viện và dịch vụ mà BBeat sử dụng':'Libraries and services BBeat uses','Đăng xuất khỏi thiết bị này':'Log out of this device',
+    'Đã lưu danh sách phát để xem khi offline':'Playlists saved for offline viewing','Trình duyệt không hỗ trợ Web Audio':'Your browser doesn’t support Web Audio',
+    'Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.':'Disconnect Google? BBeat will revoke its YouTube read access. Playlists you already imported are kept.',
+    'Ngắt kết nối':'Disconnect','Đã ngắt kết nối Google':'Google disconnected','Không thấy playlist nào trong tài khoản này':'No playlists found in this account','bài':'songs','Nhập đã chọn':'Import selected',
+    'Hãy chọn ít nhất một playlist':'Select at least one playlist','Đang nhập… (playlist dài có thể mất vài chục giây)':'Importing… (long playlists can take a few tens of seconds)','Đã nhập':'Imported','bài ✔':'songs ✔',
+    'Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.':'Unlink your Discord account? Rich Presence will be turned off too.','Hủy liên kết':'Unlink','Đã hủy liên kết Discord':'Discord unlinked',
+    'Đã kết nối Discord':'Discord connected','Xóa toàn bộ lịch sử nghe?':'Delete all listening history?','Xóa':'Delete','Đã xóa lịch sử nghe':'Listening history cleared',
+    'Mật khẩu nhập lại không khớp':'The passwords don’t match','Đã đổi mật khẩu ✔':'Password changed ✔','Đã tạo file sao lưu':'Backup file created','File không phải JSON hợp lệ':'This isn’t a valid JSON file',
+    'Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?':'Restoring will replace your current favorites, history and playlists. Continue?','Đã khôi phục':'Restored',
+    'Chưa gắn kho GitHub cho BBeat':'No GitHub repo is set for BBeat','Đang kiểm tra…':'Checking…','Tác giả chưa gắn link hỗ trợ':'The author hasn’t added a support link yet',
+    'Tạo mới':'Create new','Chưa có danh sách phát nào.':'No playlists yet.',
+    /* tìm kiếm */
+    'Nhạc Việt':'Vietnamese','Cổ điển':'Classical','Duyệt tất cả':'Browse all','Đang tìm…':'Searching…',
+    'Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.':'No results found. Try another keyword or paste a YouTube link.','Chưa có bài nào để tạo mix này.':'Not enough songs to build this mix yet.',
+    'Đang offline – hiển thị danh sách phát đã lưu':'Offline – showing saved playlists','Tên playlist mới':'New playlist name','＋ Playlist mới…':'＋ New playlist…','Đã thêm vào playlist':'Added to playlist',
+    'Bạn đang ở phòng này rồi.':'You’re already in this room.',
+    /* trình phát */
+    'Luồng âm thanh lỗi:':'Audio stream error:','Trình duyệt chặn tự phát – bấm ▶ để nghe':'The browser blocked autoplay – press ▶ to listen',
+    'Ngẫu nhiên: bật':'Shuffle: on','Ngẫu nhiên: tắt':'Shuffle: off','Lặp lại: tắt':'Repeat: off','Lặp danh sách':'Repeat all','Lặp một bài':'Repeat one',
+    'Thích':'Likes','· Không thích':'· Dislikes','Nguồn: YouTube Music':'Source: YouTube Music','Ẩn video':'Hide video','Hiện video':'Show video','Chép link YouTube':'Copy YouTube link','Đã chép link':'Link copied',
+    'Chưa có bài nào trong hàng đợi.':'The queue is empty.','Đang tải lời…':'Loading lyrics…','Chưa tìm thấy lời bài này.':'No lyrics found for this song.','· Thích':'· Likes',
+    'Hãy đăng nhập Discord để liên kết tài khoản trước':'Sign in with Discord to link your account first',
+    'Không kết nối được Discord – hãy mở ứng dụng Discord trên máy này rồi thử lại':'Couldn’t connect to Discord – open the Discord app on this computer and try again',
+    'lỗi Discord':'Discord error','hết thời gian chờ Discord phản hồi':'Discord took too long to respond',
+    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again','Đã kết nối Google, hãy chọn playlist để nhập':'Google connected – choose playlists to import',
+    'Kết nối Google thất bại, hãy thử lại':'Google connection failed, please try again',
+    'Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe':'This song is explicit – turn on “Play explicit songs” in Settings to listen',
+    /* thông báo từ server */
+    'Chưa đăng nhập hoặc phiên hết hạn':'Not logged in or the session has expired','Lỗi máy chủ':'Server error','Tên đăng nhập 3-24 ký tự: chữ, số hoặc _':'Username must be 3–24 characters: letters, numbers or _',
+    'Mật khẩu từ 8 đến 128 ký tự':'Password must be 8–128 characters','Tên đăng nhập đã tồn tại':'That username is already taken','Sai tên đăng nhập hoặc mật khẩu':'Wrong username or password',
+    'Tên hiển thị không được trống':'Display name can’t be empty','Màu không hợp lệ':'Invalid color','Nền không hợp lệ':'Invalid background',
+    'Link ảnh nền phải là https:// (hoặc ảnh đã tải lên) và không chứa ký tự đặc biệt':'The background link must be https:// (or an uploaded image) with no special characters','Màu banner không hợp lệ':'Invalid banner color',
+    'Avatar tối đa 3MB':'Avatar must be 3MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 3MB)':'Only PNG, JPG, GIF or WEBP images (max 3MB)','Hãy nhập mã bạn bè hoặc tên đăng nhập':'Enter a friend code or username',
+    'Không tìm thấy người dùng này':'User not found','Không thể tự kết bạn với chính mình':'You can’t friend yourself','Hai bạn đã là bạn bè rồi':'You’re already friends','Bạn đã gửi lời mời cho người này rồi':'You already sent this person an invite',
+    'Lời mời không còn tồn tại':'This invite no longer exists','Thao tác không hợp lệ':'Invalid action','Mã phòng không hợp lệ':'Invalid room code','Người này chưa là bạn của bạn':'This person isn’t your friend',
+    'Bạn ấy đang offline':'They’re offline','Bài hát không hợp lệ':'Invalid song','Dữ liệu bài hát quá lớn':'Song data is too large','Mật khẩu mới từ 8 đến 128 ký tự':'The new password must be 8–128 characters',
+    'Mật khẩu hiện tại không đúng':'Current password is incorrect','Dữ liệu không hợp lệ':'Invalid data','Giá trị cài đặt không hợp lệ':'Invalid setting value','Playlist đã nhập':'Imported playlist',
+    'Không tìm thấy danh sách phát nào trong file':'No playlists found in the file','Đây không phải file sao lưu của Muse':'This isn’t a Muse backup file','Tên playlist không được trống':'Playlist name can’t be empty',
+    'Tối đa 50 playlist':'Up to 50 playlists','Không tìm thấy playlist':'Playlist not found','Ảnh nền tối đa 10MB':'Background image must be 10MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP':'Only PNG, JPG, GIF or WEBP images',
+    'Banner tối đa 10MB':'Banner must be 10MB or less','Chỉ admin mới đổi được icon':'Only admins can change the icon','Icon phải là file PNG, tối đa 2MB':'The icon must be a PNG file, max 2MB',
+    'Thiếu từ khoá tìm kiếm':'Missing search keyword','Không kết nối được YouTube Music':'Couldn’t connect to YouTube Music','YouTube Music trả về lỗi':'YouTube Music returned an error','YouTube Music trả dữ liệu lạ':'YouTube Music returned unexpected data',
+    'Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired','Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại':'Not signed in to Google or the session expired – please sign in again',
+    'Server chưa cấu hình đăng nhập Google':'The server isn’t set up for Google sign-in','Không kết nối được YouTube':'Couldn’t connect to YouTube','YouTube từ chối yêu cầu':'YouTube rejected the request',
+    'Chưa chọn playlist nào':'No playlist selected','Playlist không hợp lệ':'Invalid playlist','Server chưa cấu hình đăng nhập Discord':'The server isn’t set up for Discord sign-in',
+    'Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence':'Unlink, then sign in with Discord again to grant Rich Presence permission',
+    'Phiên Discord hết hạn, hãy hủy liên kết rồi đăng nhập Discord lại':'Your Discord session expired – unlink, then sign in with Discord again','Discord không trả token':'Discord didn’t return a token',
+    'mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút':'every audio source is currently blocked by YouTube – try again in a few minutes','video không phát được':'this video can’t be played',
+    'Về tôi':'About'
+  };
+
+  const plural=(n,a,b)=>n+' '+(+n===1?a:b);
+  /* Mẫu có chứa số / tên – chỉ khớp cả đoạn văn bản */
+  const EN_RULES=[
+    [/^(Sử dụng Proxy để vượt qua trình chặn nội dung)( .+)$/,(m)=>EN_EXACT[m[1]]+tr(m[2])],
+    [/^Danh sách phát · (\d+) bài hát$/,(m)=>'Playlist · '+plural(m[1],'song','songs')],
+    [/^(\d+) bài hát$/,(m)=>plural(m[1],'song','songs')],
+    [/^(\d+) bài$/,(m)=>plural(m[1],'song','songs')],
+    [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
+    [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
+    [/^Kết quả cho “(.*)”$/,(m)=>'Results for “'+m[1]+'”'],
+    [/^Kết quả: (.*)$/,(m)=>'Results: '+m[1]],
+    [/^Bạn bè · (\d+) online$/,(m)=>'Friends · '+m[1]+' online'],
+    [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
+    [/^Phòng (.+)$/,(m)=>'Room '+m[1]],
+    [/^(.+) đã vào phòng$/,(m)=>m[1]+' joined the room'],
+    [/^(.+) gửi lời mời kết bạn$/,(m)=>m[1]+' sent you a friend request'],
+    [/^(.+) đã chấp nhận lời mời kết bạn$/,(m)=>m[1]+' accepted your friend request'],
+    [/^(.+) mời bạn nghe nhạc chung$/,(m)=>m[1]+' invited you to listen together'],
+    [/^Đã gửi lời mời tới (.+)$/,(m)=>'Invite sent to '+m[1]],
+    [/^Đã tham gia phòng (.+)$/,(m)=>'Joined room '+m[1]],
+    [/^Xoá (.+) khỏi danh sách bạn bè\?$/,(m)=>'Remove '+m[1]+' from your friends?'],
+    [/^([\s\S]+)\n\nChép link phòng để gửi thủ công\?$/,(m)=>tr(m[1])+'\n\nCopy the room link to send it manually?'],
+    [/^Đã liên kết: (.+)$/,(m)=>'Linked: '+m[1]],
+    [/^Đã kết nối: (.+)$/,(m)=>'Connected: '+m[1]],
+    [/^Đã liên kết Discord: (.+)$/,(m)=>'Discord linked: '+m[1]],
+    [/^Không kết nối được Discord: (.+)$/,(m)=>'Couldn’t connect to Discord: '+m[1]],
+    [/^Đã nhập (\d+) playlist, (\d+) bài ✔$/,(m)=>'Imported '+plural(m[1],'playlist','playlists')+', '+plural(m[2],'song','songs')+' ✔'],
+    [/^Đã nhập (\d+) danh sách phát \((\d+) bài\)$/,(m)=>'Imported '+plural(m[1],'playlist','playlists')+' ('+plural(m[2],'song','songs')+')'],
+    [/^Đã khôi phục (\d+) bài yêu thích, (\d+) danh sách phát$/,(m)=>'Restored '+plural(m[1],'favorite song','favorite songs')+', '+plural(m[2],'playlist','playlists')],
+    [/^Lần kiểm tra cuối vào (.+)$/,(m)=>'Last checked '+m[1]],
+    [/^Bạn đang dùng bản mới nhất \(v(.+)\)$/,(m)=>'You’re on the latest version (v'+m[1]+')'],
+    [/^Không kiểm tra được cập nhật: (.+)$/,(m)=>'Couldn’t check for updates: '+m[1]],
+    [/^GitHub trả về lỗi (.+)$/,(m)=>'GitHub returned an error '+m[1]],
+    [/^Ảnh quá lớn \(tối đa (.+)MB\)$/,(m)=>'Image too large (max '+m[1]+'MB)'],
+    [/^Không lấy được luồng âm thanh \(([\s\S]*)\) – chuyển sang player YouTube$/,(m)=>'Couldn’t get the audio stream ('+m[1]+') – switching to the YouTube player'],
+    [/^Luồng âm thanh lỗi: (.+)$/,(m)=>'Audio stream error: '+m[1]],
+    [/^Thích (.+) · Không thích (.+)$/,(m)=>'Likes '+m[1]+' · Dislikes '+m[2]],
+    [/^· Thích (.+) · Không thích (.+)$/,(m)=>'· Likes '+m[1]+' · Dislikes '+m[2]],
+    [/^Nguồn: YouTube Music( · .+)?$/,(m)=>'Source: YouTube Music'+(m[1]||'')],
+    [/^(.+) • (\d+) bài$/,(m)=>m[1]+' • '+plural(m[2],'song','songs')],
+    [/^Ngắt kết nối Google\?.*$/,()=>EN_EXACT['Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.']],
+    [/^(Thích|Không thích) (\d.*)$/,(m)=>(m[1]==='Thích'?'Likes ':'Dislikes ')+m[2]]
+  ];
+
+  const VI=/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ]/;
+  function tr(s){
+    if(!s||!VI.test(s)) return s;
+    const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(s); const lead=m[1], core=m[2], tail=m[3];
+    if(!core) return s;
+    const e=EN_EXACT[core]; if(e!==undefined) return lead+e+tail;
+    for(const [re,fn] of EN_RULES){ const x=re.exec(core); if(x) return lead+fn(x)+tail; }
+    return s;
+  }
+  window.bbTr=tr;
+
+  const ATTRS=['title','placeholder','aria-label','alt'];
+  let busy=false;
+  function node(n){
+    if(n.nodeType===3){ const v=n.nodeValue, r=tr(v); if(r!==v) n.nodeValue=r; return; }
+    if(n.nodeType!==1) return;
+    const tag=n.tagName; if(tag==='SCRIPT'||tag==='STYLE') return;
+    for(const a of ATTRS){ if(n.hasAttribute&&n.hasAttribute(a)){ const v=n.getAttribute(a), r=tr(v); if(r!==v) n.setAttribute(a,r); } }
+    for(let c=n.firstChild;c;c=c.nextSibling) node(c);
+  }
+  function run(fn){ if(busy) return; busy=true; try{ fn(); }finally{ busy=false; } }
+  function start(){
+    run(()=>node(document.body));
+    document.title=tr(document.title);
+    new MutationObserver(list=>{
+      run(()=>{
+        for(const r of list){
+          if(r.type==='childList') r.addedNodes.forEach(node);
+          else if(r.type==='characterData') node(r.target);
+          else if(r.type==='attributes'){ const v=r.target.getAttribute(r.attributeName), t=tr(v); if(t!==v) r.target.setAttribute(r.attributeName,t); }
+        }
+      });
+    }).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+  }
+  if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
+})();
+</script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 const $=s=>document.querySelector(s);
@@ -715,7 +972,7 @@ const CID=Math.random().toString(36).slice(2,10);
 const ABOUT={
   name:'BBeat', author:'BaoBu', version:'1.0.0',
   repo:'',          /* kho GitHub chứa bản phát hành, dạng 'tên-github/BBeat'. Bỏ trống thì chưa kiểm tra cập nhật được */
-  supportUrl:'',    /* link "Hỗ trợ tôi" (Ko-fi, Buy Me a Coffee, MoMo…). Bỏ trống thì dùng DONATE_URL của server nếu có */
+  supportUrl:'https://ko-fi.com/harashdev',    /* link "Hỗ trợ tôi" (Ko-fi, Buy Me a Coffee, MoMo…). Bỏ trống thì dùng DONATE_URL của server nếu có */
   libs:[
     ['YouTube IFrame Player API','Trình phát YouTube chính thức','https://developers.google.com/youtube/iframe_api_reference'],
     ['SponsorBlock','Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0','https://sponsor.ajay.app'],
@@ -1274,7 +1531,9 @@ const pages={
     const useSdk=sdkOn(), canRpc=!!cfg.discord_app_id&&dl.linked&&(useSdk||DESK);
     const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
     const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
+    const langSel=`<select id="langSel" style="width:auto;min-width:130px" onchange="bbSetLang(this.value)"><option value="en" ${window.BB_LANG==='en'?'selected':''}>English</option><option value="vi" ${window.BB_LANG==='vi'?'selected':''}>Tiếng Việt</option></select>`;
     m.innerHTML=`<h2>Cài đặt</h2><div class="setL">
+    <div class="sgrp"><div class="sgh">Language / Ngôn ngữ</div><div class="scard">${row('Language / Ngôn ngữ','English · Tiếng Việt',langSel)}</div></div>
     <div class="sgrp"><div class="sgh">Tài khoản</div><div class="scard">
       <div class="srow col"><div class="sx"><b>Tên hiển thị</b><small>Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.</small></div><div class="sinp"><input id="sName" value="${esc(me.display_name)}" maxlength="24" placeholder="Tên hiển thị"><button class="pri" id="sNameSave">Lưu</button></div><small id="sNameMsg" class="smsg"></small></div>
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
@@ -2172,7 +2431,7 @@ async function start(u){
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
   try{ cfg=await api('/api/config'); }catch{}
   if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
-  if(cfg.donate_url){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>window.open(cfg.donate_url,'_blank','noopener'); }
+  { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
   try{ Object.assign(S,await api('/api/settings')); }catch{ try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{} }
   LS.set('muse_s',JSON.stringify(S));
   try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); }catch{}
