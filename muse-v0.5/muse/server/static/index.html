@@ -469,7 +469,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  .libL .li:active{background:var(--hover)}
  /* ===== thanh điều hướng dưới: viên thuốc nổi + nút tìm kiếm tròn; cuộn xuống thì thu thành 1 vòng tròn (body.nav-min) ===== */
  :root{--cap:#1f1c29}
- body{--stk:80px}body.has-cur{--stk:144px}body.nav-min{--stk:72px}
  #side{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;flex-direction:row;align-items:center;gap:12px;padding:0 16px calc(8px + env(safe-area-inset-bottom));height:auto;border-radius:0;overflow:visible;background:none;box-shadow:none;backdrop-filter:none!important;pointer-events:none}
  #side>*{pointer-events:auto}
  #side .sep,#side .libh,#side #libQrow,#side #lib{display:none}
@@ -492,9 +491,9 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  body.nav-min #side .navcap:not(:has(.ni.act)) .ni[data-p=home]{display:flex;flex:1;height:56px;color:var(--accent)}
  body.nav-min #side .navcap .ni span{display:none}
  body.nav-min #side .navSearch{display:none}
- /* phòng nghe chung: nổi phía trên mini player */
- #side #roomBar{display:flex;position:fixed;left:16px;right:16px;bottom:calc(var(--stk) + env(safe-area-inset-bottom));justify-content:center;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--cap);box-shadow:0 4px 14px #0007,inset 0 0 0 1px var(--line);color:var(--text);font-size:13px}
- #side #roomBar:empty{display:none}
+ /* phòng nghe chung: tab nằm bên phải Mix (chỉ hiện khi đang ở trong phòng) */
+ #side .navcap #roomBar{display:flex}
+ #side .navcap #roomBar:empty,body.nav-min #side .navcap #roomBar:not(.act){display:none}
  #roomInfo{display:none!important}
  /* mini player: viên thuốc 56px, bìa tròn có vòng tiến trình, tim + phát trong nút tròn (giống SimpMusic) */
  #bar{left:16px;right:16px;width:auto;max-width:none;margin:0;bottom:calc(80px + env(safe-area-inset-bottom));height:56px;padding:0 8px;gap:8px;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;border-radius:999px;z-index:26;background:var(--cap);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line);transition:left .3s,bottom .3s}
@@ -586,12 +585,12 @@ html.android *{scroll-behavior:auto!important}
     <div class="navcap">
       <div class="ni" data-p="home" tabindex="0"><i data-ic="home" data-f="1"></i><span>Trang chủ</span></div>
       <div class="ni" data-p="mix" tabindex="0"><i data-ic="radio"></i><span>Mix</span></div>
+      <div class="ni navRoom" id="roomBar" data-p="together" tabindex="0"></div>
       <div class="ni navFr" data-p="friends" tabindex="0"><i data-ic="userplus"></i><span>Bạn bè</span></div>
       <div class="ni navLib" data-p="library" tabindex="0"><i data-ic="library"></i><span>Thư viện</span></div>
     </div>
     <div class="ni navSearch" data-p="search" tabindex="0"><i data-ic="search"></i><span>Tìm kiếm</span></div>
     <div class="sep"></div>
-    <button id="roomBar" class="roompill"></button>
     <div class="libh">
       <div class="t"><i data-ic="library"></i><span>Thư viện của bạn</span></div>
       <button class="ico" id="libSbtn" title="Lọc thư viện"><i data-ic="search"></i></button>
@@ -1344,7 +1343,7 @@ const pages={
 };
 async function go(p,arg,keep){
   page=p; document.querySelectorAll('.ni,.li').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
-  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','together','playlist'].includes(p)); }
+  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
   try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
@@ -1474,7 +1473,7 @@ async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{aw
 const fmap=new Map();
 function setRoomUi(r){
   const ri=$('#roomInfo'); if(ri){ ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); }
-  const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users','sm')+' Phòng '+esc(r);
+  const rb=$('#roomBar'); if(rb){ rb.innerHTML=ic('users')+'<span>Phòng</span>'; rb.title='Phòng '+r; }
   const sub=$('#roomSub'); if(sub) sub.textContent='Phòng '+r;
 }
 function parseRoom(v){
