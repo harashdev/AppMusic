@@ -157,6 +157,11 @@ fn init_db(path: &std::path::Path) -> Connection {
            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
            friend_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
            PRIMARY KEY(user_id, friend_id));
+         CREATE TABLE IF NOT EXISTS friend_requests(
+           from_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           to_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           PRIMARY KEY(from_id, to_id));
          CREATE TABLE IF NOT EXISTS favorites(
            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
            track_key TEXT NOT NULL, track_json TEXT NOT NULL,
@@ -329,6 +334,9 @@ async fn main() {
         .route("/api/yt/search", get(yt_search))
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/friends", get(list_friends).post(add_friend))
+        .route("/api/friends/requests", get(list_requests))
+        .route("/api/friends/respond", post(respond_request))
+        .route("/api/friends/:id", axum::routing::delete(remove_friend))
         .route("/api/favorites", get(fav_list).post(fav_toggle))
         .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
         .route("/api/playlists", get(pl_list).post(pl_create))
@@ -578,48 +586,167 @@ struct FriendReq {
     code: String,
 }
 
-async fn add_friend(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<FriendReq>) -> Result<StatusCode, ApiErr> {
+fn notify_user(st: &AppState, uid: i64, msg: serde_json::Value) {
+    let tx = st.notify.lock().unwrap().get(&uid).cloned();
+    if let Some(tx) = tx {
+        let _ = tx.send(msg.to_string());
+    }
+}
+
+fn friend_from_row(r: &rusqlite::Row, online: &HashSet<i64>) -> rusqlite::Result<Friend> {
+    let id: i64 = r.get(0)?;
+    Ok(Friend {
+        id,
+        display_name: r.get(1)?,
+        avatar: r.get(2)?,
+        online: online.contains(&id),
+        accent: r.get(3)?,
+        banner: r.get(4)?,
+        banner_color: r.get(5)?,
+        status: r.get(6)?,
+        crop: r.get(7)?,
+    })
+}
+
+const FRIEND_COLS: &str = "u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop";
+
+// Gửi lời mời kết bạn bằng mã bạn bè (hoặc tên đăng nhập). Nếu người kia đã mời mình trước thì tự chấp nhận.
+async fn add_friend(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<FriendReq>) -> Result<Json<serde_json::Value>, ApiErr> {
     let user = require(&st, &headers)?;
-    let db = st.db.lock().unwrap();
-    let fid: Option<i64> = db
-        .query_row("SELECT id FROM users WHERE code=?1", [r.code.trim().to_uppercase()], |r| r.get(0))
-        .ok();
-    let Some(fid) = fid else { return Err((StatusCode::NOT_FOUND, "Không tìm thấy mã bạn bè".into())) };
-    if fid == user.id {
-        return Err(bad("Không thể tự kết bạn với chính mình"));
+    let key = r.code.trim().to_string();
+    if key.is_empty() {
+        return Err(bad("Hãy nhập mã bạn bè hoặc tên đăng nhập"));
     }
-    for (a, b) in [(user.id, fid), (fid, user.id)] {
-        db.execute("INSERT OR IGNORE INTO friends(user_id,friend_id) VALUES(?1,?2)", params![a, b])
+    let result = {
+        let db = st.db.lock().unwrap();
+        let fid: Option<i64> = db
+            .query_row("SELECT id FROM users WHERE code=?1", [key.to_uppercase()], |r| r.get(0))
+            .ok()
+            .or_else(|| db.query_row("SELECT id FROM users WHERE username=?1", [&key], |r| r.get(0)).ok());
+        let Some(fid) = fid else { return Err((StatusCode::NOT_FOUND, "Không tìm thấy người dùng này".into())) };
+        if fid == user.id {
+            return Err(bad("Không thể tự kết bạn với chính mình"));
+        }
+        let already = db
+            .query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![user.id, fid], |_| Ok(()))
+            .is_ok();
+        if already {
+            return Err((StatusCode::CONFLICT, "Hai bạn đã là bạn bè rồi".into()));
+        }
+        let reverse = db
+            .query_row("SELECT 1 FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![fid, user.id], |_| Ok(()))
+            .is_ok();
+        if reverse {
+            for (a, b) in [(user.id, fid), (fid, user.id)] {
+                db.execute("INSERT OR IGNORE INTO friends(user_id,friend_id) VALUES(?1,?2)", params![a, b])
+                    .map_err(|_| e500())?;
+            }
+            db.execute(
+                "DELETE FROM friend_requests WHERE (from_id=?1 AND to_id=?2) OR (from_id=?2 AND to_id=?1)",
+                params![user.id, fid],
+            )
             .map_err(|_| e500())?;
+            (fid, "accepted")
+        } else {
+            let n = db
+                .execute("INSERT OR IGNORE INTO friend_requests(from_id,to_id) VALUES(?1,?2)", params![user.id, fid])
+                .map_err(|_| e500())?;
+            if n == 0 {
+                return Err((StatusCode::CONFLICT, "Bạn đã gửi lời mời cho người này rồi".into()));
+            }
+            (fid, "pending")
+        }
+    };
+    let (fid, status) = result;
+    if status == "pending" {
+        notify_user(&st, fid, json!({ "type": "friend_request", "from": user.display_name, "avatar": user.avatar }));
+    } else {
+        notify_user(&st, fid, json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": true }));
     }
-    Ok(StatusCode::OK)
+    Ok(Json(json!({ "status": status })))
 }
 
 async fn list_friends(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Friend>> {
     let user = require(&st, &headers)?;
     let online: HashSet<i64> = st.notify.lock().unwrap().keys().cloned().collect();
     let db = st.db.lock().unwrap();
-    let mut stmt = db
-        .prepare("SELECT u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop FROM friends f JOIN users u ON u.id=f.friend_id WHERE f.user_id=?1")
-        .map_err(|_| e500())?;
-    let rows = stmt
-        .query_map([user.id], |r| {
-            let id: i64 = r.get(0)?;
-            Ok(Friend {
-                id,
-                display_name: r.get(1)?,
-                avatar: r.get(2)?,
-                online: online.contains(&id),
-                accent: r.get(3)?,
-                banner: r.get(4)?,
-                banner_color: r.get(5)?,
-                status: r.get(6)?,
-                crop: r.get(7)?,
-            })
-        })
-        .map_err(|_| e500())?;
+    let sql = format!("SELECT {FRIEND_COLS} FROM friends f JOIN users u ON u.id=f.friend_id WHERE f.user_id=?1 ORDER BY u.display_name COLLATE NOCASE");
+    let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+    let rows = stmt.query_map([user.id], |r| friend_from_row(r, &online)).map_err(|_| e500())?;
     let list: Vec<Friend> = rows.filter_map(|x| x.ok()).collect();
     Ok(Json(list))
+}
+
+// Lời mời đang chờ: incoming = người khác mời mình, outgoing = mình đã mời.
+async fn list_requests(State(st): State<AppState>, headers: HeaderMap) -> Result<Json<serde_json::Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    let online: HashSet<i64> = st.notify.lock().unwrap().keys().cloned().collect();
+    let db = st.db.lock().unwrap();
+    let q = |sql: String| -> Result<Vec<Friend>, ApiErr> {
+        let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+        let rows = stmt.query_map([user.id], |r| friend_from_row(r, &online)).map_err(|_| e500())?;
+        let list: Vec<Friend> = rows.filter_map(|x| x.ok()).collect();
+        Ok(list)
+    };
+    let incoming = q(format!("SELECT {FRIEND_COLS} FROM friend_requests q JOIN users u ON u.id=q.from_id WHERE q.to_id=?1 ORDER BY q.created_at DESC"))?;
+    let outgoing = q(format!("SELECT {FRIEND_COLS} FROM friend_requests q JOIN users u ON u.id=q.to_id WHERE q.from_id=?1 ORDER BY q.created_at DESC"))?;
+    Ok(Json(json!({ "incoming": incoming, "outgoing": outgoing })))
+}
+
+#[derive(Deserialize)]
+struct RespondReq {
+    user_id: i64,
+    action: String, // accept | decline | cancel
+}
+
+async fn respond_request(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<RespondReq>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    {
+        let db = st.db.lock().unwrap();
+        match r.action.as_str() {
+            "accept" => {
+                let n = db
+                    .execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![r.user_id, user.id])
+                    .map_err(|_| e500())?;
+                if n == 0 {
+                    return Err((StatusCode::NOT_FOUND, "Lời mời không còn tồn tại".into()));
+                }
+                for (a, b) in [(user.id, r.user_id), (r.user_id, user.id)] {
+                    db.execute("INSERT OR IGNORE INTO friends(user_id,friend_id) VALUES(?1,?2)", params![a, b])
+                        .map_err(|_| e500())?;
+                }
+            }
+            "decline" => {
+                db.execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![r.user_id, user.id])
+                    .map_err(|_| e500())?;
+            }
+            "cancel" => {
+                db.execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![user.id, r.user_id])
+                    .map_err(|_| e500())?;
+            }
+            _ => return Err(bad("Thao tác không hợp lệ")),
+        }
+    }
+    notify_user(
+        &st,
+        r.user_id,
+        json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": r.action == "accept" }),
+    );
+    Ok(StatusCode::OK)
+}
+
+async fn remove_friend(State(st): State<AppState>, headers: HeaderMap, Path(fid): Path<i64>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    {
+        let db = st.db.lock().unwrap();
+        db.execute(
+            "DELETE FROM friends WHERE (user_id=?1 AND friend_id=?2) OR (user_id=?2 AND friend_id=?1)",
+            params![user.id, fid],
+        )
+        .map_err(|_| e500())?;
+    }
+    notify_user(&st, fid, json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": false }));
+    Ok(StatusCode::OK)
 }
 
 #[derive(Deserialize)]
