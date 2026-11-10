@@ -72,7 +72,12 @@ class KeepAliveService : Service() {
                 override fun onPause() = Playback.command("pause")
                 override fun onSkipToNext() = Playback.command("next")
                 override fun onSkipToPrevious() = Playback.command("prev")
-                override fun onSeekTo(pos: Long) = Playback.command("seek", pos)
+                override fun onSeekTo(pos: Long) {
+                    // Cập nhật ngay vị trí trên thông báo / màn hình khoá (không chờ web báo lại), rồi mới ra lệnh tua cho web.
+                    Playback.posMs = pos
+                    Playback.onChanged?.invoke()
+                    Playback.command("seek", pos)
+                }
             })
             isActive = true
         }

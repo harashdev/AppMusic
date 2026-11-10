@@ -1577,6 +1577,8 @@ window.museCmd=function(c,v){
     else if(c==='seek'&&cur&&isFinite(+v)){ seekTo(+v/1000); broadcastState(); nativeSync(); }
   }catch{}
 };
+// Tua xong (kể cả từ màn hình khoá / thanh tiến trình) thì báo vị trí mới cho thông báo Android ngay
+[aud,audYt].forEach(a=>{ try{ a.addEventListener('seeked',()=>{ if(window.MuseNative&&cur) nativeSync(); }); }catch{} });
 setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
 (function msInit(){
   if(!('mediaSession' in navigator)) return;
