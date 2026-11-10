@@ -571,6 +571,17 @@ html.android *{scroll-behavior:auto!important}
 .yti b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .yti small{color:var(--sub)}
 .yti input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+/* WebView Android đời cũ (Chrome < 111) không hiểu color-mix(): nền panel Đang phát bị trong suốt nên trang chủ lộ xuyên qua. Dự phòng bằng màu thường. */
+@supports not (background:color-mix(in srgb,red 50%,blue)){
+ #np{background:var(--npbg)}
+ #bar{background:#1c1925}
+ #np button.ico:hover,#np button.on{background:#ffffff2e}
+ #np .qh button{background:#ffffff2a}
+ @media(max-width:700px){
+  #bar{background:var(--cap)}
+  body.has-np #bar{background:var(--npbg)}
+ }
+}
 </style>
 </head>
 <body class="skin-default">
