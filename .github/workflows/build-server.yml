@@ -24,4 +24,4 @@ jobs:
           workspaces: muse-v0.5/muse/server
 
       - name: Build (release)
-        run: cargo build --release --locked
+        run: cargo build --release
