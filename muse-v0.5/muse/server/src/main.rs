@@ -198,11 +198,6 @@ fn init_db(path: &std::path::Path) -> Connection {
     ] {
         let _ = db.execute(ddl, []);
     }
-    // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Google OAuth2 (nhập playlist YouTube).
-    let _ = db.execute(
-        "CREATE TABLE IF NOT EXISTS google_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, ext INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
-        [],
-    );
     // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Discord OAuth2.
     let _ = db.execute(
         "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
@@ -318,11 +313,7 @@ async fn main() {
         .route("/api/discord/link", post(discord_link).delete(discord_unlink))
         .route("/api/discord/callback", get(discord_callback))
         .route("/api/discord/token", get(discord_token))
-        .route("/api/google/status", get(google_status))
-        .route("/api/google/link", post(google_link).delete(google_unlink))
-        .route("/api/google/callback", get(google_callback))
-        .route("/api/yt-import/playlists", get(yt_import_list))
-        .route("/api/yt-import/import", post(yt_import_run))
+        .route("/api/yt-import/url", post(yt_import_url))
         .route("/api/backup", get(backup_export))
         .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
@@ -374,7 +365,6 @@ async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
         "proxy_available": st.http_proxy.is_some(),
         "discord_app_id": std::env::var("DISCORD_CLIENT_ID").unwrap_or_default(),
         "discord_login": discord_cfg().is_some(),
-        "google_login": google_cfg().is_some(),
     }))
 }
 
@@ -2261,321 +2251,157 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
 }
 
 
-// ===== Nhập playlist từ YouTube bằng đăng nhập Google (chỉ quyền ĐỌC) =====
-// Cần 3 biến môi trường: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, PUBLIC_URL (vd. https://muse.example.com).
-// Trong Google Cloud Console → Credentials → OAuth client (Web) → Authorized redirect URIs thêm: {PUBLIC_URL}/api/google/callback
-// Quyền xin: youtube.readonly. Token chỉ giữ trong RAM (không lưu DB, không xin refresh token), hết hạn sau ~1 giờ
-// và được thu hồi ở Google khi bấm Ngắt kết nối. Muse không đăng nhập bằng Google, chỉ dùng để nhập playlist.
-fn google_cfg() -> Option<(String, String, String)> {
-    let id = std::env::var("GOOGLE_CLIENT_ID").ok()?.trim().to_string();
-    let secret = std::env::var("GOOGLE_CLIENT_SECRET").ok()?.trim().to_string();
-    let base = std::env::var("PUBLIC_URL").ok()?.trim().trim_end_matches('/').to_string();
-    if id.is_empty() || secret.is_empty() || !(base.starts_with("https://") || base.starts_with("http://")) {
-        return None;
+// ===== Nhập playlist YouTube công khai bằng link (không cần đăng nhập) =====
+// Dùng InnerTube (giống lúc tìm nhạc). Chỉ đọc được playlist công khai / không công khai (có link); playlist riêng tư thì không.
+fn yt_playlist_id(input: &str) -> Option<String> {
+    let s = input.trim();
+    let ok = |x: &str| !x.is_empty() && x.len() <= 64 && x.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+    if let Some(i) = s.find("list=") {
+        let rest = &s[i + 5..];
+        let id: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
+        return if ok(&id) { Some(id) } else { None };
     }
-    Some((id, secret, format!("{base}/api/google/callback")))
+    // Dán thẳng ID playlist (PL..., OLAK5uy_..., UU...)
+    if !s.contains('/') && !s.contains('.') && ok(s) && s.len() >= 12 {
+        return Some(s.to_string());
+    }
+    None
 }
 
-static GOOGLE_TOK: std::sync::OnceLock<Mutex<HashMap<i64, (String, u64)>>> = std::sync::OnceLock::new();
-fn google_toks() -> &'static Mutex<HashMap<i64, (String, u64)>> {
-    GOOGLE_TOK.get_or_init(|| Mutex::new(HashMap::new()))
-}
-fn google_token_of(uid: i64) -> Option<String> {
-    let mut m = google_toks().lock().unwrap();
-    let cur = m.get(&uid).map(|(t, e)| (t.clone(), *e));
-    match cur {
-        Some((t, e)) if e > now_secs() + 30 => Some(t),
-        Some(_) => {
-            m.remove(&uid);
-            None
+fn yt_find<'a>(v: &'a Value, key: &str) -> Option<&'a Value> {
+    match v {
+        Value::Object(m) => {
+            if let Some(x) = m.get(key) {
+                return Some(x);
+            }
+            m.values().find_map(|x| yt_find(x, key))
         }
-        None => None,
+        Value::Array(a) => a.iter().find_map(|x| yt_find(x, key)),
+        _ => None,
     }
 }
-fn google_need_login() -> ApiErr {
-    (StatusCode::CONFLICT, "Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại".to_string())
-}
 
-async fn google_status(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
-    let u = require(&st, &headers)?;
-    Ok(Json(json!({ "configured": google_cfg().is_some(), "linked": google_token_of(u.id).is_some() })))
-}
-
-// Trả URL đăng nhập Google. ext=true khi mở bằng trình duyệt ngoài (app Android): trang kết quả chỉ báo "quay lại app".
-async fn google_link(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
-    let u = require(&st, &headers)?;
-    let Some((cid, _, redirect)) = google_cfg() else {
-        return Err(bad("Server chưa cấu hình đăng nhập Google"));
-    };
-    let ext = body.get("ext").and_then(|x| x.as_bool()).unwrap_or(false);
-    let state = new_token();
-    {
-        let db = st.db.lock().unwrap();
-        let _ = db.execute("DELETE FROM google_states WHERE created_at < datetime('now','-10 minutes')", []);
-        db.execute("INSERT INTO google_states(state,user_id,ext) VALUES(?1,?2,?3)", params![state, u.id, ext as i64])
-            .map_err(|_| e500())?;
-    }
-    let url = format!(
-        "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={}&redirect_uri={}&scope={}&state={}&prompt=select_account&include_granted_scopes=false",
-        urlenc(&cid),
-        urlenc(&redirect),
-        urlenc("https://www.googleapis.com/auth/youtube.readonly"),
-        state
-    );
-    Ok(Json(json!({ "url": url })))
-}
-
-async fn google_unlink(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
-    let u = require(&st, &headers)?;
-    let tok = google_toks().lock().unwrap().remove(&u.id).map(|x| x.0);
-    if let Some(t) = tok {
-        // Thu hồi quyền ở phía Google (bỏ qua lỗi).
-        let _ = st
-            .http
-            .post("https://oauth2.googleapis.com/revoke")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(format!("token={}", urlenc(&t)))
-            .send()
-            .await;
-    }
-    Ok(StatusCode::OK)
-}
-
-#[derive(Deserialize)]
-struct GoogleCb {
-    code: Option<String>,
-    state: Option<String>,
-    error: Option<String>,
-}
-
-fn google_done_page(ok: bool) -> Response {
-    let (t, d) = if ok {
-        ("Đã kết nối Google", "Quay lại ứng dụng Muse và bấm “Tải danh sách playlist”. Bạn có thể đóng trang này.")
-    } else {
-        ("Kết nối Google thất bại", "Quay lại ứng dụng Muse và thử lại.")
-    };
-    let html = format!(
-        r#"<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Muse</title><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;background:#0e0c15;color:#f3f0fa;text-align:center;padding:24px"><div><h2>{t}</h2><p style="color:#a8a3b6;line-height:1.5">{d}</p></div></body></html>"#
-    );
-    (StatusCode::OK, [(header::CONTENT_TYPE, "text/html; charset=utf-8")], html).into_response()
-}
-
-async fn google_callback(State(st): State<AppState>, Query(q): Query<GoogleCb>) -> Response {
-    // Cùng cửa sổ (web/desktop): quay về app; trình duyệt ngoài (Android): hiện trang báo kết quả.
-    let mut ext = false;
-    let res: Result<(), ()> = async {
-        if q.error.is_some() {
-            return Err(());
+fn yt_collect_videos(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistVideoRenderer") {
+                out.push(r.clone());
+                return;
+            }
+            for x in m.values() {
+                yt_collect_videos(x, out);
+            }
         }
-        let (Some(code), Some(state)) = (q.code.clone(), q.state.clone()) else { return Err(()) };
-        let row: Option<(i64, i64)> = {
-            let db = st.db.lock().unwrap();
-            let r = db
-                .query_row(
-                    "SELECT user_id, ext FROM google_states WHERE state=?1 AND created_at > datetime('now','-10 minutes')",
-                    [&state],
-                    |r| Ok((r.get(0)?, r.get(1)?)),
-                )
-                .ok();
-            let _ = db.execute("DELETE FROM google_states WHERE state=?1", [&state]);
-            r
-        };
-        let Some((uid, e)) = row else { return Err(()) };
-        ext = e != 0;
-        let Some((cid, secret, redirect)) = google_cfg() else { return Err(()) };
-        let body = format!(
-            "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&client_secret={}",
-            urlenc(&code),
-            urlenc(&redirect),
-            urlenc(&cid),
-            urlenc(&secret)
-        );
-        let tok: Value = match st
-            .http
-            .post("https://oauth2.googleapis.com/token")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
-            .await
-        {
-            Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
-            _ => return Err(()),
-        };
-        let Some(access) = tok["access_token"].as_str() else { return Err(()) };
-        let exp = now_secs() + tok["expires_in"].as_u64().unwrap_or(3000).min(3300);
-        google_toks().lock().unwrap().insert(uid, (access.to_string(), exp));
-        Ok(())
-    }
-    .await;
-    let ok = res.is_ok();
-    if ext {
-        google_done_page(ok)
-    } else {
-        Redirect::to(if ok { "/?google=ok" } else { "/?google=err" }).into_response()
+        Value::Array(a) => a.iter().for_each(|x| yt_collect_videos(x, out)),
+        _ => {}
     }
 }
 
-// Gọi YouTube Data API v3 bằng token của người dùng.
-async fn yt_api(st: &AppState, uid: i64, tok: &str, path: &str) -> Result<Value, ApiErr> {
-    let r = st
-        .http
-        .get(format!("https://www.googleapis.com/youtube/v3/{path}"))
-        .bearer_auth(tok)
+fn yt_text(v: Option<&Value>) -> String {
+    let Some(v) = v else { return String::new() };
+    if let Some(s) = v.get("simpleText").and_then(|x| x.as_str()) {
+        return s.to_string();
+    }
+    v.get("runs")
+        .and_then(|r| r.as_array())
+        .map(|r| r.iter().filter_map(|x| x.get("text").and_then(|t| t.as_str())).collect::<String>())
+        .unwrap_or_default()
+}
+
+async fn yt_browse(client: &reqwest::Client, body: Value) -> Result<Value, ApiErr> {
+    let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    let r = client
+        .post("https://www.youtube.com/youtubei/v1/browse?prettyPrint=false")
+        .header("origin", "https://www.youtube.com")
+        .header("referer", "https://www.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(25))
         .send()
         .await
-        .map_err(|_| (StatusCode::BAD_GATEWAY, "Không kết nối được YouTube".to_string()))?;
-    let status = r.status();
-    let v: Value = r.json().await.unwrap_or(Value::Null);
-    if status.is_success() {
-        return Ok(v);
+        .map_err(|_| fail("Không kết nối được YouTube"))?;
+    if !r.status().is_success() {
+        return Err(fail("YouTube từ chối yêu cầu, thử lại sau"));
     }
-    if status.as_u16() == 401 {
-        google_toks().lock().unwrap().remove(&uid);
-        return Err(google_need_login());
-    }
-    let reason = v.pointer("/error/message").and_then(|x| x.as_str()).unwrap_or("YouTube từ chối yêu cầu");
-    let reason: String = reason.chars().take(300).collect();
-    Err((StatusCode::BAD_GATEWAY, format!("YouTube: {reason}")))
+    r.json().await.map_err(|_| fail("YouTube trả dữ liệu lạ"))
 }
 
-fn page_q(page: &str) -> String {
-    if page.is_empty() {
-        String::new()
-    } else {
-        format!("&pageToken={}", urlenc(page))
-    }
-}
-
-// Danh sách playlist của tài khoản Google (kèm "Video đã thích").
-async fn yt_import_list(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+// Nhập 1 playlist: body {"url":"https://www.youtube.com/playlist?list=PL...","title":"(tùy chọn)"}
+async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
-    let tok = google_token_of(u.id).ok_or_else(google_need_login)?;
-    let mut out: Vec<Value> = Vec::new();
-    if let Ok(v) = yt_api(&st, u.id, &tok, "channels?part=contentDetails&mine=true").await {
-        if let Some(lid) = v.pointer("/items/0/contentDetails/relatedPlaylists/likes").and_then(|x| x.as_str()) {
-            if !lid.is_empty() {
-                out.push(json!({ "id": lid, "title": "Video đã thích", "count": Value::Null, "image": "" }));
-            }
-        }
+    let raw = body.get("url").and_then(|x| x.as_str()).unwrap_or("");
+    let Some(pid) = yt_playlist_id(raw) else {
+        return Err(bad("Link playlist không hợp lệ. Hãy dán link dạng youtube.com/playlist?list=..."));
+    };
+    if pid.starts_with("RD") || pid == "LL" || pid == "WL" {
+        return Err(bad("Không nhập được playlist này (Mix, Video đã thích hoặc Xem sau là danh sách riêng). Hãy tạo playlist công khai rồi dán link."));
     }
-    let mut page = String::new();
-    for _ in 0..4 {
-        let v = yt_api(&st, u.id, &tok, &format!("playlists?part=snippet,contentDetails&mine=true&maxResults=50{}", page_q(&page))).await?;
-        for it in v["items"].as_array().cloned().unwrap_or_default() {
-            let id = it["id"].as_str().unwrap_or("");
-            if id.is_empty() {
-                continue;
-            }
-            let title: String = it.pointer("/snippet/title").and_then(|x| x.as_str()).unwrap_or("Playlist").chars().take(80).collect();
-            let image = it
-                .pointer("/snippet/thumbnails/medium/url")
-                .or_else(|| it.pointer("/snippet/thumbnails/default/url"))
-                .and_then(|x| x.as_str())
-                .unwrap_or("");
-            let count = it.pointer("/contentDetails/itemCount").and_then(|x| x.as_i64()).unwrap_or(0);
-            out.push(json!({ "id": id, "title": title, "count": count, "image": image }));
-        }
-        match v["nextPageToken"].as_str() {
-            Some(t) if !t.is_empty() => page = t.to_string(),
-            _ => break,
-        }
-    }
-    Ok(Json(json!({ "playlists": out })))
-}
+    let (_, use_proxy) = user_net_prefs(&st, u.id);
+    let client = pick_client(&st, use_proxy);
+    let ctx = json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "vi", "gl": "VN" } });
 
-fn iso_dur(s: &str) -> u64 {
-    let s = s.strip_prefix("PT").unwrap_or(s);
-    let (mut n, mut tot) = (0u64, 0u64);
-    for c in s.chars() {
-        if let Some(d) = c.to_digit(10) {
-            n = n * 10 + d as u64;
-        } else {
-            match c {
-                'H' => tot += n * 3600,
-                'M' => tot += n * 60,
-                'S' => tot += n,
-                _ => {}
-            }
-            n = 0;
-        }
+    let first = yt_browse(&client, json!({ "context": ctx, "browseId": format!("VL{pid}") })).await?;
+    if first.get("alerts").is_some() && yt_find(&first, "playlistVideoRenderer").is_none() {
+        let msg = yt_find(&first, "alertWithButtonRenderer")
+            .or_else(|| yt_find(&first, "alertRenderer"))
+            .map(|a| yt_text(a.get("text")))
+            .unwrap_or_default();
+        return Err(bad(if msg.is_empty() { "Không đọc được playlist (riêng tư hoặc không tồn tại)" } else { &msg }));
     }
-    tot
-}
+    let mut title = body.get("title").and_then(|x| x.as_str()).unwrap_or("").trim().to_string();
+    if title.is_empty() {
+        title = yt_find(&first, "playlistHeaderRenderer")
+            .map(|h| yt_text(h.get("title")))
+            .filter(|t| !t.is_empty())
+            .or_else(|| yt_find(&first, "playlistMetadataRenderer").and_then(|m| m.get("title")).and_then(|t| t.as_str()).map(|t| t.to_string()))
+            .unwrap_or_default();
+    }
+    if title.is_empty() {
+        title = "Playlist YouTube".to_string();
+    }
+    let title: String = title.chars().take(100).collect();
 
-// Lấy toàn bộ bài trong một playlist YouTube (bỏ video riêng tư / đã xóa) và gắn thời lượng.
-async fn yt_playlist_tracks(st: &AppState, uid: i64, tok: &str, pid: &str) -> Result<Vec<Value>, ApiErr> {
     let mut tracks: Vec<Value> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
-    let mut page = String::new();
-    'pages: for _ in 0..(MAX_PL_TRACKS / 50 + 1) {
-        let v = yt_api(st, uid, tok, &format!("playlistItems?part=snippet&maxResults=50&playlistId={}{}", urlenc(pid), page_q(&page))).await?;
-        for it in v["items"].as_array().cloned().unwrap_or_default() {
-            let vid = it.pointer("/snippet/resourceId/videoId").and_then(|x| x.as_str()).unwrap_or("");
-            let title = it.pointer("/snippet/title").and_then(|x| x.as_str()).unwrap_or("");
-            if vid.len() != 11 || title.is_empty() || title == "Private video" || title == "Deleted video" || !seen.insert(vid.to_string()) {
+    let mut cur = first;
+    for _page in 0..(MAX_PL_TRACKS / 90 + 2) {
+        let mut vids = Vec::new();
+        yt_collect_videos(&cur, &mut vids);
+        for r in vids {
+            let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
+            let name = yt_text(r.get("title"));
+            let secs: u64 = r.get("lengthSeconds").and_then(|x| x.as_str()).and_then(|x| x.parse().ok()).unwrap_or(0);
+            // Video đã xóa / riêng tư không có thời lượng
+            if vid.len() != 11 || name.is_empty() || secs == 0 || !seen.insert(vid.to_string()) {
                 continue;
             }
-            let artist = it.pointer("/snippet/videoOwnerChannelTitle").and_then(|x| x.as_str()).unwrap_or("");
-            let artist = artist.strip_suffix(" - Topic").unwrap_or(artist);
-            let image = it
-                .pointer("/snippet/thumbnails/medium/url")
-                .or_else(|| it.pointer("/snippet/thumbnails/default/url"))
+            let artist = yt_text(r.get("shortBylineText"));
+            let artist = artist.strip_suffix(" - Topic").unwrap_or(&artist).to_string();
+            let image = r
+                .pointer("/thumbnail/thumbnails")
+                .and_then(|t| t.as_array())
+                .and_then(|t| t.last())
+                .and_then(|t| t.get("url"))
                 .and_then(|x| x.as_str())
-                .map(|x| x.to_string())
+                .map(|x| x.split('?').next().unwrap_or(x).to_string())
                 .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
-            tracks.push(json!({ "src": "yt", "id": vid, "title": title, "artist": artist, "image": image, "url": "", "dur": 0, "explicit": false }));
+            tracks.push(json!({ "src": "yt", "id": vid, "title": name, "artist": artist, "image": image, "url": "", "dur": secs, "explicit": false }));
             if tracks.len() >= MAX_PL_TRACKS {
-                break 'pages;
+                break;
             }
         }
-        match v["nextPageToken"].as_str() {
-            Some(t) if !t.is_empty() => page = t.to_string(),
-            _ => break,
+        if tracks.len() >= MAX_PL_TRACKS {
+            break;
         }
+        let token = yt_find(&cur, "continuationCommand").and_then(|c| c.get("token")).and_then(|t| t.as_str()).map(|t| t.to_string());
+        let Some(token) = token else { break };
+        cur = yt_browse(&client, json!({ "context": ctx, "continuation": token })).await?;
     }
-    // Thời lượng (nếu lỗi thì để 0, không làm hỏng việc nhập).
-    let ids: Vec<String> = tracks.iter().filter_map(|t| t["id"].as_str().map(|x| x.to_string())).collect();
-    let mut durs: HashMap<String, u64> = HashMap::new();
-    for chunk in ids.chunks(50) {
-        if let Ok(v) = yt_api(st, uid, tok, &format!("videos?part=contentDetails&maxResults=50&id={}", chunk.join(","))).await {
-            for it in v["items"].as_array().cloned().unwrap_or_default() {
-                if let (Some(id), Some(d)) = (it["id"].as_str(), it.pointer("/contentDetails/duration").and_then(|x| x.as_str())) {
-                    durs.insert(id.to_string(), iso_dur(d));
-                }
-            }
-        }
-    }
-    for t in tracks.iter_mut() {
-        let d = t["id"].as_str().and_then(|id| durs.get(id)).copied().unwrap_or(0);
-        t["dur"] = json!(d);
-    }
-    Ok(tracks)
-}
-
-// Nhập các playlist đã chọn: body {"items":[{"id":"PL...","title":"..."}]}
-async fn yt_import_run(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
-    let u = require(&st, &headers)?;
-    let tok = google_token_of(u.id).ok_or_else(google_need_login)?;
-    let items: Vec<Value> = body.get("items").and_then(|x| x.as_array()).cloned().unwrap_or_default();
-    if items.is_empty() {
-        return Err(bad("Chưa chọn playlist nào"));
-    }
-    let mut list: Vec<Value> = Vec::new();
-    for it in items.iter().take(10) {
-        let id = it.get("id").and_then(|x| x.as_str()).unwrap_or("");
-        if id.is_empty() || id.len() > 64 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
-            continue;
-        }
-        let title = it.get("title").and_then(|x| x.as_str()).unwrap_or("Playlist YouTube");
-        let tracks = yt_playlist_tracks(&st, u.id, &tok, id).await?;
-        list.push(json!({ "name": title, "tracks": tracks }));
-    }
-    if list.is_empty() {
-        return Err(bad("Playlist không hợp lệ"));
+    if tracks.is_empty() {
+        return Err(bad("Playlist trống hoặc ở chế độ riêng tư. Hãy đặt playlist thành Công khai hoặc Không công khai rồi thử lại."));
     }
     let db = st.db.lock().unwrap();
-    let (np, nt) = insert_playlists(&db, u.id, &list)?;
-    Ok(Json(json!({ "playlists": np, "tracks": nt })))
+    let (np, nt) = insert_playlists(&db, u.id, &[json!({ "name": title, "tracks": tracks })])?;
+    Ok(Json(json!({ "playlists": np, "tracks": nt, "name": title })))
 }
 
 // ===== Liên kết tài khoản Discord (OAuth2, scope "identify") =====
