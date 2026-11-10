@@ -94,6 +94,8 @@ class MainActivity : ComponentActivity() {
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
         askBatteryOnce()
 
+        // Xoá cache của WebView mỗi lần mở app để luôn nhận giao diện mới nhất từ server (không bị kẹt bản cũ).
+        web.clearCache(true)
         loadServer()
     }
 
