@@ -1237,7 +1237,9 @@ let eng='yt'; const fxFail={};
 const A=()=>eng==='fx'?audYt:aud;
 let fxFmt=(()=>{ try{ return audYt.canPlayType('audio/webm; codecs="opus"')?'webm':'mp4'; }catch{ return 'mp4'; } })(); const fxTried={};
 let fxDownUntil=0;
-const wantStream=t=>t&&t.src==='yt'&&!fxFail[t.id]&&Date.now()>=fxDownUntil&&(S.eq_on||S.delay_on||S.reverb_on||(S.proxy&&cfg.proxy_available));
+const MOBILE=(()=>{ try{ return matchMedia('(pointer:coarse)').matches&&LS.get('bgplay','1')==='1'; }catch{ return false; } })();
+const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
+const wantStream=t=>t&&t.src==='yt'&&!fxFail[t.id]&&Date.now()>=fxDownUntil&&(MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available));
 const EQ_F=[31,62,125,250,500,1000,2000,4000,8000,16000];
 const EQ_PRESETS={'Flat':[0,0,0,0,0,0,0,0,0,0],'Acoustic':[5,5,4,1,2,2,3,4,3,2],'Bass booster':[6,5,4,2,1,0,0,0,0,0],'Bass reducer':[-6,-5,-4,-2,-1,0,0,0,0,0],'Classical':[5,4,3,3,-1,-1,0,2,3,4],'Dance':[6,5,2,0,0,-3,-4,-4,0,0],'Deep':[5,4,2,1,3,2,1,-2,-4,-5],'Electronic':[4,4,1,0,-2,2,1,1,4,5],'HipHop':[5,4,1,3,-1,-1,1,-1,2,3],'Jazz':[4,3,1,2,-2,-2,0,1,3,4],'Latin':[4,2,0,0,-2,-2,-2,0,3,5],'Loudness':[6,4,0,0,-2,0,-1,-5,5,1],'Lounge':[-3,-1,0,1,3,2,0,-1,2,1],'Piano':[3,2,0,3,3,1,3,4,3,4],'Pop':[-1,2,4,5,3,0,-1,-2,-2,-2],'RnB':[3,7,6,1,-2,-1,2,2,3,3],'Rock':[5,4,3,1,-1,-2,0,2,3,4]};
 const fx={ctx:null};
@@ -1307,12 +1309,12 @@ function setPlaying(p){
   playing=p; if(!cur) return;
   if(eng==='yt'){ if(ytReady) p?yt.playVideo():yt.pauseVideo(); }
   else { if(fx.ctx&&fx.ctx.state==='suspended'&&p) fx.ctx.resume().catch(()=>{}); p?A().play().catch(()=>sysLine('Trình duyệt chặn tự phát – bấm ▶ để nghe')):A().pause(); }
-  pushPresence();
+  pushPresence(); msUpdate();
 }
 function loadTrack(t,pos=0,play=true,ts=null){
   fadeInAt=(play&&S.crossfade)?performance.now():0;
   cur=t; pend=ts?{pos,ts,play}:null; lyrLines=null;
-  eng=t.src!=='yt'?'aud':(wantStream(t)&&fxBuild())?'fx':'yt'; syncVid();
+  eng=t.src!=='yt'?'aud':(wantStream(t)&&(!fxNeeded()||fxBuild()))?'fx':'yt'; syncVid();
   const startAt=()=>pos+(play&&ts?(now()-ts)/1000:0);
   if(eng==='yt'){
     aud.pause(); audYt.pause();
@@ -1326,7 +1328,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(ytReady) yt.pauseVideo(); audYt.pause();
     aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
   }
-  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence();
+  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence(); msUpdate();
 }
 /* bật/tắt hiệu ứng khi đang phát: đổi động cơ nhưng giữ nguyên vị trí */
 function reloadEngine(){
@@ -1380,6 +1382,28 @@ function restorePlayState(){
     loadTrack(j.t,+j.pos||0,false); }catch{}
 }
 function onEnded(){ const t=cur; if(leader) nextTrack(true); else setTimeout(()=>{ if(cur===t) nextTrack(true); },3000); }
+/* Media Session: tên bài, ảnh bìa và nút điều khiển trên màn hình khoá / thông báo / tai nghe */
+function msUpdate(){
+  if(!('mediaSession' in navigator)) return;
+  const m=navigator.mediaSession, t=cur;
+  try{
+    if(!t){ m.metadata=null; m.playbackState='none'; return; }
+    m.metadata=new MediaMetadata({title:t.title||'',artist:t.artist||'',album:qname||'Muse',
+      artwork:t.image?[{src:t.image,sizes:'512x512'}]:[{src:'/icon-512.png',sizes:'512x512',type:'image/png'}]});
+    m.playbackState=playing?'playing':'paused';
+  }catch{}
+}
+(function msInit(){
+  if(!('mediaSession' in navigator)) return;
+  const m=navigator.mediaSession, h=(a,f)=>{ try{ m.setActionHandler(a,f); }catch{} };
+  h('play',()=>{ if(cur&&!playing){ setPlaying(true); broadcastState(); updateBar(); } });
+  h('pause',()=>{ if(cur&&playing){ setPlaying(false); broadcastState(); updateBar(); } });
+  h('previoustrack',()=>prevTrack()); h('nexttrack',()=>nextTrack(false));
+  h('seekto',d=>{ if(cur&&d&&isFinite(d.seekTime)){ seekTo(d.seekTime); broadcastState(); } });
+  h('seekbackward',d=>{ if(cur){ seekTo(Math.max(0,getTime()-((d&&d.seekOffset)||10))); broadcastState(); } });
+  h('seekforward',d=>{ if(cur){ const du=getDur(); seekTo(Math.min(du||1e9,getTime()+((d&&d.seekOffset)||10))); broadcastState(); } });
+  setInterval(()=>{ try{ const du=getDur(); if(cur&&du&&isFinite(du)&&m.setPositionState) m.setPositionState({duration:du,position:Math.min(Math.max(0,getTime()),du),playbackRate:1}); }catch{} },1000);
+})();
 $('#pp').onclick=()=>{ if(!cur) return; setPlaying(!playing); broadcastState(); };
 $('#bNext').onclick=()=>nextTrack(false); $('#bPrev').onclick=prevTrack;
 $('#bShuf').onclick=()=>{ shuf=!shuf; $('#bShuf').classList.toggle('on',shuf); $('#bShuf').title=shuf?'Ngẫu nhiên: bật':'Ngẫu nhiên: tắt'; };
