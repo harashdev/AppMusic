@@ -16,8 +16,8 @@ android {
         applicationId = "vn.muse.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.6.2"
+        versionCode = 5
+        versionName = "0.7.0"
         buildConfigField("String", "MUSE_URL", "\"${museUrl.replace("\"", "")}\"")
     }
     buildTypes {

@@ -1478,19 +1478,29 @@ fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static st
             "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
             json!({ "deviceMake": "Apple", "deviceModel": "iPhone16,2", "osName": "iPhone", "osVersion": "18.3.2.22D82" }),
         ),
+        (
+            "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
+            "85",
+            "2.0",
+            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
+            json!({}),
+        ),
     ]
 }
 
 async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: usize) -> Result<(String, u64, String, usize), String> {
     let mut last = "Không lấy được luồng âm thanh".to_string();
-    for (ci, (name, hid, ver, ua, extra)) in audio_clients().into_iter().enumerate().skip(from) {
+    for (ci, (name, hid, ver, ua, extra)) in audio_clients().into_iter().enumerate().skip(from).take(1) {
         let mut c = json!({ "clientName": name, "clientVersion": ver, "hl": "en", "gl": "VN" });
         if let (Some(o), Some(e)) = (c.as_object_mut(), extra.as_object()) {
             for (k, v) in e {
                 o.insert(k.clone(), v.clone());
             }
         }
-        let body = json!({ "context": { "client": c }, "videoId": vid, "contentCheckOk": true, "racyCheckOk": true });
+        let mut body = json!({ "context": { "client": c }, "videoId": vid, "contentCheckOk": true, "racyCheckOk": true });
+        if name == "TVHTML5_SIMPLY_EMBEDDED_PLAYER" {
+            body["context"]["thirdParty"] = json!({ "embedUrl": "https://www.youtube.com/" });
+        }
         let resp = match client
             .post("https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false")
             .header("user-agent", ua)
@@ -1581,11 +1591,108 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
             .to_string();
         return Ok((url, size, mime, ci));
     }
-    // Dự phòng: YouTube chặn IP ("Sign in to confirm you're not a bot") -> hỏi các máy chủ Piped
-    match resolve_piped(client, vid, webm).await {
-        Ok(x) => Ok(x),
-        Err(e) => Err(format!("{last} | {e}")),
+    Err(last)
+}
+
+// Thứ tự thử các nguồn: client YouTube -> yt-dlp (90) -> Piped (99).
+// Có YT_COOKIES thì yt-dlp (đăng nhập bằng cookies) được thử đầu tiên vì tránh được "Sign in to confirm you're not a bot".
+fn audio_order() -> Vec<usize> {
+    let mut v: Vec<usize> = (0..audio_clients().len()).collect();
+    let has = |k: &str| std::env::var(k).map(|x| !x.trim().is_empty()).unwrap_or(false);
+    if has("YT_COOKIES") || has("YT_BROWSER") {
+        v.insert(0, 90);
+    } else {
+        v.push(90);
     }
+    v.push(99);
+    v
+}
+
+async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: usize, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+    match src {
+        90 => resolve_ytdlp(client, vid, webm, use_proxy).await,
+        99 => resolve_piped(client, vid, webm).await,
+        n => resolve_audio(client, vid, webm, n).await,
+    }
+}
+
+// Nhớ 10 phút nguồn nào đã bị chặn cho video này để khỏi thử lại ở mỗi yêu cầu đoạn.
+static AUDIO_BAD: std::sync::OnceLock<Mutex<HashMap<(String, usize), u64>>> = std::sync::OnceLock::new();
+fn bad_map() -> &'static Mutex<HashMap<(String, usize), u64>> {
+    AUDIO_BAD.get_or_init(|| Mutex::new(HashMap::new()))
+}
+fn audio_bad(id: &str, src: usize) -> bool {
+    let m = bad_map().lock().unwrap();
+    m.get(&(id.to_string(), src)).map(|t| now_secs().saturating_sub(*t) < 600).unwrap_or(false)
+}
+fn audio_mark_bad(id: &str, src: usize) {
+    let mut m = bad_map().lock().unwrap();
+    if m.len() > 2000 {
+        m.clear();
+    }
+    m.insert((id.to_string(), src), now_secs());
+}
+
+// yt-dlp (cài riêng, đặt trong PATH hoặc biến YTDLP_PATH). YT_COOKIES = đường dẫn file cookies.txt (định dạng Netscape).
+async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+    let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
+    let fmt = if webm { "251/bestaudio[ext=webm]/bestaudio" } else { "140/bestaudio[ext=m4a]/bestaudio" };
+    let mut cmd = tokio::process::Command::new(&bin);
+    cmd.arg("-g").arg("--no-playlist").arg("--no-warnings").arg("-f").arg(fmt);
+    if let Ok(c) = std::env::var("YT_COOKIES") {
+        let c = c.trim().to_string();
+        if !c.is_empty() {
+            cmd.arg("--cookies").arg(c);
+        }
+    }
+    if let Ok(b) = std::env::var("YT_BROWSER") {
+        // lấy cookies trực tiếp từ trình duyệt trên máy (firefox, edge, chrome, brave...), khỏi phải xuất file
+        let b = b.trim().to_string();
+        if !b.is_empty() {
+            cmd.arg("--cookies-from-browser").arg(b);
+        }
+    }
+    if use_proxy {
+        if let Ok(p) = std::env::var("YT_PROXY") {
+            let p = p.trim().to_string();
+            if !p.is_empty() {
+                cmd.arg("--proxy").arg(p);
+            }
+        }
+    }
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    cmd.kill_on_drop(true);
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    let out = tokio::time::timeout(Duration::from_secs(45), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp: {line}"));
+    }
+    let text = String::from_utf8_lossy(&out.stdout).to_string();
+    let url = text.lines().map(|l| l.trim()).find(|l| l.starts_with("http")).ok_or_else(|| "yt-dlp: không trả về link".to_string())?.to_string();
+    let q = |k: &str| -> Option<String> { url.split(['?', '&']).find_map(|p| p.strip_prefix(k).map(|x| x.to_string())) };
+    let mut size: u64 = q("clen=").and_then(|x| x.parse().ok()).unwrap_or(0);
+    let mime = q("mime=").map(|m| m.replace("%2F", "/").replace("%2f", "/")).unwrap_or_else(|| "audio/mp4".to_string());
+    if size == 0 {
+        if let Ok(r) = client.get(&url).header("range", "bytes=0-0").send().await {
+            size = r
+                .headers()
+                .get("content-range")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.rsplit('/').next())
+                .and_then(|x| x.parse::<u64>().ok())
+                .unwrap_or(0);
+        }
+    }
+    if size == 0 {
+        return Err("yt-dlp: không đọc được kích thước luồng".to_string());
+    }
+    Ok((url, size, mime, 90))
 }
 
 fn ua_for(ci: usize) -> &'static str {
@@ -1696,29 +1803,56 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     let (start, end_req) = parse_range(&headers);
     let mut notes = String::new();
 
-    // Lần 1 dùng client ANDROID_VR; nếu googlevideo từ chối thì lần 2 lấy lại link bằng client IOS.
-    for attempt in 0..2usize {
+    // Thử lần lượt các nguồn (client YouTube -> yt-dlp -> Piped); nguồn nào bị chặn thì bỏ qua và thử nguồn kế tiếp.
+    let order = audio_order();
+    let mut pos = 0usize;
+    for _round in 0..=order.len() {
         let cached = {
             let c = st.audio.lock().unwrap();
             c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).cloned()
         };
         let (url, size, mime, ci) = match cached {
             Some((u, s, m, _, ci)) => (u, s, m, ci),
-            None => match resolve_audio(&client, &id, webm, attempt).await {
-                Ok((u, s, m, ci)) => {
-                    let mut c = st.audio.lock().unwrap();
-                    if c.len() > 300 {
-                        c.clear();
+            None => {
+                let mut res = None;
+                while pos < order.len() {
+                    let src = order[pos];
+                    if audio_bad(&id, src) {
+                        pos += 1;
+                        continue;
                     }
-                    c.insert(ckey.clone(), (u.clone(), s, m.clone(), now_secs(), ci));
-                    (u, s, m, ci)
+                    match resolve_source(&client, &id, webm, src, use_proxy).await {
+                        Ok(x) => {
+                            res = Some(x);
+                            break;
+                        }
+                        Err(e) => {
+                            eprintln!("[audio] {id} nguồn {src}: {e}");
+                            notes.push_str(&format!("[{e}] "));
+                            audio_mark_bad(&id, src);
+                            pos += 1;
+                        }
+                    }
                 }
-                Err(e) => {
-                    let msg = if notes.is_empty() { e } else { format!("{notes} | {e}") };
-                    return (StatusCode::BAD_GATEWAY, msg).into_response();
+                match res {
+                    Some((u, s, m, ci)) => {
+                        let mut c = st.audio.lock().unwrap();
+                        if c.len() > 300 {
+                            c.clear();
+                        }
+                        c.insert(ckey.clone(), (u.clone(), s, m.clone(), now_secs(), ci));
+                        (u, s, m, ci)
+                    }
+                    None => {
+                        if notes.is_empty() {
+                            notes = "mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút".to_string();
+                        }
+                        return (StatusCode::BAD_GATEWAY, notes).into_response();
+                    }
                 }
-            },
+            }
         };
+        pos = order.iter().position(|x| *x == ci).map(|p| p + 1).unwrap_or(order.len());
         let ua = ua_for(ci);
         if q.debug.is_some() {
             // Chẩn đoán: tải thử 64 byte đầu và báo trạng thái/định dạng
@@ -1753,9 +1887,13 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
 
         // Thử 2 cách xin đoạn: header Range, rồi tham số ?range= (một số link chỉ nhận cách này)
         let mut got: Option<Bytes> = None;
-        for variant in 0..2 {
+        for variant in 0..3 {
             let req = if variant == 0 {
                 client.get(&url).header("range", format!("bytes={start}-{end}"))
+            } else if variant == 2 {
+                // googlevideo đôi khi chỉ chặn đoạn lớn: thử lại với đoạn 256KB
+                let e2 = end.min(start + 256 * 1024 - 1);
+                client.get(&url).header("range", format!("bytes={start}-{e2}"))
             } else {
                 let sep = if url.contains('?') { '&' } else { '?' };
                 client.get(format!("{url}{sep}range={start}-{end}"))
@@ -1799,6 +1937,7 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         }
         eprintln!("[audio] {id} googlevideo từ chối đoạn {start}-{end}: {notes}");
         st.audio.lock().unwrap().remove(&ckey);
+        audio_mark_bad(&id, ci);
     }
     (StatusCode::BAD_GATEWAY, format!("googlevideo từ chối: {notes}")).into_response()
 }

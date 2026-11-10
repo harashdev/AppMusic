@@ -66,21 +66,18 @@ Biến môi trường mới cho server (tuỳ chọn): `YT_PROXY` (vd. `http://h
 - API: `/api/settings` có thêm `explicit, offline_pl, proxy, discord_rpc, eq_on, eq_gains[10], eq_pre, delay_on/ms/fb/mix, reverb_on/type/mix`.
 
 
-## Android (app native: Kotlin + Jetpack Compose + Media3)
+## Android (v0.7.0: WebView + dịch vụ phát nhạc nền native)
 ```
-android/   app Android native, dùng chính server này làm backend (cùng tài khoản, yêu thích, playlist, lịch sử)
+android/   app Android = giao diện web của server đặt trong WebView + dịch vụ nền (KeepAliveService)
 ```
-- Giao diện Compose (Material 3, nền tối): Đăng nhập → Tìm kiếm · Thư viện (Yêu thích / Playlist / Lịch sử) · Tôi; thanh mini-player, màn hình *Đang phát* (tua, trộn, lặp, hàng đợi).
-- Phát nhạc bằng **ExoPlayer trong dịch vụ nền** (`PlaybackService`): tiếp tục phát khi tắt màn hình/thoát app, có thông báo điều khiển, màn hình khóa, nút tai nghe/Bluetooth. Nhạc YouTube đi qua `GET /api/yt/audio/:id?t=token` của server (không dùng iframe).
-- `ResumingDataSource` tự nối các đoạn 2MB mà server trả (HTTP 206) thành một luồng liền mạch.
-- Lần đầu mở app nhập **địa chỉ server** (vd. `https://muse.example.com` hoặc địa chỉ Tailscale `https://tên-máy.tên-tailnet.ts.net`). Có cho phép `http://` để thử trong mạng riêng.
+- Phát nhạc nền: khi bắt đầu phát, `MuseBridge` (JS `MuseNative.update`) bật **dịch vụ foreground** có `MediaSession`: thông báo Trước / Phát-Tạm dừng / Sau, ảnh bìa, điều khiển trên màn hình khoá và tai nghe, tự tạm dừng khi rút tai nghe hoặc có cuộc gọi, giữ WakeLock + WifiLock khi đang phát. Lệnh từ thông báo gửi ngược vào web qua `window.museCmd(...)`.
+- Trên Android, web tự dùng luồng âm thanh `<audio>` (`/api/yt/audio/:id`) thay cho iframe YouTube, vì iframe bị Android dừng khi tắt màn hình.
+- Giảm lag: bỏ `backdrop-filter`/blur trên Android, bỏ transition thuộc tính tuỳ biến trên `:root`, không vẽ lại thanh tiến trình khi app bị ẩn, WebView bật pre-raster, tự tải lại khi tiến trình WebView bị hệ thống thu hồi.
+- Lần đầu mở app sẽ hỏi cho phép bỏ tối ưu pin (giúp nhạc không bị cắt khi tắt màn hình lâu).
+- Nếu bấm phát mà nhạc dừng ngay: đặt `focusOff = true` ở đầu `KeepAliveService.kt` (tắt xử lý audio focus).
 
-**Lấy APK:** đẩy code lên GitHub → Actions → "Build desktop (Muse)" → tải `muse-android` ở Artifacts (APK debug-signed, cài thẳng được).
-**Build trên máy:** mở thư mục `android/` bằng Android Studio (Hedgehog trở lên) → Run. Hoặc `gradle assembleDebug` (JDK 17 + Android SDK 34).
-**Phát hành lên Google Play:** đổi `signingConfig` của bản `release` trong `app/build.gradle.kts` sang keystore riêng.
-
-Chưa có trong app native (bản web/desktop vẫn có): phòng nghe chung + mời bạn bè (WebSocket), Bộ chỉnh âm/Echo/Vang, lời bài hát karaoke, Cài đặt, banner/avatar GIF, đăng nhập Discord.
-(Phần `desktop/` Tauri vẫn dùng để đóng gói bản Windows.)
+**Lấy APK:** đẩy code lên GitHub → Actions → "Build Android (Muse)" → tải `muse-android` ở Artifacts. Nhớ build/chạy lại **server** vì `static/index.html` cũng đã đổi.
+**Build trên máy:** mở `android/` bằng Android Studio hoặc `gradle assembleDebug` (JDK 17 + Android SDK 34).
 
 ## Đăng nhập Discord (bắt buộc để bật Rich Presence)
 Người dùng phải đăng nhập Discord (OAuth2, scope `identify`) ở *Cài đặt → Tích hợp Discord → Đăng nhập Discord* thì mới bật được Rich Presence. Server từ chối `discord_rpc=true` nếu tài khoản chưa liên kết; hủy liên kết sẽ tắt luôn Rich Presence.
@@ -95,3 +92,8 @@ Cấu hình (3 biến môi trường trên server):
 API: `GET /api/discord/status`, `POST /api/discord/link` (trả URL đăng nhập), `DELETE /api/discord/link`, `GET /api/discord/callback`. DB tự thêm cột `discord_id`, `discord_name`, `discord_avatar` và bảng `discord_states`.
 
 Lưu ý: Rich Presence thật sự (hiện "Đang nghe…" trên hồ sơ) vẫn chỉ chạy ở app desktop (qua Discord IPC). Trên Android (app native) chưa có mục này; muốn hiện trạng thái từ điện thoại cần Discord Social SDK cho Android (code Kotlin/Java riêng).
+
+
+## Khi YouTube chặn luồng âm thanh (403 / "Sign in to confirm you're not a bot")
+Server thử lần lượt: ANDROID_VR → IOS → TV nhúng → **yt-dlp** → Piped; nguồn nào bị chặn được nhớ 10 phút. Mỗi đoạn tải thử 3 cách (Range header, `?range=`, đoạn 256KB).
+Cách chắc nhất: cài `yt-dlp` (đặt `yt-dlp.exe` cạnh `muse-server.exe`, hoặc đặt `YTDLP_PATH`) và đặt `YT_COOKIES` = file cookies.txt xuất từ trình duyệt đã đăng nhập YouTube (có cookies thì yt-dlp được thử đầu tiên). Nên dùng tài khoản phụ, vì tài khoản dùng cookies cho bot vẫn có rủi ro bị YouTube khóa. Cập nhật yt-dlp thường xuyên (`yt-dlp -U`).

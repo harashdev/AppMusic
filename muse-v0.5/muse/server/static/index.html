@@ -8,9 +8,10 @@
    Bố cục máy tính bật ở viewport >=1100px nên ép viewport 1100px rồi để WebView tự thu nhỏ cho vừa màn hình.
    Xoay ngang màn hình thì giao diện máy tính sẽ to và dễ bấm hơn. */
 (function(){
-  var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a;
+  var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a; if(a) document.documentElement.classList.add('android');
   var m='phone'; try{ m=localStorage.getItem('uimode')||'phone'; }catch(e){}
   window.UI_PC=a&&m==='pc';
+  if(a&&!window.UI_PC){ var v0=document.querySelector('meta[name=viewport]'); if(v0) v0.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover'); }
   if(window.UI_PC){
     var v=document.querySelector('meta[name=viewport]');
     if(v) v.setAttribute('content','width=1100,user-scalable=yes,minimum-scale=0.1,maximum-scale=3');
@@ -29,7 +30,7 @@
 <style>
 @property --npbg{syntax:'<color>';inherits:true;initial-value:#2b2640}
 @property --npfg{syntax:'<color>';inherits:true;initial-value:#ffffff}
-:root{--accent:#8ecbff;--on:#07131d;--bg:#07070b;--surf:#0e0c15;--surf2:#17141f;--card:#1b1823;--hover:#ffffff12;--hover2:#ffffff1c;--line:#ffffff17;--text:#f3f0fa;--sub:#a8a3b6;--red:#ff4d6a;--npbg:#2b2640;--npfg:#fff;--sw:268px;--nw:0px;transition:--npbg .7s,--npfg .7s}
+:root{--accent:#8ecbff;--on:#07131d;--bg:#07070b;--surf:#0e0c15;--surf2:#17141f;--card:#1b1823;--hover:#ffffff12;--hover2:#ffffff1c;--line:#ffffff17;--text:#f3f0fa;--sub:#a8a3b6;--red:#ff4d6a;--npbg:#2b2640;--npfg:#fff;--sw:268px;--nw:0px}
 body.skin-dark{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618}
 body.skin-ocean,body.skin-sunset,body.skin-forest,body.skin-custom{--surf:rgba(8,10,16,.74);--surf2:rgba(20,22,30,.85)}
 body.skin-ocean{background:linear-gradient(135deg,#0f2027,#2c5364) fixed}
@@ -501,6 +502,13 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  #auth .box{width:min(360px,92vw)}
  button.ico{min-width:40px;min-height:40px}
 }
+
+/* ===== Tối ưu cho app Android (WebView) ===== */
+html.android *{-webkit-tap-highlight-color:transparent}
+html.android *,html.android *::before,html.android *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html.android{overscroll-behavior:none;touch-action:manipulation}
+html.android body{overscroll-behavior:none}
+html.android *{scroll-behavior:auto!important}
 </style>
 </head>
 <body class="skin-default">
@@ -1506,7 +1514,7 @@ function restorePlayState(){
 function onEnded(){ const t=cur; if(leader) nextTrack(true); else setTimeout(()=>{ if(cur===t) nextTrack(true); },3000); }
 /* Media Session: tên bài, ảnh bìa và nút điều khiển trên màn hình khoá / thông báo / tai nghe */
 function msUpdate(){
-  if(!('mediaSession' in navigator)) return;
+  if(!('mediaSession' in navigator)){ nativeSync(true); return; }
   const m=navigator.mediaSession, t=cur;
   try{
     if(!t){ m.metadata=null; m.playbackState='none'; return; }
@@ -1514,7 +1522,29 @@ function msUpdate(){
       artwork:t.image?[{src:t.image,sizes:'512x512'}]:[{src:'/icon-512.png',sizes:'512x512',type:'image/png'}]});
     m.playbackState=playing?'playing':'paused';
   }catch{}
+  nativeSync(true);
 }
+/* Cầu nối app Android: gửi bài/trạng thái cho dịch vụ phát nền, nhận lệnh từ thông báo / khoá màn hình / tai nghe */
+function nativeSync(meta){
+  try{
+    const N=window.MuseNative; if(!N) return;
+    const t=cur, du=t?getDur():0, pos=t?getTime():0;
+    N.update(t?(t.title||''):'', t?(t.artist||''):'', t?(t.image||''):'', !!(t&&playing),
+      Math.round((isFinite(pos)?pos:0)*1000), Math.round((isFinite(du)?du:0)*1000), !!t);
+  }catch{}
+}
+window.museCmd=function(c,v){
+  try{
+    if(c==='play'){ if(cur&&!playing){ setPlaying(true); broadcastState(); updateBar(); } }
+    else if(c==='pause'){ if(cur&&playing){ setPlaying(false); broadcastState(); updateBar(); } }
+    else if(c==='resume'){ if(cur){ setPlaying(true); updateBar(); } }
+    else if(c==='toggle'){ if(cur){ setPlaying(!playing); broadcastState(); updateBar(); } }
+    else if(c==='next') nextTrack(false);
+    else if(c==='prev') prevTrack();
+    else if(c==='seek'&&cur&&isFinite(+v)){ seekTo(+v/1000); broadcastState(); nativeSync(); }
+  }catch{}
+};
+setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
 (function msInit(){
   if(!('mediaSession' in navigator)) return;
   const m=navigator.mediaSession, h=(a,f)=>{ try{ m.setActionHandler(a,f); }catch{} };
@@ -1524,6 +1554,7 @@ function msUpdate(){
   h('seekto',d=>{ if(cur&&d&&isFinite(d.seekTime)){ seekTo(d.seekTime); broadcastState(); } });
   h('seekbackward',d=>{ if(cur){ seekTo(Math.max(0,getTime()-((d&&d.seekOffset)||10))); broadcastState(); } });
   h('seekforward',d=>{ if(cur){ const du=getDur(); seekTo(Math.min(du||1e9,getTime()+((d&&d.seekOffset)||10))); broadcastState(); } });
+  setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
   setInterval(()=>{ try{ const du=getDur(); if(cur&&du&&isFinite(du)&&m.setPositionState) m.setPositionState({duration:du,position:Math.min(Math.max(0,getTime()),du),playbackRate:1}); }catch{} },1000);
 })();
 $('#pp').onclick=()=>{ if(!cur) return; setPlaying(!playing); broadcastState(); };
@@ -1578,6 +1609,7 @@ $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').for
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
 setInterval(()=>{
+  if(document.hidden) return; /* ẩn app/tắt màn hình: khỏi vẽ lại thanh tiến trình */
   const d=getDur(),t=getTime();
   if(d&&!seeking){ const v=1000*t/d; $('#seek').value=v; $('#seek').style.setProperty('--p',v/10+'%'); }
   $('#tm').textContent=cur?fmt(t)+' / '+fmt(d):'0:00 / 0:00'; setIc($('#pp'),playing?'pause':'play',true);
@@ -1763,7 +1795,7 @@ async function start(u){
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
-  setInterval(()=>loadFriends().catch(()=>{}),20000);
+  setInterval(()=>{ if(!document.hidden) loadFriends().catch(()=>{}); },20000);
 }
 (async()=>{
   if(!token){ showAuth(); return; }

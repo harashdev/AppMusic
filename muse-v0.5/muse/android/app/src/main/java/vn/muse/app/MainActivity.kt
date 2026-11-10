@@ -10,6 +10,9 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
+import android.webkit.RenderProcessGoneDetail
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
@@ -87,8 +90,9 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
-        // Giữ app sống khi tắt màn hình để nhạc không bị ngắt.
-        runCatching { ContextCompat.startForegroundService(this, Intent(this, KeepAliveService::class.java)) }
+        // Dịch vụ nền được MuseBridge bật khi bắt đầu phát nhạc, không bật ngay lúc mở app.
+        Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
+        askBatteryOnce()
 
         loadServer()
     }
@@ -133,6 +137,10 @@ class MainActivity : ComponentActivity() {
         s.loadWithOverviewMode = true
         s.useWideViewPort = true
         s.userAgentString = s.userAgentString.replace("; wv", "") + " MuseAndroid" // YouTube coi như Chrome; web nhận ra app để dùng giao diện máy tính
+        s.setOffscreenPreRaster(true)           // vẽ sẵn phần ngoài màn hình -> cuộn mượt hơn
+        s.cacheMode = WebSettings.LOAD_DEFAULT
+        s.allowFileAccess = false
+        s.setGeolocationEnabled(false)
         s.setSupportZoom(true)
         s.builtInZoomControls = true
         s.displayZoomControls = false
@@ -142,6 +150,8 @@ class MainActivity : ComponentActivity() {
             setAcceptThirdPartyCookies(web, true)
         }
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+        web.addJavascriptInterface(MuseBridge(applicationContext), "MuseNative")
+        web.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         web.webChromeClient = chrome
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -155,6 +165,17 @@ class MainActivity : ComponentActivity() {
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) showError("Không kết nối được tới\n${serverUrl()}\n\n(${error.description})")
+            }
+
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                runCatching { root.removeView(web); web.destroy() }
+                web = WebView(this@MainActivity).apply {
+                    setBackgroundColor(bg)
+                    layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                }
+                root.addView(web, 0)
+                setupWebView(); loadServer()
+                return true
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
@@ -224,7 +245,31 @@ class MainActivity : ComponentActivity() {
             .show()
     }
 
+    override fun onResume() {
+        super.onResume()
+        web.onResume(); web.resumeTimers()
+    }
+
+    /** Hỏi một lần: cho Muse không bị tối ưu pin để Android không cắt nhạc khi tắt màn hình lâu. */
+    private fun askBatteryOnce() {
+        if (prefs.getBoolean("battery_asked", false)) return
+        val pm = getSystemService(PowerManager::class.java)
+        if (pm.isIgnoringBatteryOptimizations(packageName)) return
+        prefs.edit().putBoolean("battery_asked", true).apply()
+        AlertDialog.Builder(this)
+            .setTitle("Giữ nhạc chạy khi tắt màn hình")
+            .setMessage("Để Android không tự ngắt nhạc khi để lâu, hãy cho Muse chạy không bị hạn chế pin.")
+            .setPositiveButton("Cho phép") { _, _ ->
+                runCatching {
+                    startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
+                }
+            }
+            .setNegativeButton("Để sau", null)
+            .show()
+    }
+
     override fun onDestroy() {
+        Playback.sendToWeb = null
         if (isFinishing) {
             stopService(Intent(this, KeepAliveService::class.java))
             web.destroy()

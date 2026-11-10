@@ -8,7 +8,16 @@ set DISCORD_CLIENT_SECRET=
 set PUBLIC_URL=
 rem Proxy cho YouTube, vi du socks5://127.0.0.1:40000 hoac http://host:port (thuong KHONG can)
 set YT_PROXY=
+rem yt-dlp (tuy chon, giup vuot loi "Sign in to confirm you're not a bot"): dat yt-dlp.exe canh muse-server.exe hoac ghi duong dan day
+set YTDLP_PATH=
+rem File cookies.txt (dinh dang Netscape) xuat tu trinh duyet da dang nhap YouTube, vi du C:\muse\cookies.txt
+set YT_COOKIES=
+rem Cach de nhat: de ten trinh duyet da dang nhap YouTube (firefox, edge, chrome, brave) - yt-dlp tu doc cookies, khong can xuat file
+set YT_BROWSER=firefox
 rem Link ung ho (tuy chon)
 set DONATE_URL=
+rem Tu tai yt-dlp neu chua co, roi tu cap nhat moi lan bat server
+if not exist yt-dlp.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -OutFile yt-dlp.exe"
+if exist yt-dlp.exe yt-dlp.exe -U
 muse-server.exe
 pause
