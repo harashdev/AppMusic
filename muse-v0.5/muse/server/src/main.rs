@@ -1638,11 +1638,19 @@ fn audio_mark_bad(id: &str, src: usize) {
 }
 
 // yt-dlp (cài riêng, đặt trong PATH hoặc biến YTDLP_PATH). YT_COOKIES = đường dẫn file cookies.txt (định dạng Netscape).
-async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+fn ytdlp_fmt(webm: bool) -> &'static str {
+    if webm {
+        "251/bestaudio[ext=webm]/bestaudio"
+    } else {
+        "140/bestaudio[ext=m4a]/bestaudio"
+    }
+}
+
+// Lệnh yt-dlp dùng chung (đường dẫn, Deno, cookies, proxy) cho cả lấy link lẫn tải file.
+fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
     let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
-    let fmt = if webm { "251/bestaudio[ext=webm]/bestaudio" } else { "140/bestaudio[ext=m4a]/bestaudio" };
     let mut cmd = tokio::process::Command::new(&bin);
-    cmd.arg("-g").arg("--no-playlist").arg("--no-warnings").arg("-f").arg(fmt);
+    cmd.arg("--no-playlist").arg("--no-warnings");
     // yt-dlp cần JS runtime (Deno) để giải mã YouTube: nếu deno.exe nằm cạnh server thì chỉ thẳng đường dẫn, khỏi phụ thuộc PATH.
     {
         let mut cands: Vec<std::path::PathBuf> = vec![std::path::PathBuf::from("deno.exe"), std::path::PathBuf::from("deno")];
@@ -1679,10 +1687,16 @@ async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_prox
             }
         }
     }
-    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
     cmd.kill_on_drop(true);
     #[cfg(windows)]
     cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    cmd
+}
+
+async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-g").arg("-f").arg(ytdlp_fmt(webm));
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
     let out = tokio::time::timeout(Duration::from_secs(45), cmd.output())
         .await
         .map_err(|_| "yt-dlp: quá thời gian".to_string())?
@@ -1712,6 +1726,105 @@ async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_prox
         return Err("yt-dlp: không đọc được kích thước luồng".to_string());
     }
     Ok((url, size, mime, 90))
+}
+
+// Link yt-dlp trả về (-g) gắn với client / header / PO token của chính yt-dlp, nên khi server tự tải bằng reqwest
+// thì googlevideo hay trả 403. Cách chắc nhất: cho yt-dlp tải file âm thanh về thư mục tạm rồi phát từ file đó.
+static YTDLP_DL_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+
+fn audio_cache_dir() -> PathBuf {
+    std::env::temp_dir().join("muse-audio")
+}
+
+fn find_local_audio(vid: &str, webm: bool) -> Option<(PathBuf, u64, String)> {
+    let prefix = format!("{vid}_{}.", if webm { "w" } else { "m" });
+    for e in std::fs::read_dir(audio_cache_dir()).ok()?.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) {
+            continue;
+        }
+        let ext = name[prefix.len()..].to_lowercase();
+        if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
+            continue; // file đang tải dở
+        }
+        let Ok(md) = e.metadata() else { continue };
+        if md.len() == 0 {
+            continue;
+        }
+        let mime = match ext.as_str() {
+            "webm" => "audio/webm",
+            "opus" | "ogg" => "audio/ogg",
+            _ => "audio/mp4",
+        };
+        return Some((e.path(), md.len(), mime.to_string()));
+    }
+    None
+}
+
+async fn ytdlp_local(vid: &str, webm: bool, use_proxy: bool) -> Result<(PathBuf, u64, String), String> {
+    if let Some(x) = find_local_audio(vid, webm) {
+        return Ok(x);
+    }
+    // Chỉ cho 1 lượt tải tại một thời điểm (trình duyệt gửi nhiều yêu cầu Range cùng lúc cho một bài).
+    let lock = YTDLP_DL_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
+    let _guard = lock.lock().await;
+    if let Some(x) = find_local_audio(vid, webm) {
+        return Ok(x);
+    }
+    let dir = audio_cache_dir();
+    let _ = tokio::fs::create_dir_all(&dir).await;
+    // Dọn file cũ hơn 6 giờ.
+    if let Ok(rd) = std::fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let old = e
+                .metadata()
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.elapsed().ok())
+                .map(|d| d.as_secs() > 6 * 3600)
+                .unwrap_or(false);
+            if old {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
+    }
+    let template = dir.join(format!("{vid}_{}.%(ext)s", if webm { "w" } else { "m" }));
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-f").arg(ytdlp_fmt(webm)).arg("--no-mtime").arg("--no-progress").arg("-o").arg(&template);
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    let out = tokio::time::timeout(Duration::from_secs(120), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: tải file quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp (tải file): {line}"));
+    }
+    find_local_audio(vid, webm).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file".to_string())
+}
+
+// Trả đoạn Range từ file cục bộ.
+async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_req: Option<u64>) -> Result<Response, String> {
+    use tokio::io::{AsyncReadExt, AsyncSeekExt};
+    if start >= total {
+        return Ok((StatusCode::RANGE_NOT_SATISFIABLE, [(header::CONTENT_RANGE, format!("bytes */{total}"))]).into_response());
+    }
+    let end = end_req.unwrap_or(total - 1).min(total - 1).min(start + AUDIO_CHUNK - 1);
+    let n = (end - start + 1) as usize;
+    let mut f = tokio::fs::File::open(path).await.map_err(|e| format!("mở file lỗi: {e}"))?;
+    f.seek(std::io::SeekFrom::Start(start)).await.map_err(|e| format!("seek lỗi: {e}"))?;
+    let mut buf = vec![0u8; n];
+    f.read_exact(&mut buf).await.map_err(|e| format!("đọc file lỗi: {e}"))?;
+    Ok(Response::builder()
+        .status(StatusCode::PARTIAL_CONTENT)
+        .header(header::CONTENT_TYPE, mime)
+        .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{total}"))
+        .header(header::CONTENT_LENGTH, n.to_string())
+        .header(header::CACHE_CONTROL, "private, max-age=600")
+        .body(Body::from(buf))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()))
 }
 
 fn ua_for(ci: usize) -> &'static str {
@@ -1898,6 +2011,14 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
             eprintln!("[audio] debug {id}: {info}");
             return (StatusCode::OK, info).into_response();
         }
+        // Bài này đã được yt-dlp tải về file tạm (do link trực tiếp bị 403) thì phát thẳng từ file.
+        if ci == 90 {
+            if let Some((p, total, lm)) = find_local_audio(&id, webm) {
+                if let Ok(r) = serve_local(&p, total, lm, start, end_req).await {
+                    return r;
+                }
+            }
+        }
         if start >= size {
             return (StatusCode::RANGE_NOT_SATISFIABLE, [(header::CONTENT_RANGE, format!("bytes */{size}"))]).into_response();
         }
@@ -1937,6 +2058,20 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 }
                 Ok(r) => notes.push_str(&format!("[client {ci} v{variant}: HTTP {}] ", r.status().as_u16())),
                 Err(e) => notes.push_str(&format!("[client {ci} v{variant}: {e}] ")),
+            }
+        }
+        // Link do yt-dlp trả về bị googlevideo từ chối (403): cho yt-dlp tự tải file về rồi phát từ file.
+        if got.is_none() && ci == 90 {
+            eprintln!("[audio] {id} link yt-dlp bị từ chối, chuyển sang để yt-dlp tải file về...");
+            match ytdlp_local(&id, webm, use_proxy).await {
+                Ok((p, total, lm)) => match serve_local(&p, total, lm, start, end_req).await {
+                    Ok(r) => return r,
+                    Err(e) => notes.push_str(&format!("[{e}] ")),
+                },
+                Err(e) => {
+                    eprintln!("[audio] {id} {e}");
+                    notes.push_str(&format!("[{e}] "));
+                }
             }
         }
         if let Some(b) = got {
