@@ -509,6 +509,16 @@ html.android *,html.android *::before,html.android *::after{backdrop-filter:none
 html.android{overscroll-behavior:none;touch-action:manipulation}
 html.android body{overscroll-behavior:none}
 html.android *{scroll-behavior:auto!important}
+
+.dlgov{position:fixed;inset:0;z-index:99999;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
+.dlg{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:22px;width:min(400px,100%);box-shadow:0 24px 70px #000c}
+.dlg h3{margin:0;font-size:18px;font-weight:700}
+.dlg p{margin:10px 0 0;color:var(--sub);font-size:14px;line-height:1.5;white-space:pre-line}
+.dlg input{width:100%;box-sizing:border-box;margin-top:16px;background:var(--surf2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:13px 15px;font-size:16px;outline:none}
+.dlg input:focus{border-color:var(--accent)}
+.dlgb{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.dlgb button{border:0;border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;background:var(--hover2);color:var(--text)}
+.dlgb .dlgo{background:var(--accent);color:var(--on)}
 </style>
 </head>
 <body class="skin-default">
@@ -723,6 +733,26 @@ function cropStyle(x,y,z,ar,fa){
 }
 const avHtml=(a,cls='',cr)=>isImg(a)?`<span class="av ${cls}"><img src="${esc(a)}" alt=""${cr?` style="${cropStyle(cr.ax,cr.ay,cr.az,cr.aa,1)}"`:''}></span>`:`<span class="av ${cls}">${esc(a||'🎧')}</span>`;
 const avU=(u,cls='')=>avHtml(u.avatar,cls,cropOf(u));
+// Hộp thoại trong app (thay prompt/confirm của trình duyệt vốn hiện "Trang tại ... cho biết")
+function askDialog(o){ return new Promise(res=>{
+  const ov=document.createElement('div'); ov.className='dlgov';
+  const box=document.createElement('div'); box.className='dlg'; box.setAttribute('role','dialog');
+  const h=document.createElement('h3'); h.textContent=o.title; box.appendChild(h);
+  if(o.msg){ const p=document.createElement('p'); p.textContent=o.msg; box.appendChild(p); }
+  let inp=null; if(o.input){ inp=document.createElement('input'); inp.type='text'; inp.value=o.def||''; inp.autocomplete='off'; box.appendChild(inp); }
+  const b=document.createElement('div'); b.className='dlgb';
+  const c=document.createElement('button'); c.className='dlgc'; c.textContent='Hủy';
+  const k=document.createElement('button'); k.className='dlgo'; k.textContent=o.ok||'OK';
+  b.appendChild(c); b.appendChild(k); box.appendChild(b); ov.appendChild(box); document.body.appendChild(ov);
+  const done=v=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); res(v); };
+  const okv=()=>done(o.input?inp.value:true), no=()=>done(o.input?null:false);
+  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); no(); } else if(e.key==='Enter'){ e.preventDefault(); okv(); } }
+  document.addEventListener('keydown',onKey,true);
+  c.onclick=no; k.onclick=okv; ov.onclick=e=>{ if(e.target===ov) no(); };
+  setTimeout(()=>(inp||k).focus(),30);
+}); }
+const askText=(title,def)=>askDialog({title:String(title).replace(/[:：]\s*$/,''),input:true,def});
+const askConfirm=(msg,ok)=>askDialog({title:'Xác nhận',msg,ok});
 function notify(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toasts').appendChild(t); setTimeout(()=>t.remove(),3200); }
 
 /* ===== Đăng nhập ===== */
@@ -959,7 +989,7 @@ const pages={
     let p; try{ p=await api('/api/playlists/'+id); }catch(e){ p=e.message==='401'?null:cachedPlaylist(id); if(!p) throw e; notify('Đang offline – hiển thị bản đã lưu'); } curPl=p.id;
     m.innerHTML='<div id="rows"></div>';
     $('#rows').innerHTML=hero(p.name,`Danh sách phát · ${p.tracks.length} bài hát`,p.tracks,`<button class="out" id="plDel">${ic('trash','sm')} Xoá playlist</button>`)+tracksHtml(p.tracks,true,p.name); markNow();
-    $('#plDel').onclick=async()=>{ if(confirm('Xoá playlist này?')){ await api('/api/playlists/'+id,{method:'DELETE'}); await loadPlaylists(); go('home'); } };
+    $('#plDel').onclick=async()=>{ if(await askConfirm('Xoá playlist này?','Xoá')){ await api('/api/playlists/'+id,{method:'DELETE'}); await loadPlaylists(); go('home'); } };
   },
   async together(m){
     m.innerHTML=`<h2>Nghe cùng nhau</h2>
@@ -971,7 +1001,7 @@ const pages={
     <div class="panel"><h3 style="margin-top:0">Chat phòng</h3><div id="chat"></div>
       <div class="row"><input id="msg" placeholder="Nhắn gì đó…"><button id="send" class="pri">Gửi</button></div></div></div>`;
     $('#cpLink').onclick=()=>copyInvite('Đã chép link phòng!');
-    $('#addFriend').onclick=async()=>{ try{ await api('/api/friends',{json:{code:$('#friendCode').value}}); $('#friendCode').value=''; loadFriends(); }catch(e){ alert(e.message); } };
+    $('#addFriend').onclick=async()=>{ try{ await api('/api/friends',{json:{code:$('#friendCode').value}}); $('#friendCode').value=''; loadFriends(); }catch(e){ notify(e.message); } };
     $('#send').onclick=()=>{ const t=$('#msg').value.trim(); if(t){ send({type:'chat',text:t}); $('#msg').value=''; } };
     $('#msg').onkeydown=e=>{ if(e.key==='Enter') $('#send').click(); };
     $('#chat').innerHTML=chatLog.join(''); $('#chat').scrollTop=1e9; loadFriends();
@@ -1009,7 +1039,7 @@ const pages={
     m.querySelectorAll('.sk').forEach(el=>el.onclick=()=>{ D.bg=el.dataset.v; m.querySelectorAll('.sk').forEach(x=>x.classList.toggle('sel',x===el)); $('#bgCustom').style.display=D.bg==='custom'?'block':'none'; refresh(); });
     $('#status').oninput=e=>{ D.status=e.target.value; refresh(); };
     $('#accent').oninput=e=>{ D.accent=e.target.value; refresh(); };
-    $('#cpUn').onclick=async e=>{ e.stopPropagation(); try{ await navigator.clipboard.writeText(me.username||''); notify('Đã chép tên đăng nhập'); }catch{ prompt('Tên đăng nhập:',me.username||''); } };
+    $('#cpUn').onclick=async e=>{ e.stopPropagation(); try{ await navigator.clipboard.writeText(me.username||''); notify('Đã chép tên đăng nhập'); }catch{ await askText('Tên đăng nhập',me.username||''); } };
     const cropFor=k=>({x:D[k+'x'],y:D[k+'y'],z:D[k+'z']});
     const bannerColor=()=>/^#[0-9a-f]{6}$/i.test(D.bannerColor)?D.bannerColor:D.accent;
     const editBanner=async(src)=>{ const r=await openCrop({title:'Chỉnh sửa banner',kind:'b',src,crop:cropFor('b'),color:bannerColor()}); if(!r) return false; D.bx=r.x; D.by=r.y; D.bz=r.z; D.ba=r.ar; return true; };
@@ -1158,7 +1188,7 @@ const pages={
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
-        if(!confirm('Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.')) return;
+        if(!(await askConfirm('Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.','Hủy liên kết'))) return;
         await api('/api/discord/link',{method:'DELETE'});
         dl={linked:false,name:'',sdk:false}; S.discord_rpc=false; dc.user=''; discordClear();
         notify('Đã hủy liên kết Discord'); go('settings');
@@ -1173,7 +1203,7 @@ const pages={
       await setS('discord_rpc',on); if(on) pushPresence(); else discordClear(); };
     $('#tXfade').onchange=e=>setS('crossfade',e.target.checked);
     $('#tHist').onchange=e=>setS('track_history',e.target.checked);
-    act('clrHist',async()=>{ if(!confirm('Xóa toàn bộ lịch sử nghe?')) return; try{ await api('/api/history',{method:'DELETE'}); notify('Đã xóa lịch sử nghe'); }catch(e){ notify(e.message); } });
+    act('clrHist',async()=>{ if(!(await askConfirm('Xóa toàn bộ lịch sử nghe?','Xóa'))) return; try{ await api('/api/history',{method:'DELETE'}); notify('Đã xóa lịch sử nghe'); }catch(e){ notify(e.message); } });
     $('#sNameSave').onclick=async()=>{ const msg=$('#sNameMsg'); try{ const u=await api('/api/account/name',{json:{display_name:$('#sName').value}}); applyUser(u); msg.textContent='Đã lưu ✔'; }catch(e){ msg.textContent=e.message; } };
     $('#pwSave').onclick=async()=>{ const msg=$('#pwMsg'), a=$('#pwCur').value, b=$('#pwNew').value;
       if(b!==$('#pwNew2').value){ msg.textContent='Mật khẩu nhập lại không khớp'; return; }
@@ -1183,7 +1213,7 @@ const pages={
     const refreshLib=async()=>{ try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); await loadPlaylists(); }catch{} };
     act('bkRes',()=>$('#fRes').click());
     $('#fRes').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; const j=await readJson(f); if(!j) return;
-      if(!confirm('Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?')) return;
+      if(!(await askConfirm('Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?','Khôi phục'))) return;
       try{ const r=await api('/api/restore',{json:j}); await refreshLib(); notify(`Đã khôi phục ${r.favorites} bài yêu thích, ${r.playlists} danh sách phát`); }catch(er){ notify(er.message); } };
     act('bkImp',()=>$('#fImp').click());
     $('#fImp').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; let j=await readJson(f); if(!j) return;
@@ -1259,7 +1289,7 @@ function filterLib(){ const q=$('#libQ').value.trim().toLowerCase(); document.qu
 $('#libQ').oninput=filterLib;
 $('#libSbtn').onclick=()=>{ const r=$('#libQrow'); r.classList.toggle('show'); if(r.classList.contains('show')) $('#libQ').focus(); else { $('#libQ').value=''; filterLib(); } };
 $('#sideMin').onclick=()=>{ document.body.classList.toggle('side-min'); LS.set('sidemin',document.body.classList.contains('side-min')?'1':'0'); };
-async function createPlaylist(){ const n=prompt('Tên playlist mới:'); if(!n) return null; try{ const p=await api('/api/playlists',{json:{name:n}}); await loadPlaylists(); return p; }catch(e){ alert(e.message); return null; } }
+async function createPlaylist(){ const n=((await askText('Tên playlist mới'))||'').trim(); if(!n) return null; try{ const p=await api('/api/playlists',{json:{name:n}}); await loadPlaylists(); return p; }catch(e){ notify(e.message); return null; } }
 $('#newPl').onclick=createPlaylist;
 async function toggleFav(t){
   const r=await api('/api/favorites',{json:slim(t)});
@@ -1275,7 +1305,7 @@ function addMenu(t,e){
   pop.innerHTML=playlists.map(p=>`<div data-id="${p.id}">${esc(p.name)}</div>`).join('')+'<div data-id="new">＋ Playlist mới…</div>';
   pop.onclick=async ev=>{ const d=ev.target.closest('[data-id]'); if(!d) return; pop.remove();
     let id=d.dataset.id; if(id==='new'){ const p=await createPlaylist(); if(!p) return; id=p.id; }
-    try{ await api(`/api/playlists/${id}/tracks`,{json:slim(t)}); loadPlaylists(); notify('Đã thêm vào playlist'); }catch(err){ alert(err.message); } };
+    try{ await api(`/api/playlists/${id}/tracks`,{json:slim(t)}); loadPlaylists(); notify('Đã thêm vào playlist'); }catch(err){ notify(err.message); } };
   document.body.appendChild(pop); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0);
 }
 async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${encodeURIComponent(key(t))}`,{method:'DELETE'}); loadPlaylists(); go('playlist',curPl,true); }
@@ -1310,7 +1340,7 @@ function onMsg(m){
   }
 }
 function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
-async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{prompt('Link phòng:',url)} }
+async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{await askText('Link phòng',url)} }
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
   const list=await api('/api/friends'); box.innerHTML='';
@@ -1320,7 +1350,7 @@ async function loadFriends(){
     d.querySelector('.fr').onclick=e=>{ e.stopPropagation(); showProfilePop(f,d.querySelector('.fr')); };
     d.querySelector('button').onclick=async()=>{
       try{ await api('/api/invite',{json:{friend_id:f.id,room}}); sysLine('Đã gửi lời mời tới '+f.display_name); notify('Đã gửi lời mời tới '+f.display_name); }
-      catch(e){ if(confirm(e.message+'\n\nChép link phòng để gửi thủ công?')) copyInvite('Đã chép link phòng!'); }
+      catch(e){ if(await askConfirm(e.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
     };
     box.appendChild(d);
   });
