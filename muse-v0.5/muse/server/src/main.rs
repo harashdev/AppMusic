@@ -1614,7 +1614,12 @@ fn audio_order() -> Vec<usize> {
 
 async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: usize, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
     match src {
-        90 => resolve_ytdlp(client, vid, webm, use_proxy).await,
+        // Link yt-dlp -g hay bị 403 khi server tự tải, nên bỏ bước lấy link: cho yt-dlp tải thẳng file (chỉ chạy yt-dlp 1 lần).
+        90 => {
+            let _ = client;
+            let (_p, total, mime) = ytdlp_local(vid, webm, use_proxy).await?;
+            Ok((format!("local:{vid}"), total, mime, 90))
+        }
         99 => resolve_piped(client, vid, webm).await,
         n => resolve_audio(client, vid, webm, n).await,
     }
@@ -1693,6 +1698,7 @@ fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
     cmd
 }
 
+#[allow(dead_code)]
 async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
     let mut cmd = ytdlp_base(use_proxy);
     cmd.arg("-g").arg("-f").arg(ytdlp_fmt(webm));
