@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # Địa chỉ server gắn sẵn vào app. Đổi bằng Settings → Variables → MUSE_URL, hoặc sửa dòng dưới.
-      MUSE_URL: ${{ vars.MUSE_URL || 'https://desktop-p2k8jsq.taild7d743.ts.net' }}
+      # Địa chỉ server gắn sẵn vào app. Đặt ở Settings → Secrets and variables → Actions → Variables → MUSE_URL.
+      MUSE_URL: ${{ vars.MUSE_URL }}
     defaults:
       run:
         working-directory: muse-v0.5/muse/android

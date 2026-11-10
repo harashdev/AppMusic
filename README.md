@@ -9,6 +9,7 @@ Search and play YouTube Music, share a listening room, and keep it all on your o
 [![Stars](https://img.shields.io/github/stars/harashdev/appmusic?style=for-the-badge&logo=github)](https://github.com/harashdev/appmusic/stargazers)
 [![Last commit](https://img.shields.io/github/last-commit/harashdev/appmusic?style=for-the-badge)](https://github.com/harashdev/appmusic/commits/main)
 [![Issues](https://img.shields.io/github/issues/harashdev/appmusic?style=for-the-badge)](https://github.com/harashdev/appmusic/issues)
+[![License](https://img.shields.io/github/license/harashdev/appmusic?style=for-the-badge)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-server-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org)
 [![Platforms](https://img.shields.io/badge/Web%20%7C%20Windows%20%7C%20Android-1db954?style=for-the-badge)](#download)
 [![Ko-fi](https://img.shields.io/badge/Support%20me-Ko--fi-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/harashdev)
@@ -161,5 +162,9 @@ BBeat is built on the work of many open-source projects and services:
 - [Axum](https://github.com/tokio-rs/axum), [Tokio](https://tokio.rs), [tower-http](https://github.com/tower-rs/tower-http), [reqwest](https://github.com/seanmonstar/reqwest), [rusqlite](https://github.com/rusqlite/rusqlite), [argon2](https://github.com/RustCrypto/password-hashes), [serde](https://serde.rs): the Rust server
 - [Tauri](https://tauri.app): desktop app
 - [AndroidX](https://developer.android.com/jetpack/androidx): Android app
+
+## License
+
+BBeat is free software, released under the [GNU General Public License v3.0](LICENSE).
 
 Made by **BaoBu**.
