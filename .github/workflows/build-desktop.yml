@@ -54,6 +54,7 @@ jobs:
           mkdir -p ../dist/muse-server
           cp target/release/muse-server.exe ../dist/muse-server/
           cp -r static ../dist/muse-server/static
+          cp start-muse.bat ../dist/muse-server/
       - uses: actions/upload-artifact@v4
         with:
           name: muse-server-windows
