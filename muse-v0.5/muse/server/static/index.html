@@ -1288,9 +1288,16 @@ audYt.addEventListener('error',()=>{
   if(!fxTried[t.id]){ /* thử định dạng còn lại (webm/opus <-> mp4/aac) trước khi bỏ cuộc */
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
   fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000; /* nghỉ 5 phút để khỏi thử lại liên tục khi YouTube đang chặn */
-  fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(why=>{
+  fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
+    /* thử đúng đường phát thật (không phải chế độ chẩn đoán) để biết server trả gì cho trình duyệt */
+    let real='';
+    try{ const u=(audYt.currentSrc||audYt.src), r=await fetch(u,{headers:{Range:'bytes=0-65535'}}), b=new Uint8Array(await r.arrayBuffer());
+      real=' || thật: HTTP '+r.status+' ct='+r.headers.get('content-type')+' cr='+r.headers.get('content-range')+' n='+b.length+(r.ok?'':' '+new TextDecoder().decode(b.slice(0,200))); }
+    catch(e){ real=' || thật: '+e; }
+    return why+real;
+  }).then(why=>{
     console.warn('Luồng âm thanh lỗi:',why);
-    notify('Không lấy được luồng âm thanh ('+String(why).slice(0,160)+') – chuyển sang player YouTube');
+    notify('Không lấy được luồng âm thanh ('+String(why).slice(0,420)+') – chuyển sang player YouTube');
   });
   loadTrack(t,pos,was);
 });
