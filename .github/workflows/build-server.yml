@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-server:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 30
     defaults:
       run:
@@ -25,3 +25,18 @@ jobs:
 
       - name: Build (release)
         run: cargo build --release
+
+      # Gói sẵn: muse-server.exe + static/ + start-muse.bat (server đọc thư mục static cạnh nơi chạy).
+      - name: Đóng gói
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/release/muse-server.exe dist/
+          cp -r static dist/static
+          cp start-muse.bat dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: muse-server-windows
+          path: muse-v0.5/muse/server/dist
+          if-no-files-found: error
