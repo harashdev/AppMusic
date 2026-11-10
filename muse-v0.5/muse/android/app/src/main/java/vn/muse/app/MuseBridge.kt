@@ -19,4 +19,22 @@ class MuseBridge(private val ctx: Context) {
         }
         if (trackChanged || playChanged || hasTrack) Playback.onChanged?.invoke()
     }
+
+    // ---- Discord Social SDK (Rich Presence không cần app Discord) ----
+    @JavascriptInterface
+    fun sdkAvailable(): Boolean = MuseSdk.available
+
+    /** Trả "" nếu bắt đầu được, ngược lại là thông báo lỗi. */
+    @JavascriptInterface
+    fun sdkStart(appId: String, token: String): String = MuseSdk.start(appId, token)
+
+    @JavascriptInterface
+    fun sdkStatus(): String = MuseSdk.status()
+
+    @JavascriptInterface
+    fun sdkUpdate(title: String, artist: String, image: String, startMs: Long, endMs: Long) =
+        MuseSdk.update(title, artist, image, startMs, endMs)
+
+    @JavascriptInterface
+    fun sdkClear() = MuseSdk.clear()
 }

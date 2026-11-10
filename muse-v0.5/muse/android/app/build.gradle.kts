@@ -8,9 +8,15 @@ val museUrl: String = (System.getenv("MUSE_URL")?.takeIf { it.isNotBlank() }
     ?: providers.gradleProperty("MUSE_URL").orNull
     ?: "").trim().trimEnd('/')
 
+// Discord Social SDK (tùy chọn): CI giải nén SDK vào các thư mục này. Thiếu thì app vẫn build, chỉ không có tính năng.
+val sdkDir: String = (System.getenv("DISCORD_SDK_DIR") ?: "").trim()
+val aarDir: String = (System.getenv("DISCORD_AAR_DIR") ?: "").trim()
+val hasSdk = sdkDir.isNotEmpty() && aarDir.isNotEmpty() && file("$sdkDir/include/discordpp.h").exists() && file("libs/discord_partner_sdk.aar").exists()
+
 android {
     namespace = "vn.muse.app"
     compileSdk = 34
+    if (hasSdk) ndkVersion = "26.3.11579264"
 
     defaultConfig {
         applicationId = "vn.muse.app"
@@ -19,6 +25,22 @@ android {
         versionCode = 5
         versionName = "0.7.0"
         buildConfigField("String", "MUSE_URL", "\"${museUrl.replace("\"", "")}\"")
+        if (hasSdk) {
+            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+            externalNativeBuild {
+                cmake {
+                    arguments += listOf(
+                        "-DANDROID_STL=c++_static",
+                        "-DDISCORD_SDK_DIR=$sdkDir",
+                        "-DDISCORD_AAR_DIR=$aarDir",
+                        "-DMUSE_NATIVE_DIR=${rootDir.parentFile.resolve("native").absolutePath}"
+                    )
+                }
+            }
+        }
+    }
+    if (hasSdk) {
+        externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt") } }
     }
     buildTypes {
         release {
@@ -37,4 +59,5 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.1")
+    if (hasSdk) implementation(files("libs/discord_partner_sdk.aar"))
 }

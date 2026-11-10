@@ -23,11 +23,37 @@ jobs:
       - name: Install tauri-cli
         run: cargo install tauri-cli --version "^2" --locked
 
+      # Discord Social SDK (tùy chọn): tải từ Release "discord-sdk" của repo (private).
+      - name: Tải Discord Social SDK
+        id: sdk
+        shell: bash
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release download discord-sdk -p 'DiscordSocialSdk-*.zip' -D "$RUNNER_TEMP/sdkzip" -R "$GITHUB_REPOSITORY"; then
+            Z=$(ls "$RUNNER_TEMP"/sdkzip/*.zip | head -1)
+            mkdir -p "$RUNNER_TEMP/sdk"
+            unzip -q "$Z" "discord_social_sdk/include/*" "discord_social_sdk/lib/release/discord_partner_sdk.lib" "discord_social_sdk/bin/release/discord_partner_sdk.dll" -d "$RUNNER_TEMP/sdk"
+            mkdir -p muse-v0.5/muse/desktop/src-tauri/sdk
+            cp "$RUNNER_TEMP/sdk/discord_social_sdk/bin/release/discord_partner_sdk.dll" muse-v0.5/muse/desktop/src-tauri/sdk/
+            echo "DISCORD_SDK_DIR=$(cygpath -w "$RUNNER_TEMP/sdk/discord_social_sdk")" >> "$GITHUB_ENV"
+            echo "has=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=0" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate icons
         run: cargo tauri icon ../icon-source.png
 
       - name: Build
-        run: cargo tauri build
+        shell: bash
+        run: |
+          if [ "${{ steps.sdk.outputs.has }}" = "1" ]; then
+            cargo tauri build --config tauri.sdk.conf.json
+          else
+            cargo tauri build
+          fi
 
       - uses: actions/upload-artifact@v4
         with:

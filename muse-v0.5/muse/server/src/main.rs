@@ -187,6 +187,9 @@ fn init_db(path: &std::path::Path) -> Connection {
         "ALTER TABLE users ADD COLUMN discord_id TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_name TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_avatar TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_access TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_refresh TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_expires INTEGER NOT NULL DEFAULT 0",
     ] {
         let _ = db.execute(ddl, []);
     }
@@ -304,6 +307,7 @@ async fn main() {
         .route("/api/discord/status", get(discord_status))
         .route("/api/discord/link", post(discord_link).delete(discord_unlink))
         .route("/api/discord/callback", get(discord_callback))
+        .route("/api/discord/token", get(discord_token))
         .route("/api/backup", get(backup_export))
         .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
@@ -1971,12 +1975,13 @@ fn urlenc(s: &str) -> String {
 async fn discord_status(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
     let u = require(&st, &headers)?;
     let db = st.db.lock().unwrap();
-    let (id, name, avatar): (String, String, String) = db
-        .query_row("SELECT discord_id, discord_name, discord_avatar FROM users WHERE id=?1", [u.id], |r| {
-            Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+    let (id, name, avatar, refresh): (String, String, String, String) = db
+        .query_row("SELECT discord_id, discord_name, discord_avatar, discord_refresh FROM users WHERE id=?1", [u.id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
         })
         .map_err(|_| e500())?;
-    Ok(Json(json!({ "linked": !id.is_empty(), "name": name, "avatar": avatar })))
+    // sdk=true: đã có token OAuth để dùng Discord Social SDK (Rich Presence không cần mở app Discord)
+    Ok(Json(json!({ "linked": !id.is_empty(), "name": name, "avatar": avatar, "sdk": !refresh.is_empty() })))
 }
 
 // Trả về URL đăng nhập Discord; client điều hướng tới đó. `state` dùng 1 lần, gắn với tài khoản đang đăng nhập.
@@ -1993,7 +1998,7 @@ async fn discord_link(State(st): State<AppState>, headers: HeaderMap) -> R<Value
             .map_err(|_| e500())?;
     }
     let url = format!(
-        "https://discord.com/oauth2/authorize?response_type=code&client_id={}&scope=identify&redirect_uri={}&state={}",
+        "https://discord.com/oauth2/authorize?response_type=code&client_id={}&scope=identify%20openid%20sdk.social_layer_presence&redirect_uri={}&state={}",
         urlenc(&cid),
         urlenc(&redirect),
         state
@@ -2004,7 +2009,7 @@ async fn discord_link(State(st): State<AppState>, headers: HeaderMap) -> R<Value
 async fn discord_unlink(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
     let u = require(&st, &headers)?;
     let db = st.db.lock().unwrap();
-    db.execute("UPDATE users SET discord_id='', discord_name='', discord_avatar='' WHERE id=?1", [u.id])
+    db.execute("UPDATE users SET discord_id='', discord_name='', discord_avatar='', discord_access='', discord_refresh='', discord_expires=0 WHERE id=?1", [u.id])
         .map_err(|_| e500())?;
     // Hủy liên kết thì tắt luôn Rich Presence.
     let mut cur = load_settings(&db, u.id);
@@ -2088,12 +2093,74 @@ async fn discord_callback(State(st): State<AppState>, Query(q): Query<DiscordCb>
     let db = st.db.lock().unwrap();
     if db
         .execute(
-            "UPDATE users SET discord_id=?1, discord_name=?2, discord_avatar=?3 WHERE id=?4",
-            params![id, name, avatar, uid],
+            "UPDATE users SET discord_id=?1, discord_name=?2, discord_avatar=?3, discord_access=?4, discord_refresh=?5, discord_expires=?6 WHERE id=?7",
+            params![
+                id,
+                name,
+                avatar,
+                access,
+                tok["refresh_token"].as_str().unwrap_or(""),
+                (now_secs() + tok["expires_in"].as_u64().unwrap_or(604800)) as i64,
+                uid
+            ],
         )
         .is_err()
     {
         return back(false);
     }
     back(true)
+}
+
+// Trả access token Discord còn hạn (tự làm mới bằng refresh token) cho client dùng với Discord Social SDK.
+async fn discord_token(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Some((cid, secret, _)) = discord_cfg() else {
+        return Err(bad("Server chưa cấu hình đăng nhập Discord"));
+    };
+    let (access, refresh, exp): (String, String, i64) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT discord_access, discord_refresh, discord_expires FROM users WHERE id=?1", [u.id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+        })
+        .map_err(|_| e500())?
+    };
+    if refresh.is_empty() {
+        return Err(bad("Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence"));
+    }
+    if !access.is_empty() && exp as u64 > now_secs() + 300 {
+        return Ok(Json(json!({ "token": access, "app_id": cid })));
+    }
+    let body = format!(
+        "grant_type=refresh_token&refresh_token={}&client_id={}&client_secret={}",
+        urlenc(&refresh),
+        urlenc(&cid),
+        urlenc(&secret)
+    );
+    let tok: Value = match st
+        .http
+        .post("https://discord.com/api/oauth2/token")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return Err(bad("Phiên Discord hết hạn, hãy hủy liên kết rồi đăng nhập Discord lại")),
+    };
+    let Some(new_access) = tok["access_token"].as_str() else {
+        return Err(bad("Discord không trả token"));
+    };
+    {
+        let db = st.db.lock().unwrap();
+        let _ = db.execute(
+            "UPDATE users SET discord_access=?1, discord_refresh=?2, discord_expires=?3 WHERE id=?4",
+            params![
+                new_access,
+                tok["refresh_token"].as_str().unwrap_or(&refresh),
+                (now_secs() + tok["expires_in"].as_u64().unwrap_or(604800)) as i64,
+                u.id
+            ],
+        );
+    }
+    Ok(Json(json!({ "token": new_access, "app_id": cid })))
 }

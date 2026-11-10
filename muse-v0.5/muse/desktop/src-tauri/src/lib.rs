@@ -177,6 +177,128 @@ pub async fn discord_clear(state: State<'_, DiscordState>) -> Result<(), String>
 }
 
 
+// ===== Discord Rich Presence qua Social SDK (đăng nhập OAuth, không cần mở app Discord) =====
+#[cfg(desktop)]
+mod sdk_presence {
+    #[cfg(muse_sdk)]
+    mod imp {
+        use std::os::raw::c_char;
+        extern "C" {
+            fn muse_pres_start(app_id: u64, token: *const c_char) -> i32;
+            fn muse_pres_update(title: *const c_char, artist: *const c_char, image: *const c_char, start_s: i64, end_s: i64);
+            fn muse_pres_clear();
+            fn muse_pres_status() -> i32;
+            fn muse_pres_error() -> *const c_char;
+        }
+        #[link(name = "kernel32")]
+        extern "system" {
+            fn LoadLibraryW(name: *const u16) -> *mut std::ffi::c_void;
+        }
+
+        pub const AVAILABLE: bool = true;
+
+        fn preload_dll(app: &tauri::AppHandle) -> Result<(), String> {
+            use std::os::windows::ffi::OsStrExt;
+            use tauri::Manager;
+            let mut dirs = vec![];
+            if let Ok(e) = std::env::current_exe() {
+                if let Some(d) = e.parent() {
+                    dirs.push(d.to_path_buf());
+                    dirs.push(d.join("sdk"));
+                }
+            }
+            if let Ok(r) = app.path().resource_dir() {
+                dirs.push(r.clone());
+                dirs.push(r.join("sdk"));
+            }
+            for d in dirs {
+                let f = d.join("discord_partner_sdk.dll");
+                if f.exists() {
+                    let w: Vec<u16> = f.as_os_str().encode_wide().chain(Some(0)).collect();
+                    if !unsafe { LoadLibraryW(w.as_ptr()) }.is_null() {
+                        return Ok(());
+                    }
+                }
+            }
+            Err("Không tìm thấy discord_partner_sdk.dll cạnh app".into())
+        }
+
+        pub fn start(app: &tauri::AppHandle, app_id: &str, token: String) -> Result<(), String> {
+            let id: u64 = app_id.trim().parse().map_err(|_| "DISCORD_CLIENT_ID không hợp lệ".to_string())?;
+            let tk = std::ffi::CString::new(token).map_err(|_| "token không hợp lệ".to_string())?;
+            preload_dll(app)?;
+            if unsafe { muse_pres_start(id, tk.as_ptr()) } == 0 {
+                Ok(())
+            } else {
+                Err("Không khởi động được Discord SDK".into())
+            }
+        }
+
+        pub fn status() -> Result<String, String> {
+            let st = unsafe { muse_pres_status() };
+            let err = unsafe { std::ffi::CStr::from_ptr(muse_pres_error()) }.to_string_lossy().to_string();
+            match st {
+                2 => Ok("ready".into()),
+                1 => Ok("connecting".into()),
+                3 => Err(err),
+                _ if !err.is_empty() => Err(err),
+                _ => Ok("off".into()),
+            }
+        }
+
+        pub fn update(title: String, artist: String, image: String, start_ms: i64, end_ms: i64) {
+            let c = |s: String| std::ffi::CString::new(s.replace('\0', "")).unwrap_or_default();
+            let (t, a, i) = (c(title), c(artist), c(image));
+            unsafe { muse_pres_update(t.as_ptr(), a.as_ptr(), i.as_ptr(), start_ms / 1000, end_ms / 1000) };
+        }
+
+        pub fn clear() {
+            unsafe { muse_pres_clear() };
+        }
+    }
+
+    #[cfg(not(muse_sdk))]
+    mod imp {
+        pub const AVAILABLE: bool = false;
+        pub fn start(_app: &tauri::AppHandle, _app_id: &str, _token: String) -> Result<(), String> {
+            Err("Bản app này chưa gắn Discord SDK".into())
+        }
+        pub fn status() -> Result<String, String> {
+            Ok("off".into())
+        }
+        pub fn update(_t: String, _a: String, _i: String, _s: i64, _e: i64) {}
+        pub fn clear() {}
+    }
+
+    #[tauri::command]
+    pub fn sdk_available() -> bool {
+        imp::AVAILABLE
+    }
+
+    #[tauri::command]
+    pub fn sdk_presence_start(app: tauri::AppHandle, app_id: String, token: String) -> Result<(), String> {
+        imp::start(&app, &app_id, token)
+    }
+
+    // Trả "ready" | "connecting" | "off"; lỗi -> Err(chi tiết)
+    #[tauri::command]
+    pub fn sdk_presence_status() -> Result<String, String> {
+        imp::status()
+    }
+
+    #[tauri::command]
+    pub fn sdk_presence_update(title: String, artist: String, image: String, start_ms: i64, end_ms: i64) -> Result<(), String> {
+        imp::update(title, artist, image, start_ms, end_ms);
+        Ok(())
+    }
+
+    #[tauri::command]
+    pub fn sdk_presence_clear() -> Result<(), String> {
+        imp::clear();
+        Ok(())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -187,7 +309,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             discord_rpc::discord_connect,
             discord_rpc::discord_activity,
-            discord_rpc::discord_clear
+            discord_rpc::discord_clear,
+            sdk_presence::sdk_available,
+            sdk_presence::sdk_presence_start,
+            sdk_presence::sdk_presence_status,
+            sdk_presence::sdk_presence_update,
+            sdk_presence::sdk_presence_clear
         ]);
 
     builder

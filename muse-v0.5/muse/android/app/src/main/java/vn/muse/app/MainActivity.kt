@@ -150,6 +150,7 @@ class MainActivity : ComponentActivity() {
             setAcceptThirdPartyCookies(web, true)
         }
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+        MuseSdk.init(this)
         web.addJavascriptInterface(MuseBridge(applicationContext), "MuseNative")
         web.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         web.webChromeClient = chrome

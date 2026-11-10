@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "muse-v0.5/muse/android/**"
+      - "muse-v0.5/muse/native/**"
       - ".github/workflows/build-android.yml"
 
 jobs:
@@ -28,11 +29,33 @@ jobs:
 
       - uses: android-actions/setup-android@v3
         with:
-          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0 ndk;26.3.11579264 cmake;3.22.1"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+
+      # Discord Social SDK (tùy chọn): tải từ Release "discord-sdk" của repo (repo private nên không lộ SDK).
+      # Không có release thì bỏ qua, app vẫn build nhưng không có Rich Presence không cần app Discord.
+      - name: Tải Discord Social SDK
+        working-directory: .
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release download discord-sdk -p 'DiscordSocialSdk-*.zip' -D "$RUNNER_TEMP/sdkzip" -R "$GITHUB_REPOSITORY"; then
+            Z=$(ls "$RUNNER_TEMP"/sdkzip/*.zip | head -1)
+            mkdir -p "$RUNNER_TEMP/sdk"
+            unzip -q "$Z" "discord_social_sdk/include/*" "discord_social_sdk/lib/release/discord_partner_sdk.aar" -d "$RUNNER_TEMP/sdk"
+            mkdir -p "$RUNNER_TEMP/aar" muse-v0.5/muse/android/app/libs
+            cp "$RUNNER_TEMP/sdk/discord_social_sdk/lib/release/discord_partner_sdk.aar" muse-v0.5/muse/android/app/libs/
+            unzip -q "$RUNNER_TEMP/sdk/discord_social_sdk/lib/release/discord_partner_sdk.aar" -d "$RUNNER_TEMP/aar"
+            echo "DISCORD_SDK_DIR=$RUNNER_TEMP/sdk/discord_social_sdk" >> "$GITHUB_ENV"
+            echo "DISCORD_AAR_DIR=$RUNNER_TEMP/aar" >> "$GITHUB_ENV"
+            echo "Đã gắn Discord SDK"
+          else
+            echo "Không có release discord-sdk, build không kèm SDK"
+          fi
 
       - name: Build APK (debug-signed, cài thẳng được)
         run: gradle --no-daemon --stacktrace assembleDebug
