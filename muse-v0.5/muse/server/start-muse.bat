@@ -6,6 +6,9 @@ set DISCORD_CLIENT_ID=1216803587678535791
 rem Dang nhap Discord (OAuth): Client Secret + dia chi cong khai cua server (vd https://muse.example.com)
 set DISCORD_CLIENT_SECRET=
 set PUBLIC_URL=
+rem Nhap playlist tu YouTube bang dang nhap Google (chi quyen doc): Client ID + Client Secret tao o console.cloud.google.com (xem README). Dung chung PUBLIC_URL o tren
+set GOOGLE_CLIENT_ID=
+set GOOGLE_CLIENT_SECRET=
 rem Proxy cho YouTube, vi du socks5://127.0.0.1:40000 hoac http://host:port (thuong KHONG can)
 set YT_PROXY=
 rem yt-dlp (tuy chon, giup vuot loi "Sign in to confirm you're not a bot"): dat yt-dlp.exe canh muse-server.exe hoac ghi duong dan day

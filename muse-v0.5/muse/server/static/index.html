@@ -523,6 +523,13 @@ html.android *{scroll-behavior:auto!important}
 .dlgb{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
 .dlgb button{border:0;border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;background:var(--hover2);color:var(--text)}
 .dlgb .dlgo{background:var(--accent);color:var(--on)}
+.ytl{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.yti{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;background:var(--hover);cursor:pointer}
+.yti img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--surf2);flex:none}
+.yti span{flex:1;min-width:0}
+.yti b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.yti small{color:var(--sub)}
+.yti input{width:18px;height:18px;accent-color:var(--accent);flex:none}
 </style>
 </head>
 <body class="skin-default">
@@ -1080,6 +1087,7 @@ const pages={
   async settings(m){
     try{ Object.assign(S,await api('/api/settings')); }catch{}
     if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
+    if(cfg.google_login){ try{ gl=await api('/api/google/status'); }catch{} }
     const useSdk=sdkOn(), canRpc=!!cfg.discord_app_id&&dl.linked&&(useSdk||DESK);
     const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
     const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
@@ -1114,6 +1122,12 @@ const pages={
     <div class="sgrp"><div class="sgh">Lịch sử nghe</div><div class="scard">
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
+    </div></div>
+    <div class="sgrp"><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
+      ${cfg.google_login
+        ?row('Đăng nhập Google',gl.linked?'Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào Muse. Muse không đăng nhập bằng Google và không lưu mật khẩu hay token.',`<span class="sbadge" id="gSt">${gl.linked?'Đã kết nối':'Chưa kết nối'}</span>`,'btn','gBtn')
+        :row('Đăng nhập Google','Đăng nhập Google để nhập playlist từ YouTube','<span class="sbadge">Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
+      ${cfg.google_login&&gl.linked?`<div class="srow col"><div class="sx"><b>Playlist của bạn trên YouTube</b><small>Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div><button class="pri" id="ytLoad">Tải danh sách playlist</button></div><div class="ytl" id="ytList"></div><small id="ytMsg" class="smsg"></small></div>`:''}
     </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${cfg.discord_login
@@ -1189,6 +1203,29 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
+    /* ---- Nhập playlist từ YouTube (đăng nhập Google, chỉ quyền đọc) ---- */
+    if($('#gBtn')) act('gBtn',async()=>{ try{
+      if(gl.linked){
+        if(!(await askConfirm('Ngắt kết nối Google? Muse sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.','Ngắt kết nối'))) return;
+        await api('/api/google/link',{method:'DELETE'}); gl={linked:false}; notify('Đã ngắt kết nối Google'); go('settings');
+      }else{
+        const ext=!!window.MuseNative; if(ext) gPending=true;   /* Android: Google chặn WebView nên mở bằng trình duyệt ngoài */
+        const r=await api('/api/google/link',{json:{ext}}); location.href=r.url;
+      }
+    }catch(e){ if(e.message!=='401') notify(e.message); } });
+    if($('#ytLoad')) $('#ytLoad').onclick=async()=>{ const box=$('#ytList'), msg=$('#ytMsg'); msg.textContent='Đang tải…';
+      try{
+        const ps=(await api('/api/yt-import/playlists')).playlists||[];
+        if(!ps.length){ msg.textContent='Không thấy playlist nào trong tài khoản này'; box.innerHTML=''; return; }
+        msg.textContent='';
+        box.innerHTML=ps.map((p,i)=>`<label class="yti"><input type="checkbox" data-i="${i}"><img src="${esc(p.image||'/icon-192.png')}" alt="" loading="lazy"><span><b>${esc(p.title)}</b><small>${p.count!=null?p.count+' bài':'YouTube'}</small></span></label>`).join('')+'<div><button class="pri" id="ytGo">Nhập đã chọn</button></div>';
+        $('#ytGo').onclick=async()=>{ const sel=[...box.querySelectorAll('input:checked')].map(c=>ps[+c.dataset.i]);
+          if(!sel.length){ msg.textContent='Hãy chọn ít nhất một playlist'; return; }
+          const go2=$('#ytGo'); go2.disabled=true; msg.textContent='Đang nhập… (playlist dài có thể mất vài chục giây)';
+          try{ const x=await api('/api/yt-import/import',{json:{items:sel.map(p=>({id:p.id,title:p.title}))}}); msg.textContent=`Đã nhập ${x.playlists} playlist, ${x.tracks} bài ✔`; await loadPlaylists(); }
+          catch(e){ if(e.message!=='401') msg.textContent=e.message; }
+          go2.disabled=false; };
+      }catch(e){ if(e.message!=='401') msg.textContent=e.message; } };
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
@@ -1792,6 +1829,8 @@ const cachedPlaylist=id=>{ try{ return JSON.parse(LS.get(plTkKey(id),'null')); }
 /* ===== Discord Rich Presence (qua app desktop Tauri) ===== */
 const DESK=!!(window.__TAURI__&&window.__TAURI__.core)&&!/Android/i.test(navigator.userAgent);
 const dc={user:'',timer:0};
+let gl={linked:false};   /* đăng nhập Google chỉ để nhập playlist YouTube */
+let gPending=false;
 let dl={linked:false,name:'',sdk:false};   /* tài khoản Discord đã liên kết (OAuth) */
 const dInvoke=(c,a)=>DESK?window.__TAURI__.core.invoke(c,a):Promise.reject(new Error('Chỉ có trên app desktop'));
 /* Discord Social SDK: Rich Presence bằng token OAuth, không cần mở app Discord (app desktop + app Android bản mới) */
@@ -1862,6 +1901,11 @@ async function start(u){
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
+  { const gp=new URLSearchParams(location.search).get('google');
+    if(gp){ history.replaceState(null,'',location.pathname);
+      if(gp==='ok'){ notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } else notify('Kết nối Google thất bại, hãy thử lại'); } }
+  document.addEventListener('visibilitychange',async()=>{ if(document.hidden||!gPending) return; gPending=false;
+    try{ const s=await api('/api/google/status'); if(s.linked){ gl=s; notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } }catch{} });
   await syncClock(6); connect(); connectUser();
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);

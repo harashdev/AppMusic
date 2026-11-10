@@ -99,3 +99,16 @@ Server thử lần lượt: ANDROID_VR → IOS → TV nhúng → **yt-dlp** → 
 Cách chắc nhất: cài `yt-dlp` (đặt `yt-dlp.exe` cạnh `muse-server.exe`, hoặc đặt `YTDLP_PATH`) và đặt `YT_COOKIES` = file cookies.txt xuất từ trình duyệt đã đăng nhập YouTube (có cookies thì yt-dlp được thử đầu tiên). Nên dùng tài khoản phụ, vì tài khoản dùng cookies cho bot vẫn có rủi ro bị YouTube khóa. Cập nhật yt-dlp thường xuyên (`yt-dlp -U`).
 
 Nếu link yt-dlp bị googlevideo trả 403 (link gắn với client/PO token của yt-dlp), server tự cho yt-dlp tải file âm thanh về thư mục tạm (`%TEMP%\muse-audio`, tự dọn sau 6 giờ) rồi phát từ file đó.
+
+
+## Nhập playlist từ YouTube (đăng nhập Google, chỉ quyền đọc)
+Vào *Cài đặt → Nhập playlist từ YouTube → Đăng nhập Google*, chọn playlist rồi bấm *Nhập đã chọn*. Muse chỉ xin quyền **đọc** YouTube (`youtube.readonly`), không đăng nhập bằng Google, không lưu mật khẩu; token chỉ nằm trong RAM của server (hết hạn sau ~1 giờ) và được thu hồi khi bấm *Ngắt kết nối*. Có cả mục "Video đã thích". Video riêng tư/đã xóa bị bỏ qua.
+
+Cấu hình (một lần):
+1. Vào [console.cloud.google.com](https://console.cloud.google.com) → tạo project → *APIs & Services → Library* → bật **YouTube Data API v3**.
+2. *OAuth consent screen*: loại **External**, để chế độ **Testing**, thêm email Google của bạn vào **Test users**, thêm scope `.../auth/youtube.readonly`.
+3. *Credentials → Create credentials → OAuth client ID → Web application*. Ở **Authorized redirect URIs** thêm đúng: `https://muse.example.com/api/google/callback` (giống `PUBLIC_URL` của server + `/api/google/callback`).
+4. Đặt 3 biến môi trường cho server (trong `start-muse.bat`): `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_URL`.
+
+Lưu ý: ở chế độ Testing, Google hiện cảnh báo "ứng dụng chưa được xác minh" → bấm *Nâng cao → Tiếp tục*. Trên Android, đăng nhập mở bằng trình duyệt ngoài (Google chặn đăng nhập trong WebView); xong quay lại app Muse. API: `GET /api/google/status`, `POST|DELETE /api/google/link`, `GET /api/google/callback`, `GET /api/yt-import/playlists`, `POST /api/yt-import/import`.
+
