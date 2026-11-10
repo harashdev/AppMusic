@@ -1,6 +1,6 @@
 {
-  "name": "Muse",
-  "short_name": "Muse",
+  "name": "BBeat",
+  "short_name": "BBeat",
   "description": "Nghe nhạc cùng bạn bè",
   "start_url": "/",
   "scope": "/",
