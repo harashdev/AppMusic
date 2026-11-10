@@ -2297,7 +2297,7 @@ fn yt_collect_videos(v: &Value, out: &mut Vec<Value>) {
     }
 }
 
-fn yt_text(v: Option<&Value>) -> String {
+fn yt_rtext(v: Option<&Value>) -> String {
     let Some(v) = v else { return String::new() };
     if let Some(s) = v.get("simpleText").and_then(|x| x.as_str()) {
         return s.to_string();
@@ -2343,14 +2343,14 @@ async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body
     if first.get("alerts").is_some() && yt_find(&first, "playlistVideoRenderer").is_none() {
         let msg = yt_find(&first, "alertWithButtonRenderer")
             .or_else(|| yt_find(&first, "alertRenderer"))
-            .map(|a| yt_text(a.get("text")))
+            .map(|a| yt_rtext(a.get("text")))
             .unwrap_or_default();
         return Err(bad(if msg.is_empty() { "Không đọc được playlist (riêng tư hoặc không tồn tại)" } else { &msg }));
     }
     let mut title = body.get("title").and_then(|x| x.as_str()).unwrap_or("").trim().to_string();
     if title.is_empty() {
         title = yt_find(&first, "playlistHeaderRenderer")
-            .map(|h| yt_text(h.get("title")))
+            .map(|h| yt_rtext(h.get("title")))
             .filter(|t| !t.is_empty())
             .or_else(|| yt_find(&first, "playlistMetadataRenderer").and_then(|m| m.get("title")).and_then(|t| t.as_str()).map(|t| t.to_string()))
             .unwrap_or_default();
@@ -2368,13 +2368,13 @@ async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body
         yt_collect_videos(&cur, &mut vids);
         for r in vids {
             let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
-            let name = yt_text(r.get("title"));
+            let name = yt_rtext(r.get("title"));
             let secs: u64 = r.get("lengthSeconds").and_then(|x| x.as_str()).and_then(|x| x.parse().ok()).unwrap_or(0);
             // Video đã xóa / riêng tư không có thời lượng
             if vid.len() != 11 || name.is_empty() || secs == 0 || !seen.insert(vid.to_string()) {
                 continue;
             }
-            let artist = yt_text(r.get("shortBylineText"));
+            let artist = yt_rtext(r.get("shortBylineText"));
             let artist = artist.strip_suffix(" - Topic").unwrap_or(&artist).to_string();
             let image = r
                 .pointer("/thumbnail/thumbnails")
