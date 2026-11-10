@@ -101,14 +101,9 @@ Cách chắc nhất: cài `yt-dlp` (đặt `yt-dlp.exe` cạnh `muse-server.exe`
 Nếu link yt-dlp bị googlevideo trả 403 (link gắn với client/PO token của yt-dlp), server tự cho yt-dlp tải file âm thanh về thư mục tạm (`%TEMP%\muse-audio`, tự dọn sau 6 giờ) rồi phát từ file đó.
 
 
-## Nhập playlist từ YouTube (đăng nhập Google, chỉ quyền đọc)
-Vào *Cài đặt → Nhập playlist từ YouTube → Đăng nhập Google*, chọn playlist rồi bấm *Nhập đã chọn*. Muse chỉ xin quyền **đọc** YouTube (`youtube.readonly`), không đăng nhập bằng Google, không lưu mật khẩu; token chỉ nằm trong RAM của server (hết hạn sau ~1 giờ) và được thu hồi khi bấm *Ngắt kết nối*. Có cả mục "Video đã thích". Video riêng tư/đã xóa bị bỏ qua.
-
-Cấu hình (một lần):
-1. Vào [console.cloud.google.com](https://console.cloud.google.com) → tạo project → *APIs & Services → Library* → bật **YouTube Data API v3**.
-2. *OAuth consent screen*: loại **External**, để chế độ **Testing**, thêm email Google của bạn vào **Test users**, thêm scope `.../auth/youtube.readonly`.
-3. *Credentials → Create credentials → OAuth client ID → Web application*. Ở **Authorized redirect URIs** thêm đúng: `https://muse.example.com/api/google/callback` (giống `PUBLIC_URL` của server + `/api/google/callback`).
-4. Đặt 3 biến môi trường cho server (trong `start-muse.bat`): `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_URL`.
-
-Lưu ý: ở chế độ Testing, Google hiện cảnh báo "ứng dụng chưa được xác minh" → bấm *Nâng cao → Tiếp tục*. Trên Android, đăng nhập mở bằng trình duyệt ngoài (Google chặn đăng nhập trong WebView); xong quay lại app Muse. API: `GET /api/google/status`, `POST|DELETE /api/google/link`, `GET /api/google/callback`, `GET /api/yt-import/playlists`, `POST /api/yt-import/import`.
+## Nhập playlist từ YouTube (bằng link, không cần Google)
+Vào *Cài đặt → Nhập playlist từ YouTube*, dán link playlist (mỗi link một dòng, tối đa 10 link) rồi bấm *Nhập playlist*. Không cần đăng nhập hay cấu hình gì thêm.
+- Playlist phải ở chế độ **Công khai** hoặc **Không công khai**. Playlist riêng tư và "Video đã thích" cần đăng nhập nên không nhập được. Video riêng tư/đã xóa bị bỏ qua.
+- Link hợp lệ có dạng `https://www.youtube.com/playlist?list=PL...` hoặc `https://www.youtube.com/watch?v=...&list=PL...` (cũng nhận thẳng ID playlist). Mix tự tạo của YouTube (`list=RD...`) không nhập được.
+- API: `POST /api/yt-import/url` với body `{"urls":"link1\nlink2"}`.
 
