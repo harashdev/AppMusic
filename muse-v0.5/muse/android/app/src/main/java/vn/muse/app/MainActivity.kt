@@ -93,8 +93,7 @@ class MainActivity : ComponentActivity() {
         // Dịch vụ nền được MuseBridge bật khi bắt đầu phát nhạc, không bật ngay lúc mở app.
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
 
-        // Xoá cache của WebView mỗi lần mở app để luôn nhận giao diện mới nhất từ server (không bị kẹt bản cũ).
-        web.clearCache(true)
+        // Giữ cache WebView (LOAD_DEFAULT vẫn tự kiểm tra bản mới qua ETag) -> mở app và tải ảnh bìa nhanh hơn nhiều.
         loadServer()
     }
 
