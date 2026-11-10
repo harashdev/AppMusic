@@ -1,0 +1,27 @@
+name: Build server (Muse)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "muse-v0.5/muse/server/**"
+      - ".github/workflows/build-server.yml"
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: muse-v0.5/muse/server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: muse-v0.5/muse/server
+
+      - name: Build (release)
+        run: cargo build --release --locked
