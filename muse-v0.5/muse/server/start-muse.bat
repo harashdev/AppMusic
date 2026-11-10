@@ -16,6 +16,9 @@ rem Cach de nhat: de ten trinh duyet da dang nhap YouTube (firefox, edge, chrome
 set YT_BROWSER=firefox
 rem Link ung ho (tuy chon)
 set DONATE_URL=
+rem yt-dlp can mot JavaScript runtime (Deno) de giai ma YouTube; thieu thi bao "Requested format is not available"
+set PATH=%CD%;%PATH%
+if not exist deno.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip -OutFile deno.zip; Expand-Archive -Force deno.zip -DestinationPath .; Remove-Item deno.zip"
 rem Tu tai yt-dlp neu chua co, roi tu cap nhat moi lan bat server
 if not exist yt-dlp.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -OutFile yt-dlp.exe"
 if exist yt-dlp.exe yt-dlp.exe -U
