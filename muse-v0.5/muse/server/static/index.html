@@ -24,9 +24,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Muse">
+<meta name="apple-mobile-web-app-title" content="BBeat">
 <meta name="theme-color" content="#07070b">
-<title>Muse</title>
+<title>BBeat</title>
 <style>
 @property --npbg{syntax:'<color>';inherits:true;initial-value:#2b2640}
 @property --npfg{syntax:'<color>';inherits:true;initial-value:#ffffff}
@@ -588,7 +588,7 @@ html.android *{scroll-behavior:auto!important}
 <svg id="sprite" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
 
 <div id="auth"><div class="box">
-  <div class="logo"><b data-ic="music"></b> Muse</div>
+  <div class="logo"><b data-ic="music"></b> BBeat</div>
   <div class="row"><button id="tLogin" class="pri" style="flex:1">Đăng nhập</button><button id="tReg" style="flex:1">Đăng ký</button></div>
   <div class="row"><input id="aUser" placeholder="Tên đăng nhập" autocomplete="username"></div>
   <div class="row" id="aNameRow" style="display:none"><input id="aName" placeholder="Tên hiển thị"></div>
@@ -711,6 +711,34 @@ const key=t=>t.src+':'+t.id;
 const slim=t=>({src:t.src,id:String(t.id),title:t.title,artist:t.artist||'',image:t.image||'',url:t.url||'',dur:t.dur||0,explicit:!!t.explicit});
 const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const CID=Math.random().toString(36).slice(2,10);
+/* ===== Thông tin "Về tôi" – BBeat (sửa ở đây) ===== */
+const ABOUT={
+  name:'BBeat', author:'BaoBu', version:'1.0.0',
+  repo:'',          /* kho GitHub chứa bản phát hành, dạng 'tên-github/BBeat'. Bỏ trống thì chưa kiểm tra cập nhật được */
+  supportUrl:'',    /* link "Hỗ trợ tôi" (Ko-fi, Buy Me a Coffee, MoMo…). Bỏ trống thì dùng DONATE_URL của server nếu có */
+  libs:[
+    ['YouTube IFrame Player API','Trình phát YouTube chính thức','https://developers.google.com/youtube/iframe_api_reference'],
+    ['SponsorBlock','Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0','https://sponsor.ajay.app'],
+    ['Return YouTube Dislike','Số lượt thích/không thích','https://returnyoutubedislike.com'],
+    ['SimpMusic Lyrics','Lời bài hát (nguồn chính)','https://github.com/maxrave-dev/SimpMusic'],
+    ['LRCLIB','Lời bài hát có thời gian (dự phòng)','https://lrclib.net'],
+    ['yt-dlp','Lấy luồng âm thanh khi nguồn khác bị chặn','https://github.com/yt-dlp/yt-dlp'],
+    ['Piped','Nguồn luồng âm thanh dự phòng','https://github.com/TeamPiped/Piped'],
+    ['Axum','Web server (Rust)','https://github.com/tokio-rs/axum'],
+    ['Tokio','Chạy bất đồng bộ (Rust)','https://tokio.rs'],
+    ['tower-http','Phục vụ file tĩnh','https://github.com/tower-rs/tower-http'],
+    ['reqwest','Gọi HTTP từ server','https://github.com/seanmonstar/reqwest'],
+    ['rusqlite / SQLite','Cơ sở dữ liệu','https://github.com/rusqlite/rusqlite'],
+    ['argon2','Băm mật khẩu','https://github.com/RustCrypto/password-hashes'],
+    ['serde / serde_json','Đọc ghi JSON','https://serde.rs'],
+    ['Tauri','Đóng gói app máy tính','https://tauri.app'],
+    ['AndroidX Core / Activity','Thành phần app Android','https://developer.android.com/jetpack/androidx']
+  ]
+};
+const bbPad=n=>String(n).padStart(2,'0');
+const bbFmt=ms=>{ const d=new Date(+ms); return d.getFullYear()+'-'+bbPad(d.getMonth()+1)+'-'+bbPad(d.getDate())+' '+bbPad(d.getHours())+':'+bbPad(d.getMinutes())+':'+bbPad(d.getSeconds()); };
+const bbCmp=(a,b)=>{ const x=String(a).split('.').map(n=>parseInt(n)||0), y=String(b).split('.').map(n=>parseInt(n)||0); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0?1:-1; } return 0; };
+function openExt(u){ if(!u) return; if(window.ANDROID_APP) location.href=u; else window.open(u,'_blank','noopener'); }
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
 let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=null, playing=false, regMode=false;
 let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30}, fadeMul=1, fadeInAt=0;
@@ -823,7 +851,21 @@ function askDialog(o){ return new Promise(res=>{
 }); }
 const askText=(title,def)=>askDialog({title:String(title).replace(/[:：]\s*$/,''),input:true,def});
 const askConfirm=(msg,ok)=>askDialog({title:'Xác nhận',msg,ok});
-function notify(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toasts').appendChild(t); setTimeout(()=>t.remove(),3200); }
+/* Thông báo: không xếp chồng thông báo trùng, tối đa 3 cái cùng lúc (tránh tràn màn hình khi bị spam) */
+function pushToast(t,key,ms){
+  const box=$('#toasts'); if(key){ box.querySelectorAll('.toast').forEach(x=>{ if(x.dataset.k===key) x.remove(); }); t.dataset.k=key; }
+  box.appendChild(t); while(box.children.length>3) box.firstElementChild.remove();
+  setTimeout(()=>t.remove(),ms);
+}
+function notify(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
+/* Chặn người đã bấm "Bỏ qua" 10 phút + chống bấm mời liên tục từ phía mình */
+const muted={}, inviteAt={};
+const isMuted=n=>muted[n]&&muted[n]>Date.now();
+async function sendInvite(id){
+  if(Date.now()-(inviteAt[id]||0)<15000) throw new Error('Bạn vừa mời người này rồi, đợi vài giây nhé');
+  inviteAt[id]=Date.now();
+  try{ return await sendInvite(id); }catch(e){ inviteAt[id]=0; throw e; }
+}
 
 /* ===== Đăng nhập ===== */
 function showAuth(){ $('#auth').style.display='flex'; }
@@ -1003,6 +1045,29 @@ function fillQuick(list){
   q.innerHTML=`<section class="sec"><div class="sh"><div><small>Bắt đầu một đài phát</small><h3>Chọn nhanh đài phát</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a></div></div><div class="qpager">${cols}</div></section>`;
   markNow(); if(window.ANDROID_APP) warmFirst(list,2);
 }
+/* ===== Kiểm tra cập nhật BBeat qua GitHub Release ===== */
+let updShown=false;
+function showUpdateToast(v,url){
+  if(updShown) return; updShown=true;
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<div class="row"><div><b>BBeat v${esc(v)}</b> đã có bản cập nhật mới</div></div><div class="row"><button class="pri">Tải về</button><button>Để sau</button></div>`;
+  const [dl,later]=t.querySelectorAll('button'); dl.onclick=()=>{ t.remove(); openExt(url); }; later.onclick=()=>t.remove();
+  pushToast(t,'upd',30000);
+}
+async function checkUpdate(manual){
+  if(!ABOUT.repo){ if(manual) notify('Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)'); return null; }
+  try{
+    const r=await fetch('https://api.github.com/repos/'+ABOUT.repo+'/releases/latest',{headers:{Accept:'application/vnd.github+json'}});
+    LS.set('bb_lastcheck',String(Date.now()));
+    if(r.status===404){ if(manual) notify('Chưa có bản phát hành nào trên GitHub'); return null; }
+    if(!r.ok) throw new Error('GitHub trả về lỗi '+r.status);
+    const j=await r.json(), latest=String(j.tag_name||'').replace(/^v/i,'');
+    const newer=!!latest&&bbCmp(latest,ABOUT.version)>0;
+    if(newer) showUpdateToast(latest,j.html_url); else if(manual) notify('Bạn đang dùng bản mới nhất (v'+ABOUT.version+')');
+    return {newer,latest,url:j.html_url};
+  }catch(e){ if(manual) notify('Không kiểm tra được cập nhật: '+e.message); return null; }
+}
+const autoUpdate=()=>{ if(LS.get('bb_autoupd','1')==='1') checkUpdate(false); };
 const pages={
   async home(m,ci){
     if(ci!==undefined) homeCi=ci; ci=homeCi;
@@ -1128,7 +1193,7 @@ const pages={
       const b=e.target.closest('button[data-a]');
       if(!b){ if(f&&e.target.closest('.fr')){ e.stopPropagation(); showProfilePop(f,row.querySelector('.fr')); } return; }
       if(b.dataset.a==='invite'){
-        try{ await api('/api/invite',{json:{friend_id:id,room}}); notify('Đã gửi lời mời tới '+f.display_name); }
+        try{ await sendInvite(id); notify('Đã gửi lời mời tới '+f.display_name); }
         catch(er){ if(await askConfirm(er.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
       } else if(b.dataset.a==='remove'){
         if(await askConfirm('Xoá '+f.display_name+' khỏi danh sách bạn bè?','Xoá')){ try{ await api('/api/friends/'+id,{method:'DELETE'}); notify('Đã xoá bạn'); renderFriendsPage(); }catch(er){ notify(er.message); } }
@@ -1243,7 +1308,7 @@ const pages={
     </div></div>
     <div class="sgrp"><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
       ${cfg.google_login
-        ?row('Đăng nhập Google',gl.linked?'Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào Muse. Muse không đăng nhập bằng Google và không lưu mật khẩu hay token.',`<span class="sbadge" id="gSt">${gl.linked?'Đã kết nối':'Chưa kết nối'}</span>`,'btn','gBtn')
+        ?row('Đăng nhập Google',gl.linked?'Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.',`<span class="sbadge" id="gSt">${gl.linked?'Đã kết nối':'Chưa kết nối'}</span>`,'btn','gBtn')
         :row('Đăng nhập Google','Đăng nhập Google để nhập playlist từ YouTube','<span class="sbadge">Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
       ${cfg.google_login&&gl.linked?`<div class="srow col"><div class="sx"><b>Playlist của bạn trên YouTube</b><small>Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div><button class="pri" id="ytLoad">Tải danh sách playlist</button></div><div class="ytl" id="ytList"></div><small id="ytMsg" class="smsg"></small></div>`:''}
     </div></div>
@@ -1263,8 +1328,17 @@ const pages={
       ${row('Khôi phục','Khôi phục dữ liệu từ file sao lưu (thay thế yêu thích, lịch sử và danh sách phát hiện có)','','btn','bkRes')}
       ${row('Nhập danh sách phát','Nhập danh sách phát từ file JSON (giữ nguyên dữ liệu hiện có)','','btn','bkImp')}
     </div><input type="file" id="fRes" accept="application/json,.json" hidden><input type="file" id="fImp" accept="application/json,.json" hidden></div>
-    <div class="sgrp"><div class="sgh">Về ứng dụng</div><div class="scard">
-      ${row('Phiên bản','v'+esc(cfg.version||'?'))}
+    <div class="sgrp"><div class="sgh">Về tôi</div><div class="scard">
+      ${row('Phiên bản','v'+esc(ABOUT.version))}
+      ${row('Kiểm tra cập nhật tự động','Kiểm tra cập nhật mỗi khi bạn mở ứng dụng',tog('tAutoUpd',LS.get('bb_autoupd','1')==='1'))}
+      ${row('Kênh cập nhật','BBeat GitHub Release','','btn','chBtn')}
+      ${row('Kiểm tra cập nhật','<span id="updTxt">'+(LS.get('bb_lastcheck','')?'Lần kiểm tra cuối vào '+bbFmt(LS.get('bb_lastcheck','')):'Chưa kiểm tra lần nào')+'</span>','','btn','updBtn')}
+      ${row('Tác giả',esc(ABOUT.author))}
+      ${row('Hỗ trợ tôi','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).','','btn','supBtn')}
+      ${row('Thư viện bên thứ ba','Các thư viện và dịch vụ mà BBeat sử dụng','','btn','libsBtn')}
+      <div id="libsBox" hidden>${ABOUT.libs.map(([n,d,u])=>`<div class="srow btn" data-url="${esc(u)}" role="button" tabindex="0"><div class="sx"><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')}</div>
+    </div></div>
+    <div class="sgrp"><div class="scard">
       ${row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
     </div></div>
     </div>`;
@@ -1324,7 +1398,7 @@ const pages={
     /* ---- Nhập playlist từ YouTube (đăng nhập Google, chỉ quyền đọc) ---- */
     if($('#gBtn')) act('gBtn',async()=>{ try{
       if(gl.linked){
-        if(!(await askConfirm('Ngắt kết nối Google? Muse sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.','Ngắt kết nối'))) return;
+        if(!(await askConfirm('Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.','Ngắt kết nối'))) return;
         await api('/api/google/link',{method:'DELETE'}); gl={linked:false}; notify('Đã ngắt kết nối Google'); go('settings');
       }else{
         const ext=!!window.MuseNative; if(ext) gPending=true;   /* Android: Google chặn WebView nên mở bằng trình duyệt ngoài */
@@ -1376,12 +1450,18 @@ const pages={
       try{ const r=await api('/api/restore',{json:j}); await refreshLib(); notify(`Đã khôi phục ${r.favorites} bài yêu thích, ${r.playlists} danh sách phát`); }catch(er){ notify(er.message); } };
     act('bkImp',()=>$('#fImp').click());
     $('#fImp').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; let j=await readJson(f); if(!j) return;
-      /* chấp nhận file của Muse, hoặc mảng [{name,tracks:[{videoId|id,title,artist}]}] từ app khác */
+      /* chấp nhận file của BBeat, hoặc mảng [{name,tracks:[{videoId|id,title,artist}]}] từ app khác */
       const conv=t=>t&&t.src?t:{src:'yt',id:String(t&&(t.videoId||t.id)||''),title:(t&&(t.title||t.name))||'',artist:(t&&(t.artist||t.author||(Array.isArray(t.artists)?t.artists.map(a=>a.name||a).join(', '):'')))||'',image:(t&&(t.image||t.thumbnail))||'',url:'',dur:(t&&t.dur)||0};
       const list=Array.isArray(j)?j:(j.playlists||[]);
       j={playlists:list.map(p=>({name:p.name||p.title,tracks:(p.tracks||p.songs||[]).map(conv)}))};
       try{ const r=await api('/api/import',{json:j}); await refreshLib(); notify(`Đã nhập ${r.playlists} danh sách phát (${r.tracks} bài)`); }catch(er){ notify(er.message); } };
     act('outBtn',logout);
+    $('#tAutoUpd').onchange=e=>LS.set('bb_autoupd',e.target.checked?'1':'0');
+    act('chBtn',()=>{ if(ABOUT.repo) openExt('https://github.com/'+ABOUT.repo+'/releases'); else notify('Chưa gắn kho GitHub cho BBeat'); });
+    act('updBtn',async()=>{ const el=$('#updTxt'); if(el) el.textContent='Đang kiểm tra…'; await checkUpdate(true); const e2=$('#updTxt'); if(e2){ const t=LS.get('bb_lastcheck',''); e2.textContent=t?'Lần kiểm tra cuối vào '+bbFmt(t):'Chưa kiểm tra lần nào'; } });
+    act('supBtn',()=>{ const u=ABOUT.supportUrl||cfg.donate_url||''; if(u) openExt(u); else notify('Tác giả chưa gắn link hỗ trợ'); });
+    act('libsBtn',()=>{ const b=$('#libsBox'); b.hidden=!b.hidden; });
+    $('#libsBox').onclick=e=>{ const r=e.target.closest('[data-url]'); if(r) openExt(r.dataset.url); };
   }
 };
 async function go(p,arg,keep){
@@ -1415,7 +1495,7 @@ $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
 $('#sbFriends').onclick=async e=>{
   const row=e.target.closest('.sbf'); if(!row) return; const id=+row.dataset.id; const f=fmap.get(id); if(!f) return;
-  if(e.target.closest('button')){ e.stopPropagation(); try{ await api('/api/invite',{json:{friend_id:id,room}}); notify('Đã gửi lời mời tới '+f.display_name); }catch(er){ notify(er.message); } return; }
+  if(e.target.closest('button')){ e.stopPropagation(); try{ await sendInvite(id); notify('Đã gửi lời mời tới '+f.display_name); }catch(er){ notify(er.message); } return; }
   e.stopPropagation(); showProfilePop(f,row);
 };
 
@@ -1556,11 +1636,12 @@ async function renderFriendsPage(){
   box.innerHTML=list.map(f=>`<div class="item" data-id="${f.id}"><span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button data-a="invite">Mời nghe</button><button data-a="remove">Xoá</button></div>`).join('')||'<p class="empty">Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.</p>';
 }
 function showFriendReq(m){
+  if(isMuted(m.from)) return;
   const t=document.createElement('div'); t.className='toast';
   t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> gửi lời mời kết bạn</div></div><div class="row"><button class="pri">Xem</button><button>Bỏ qua</button></div>`;
   const [view,skip]=t.querySelectorAll('button');
-  view.onclick=()=>{ t.remove(); go('friends'); }; skip.onclick=()=>t.remove();
-  $('#toasts').appendChild(t); setTimeout(()=>t.remove(),30000);
+  view.onclick=()=>{ t.remove(); go('friends'); }; skip.onclick=()=>{ muted[m.from]=Date.now()+6e5; t.remove(); };
+  pushToast(t,'fr:'+m.from,30000);
 }
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
@@ -1570,7 +1651,7 @@ async function loadFriends(){
     d.innerHTML=`<span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button>Mời</button>`;
     d.querySelector('.fr').onclick=e=>{ e.stopPropagation(); showProfilePop(f,d.querySelector('.fr')); };
     d.querySelector('button').onclick=async()=>{
-      try{ await api('/api/invite',{json:{friend_id:f.id,room}}); sysLine('Đã gửi lời mời tới '+f.display_name); notify('Đã gửi lời mời tới '+f.display_name); }
+      try{ await sendInvite(f.id); sysLine('Đã gửi lời mời tới '+f.display_name); notify('Đã gửi lời mời tới '+f.display_name); }
       catch(e){ if(await askConfirm(e.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
     };
     box.appendChild(d);
@@ -1586,12 +1667,15 @@ function connectUser(){
   u.onclose=()=>{ if(token) setTimeout(connectUser,3000); };
 }
 function showInvite(m){
+  if(isMuted(m.from)) return;
   const t=document.createElement('div'); t.className='toast';
   t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> mời bạn nghe nhạc chung</div></div><div class="row"><button class="pri">Tham gia</button><button>Bỏ qua</button></div>`;
   const [join,skip]=t.querySelectorAll('button');
-  join.onclick=()=>{ t.remove(); switchRoom(m.room); }; skip.onclick=()=>t.remove();
-  $('#toasts').appendChild(t); setTimeout(()=>t.remove(),30000);
-  try{ if('Notification' in window&&Notification.permission==='granted') new Notification('Muse',{body:m.from+' mời bạn nghe nhạc chung'}); }catch{}
+  join.onclick=()=>{ t.remove(); switchRoom(m.room); }; skip.onclick=()=>{ muted[m.from]=Date.now()+6e5; t.remove(); };
+  const dup=!!$('#toasts').querySelector('.toast[data-k="'+('inv:'+m.from).replace(/"/g,'')+'"]');
+  pushToast(t,'inv:'+m.from,30000);
+  if(dup) return;
+  try{ if('Notification' in window&&Notification.permission==='granted') new Notification('BBeat',{body:m.from+' mời bạn nghe nhạc chung'}); }catch{}
 }
 async function syncClock(n){
   let best=null;
@@ -1776,7 +1860,7 @@ function msUpdate(){
   const m=navigator.mediaSession, t=cur;
   try{
     if(!t){ m.metadata=null; m.playbackState='none'; return; }
-    m.metadata=new MediaMetadata({title:t.title||'',artist:t.artist||'',album:qname||'Muse',
+    m.metadata=new MediaMetadata({title:t.title||'',artist:t.artist||'',album:qname||'BBeat',
       artwork:t.image?[{src:t.image,sizes:'512x512'}]:[{src:'/icon-512.png',sizes:'512x512',type:'image/png'}]});
     m.playbackState=playing?'playing':'paused';
   }catch{}
@@ -2071,7 +2155,7 @@ function pushPresence(){
   dc.timer=setTimeout(()=>{
     if(!cur||!playing){ discordClear(); return; }
     const d=getDur()||cur.dur||0, t=getTime(), startMs=Math.round(Date.now()-t*1000);
-    const a={title:cur.title||'Muse',artist:cur.artist||'',image:cur.image||'',startMs,endMs:d>0?Math.round(startMs+d*1000):0};
+    const a={title:cur.title||'BBeat',artist:cur.artist||'',image:cur.image||'',startMs,endMs:d>0?Math.round(startMs+d*1000):0};
     (dc.sdk?sdkSend(a):dInvoke('discord_activity',a)).catch(()=>{ dc.user=''; });
   },400);
 }
@@ -2104,7 +2188,7 @@ async function start(u){
       if(gp==='ok'){ notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } else notify('Kết nối Google thất bại, hãy thử lại'); } }
   document.addEventListener('visibilitychange',async()=>{ if(document.hidden||!gPending) return; gPending=false;
     try{ const s=await api('/api/google/status'); if(s.linked){ gl=s; notify('Đã kết nối Google, hãy chọn playlist để nhập'); go('settings'); } }catch{} });
-  await syncClock(6); connect(); connectUser(); refreshFriendBadge();
+  await syncClock(6); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
