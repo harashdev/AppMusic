@@ -1611,6 +1611,8 @@ fn now_secs() -> u64 {
 }
 
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
+// Đoạn đầu (bắt đầu bài / sau khi tua) nhỏ hơn để nhạc lên tiếng nhanh, không phải đợi tải đủ 2 MB.
+const AUDIO_FIRST_CHUNK: u64 = 512 * 1024;
 const AUDIO_TTL: u64 = 3 * 60 * 60;
 
 // (clientName, header id, clientVersion, user-agent, phần context thêm)
@@ -2092,7 +2094,9 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     // Thử lần lượt các nguồn (client YouTube -> yt-dlp -> Piped); nguồn nào bị chặn thì bỏ qua và thử nguồn kế tiếp.
     let order = audio_order();
     let mut pos = 0usize;
-    for _round in 0..=order.len() {
+    // Mỗi nguồn được thử lại 1 lần (lấy link mới) trước khi bị coi là hỏng: link googlevideo hay hết hạn / lỗi thoáng qua.
+    let mut retried: HashSet<usize> = HashSet::new();
+    for _round in 0..=order.len() * 2 {
         let cached = {
             let c = st.audio.lock().unwrap();
             c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).cloned()
@@ -2177,7 +2181,8 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
             return (StatusCode::RANGE_NOT_SATISFIABLE, [(header::CONTENT_RANGE, format!("bytes */{size}"))]).into_response();
         }
         let last = size - 1;
-        let end = end_req.unwrap_or(last).min(last).min(start + AUDIO_CHUNK - 1);
+        let chunk = if start == 0 { AUDIO_FIRST_CHUNK } else { AUDIO_CHUNK };
+        let end = end_req.unwrap_or(last).min(last).min(start + chunk - 1);
 
         // Thử 2 cách xin đoạn: header Range, rồi tham số ?range= (một số link chỉ nhận cách này)
         let mut got: Option<Bytes> = None;
@@ -2192,7 +2197,7 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 let sep = if url.contains('?') { '&' } else { '?' };
                 client.get(format!("{url}{sep}range={start}-{end}"))
             };
-            match req.header("user-agent", ua).timeout(Duration::from_secs(30)).send().await {
+            match req.header("user-agent", ua).timeout(Duration::from_secs(15)).send().await {
                 Ok(r) if r.status().is_success() => {
                     let partial = r.status().as_u16() == 206 || variant == 1;
                     match r.bytes().await {
@@ -2245,6 +2250,11 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         }
         eprintln!("[audio] {id} googlevideo từ chối đoạn {start}-{end}: {notes}");
         st.audio.lock().unwrap().remove(&ckey);
+        if ci < 90 && retried.insert(ci) {
+            // thử lại cùng nguồn với link mới trước khi loại nó (và tránh nhảy sang nguồn khác giữa chừng bài)
+            pos = order.iter().position(|x| *x == ci).unwrap_or(0);
+            continue;
+        }
         audio_mark_bad(&id, ci);
     }
     (StatusCode::BAD_GATEWAY, format!("googlevideo từ chối: {notes}")).into_response()
