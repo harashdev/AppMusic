@@ -682,6 +682,8 @@ button *,#gear *,#meAv *{pointer-events:none}
   <div class="row"><input id="aPass" type="password" placeholder="Mật khẩu (≥ 8 ký tự)" autocomplete="current-password"></div>
   <div id="authErr"></div>
   <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
+  <button id="aGuest" style="width:100%;padding:12px;margin-top:8px">Dùng không cần đăng nhập</button>
+  <small style="display:block;text-align:center;margin-top:8px;opacity:.7">Chỉ nghe nhạc: yêu thích và playlist lưu ngay trên máy này. Bạn bè và phòng nghe chung cần tài khoản.</small>
   <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
 </div></div>
 
@@ -817,6 +819,10 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
     'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Đang phát':'Now playing',
+    'Dùng không cần đăng nhập':'Continue without signing in','Chỉ nghe nhạc: yêu thích và playlist lưu ngay trên máy này. Bạn bè và phòng nghe chung cần tài khoản.':'Listen only: favorites and playlists are saved on this device. Friends and listening rooms need an account.',
+    'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
+    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
+    'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
     'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
     'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
     'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
@@ -1047,7 +1053,6 @@ button *,#gear *,#meAv *{pointer-events:none}
   if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
 })();
 </script>
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1146,10 +1151,52 @@ const thumb=(u,s=300)=>{ u=String(u||'');
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
 
+/* ===== Chế độ khách: dùng không cần đăng nhập =====
+   Tìm nhạc và phát nhạc vẫn đi qua server (không cần token). Yêu thích, lịch sử, playlist và cài đặt lưu ngay trên máy (localStorage).
+   Bạn bè, phòng nghe chung, hồ sơ… cần tài khoản nên bị chặn bằng một lỗi nhẹ (e.guest). */
+let guest=!token&&LS.get('muse_guest','0')==='1';
+const GUEST_USER={id:0,username:'guest',display_name:'Khách',avatar:'🎧',accent:'#8ecbff',bg:'',bg_url:'',code:'',is_admin:false,banner:'',banner_color:'',status:'',crop:''};
+const GUEST_LOCAL=/^\/api\/(settings|favorites|history|playlists(\/.*)?)$/, GUEST_NET=/^\/api\/(yt\/|config$|time$)/;
+const GL={ get(k,d){ try{ const v=JSON.parse(LS.get('muse_g_'+k,'null')); return v===null?d:v; }catch{ return d; } }, set(k,v){ LS.set('muse_g_'+k,JSON.stringify(v)); } };
+async function guestApi(p,opt){
+  const m=String(opt.method||(opt.json!==undefined?'POST':'GET')).toUpperCase(), j=opt.json;
+  if(p==='/api/settings'){ const s=GL.get('settings',{}); if(m==='POST'){ Object.assign(s,j||{}); GL.set('settings',s); } return Object.assign({},S,s); }
+  if(p==='/api/favorites'){ const f=GL.get('fav',[]);
+    if(m==='POST'){ const k=key(j), i=f.findIndex(x=>key(x)===k); if(i>=0){ f.splice(i,1); GL.set('fav',f); return {fav:false}; } f.unshift(slim(j)); GL.set('fav',f); return {fav:true}; }
+    return f; }
+  if(p==='/api/history'){ let h=GL.get('hist',[]);
+    if(m==='POST'){ const k=key(j); h=h.filter(x=>key(x)!==k); h.unshift(slim(j)); GL.set('hist',h.slice(0,100)); return ''; }
+    if(m==='DELETE'){ GL.set('hist',[]); return ''; }
+    return h; }
+  const pls=GL.get('pls',[]);
+  if(p==='/api/playlists'){
+    if(m==='POST'){ const name=String((j&&j.name)||'').trim().slice(0,40); if(!name) throw new Error('Tên playlist không được trống'); if(pls.length>=50) throw new Error('Tối đa 50 playlist');
+      const id=GL.get('plseq',0)+1; GL.set('plseq',id); pls.push({id,name,tracks:[]}); GL.set('pls',pls); return {id,name,count:0}; }
+    return pls.map(x=>({id:x.id,name:x.name,count:x.tracks.length,covers:x.tracks.map(t=>t.image).filter(Boolean).slice(0,4)})); }
+  const mm=p.match(/^\/api\/playlists\/(\d+)(\/tracks(?:\/(.+))?)?$/); if(!mm) throw new Error('Yêu cầu không hợp lệ');
+  const id=+mm[1], pl=pls.find(x=>x.id===id); if(!pl) throw new Error('Không tìm thấy playlist');
+  if(mm[2]){
+    if(m==='POST'){ const k=key(j); if(!pl.tracks.some(x=>key(x)===k)) pl.tracks.push(slim(j)); }
+    else if(m==='DELETE'){ const k=decodeURIComponent(mm[3]||''); pl.tracks=pl.tracks.filter(x=>key(x)!==k); }
+    GL.set('pls',pls); return ''; }
+  if(m==='DELETE'){ GL.set('pls',pls.filter(x=>x.id!==id)); return ''; }
+  return {id:pl.id,name:pl.name,tracks:pl.tracks};
+}
+function goLogin(){ LS.set('muse_guest','0'); guest=false; location.reload(); }
+function guestCta(m,title){
+  m.innerHTML=`<h2>${esc(title)}</h2><div class="panel"><h3 style="margin-top:0">Cần tài khoản</h3><p class="sub">Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.</p><div class="row"><button class="pri" id="gLogin">Đăng nhập / Đăng ký</button></div></div>`;
+  $('#gLogin').onclick=goLogin;
+}
+
+const NET_ERR='Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)';
+const errTxt=e=>(e&&e.net)?'':String((e&&e.message)||e||'');
 async function api(path,opt={}){
+  if(guest){ const p=path.split('?')[0];
+    if(GUEST_LOCAL.test(p)) return guestApi(p,opt);
+    if(!GUEST_NET.test(p)){ const ge=new Error('Cần đăng nhập để dùng tính năng này'); ge.guest=true; throw ge; } }
   const h=Object.assign({},opt.headers||{}); if(token) h.Authorization='Bearer '+token;
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
-  let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); }catch(e){ throw new Error('Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)'); }
+  let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); }catch(e){ const ne=new Error(NET_ERR); ne.net=true; throw ne; }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
   if(!r.ok){ const detail=await r.text(); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
@@ -1203,7 +1250,7 @@ function pushToast(t,key,ms){
   box.appendChild(t); while(box.children.length>3) box.firstElementChild.remove();
   setTimeout(()=>t.remove(),ms);
 }
-function notify(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
+function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
 /* Chặn người đã bấm "Bỏ qua" 10 phút + chống bấm mời liên tục từ phía mình */
 const muted={}, inviteAt={};
 const isMuted=n=>muted[n]&&muted[n]>Date.now();
@@ -1220,11 +1267,12 @@ $('#tLogin').onclick=()=>setMode(false); $('#tReg').onclick=()=>setMode(true);
 $('#aGo').onclick=async()=>{
   try{
     const r=await api(regMode?'/api/register':'/api/login',{json:{username:$('#aUser').value,password:$('#aPass').value,display_name:$('#aName').value}});
-    token=r.token; LS.set('token',token); $('#auth').style.display='none'; $('#aPass').value=''; start(r.user);
-  }catch(e){ $('#authErr').textContent=e.message; }
+    token=r.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; $('#aPass').value=''; start(r.user);
+  }catch(e){ $('#authErr').textContent=errTxt(e)||'Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”'; }
 };
+$('#aGuest').onclick=()=>{ LS.set('muse_guest','1'); try{ localStorage.removeItem('token'); }catch{} location.reload(); };
 $('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
-async function logout(){ try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
+async function logout(){ if(guest){ goLogin(); return; } try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
 
 /* ===== Giao diện (skin) ===== */
 const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
@@ -1372,13 +1420,23 @@ $('#main').addEventListener('click',e=>{
 const warmed={};
 function warmTrack(t){
   try{
-    if(!t||t.src!=='yt'||warmed[t.id]||!wantStream(t)) return; warmed[t.id]=1;
+    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)) return; warmed[t.id]=Date.now();   /* server nhớ luồng 3 giờ, làm nóng lại sau 2 giờ */
     fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
   }catch{}
 }
 $('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
   const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrack(t); },{passive:true});
 function warmFirst(list,n=4){ (list||[]).slice(0,n).forEach(warmTrack); }
+/* Bài đang phát xong thì bài kế tiếp đã có luồng sẵn trên server -> chuyển bài gần như tức thì (không phải chờ lấy luồng từ YouTube). */
+let warmNextTm=0;
+function warmNext(){
+  clearTimeout(warmNextTm);
+  warmNextTm=setTimeout(()=>{ try{
+    if(!cur||!queue.length||queue.length<2) return;
+    if(shuf){ return; }
+    for(let k=1;k<=2;k++){ const t=queue[(qi+k)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); }
+  }catch{} },1500);   /* chờ 1,5 giây để không tranh băng thông với chính bài đang bắt đầu phát */
+}
 $('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classList.contains('card')||e.target.classList.contains('qk'))) e.target.click(); });
 
 /* ===== Danh sách tâm trạng (menu dài) ===== */
@@ -1477,7 +1535,7 @@ const pages={
       if(ci===0&&i===0&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,name);
       const a=el2.closest('.sec').querySelector('.more[hidden]'); if(a){ a.dataset.hp=Object.keys(lists).pop(); a.dataset.sh='0'; a.hidden=false; }
-      markNow(); }catch(e){ if(el) el.innerHTML=`<p class="empty">${esc(e.message)}</p>`; } });
+      markNow(); }catch(e){ if(el) el.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; } });
   },
   async mix(m){
     const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','nhạc việt hot','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi chill beats','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','top global hits','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm party hits','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
@@ -1488,7 +1546,7 @@ const pages={
     const tabs=[['Việt Nam','top nhạc việt nam'],['Quốc tế','top songs worldwide'],['K-Pop',`kpop top hits ${Y}`],['EDM','edm top hits']];
     m.innerHTML=`<h2>Thịnh hành</h2><div class="tabs">${tabs.map(([l],i)=>`<button data-per="${i}" class="${i===idx?'on':''}">${esc(l)}</button>`).join('')}</div><div id="rows">Đang tải…</div>`;
     m.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>pages.charts(m,+b.dataset.per));
-    try{ $('#rows').innerHTML=tracksHtml(await ytSearch(tabs[idx][1]),false,'Thịnh hành · '+tabs[idx][0]); markNow(); }catch(e){ $('#rows').innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
+    try{ $('#rows').innerHTML=tracksHtml(await ytSearch(tabs[idx][1]),false,'Thịnh hành · '+tabs[idx][0]); markNow(); }catch(e){ $('#rows').innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
   },
   async search(m,q=''){
     m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"></div><div id="sres"></div>`;
@@ -1510,6 +1568,7 @@ const pages={
     $('#plDel').onclick=async()=>{ if(await askConfirm('Xoá playlist này?','Xoá')){ await api('/api/playlists/'+id,{method:'DELETE'}); await loadPlaylists(); go('home'); } };
   },
   async together(m){
+    if(guest) return guestCta(m,'Nghe cùng nhau');
     m.innerHTML=`<h2>Nghe cùng nhau</h2>
     <div class="two"><div class="panel"><h3 style="margin-top:0">Phòng hiện tại</h3>
       <div>Mã phòng: <b>${esc(room)}</b> <small>– mọi người trong phòng nghe đồng bộ và cùng điều khiển.</small></div>
@@ -1531,6 +1590,7 @@ const pages={
     $('#chat').innerHTML=chatLog.join(''); $('#chat').scrollTop=1e9; loadFriends();
   },
   async friends(m){
+    if(guest) return guestCta(m,'Bạn bè');
     m.innerHTML=`<h2>Bạn bè</h2>
     <div class="two"><div class="panel"><h3 style="margin-top:0">Thêm bạn</h3>
       <small>Nhập mã bạn bè hoặc tên đăng nhập. Người kia sẽ nhận được lời mời và cần chấp nhận.</small>
@@ -1632,7 +1692,7 @@ const pages={
     const langSel=`<select id="langSel" style="width:auto;min-width:130px" onchange="bbSetLang(this.value)"><option value="en" ${window.BB_LANG==='en'?'selected':''}>English</option><option value="vi" ${window.BB_LANG==='vi'?'selected':''}>Tiếng Việt</option></select>`;
     m.innerHTML=`<h2>Cài đặt</h2><div class="setL">
     <div class="sgrp"><div class="sgh">Language / Ngôn ngữ</div><div class="scard">${row('Language / Ngôn ngữ','English · Tiếng Việt',langSel)}</div></div>
-    <div class="sgrp"><div class="sgh">Tài khoản</div><div class="scard">
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Tài khoản</div><div class="scard">
       <div class="srow col"><div class="sx"><b>Tên hiển thị</b><small>Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.</small></div><div class="sinp"><input id="sName" value="${esc(me.display_name)}" maxlength="24" placeholder="Tên hiển thị"><button class="pri" id="sNameSave">Lưu</button></div><small id="sNameMsg" class="smsg"></small></div>
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
         <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
@@ -1663,10 +1723,10 @@ const pages={
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
-    <div class="sgrp"><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
       <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
     </div></div>
-    <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${cfg.discord_login
         ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
         :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
@@ -1677,7 +1737,7 @@ const pages={
         :row('Kết nối Discord','Kết nối với ứng dụng Discord',`<span class="sbadge">${!cfg.discord_app_id?'Server chưa đặt DISCORD_CLIENT_ID':'Chỉ có trên app desktop/Android bản mới'}</span>`,'dis')}
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':!dl.linked?'Cần đăng nhập Discord':sdkP.ok&&!dl.sdk?'Hủy liên kết rồi đăng nhập lại Discord':'Chỉ có trên app desktop/Android bản mới')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}
     </div></div>
-    <div class="sgrp"><div class="sgh">Sao lưu</div><div class="scard">
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Sao lưu</div><div class="scard">
       ${row('Sao lưu','Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON','','btn','bkUp')}
       ${row('Khôi phục','Khôi phục dữ liệu từ file sao lưu (thay thế yêu thích, lịch sử và danh sách phát hiện có)','','btn','bkRes')}
       ${row('Nhập danh sách phát','Nhập danh sách phát từ file JSON (giữ nguyên dữ liệu hiện có)','','btn','bkImp')}
@@ -1693,7 +1753,7 @@ const pages={
       <div id="libsBox" hidden>${ABOUT.libs.map(([n,d,u])=>`<div class="srow btn" data-url="${esc(u)}" role="button" tabindex="0"><div class="sx"><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')}</div>
     </div></div>
     <div class="sgrp"><div class="scard">
-      ${row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
+      ${guest?row('Đăng nhập','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu','','btn','outBtn'):row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
     </div></div>
     </div>`;
     const act=(id,fn)=>{ const el=$('#'+id); el.onclick=fn; el.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); } }; };
@@ -1821,7 +1881,7 @@ async function go(p,arg,keep){
   { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','downloads','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
-  try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=`<p class="empty">${esc(e.message)}</p>`; }
+  try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=e.net?'':`<p class="empty">${esc(errTxt(e))}</p>`; }
 }
 pages.library=function(m){
   const T=[['favs','heart','Yêu thích',(typeof favs!=='undefined'&&favs.size?favs.size+' bài hát':'Danh sách phát'),'#3a2530','var(--red)',1],['history','clock','Nghe gần đây','Lịch sử','#22313f','var(--accent)',0],['charts','trend','Thịnh hành','Danh sách phát · 50 bài hát','#2a2f26','#b6e08a',0],['together','users','Nghe cùng nhau','Phòng nghe chung','#33283f','#d1a8ff',0],['friends','userplus','Bạn bè','Bạn bè & lời mời','#1f3a33','#6fe0b5',0],['downloads','download','Tải xuống','Danh sách tải xuống','#26364a','#8ec5ff',0]];
@@ -1867,7 +1927,7 @@ async function runSearch(q,fill){
   if(id) out.push(await ytInfo(id));
   if(!id||q.length>11){
     try{ out=out.concat(await ytSearch(q)); }
-    catch(e){ if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(e.message)}</p>`; return; } }
+    catch(e){ if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; return; } }
   }
   if(my!==sTok||!$('#sres')) return;
   $('#sres').innerHTML=out.length?`<div class="sh"><h3>Kết quả cho “${esc(q)}”</h3></div>`+tracksHtml(out,false,'Kết quả: '+q):'<p class="empty">Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.</p>';
@@ -2069,6 +2129,11 @@ function onYouTubeIframeAPIReady(){
       if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
     }}});
 }
+/* Tải player YouTube không chặn trang (trước đây thẻ <script> đồng bộ làm cả app đứng chờ YouTube mới hiện ra, nhất là khi mạng chậm). */
+(function(){
+  if(window.YT&&window.YT.Player){ onYouTubeIframeAPIReady(); return; }
+  const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.async=true; document.head.appendChild(s);
+})();
 /* Ba "động cơ" phát nhạc:
    'yt'  = player iframe chính thức của YouTube (có chế độ video, nhưng trình duyệt không cho xử lý âm thanh)
    'fx'  = luồng âm thanh YouTube do server chuyển tiếp -> <audio> + Web Audio (Bộ chỉnh âm, Độ trễ, Độ vang, Proxy)
@@ -2168,7 +2233,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
   const startAt=()=>pos+(play&&ts?(now()-ts)/1000:0);
   if(eng==='yt'){
     aud.pause(); audYt.pause();
-    if(!ytReady){ setTimeout(()=>{ if(cur===t) loadTrack(t,pos,play,ts); },500); updateBar(); return; }
+    if(!ytReady){ setTimeout(()=>{ if(cur===t) loadTrack(t,pos,play,ts); },200); updateBar(); return; }
     yt.loadVideoById({videoId:t.id,startSeconds:startAt()}); playing=true; if(!play){yt.pauseVideo();playing=false}
   } else if(eng==='fx'){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
@@ -2178,7 +2243,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(ytReady) yt.pauseVideo(); audYt.pause();
     aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
   }
-  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence(); msUpdate();
+  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence(); msUpdate(); warmNext();
 }
 /* Canh chừng nhạc bị đứng: đang "phát" mà không có dữ liệu quá lâu thì tải lại, rồi đổi động cơ, cuối cùng mới sang bài sau */
 const wd={k:'',pos:-1,at:0};
@@ -2208,7 +2273,7 @@ setInterval(()=>{
       if(!stuck&&wd.k===id&&pos>wd.pos+0.5) wdTries[cur.id]=0;
       wd.k=id; wd.pos=pos; wd.at=Date.now(); return;
     }
-    if(Date.now()-wd.at<(eng==='yt'?20000:12000)) return;
+    if(Date.now()-wd.at<12000) return;   /* đứng quá 12 giây là tải lại / đổi động cơ (player YouTube trước đây chờ tới 20 giây) */
     wd.at=Date.now(); wdRecover();
   }catch{}
 },2000);
@@ -2780,27 +2845,41 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 async function start(u){
   applyUser(u);
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
-  try{ cfg=await api('/api/config'); }catch{}
-  if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
-  { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
-  try{ Object.assign(S,await api('/api/settings')); }catch{ try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{} }
+  /* Nạp cài đặt đã lưu trên máy trước (để khi offline vẫn biết có bật "lưu playlist offline" không), rồi hỏi server SONG SONG
+     (trước đây 5 lượt gọi nối đuôi nhau mới hiện trang chủ và phát lại bài cũ). */
+  try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{}
+  const [c,s,f]=await Promise.all([
+    api('/api/config').catch(()=>null),
+    api('/api/settings').catch(()=>null),
+    api('/api/favorites').catch(()=>null),
+    loadPlaylists().catch(()=>{}),
+    sdkProbe()
+  ]);
+  if(c) cfg=c;
+  if(s) Object.assign(S,s);
   LS.set('muse_s',JSON.stringify(S));
-  try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); }catch{}
-  try{ await loadPlaylists(); }catch{}
-  await sdkProbe();
+  if(Array.isArray(f)){ favs=new Set(f.map(key)); libCounts(); }
+  if(cfg.discord_login&&!guest){ try{ dl=await api('/api/discord/status'); }catch{} }
+  { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
   if(S.discord_rpc&&cfg.discord_app_id&&dl.linked&&(DESK||sdkOn())) discordConnect().catch(()=>{});
   applyVol(); restorePlayState(); go('home');
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
-  await syncClock(6); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
+  if(guest){
+    /* khách: không có phòng nghe chung / bạn bè, nên không mở WebSocket và không đồng bộ đồng hồ */
+    leader=true; setTimeout(autoUpdate,4000);
+    const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users')+'<span>Phòng</span>';
+    return;
+  }
+  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);   /* đồng hồ chỉnh dần ở nền, không chặn việc vào phòng */
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
   setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
 }
 (async()=>{
-  if(!token){ showAuth(); return; }
+  if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
   try{ start(await api('/api/me')); }
   catch(e){
     /* mất mạng: nếu đã bật lưu offline thì vẫn mở app với dữ liệu đã lưu */
