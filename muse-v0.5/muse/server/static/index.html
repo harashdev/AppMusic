@@ -691,6 +691,30 @@ button *,#gear *,#meAv *{pointer-events:none}
   #main .grid{max-width:100%;overflow-x:auto}
 }
 
+
+/* ===== Offline + Tải xuống + Thư viện (v0.9) ===== */
+#offBar{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;background:#2a2433;color:var(--text);box-shadow:0 6px 20px #0008,inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;white-space:nowrap;max-width:94vw}
+#offBar.ok{background:var(--accent);color:var(--on);font-weight:600}
+.offc{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:64px 20px}
+.offc .offi{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surf2);color:var(--sub)}
+.offc .offi .i{width:44px;height:44px}.offc h3{font-size:26px;margin:8px 0 0}.offc p{color:var(--sub);max-width:360px;margin:0 0 8px;line-height:1.5}
+.offc .offact{display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}.offc .offact button{padding:13px 18px;font-size:15px}
+.dlInfo{color:var(--sub);margin:-4px 0 12px}
+.dlOpts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 4px;color:var(--sub);font-size:13px}
+.dlOpts .chip{padding:6px 12px;font-size:13px}
+.dlr.dim{opacity:.45}
+.offb{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent);vertical-align:middle}
+.offb .i{width:12px;height:12px}.offb.no{background:var(--hover2);color:var(--sub)}
+/* Thư viện dạng thẻ (điện thoại) */
+.libG{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:6px 0 4px}
+.libC{position:relative;overflow:hidden;border-radius:20px;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);transition:transform .12s}
+.libC:active{transform:scale(.97)}
+.libC.wide{grid-column:1/-1;min-height:150px}
+.libC b{font-size:18px;font-weight:700;line-height:1.2;position:relative}.libC span{display:block;font-size:13px;color:var(--sub);margin-top:3px;position:relative}
+.libC .bgi{position:absolute;right:-8px;top:-8px;width:96px;height:96px;opacity:.9;display:flex;align-items:center;justify-content:center;border-radius:22px;transform:rotate(8deg)}
+.libC .bgi .i{width:52px;height:52px}
+@media(min-width:700px){.libG{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.libC.wide{grid-column:span 2}}
+.libC.wide .bgi{width:124px;height:124px;right:14px;top:14px}.libC.wide .bgi .i{width:64px;height:64px}
 </style>
 </head>
 <body class="skin-default">
@@ -897,7 +921,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Đang offline – hiển thị bản đã lưu':'Offline – showing the saved copy','Xoá playlist':'Delete playlist','Xoá playlist này?':'Delete this playlist?','Xoá':'Delete',
     /* phòng + bạn bè */
     'Phòng hiện tại':'Current room','Mã phòng:':'Room code:','– mọi người trong phòng nghe đồng bộ và cùng điều khiển.':'– everyone in the room listens in sync and shares control.',
-    'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
+    'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Chia sẻ nhạc':'Share song','Đã chép link bài hát để chia sẻ':'Song link copied','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
     'Mã phòng hoặc link phòng':'Room code or room link','Mời bạn bè vào phòng':'Invite friends to the room','Quản lý bạn bè':'Manage friends','Chat phòng':'Room chat',
     'Nhắn gì đó…':'Say something…','Gửi':'Send','Đã chép link phòng!':'Room link copied!','Đã chép mã phòng':'Room code copied','Mã phòng':'Room code',
     'Mã hoặc link phòng không hợp lệ':'Invalid room code or link','Thêm bạn':'Add friend',
@@ -1141,6 +1165,9 @@ let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache=
 const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=n||'';return k};
 const now=()=>Date.now()+offset;
 const aud=$('#aud');
+/* Kho nhạc offline: offSet = các bài đã lưu trong app, offUrl = blob URL đang mở, offBad = bài lưu bị hỏng, netDown = server không với tới được */
+const offSet=new Set(), offUrl={}, offBad={}; let offOrder=[], netDown=false;
+const offlineNow=()=>netDown||navigator.onLine===false;
 
 /* ===== Biểu tượng (SVG) ===== */
 const IC={
@@ -1180,7 +1207,9 @@ const IC={
  dots:'<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
  note:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
- download:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>'
+ download:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ cloudoff:'<path d="M3 3l18 18M8 18a4.5 4.5 0 0 1-1-8.9M10.5 6.2A6 6 0 0 1 18 11a4 4 0 0 1 1.6 7.6M9 18h8"/>'
 };
 $('#sprite').innerHTML=Object.entries(IC).map(([k,v])=>`<symbol id="i-${k}" viewBox="0 0 24 24">${v}</symbol>`).join('');
 const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
@@ -1240,7 +1269,7 @@ async function api(path,opt={}){
     if(!GUEST_NET.test(p)){ const ge=new Error('Cần đăng nhập để dùng tính năng này'); ge.guest=true; throw ge; } }
   const h=Object.assign({},opt.headers||{}); if(token) h.Authorization='Bearer '+token;
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
-  let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); }catch(e){ const ne=new Error(NET_ERR); ne.net=true; throw ne; }
+  let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); netDown=false; }catch(e){ netDown=true; const ne=new Error(NET_ERR); ne.net=true; throw ne; }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
   if(!r.ok){ const detail=(await r.text()||'').trim(); if(r.status>=400&&r.status<500&&detail) throw new Error(detail); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
@@ -1476,7 +1505,7 @@ $('#main').addEventListener('click',e=>{
 const warmed={};
 function warmTrack(t){
   try{
-    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)) return; warmed[t.id]=Date.now();   /* server nhớ luồng 3 giờ, làm nóng lại sau 2 giờ */
+    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return; warmed[t.id]=Date.now();   /* server nhớ luồng 3 giờ, làm nóng lại sau 2 giờ */
     fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
   }catch{}
 }
@@ -1539,6 +1568,46 @@ async function checkUpdate(manual){
   }catch(e){ if(manual) notify('Không kiểm tra được cập nhật: '+e.message); return null; }
 }
 const autoUpdate=()=>{ if(LS.get('bb_autoupd','1')==='1') checkUpdate(false); };
+/* ===== Gợi ý theo gu nghe: đếm thể loại / nghệ sĩ trong lịch sử + yêu thích rồi tạo các mục "Dành cho bạn" ===== */
+const GENRES=[
+  ['Anime / Game / J-Pop',/[぀-ヿ]|anime|opening|ending|\bost\b|vocaloid|visual novel/i,'anime opening songs'],
+  ['Nhạc Hoa',/[一-鿿]|c-?pop|mandopop/i,'nhạc hoa hay nhất'],
+  ['K-Pop',/k-?pop|blackpink|\bbts\b|twice|newjeans|aespa|\(g\)i-?dle|stray kids|[가-힯]/i,'kpop hits'],
+  ['Lofi / Chill',/lo-?fi|chill|study|relax/i,'lofi chill beats'],
+  ['EDM / Remix',/edm|remix|vinahouse|\bhouse\b|\bdj\b|nonstop|bass/i,'vinahouse remix hot'],
+  ['Rap / Hip-hop',/\brap\b|hip.?hop|trap|drill|rapper/i,'rap việt hay nhất'],
+  ['Bolero',/bolero|rumba|nhạc vàng/i,'nhạc bolero hay nhất'],
+  ['Ballad / Buồn',/ballad|buồn|chia tay|nhớ|khóc|tâm trạng/i,'ballad buồn nhạc việt'],
+  ['Acoustic',/acoustic|guitar|cover/i,'acoustic chill songs'],
+  ['Piano / Không lời',/piano|instrumental|không lời|orchestra|classical/i,'relaxing piano music'],
+  ['Nhạc Việt',/[ăâđêôơư]|[àáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i,'nhạc việt hot']
+];
+let tasteCache=null;
+async function tasteProfile(){
+  if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
+  const got=await Promise.race([
+    Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
+    new Promise(r=>setTimeout(()=>r(null),1500))
+  ]);
+  const empty={secs:[],seen:new Set(),n:0};
+  if(!got) return empty;
+  const hist=Array.isArray(got[0])?got[0].slice(0,200):[], fav=Array.isArray(got[1])?got[1]:[];
+  const all=[...hist.map((t,i)=>[t,1+Math.max(0,(40-i))/40]),...fav.map(t=>[t,3])];
+  if(all.length<3) return empty;
+  const gc={}, ac={}, seen=new Set();
+  for(const [t,w] of all){
+    if(!t) continue; seen.add(key(t));
+    const txt=(t.title||'')+' '+(t.artist||'');
+    GENRES.forEach(([n,re])=>{ if(re.test(txt)) gc[n]=(gc[n]||0)+w; });
+    String(t.artist||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/)\s*/i).map(s=>s.trim()).filter(s=>s.length>1&&s.length<40).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
+  }
+  const total=all.reduce((s,x)=>s+x[1],0);
+  const secs=[];
+  const topG=Object.entries(gc).sort((a,b)=>b[1]-a[1]).filter(([,c])=>c>=3&&c/total>=.12).slice(0,2);
+  for(const [n] of topG){ const g=GENRES.find(x=>x[0]===n); secs.push(['Dành cho bạn · '+n,g[2]]); }
+  Object.values(ac).sort((a,b)=>b.c-a.c).filter(a=>a.c>=2.5).slice(0,2).forEach(a=>secs.push(['Vì bạn hay nghe '+a.n,a.n+' hay nhất']));
+  const v={secs:secs.slice(0,3),seen,n:all.length}; tasteCache={at:Date.now(),v}; return v;
+}
 const pages={
   async home(m,ci){
     if(ci!==undefined) homeCi=ci; ci=homeCi;
@@ -1575,7 +1644,9 @@ const pages={
     $('#moodBtn').onclick=()=>{ if(moodOpen){ moodOpen=false; homeCi=0; chipScroll=0; go('home'); } else { moodOpen=true; chipScroll=0; go('home'); } };
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
-    const secs=sets[ci][1];
+    let taste={secs:[],seen:new Set()};
+    if(ci===0){ try{ taste=await tasteProfile(); }catch{} }
+    const secs=ci===0?[...taste.secs,...sets[0][1]].slice(0,Math.max(4,taste.secs.length+2)):sets[ci][1];
     m.innerHTML=(ci===0?'<div id="hs"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('');
     if(ci===0){
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
@@ -1586,7 +1657,8 @@ const pages={
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
-    secs.forEach(async([name,q],i)=>{ const el=$('#g'+i); try{ const r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
+    secs.forEach(async([name,q],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
+      if(ci===0&&i<taste.secs.length){ const fresh=r.filter(t=>!taste.seen.has(key(t))); if(fresh.length>=14) r=fresh; }   /* mục theo gu: ưu tiên bài chưa nghe */
       let items=r.slice(0,20);
       if(ci===0&&i===0&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,name);
@@ -1829,7 +1901,7 @@ const pages={
     const showFx=()=>{ $('#eqP').style.display=S.eq_on?'':'none'; if(S.eq_on) setTimeout(()=>window.__drawEq&&window.__drawEq(),0); $('#delP').style.display=S.delay_on?'':'none'; $('#revP').style.display=S.reverb_on?'':'none'; };
     const lbl=()=>{ $('#dMsV').textContent=S.delay_ms+' ms'; $('#dFbV').textContent=S.delay_fb+'%'; $('#dMixV').textContent=S.delay_mix+'%'; $('#rMixV').textContent=S.reverb_mix+'%'; $('#eqPreV').textContent=(S.eq_pre>0?'+':'')+S.eq_pre+' dB';
       const pn=Object.keys(EQ_PRESETS).find(k=>EQ_PRESETS[k].every((v,i)=>v===S.eq_gains[i])); $('#eqPre').value=pn||''; $('#rType').value=S.reverb_type; };
-    const live=(k,v)=>{ S[k]=v; fxBuild(); applyFx(); lbl(); };           /* nghe thay đổi ngay khi kéo */
+    const live=(k,v)=>{ S[k]=v; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };           /* nghe thay đổi ngay khi kéo */
     const toggleFx=(k,on)=>{ S[k]=on; showFx(); setS(k,on).then(()=>{ reloadEngine(); applyFx(); }); if(on&&!fxBuild()) notify('Trình duyệt không hỗ trợ Web Audio'); };
     $('#tEq').onchange=e=>toggleFx('eq_on',e.target.checked);
     $('#tDel').onchange=e=>toggleFx('delay_on',e.target.checked);
@@ -1837,7 +1909,7 @@ const pages={
     const saveGains=()=>setS('eq_gains',S.eq_gains.slice());
     $('#eqPre').onchange=e=>{ const g=EQ_PRESETS[e.target.value]; if(!g) return; live('eq_gains',g.slice()); drawEq(); saveGains(); };
     $('#eqReset').onclick=()=>{ live('eq_gains',EQ_PRESETS['Flat'].slice()); S.eq_pre=0; $('#eqPreamp').value=0; applyFx(); lbl(); drawEq(); saveGains(); setS('eq_pre',0); };
-    $('#eqPreamp').oninput=e=>{ S.eq_pre=+e.target.value; fxBuild(); applyFx(); lbl(); };
+    $('#eqPreamp').oninput=e=>{ S.eq_pre=+e.target.value; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };
     $('#eqPreamp').onchange=e=>setS('eq_pre',+e.target.value);
     /* đồ thị đường cong EQ: kéo các điểm lên/xuống */
     const cv=$('#eqCv'); let drag=-1;
@@ -1938,17 +2010,38 @@ const pages={
     act('libsBtn',showLibs);
   }
 };
+const offlineCard=()=>`<div class="offc"><div class="offi">${ic('cloudoff')}</div><h3>Không thể kết nối</h3><p>Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</p><div class="offact"><button class="pri" data-oc="retry">Thử lại</button><button class="out" data-oc="dl">${ic('download','sm')} Nghe những bài đã tải xuống</button></div></div>`;
+/* Thanh báo offline: hiện khi không với tới server; tự dò lại mỗi 8 giây, có mạng thì mời tải lại (không ngắt nhạc đang phát) */
+let offWatchTm=0;
+function offBar(on){
+  let b=$('#offBar'); if(!b){ b=document.createElement('button'); b.id='offBar'; b.onclick=()=>location.reload(); document.body.appendChild(b); }
+  b.hidden=!on; if(on){ b.className=''; b.innerHTML=ic('cloudoff','sm')+' Đang offline – chỉ nghe được bài đã tải'; }
+}
+function offWatch(){
+  clearInterval(offWatchTm);
+  offWatchTm=setInterval(async()=>{
+    try{ const r=await fetch('/api/config',{cache:'no-store'}); if(!r.ok) return; }catch{ return; }
+    netDown=false; clearInterval(offWatchTm);
+    if(!playing){ location.reload(); return; }
+    const b=$('#offBar'); if(b){ b.classList.add('ok'); b.innerHTML=ic('check','sm')+' Đã có mạng – chạm để tải lại'; }
+  },8000);
+}
 async function go(p,arg,keep){
   page=p; document.querySelectorAll('.ni,.li').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
   { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','downloads','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
-  try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){ if(e.message!=='401') m.innerHTML=e.net?'':`<p class="empty">${esc(errTxt(e))}</p>`; }
+  if(offlineNow()&&['home','search','charts','mix','ybrowse'].includes(p)){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>go(p,arg,keep); if(d) d.onclick=()=>go('downloads'); return; }
+  try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){
+    if(e.message==='401') return;
+    if(e.net){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>go(p,arg,keep); if(d) d.onclick=()=>go('downloads'); }
+    else m.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
 }
 pages.library=function(m){
-  const T=[['favs','heart','Yêu thích',(typeof favs!=='undefined'&&favs.size?favs.size+' bài hát':'Danh sách phát'),'#3a2530','var(--red)',1],['history','clock','Nghe gần đây','Lịch sử','#22313f','var(--accent)',0],['charts','trend','Thịnh hành','Danh sách phát · 50 bài hát','#2a2f26','#b6e08a',0],['together','users','Nghe cùng nhau','Phòng nghe chung','#33283f','#d1a8ff',0],['friends','userplus','Bạn bè','Bạn bè & lời mời','#1f3a33','#6fe0b5',0],['downloads','download','Tải xuống','Danh sách tải xuống','#26364a','#8ec5ff',0]];
+  const nf=(typeof favs!=='undefined'&&favs.size)?favs.size+' bài hát':'Danh sách phát';
+  const T=[['favs','heart','Yêu thích',nf,'linear-gradient(135deg,#5a2438,#2a1830)','var(--red)',1,1],['downloads','download','Đã tải xuống',offSet.size?offSet.size+' bài · nghe offline':'Nghe không cần mạng','linear-gradient(135deg,#1d3a52,#17283a)','#8ec5ff',0,0],['history','clock','Nghe gần đây','Lịch sử','linear-gradient(135deg,#1e3340,#1a2530)','var(--accent)',0,0],['charts','trend','Thịnh hành','50 bài hát','linear-gradient(135deg,#2e3a24,#1f281a)','#b6e08a',0,0],['together','users','Nghe cùng nhau','Phòng nghe chung','linear-gradient(135deg,#3a2c4a,#251d33)','#d1a8ff',0,0],['friends','userplus','Bạn bè','Bạn bè & lời mời','linear-gradient(135deg,#1f3f37,#17282a)','#6fe0b5',0,0]];
   const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
-  m.innerHTML=`<h2>Thư viện</h2><div class="libL">${T.map(([k,i,t,sub,bg,fg,f])=>li(`data-p="${k}"`,`<div class="tile" style="background:${bg};color:${fg}">${ic(i,f?'fill':'')}</div>`,t,sub)).join('')}</div>
+  m.innerHTML=`<h2>Thư viện</h2><div class="libG">${T.map(([k,i,t,sub,bg,fg,f,w])=>`<div class="libC${w?' wide':''}" data-p="${k}" tabindex="0" style="background:${bg}"><div class="bgi" style="color:${fg};background:${fg}1f">${ic(i,f?'fill':'')}</div><b>${esc(t)}</b><span>${esc(sub)}</span></div>`).join('')}</div>
     <div class="sh" style="margin-top:22px"><h3>Danh sách phát</h3><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
     <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
     <div class="sh" style="margin-top:22px"><h3>Bạn bè</h3><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
@@ -2112,6 +2205,16 @@ function onMsg(m){
   }
 }
 function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
+async function copyRoomCode(){ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } }
+/* Chia sẻ bài đang phát: bảng chia sẻ của Android (nếu có) -> Web Share -> chép link */
+async function shareTrack(t){
+  if(!t) return;
+  const url=t.src==='yt'?'https://music.youtube.com/watch?v='+t.id:(/^https?:/.test(t.url||'')?t.url:'');
+  const text=(t.title||'')+(t.artist?' – '+t.artist:'')+(url?'\n'+url:'');
+  try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
+  try{ if(navigator.share){ await navigator.share({title:t.title||'BBeat',text:(t.title||'')+(t.artist?' – '+t.artist:''),url:url||undefined}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(text); notify('Đã chép link bài hát để chia sẻ'); }catch{ await askText('Chia sẻ nhạc',text); }
+}
 async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{await askText('Link phòng',url)} }
 const fmap=new Map();
 function setRoomUi(r){
@@ -2238,6 +2341,52 @@ const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
 /* ytFail: player iframe của YouTube không phát được bài này (bị chặn nhúng / lỗi) -> phát bằng luồng do server chuyển tiếp */
 const ytFail={}, wdTries={};
 const wantStream=t=>t&&t.src==='yt'&&!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available));
+/* ===== Kho nhạc offline (IndexedDB): bài đã tải được giữ ngay trong app để nghe không cần mạng =====
+   Ba kho: 'a' = file âm thanh (Blob), 'm' = thông tin bài (tên, nghệ sĩ, dung lượng…), 'i' = ảnh bìa (nếu lấy được) */
+const OFF=(()=>{
+  let dbp=null;
+  const open=()=>dbp||(dbp=new Promise((res,rej)=>{
+    if(!window.indexedDB){ rej(new Error('IndexedDB không khả dụng')); return; }
+    const r=indexedDB.open('muse_offline',1);
+    r.onupgradeneeded=()=>{ const d=r.result; ['a','m','i'].forEach(n=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>{ dbp=null; rej(r.error); };
+  }));
+  const req=(store,mode,fn)=>open().then(d=>new Promise((res,rej)=>{
+    const t=d.transaction(store,mode), r=fn(t.objectStore(store));
+    t.oncomplete=()=>res(r&&r.result); t.onerror=t.onabort=()=>rej(t.error||new Error('IndexedDB lỗi'));
+  }));
+  return { get:(s,k)=>req(s,'readonly',o=>o.get(k)), all:s=>req(s,'readonly',o=>o.getAll()), put:(s,k,v)=>req(s,'readwrite',o=>o.put(v,k)), del:(s,k)=>req(s,'readwrite',o=>o.delete(k)) };
+})();
+const offInit=OFF.all('m').then(ms=>{ (ms||[]).forEach(x=>offSet.add(x.k)); return ms||[]; }).catch(()=>[]);
+/* bài này nên phát từ bản đã lưu? (đang offline, hoặc vốn dĩ sẽ phải phát qua server) */
+const useLocal=t=>!!t&&t.src==='yt'&&offSet.has(key(t))&&!offBad[t.id]&&(offlineNow()||MOBILE||fxNeeded()||!!ytFail[t.id]||(S.proxy&&cfg.proxy_available));
+function offRevoke(id){ if(offUrl[id]){ try{ URL.revokeObjectURL(offUrl[id]); }catch{} delete offUrl[id]; } offOrder=offOrder.filter(x=>x!==id); }
+async function offOpen(t){
+  const k=key(t);
+  try{
+    const b=await OFF.get('a',k); if(!b||!b.size) return false;
+    const m=await OFF.get('m',k).catch(()=>null);
+    const blob=b.type?b:new Blob([b],{type:(m&&m.mime)||'audio/mp4'});
+    offUrl[t.id]=URL.createObjectURL(blob);
+    offOrder=offOrder.filter(x=>x!==t.id); offOrder.push(t.id);
+    offOrder.slice(0,-4).forEach(o=>{ try{ URL.revokeObjectURL(offUrl[o]); }catch{} delete offUrl[o]; }); offOrder=offOrder.slice(-4);   /* chỉ giữ 4 blob URL gần nhất */
+    return true;
+  }catch{ return false; }
+}
+async function offSave(t,blob,mime,fmt){
+  const k=key(t);
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch{}   /* xin hệ thống đừng tự dọn kho này */
+  await OFF.put('a',k,blob);
+  await OFF.put('m',k,{k,track:slim(t),mime:mime||blob.type||'audio/mp4',size:blob.size,at:Date.now(),fmt:fmt||''});
+  offSet.add(k); delete offBad[t.id]; offRevoke(t.id);
+  (async()=>{ try{ if(!t.image) return; const r=await fetch(thumb(t.image,300),{mode:'cors'}); if(!r.ok) return; const b=await r.blob(); if(b.size&&b.size<2e6) await OFF.put('i',k,b); }catch{} })();   /* ảnh bìa: cố gắng lưu, không được thì thôi */
+  return true;
+}
+async function offDelete(k){
+  offSet.delete(k); offRevoke(k.slice(k.indexOf(':')+1));
+  await Promise.all(['a','m','i'].map(s=>OFF.del(s,k).catch(()=>{})));
+}
+async function offCoverUrl(k){ try{ const b=await OFF.get('i',k); return b?URL.createObjectURL(b):''; }catch{ return ''; } }
 const EQ_F=[31,62,125,250,500,1000,2000,4000,8000,16000];
 const EQ_PRESETS={'Flat':[0,0,0,0,0,0,0,0,0,0],'Acoustic':[5,5,4,1,2,2,3,4,3,2],'Bass booster':[6,5,4,2,1,0,0,0,0,0],'Bass reducer':[-6,-5,-4,-2,-1,0,0,0,0,0],'Classical':[5,4,3,3,-1,-1,0,2,3,4],'Dance':[6,5,2,0,0,-3,-4,-4,0,0],'Deep':[5,4,2,1,3,2,1,-2,-4,-5],'Electronic':[4,4,1,0,-2,2,1,1,4,5],'HipHop':[5,4,1,3,-1,-1,1,-1,2,3],'Jazz':[4,3,1,2,-2,-2,0,1,3,4],'Latin':[4,2,0,0,-2,-2,-2,0,3,5],'Loudness':[6,4,0,0,-2,0,-1,-5,5,1],'Lounge':[-3,-1,0,1,3,2,0,-1,2,1],'Piano':[3,2,0,3,3,1,3,4,3,4],'Pop':[-1,2,4,5,3,0,-1,-2,-2,-2],'RnB':[3,7,6,1,-2,-1,2,2,3,3],'Rock':[5,4,3,1,-1,-2,0,2,3,4]};
 const fx={ctx:null};
@@ -2283,6 +2432,8 @@ aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } 
 audYt.addEventListener('error',()=>{
   if(eng!=='fx'||!cur) return;
   const t=cur, pos=audYt.currentTime||0, was=playing, ec=audYt.error?audYt.error.code:0;
+  if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){   /* bản lưu trong app bị hỏng: bỏ nó, phát lại bằng luồng server */
+    offBad[t.id]=true; offRevoke(t.id); notify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
   if(!fxTried[t.id]){ /* thử định dạng còn lại (webm/opus <-> mp4/aac) trước khi bỏ cuộc */
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
   fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000; /* nghỉ 5 phút để khỏi thử lại liên tục khi YouTube đang chặn */
@@ -2329,9 +2480,18 @@ audYt.addEventListener('pause',()=>{
   if(eng==='fx'&&playing&&cur&&!audYt.ended&&document.hidden) setTimeout(()=>{ if(eng==='fx'&&playing&&audYt.paused) audYt.play().catch(()=>{}); },400);
 });
 function loadTrack(t,pos=0,play=true,ts=null){
+  hoTok++; hoBusy=false; audYt.muted=false;
+  /* bài đã tải: mở bản lưu trong app trước (bất đồng bộ), rồi gọi lại chính hàm này; nếu mở lỗi thì offBad -> quay về luồng server */
+  if(useLocal(t)&&!offUrl[t.id]){
+    cur=t; updateBar();
+    offOpen(t).then(ok=>{ if(!ok){ offBad[t.id]=true; offSet.delete(key(t)); } if(cur===t) loadTrack(t,pos,play,ts); });
+    return;
+  }
+  const loc=(t.src==='yt'&&useLocal(t))?offUrl[t.id]:'';
   fadeInAt=(play&&S.crossfade)?performance.now():0;
   cur=t; pend=ts?{pos,ts,play}:null; lyrLines=null;
-  eng=t.src!=='yt'?'aud':(wantStream(t)&&(!fxNeeded()||fxBuild()))?'fx':'yt'; syncVid();
+  eng=t.src!=='yt'?'aud':(loc||(wantStream(t)&&(!fxNeeded()||fxBuild())))?'fx':'yt'; syncVid();
+  if(loc&&fxNeeded()) fxBuild();
   const startAt=()=>pos+(play&&ts?(now()-ts)/1000:0);
   if(eng==='yt'){
     aud.pause(); audYt.pause();
@@ -2340,11 +2500,11 @@ function loadTrack(t,pos=0,play=true,ts=null){
   } else if(eng==='fx'){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
     audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
-    audYt.src='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:''); setPlaying(play);
+    audYt.src=loc||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:'')); setPlaying(play);
     /* Bấm 1 lần là phát: nếu luồng server chưa có dữ liệu sau 7 giây thì không chờ nữa, chuyển sang player YouTube */
-    if(play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
+    if(!loc&&play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
       if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
-      ytFail[t.id]=true; notify('Luồng server phản hồi chậm – chuyển sang player YouTube'); loadTrack(t,0,true);
+      ytFail[t.id]=true; loadTrack(t,0,true);
     },7000); }
   } else {
     if(ytReady) yt.pauseVideo(); audYt.pause();
@@ -2385,10 +2545,41 @@ setInterval(()=>{
   }catch{}
 },2000);
 /* bật/tắt hiệu ứng khi đang phát: đổi động cơ nhưng giữ nguyên vị trí */
+/* Chuyển từ player YouTube sang luồng <audio> (để có Bộ chỉnh âm/hiệu ứng) MÀ KHÔNG NGẮT NHẠC:
+   tải luồng ở chế độ tắt tiếng, khi luồng đã chạy được thì mới tắt player YouTube và bật tiếng -> nhạc liền mạch. */
+let hoTok=0, hoBusy=false;
+function seamlessToFx(){
+  const t=cur; if(!t||t.src!=='yt'||!ytReady) return false;
+  if(hoBusy) return true;
+  if(fxNeeded()&&!fxBuild()) return false;
+  const lc=useLocal(t); if(lc&&!offUrl[t.id]) return false;
+  const my=++hoTok; hoBusy=true;
+  const url=lc?offUrl[t.id]:('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token));
+  const ok=()=>cur===t&&hoTok===my&&eng==='yt';
+  let done=false, tm=0;
+  const cleanup=()=>{ audYt.removeEventListener('canplay',onCan); audYt.removeEventListener('playing',onPlay); audYt.removeEventListener('error',onErr); clearTimeout(tm); hoBusy=false; };
+  const abort=()=>{ if(done) return; done=true; cleanup(); if(hoTok===my&&eng==='yt'){ try{ audYt.pause(); audYt.muted=false; audYt.removeAttribute('src'); audYt.load(); }catch{} } };
+  const onErr=()=>{ const was=ok(); abort(); if(was) notify('Không bật được hiệu ứng âm thanh cho bài này'); };
+  const onCan=()=>{ if(!ok()){ abort(); return; } try{ audYt.currentTime=Math.max(0,getTime()+0.25); }catch{} audYt.play().catch(onErr); };
+  const onPlay=()=>{
+    if(done) return; if(!ok()){ abort(); return; } done=true; cleanup();
+    eng='fx'; try{ yt.setVolume(0); yt.stopVideo(); }catch{}
+    aud.pause(); audYt.muted=false;
+    if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{});
+    applyFx(); applyVol(); syncVid(); updateBar(); msUpdate(); pushPresence();
+    if(!playing) audYt.pause();
+  };
+  audYt.muted=true; audYt.onloadedmetadata=null;
+  audYt.addEventListener('canplay',onCan); audYt.addEventListener('playing',onPlay); audYt.addEventListener('error',onErr);
+  tm=setTimeout(abort,20000);   /* quá chậm thì thôi, giữ nguyên player YouTube (không báo gì) */
+  audYt.src=url;
+  return true;
+}
 function reloadEngine(){
   if(!cur||cur.src!=='yt') return;
-  const want=wantStream(cur)?'fx':'yt';
+  const want=(useLocal(cur)||wantStream(cur))?'fx':'yt';
   if(want===eng){ if(eng==='fx') applyFx(); return; }
+  if(want==='fx'&&eng==='yt'&&playing&&seamlessToFx()) return;
   loadTrack(cur,getTime(),playing);
 }
 function userPlay(t){ loadTrack(t,0,true); broadcastState(); if(S.track_history) api('/api/history',{json:slim(t)}).catch(()=>{}); }
@@ -2575,9 +2766,23 @@ let dlItems=[], dlLoadedFor=null, dlRunning=0; const DL_PAR=2;
 function dlLoad(){
   const who=me&&me.id; if(dlLoadedFor===who) return; dlLoadedFor=who;
   try{ const a=JSON.parse(LS.get(dlKey(),'[]')); dlItems=(Array.isArray(a)?a:[]).filter(x=>x&&x.track&&x.status==='done'); }catch{ dlItems=[]; }
+  offSync();
 }
+/* Gộp các bài đang có trong kho offline vào danh sách (kể cả bài tải từ tài khoản/lần cài trước) và cập nhật dung lượng */
+async function offSync(){
+  try{
+    const ms=await offInit.then(()=>OFF.all('m')); offSet.clear();
+    for(const x of ms){ offSet.add(x.k);
+      const ex=dlItems.find(i=>i.k===x.k&&i.status==='done');
+      if(ex){ ex.osize=x.size; }
+      else dlItems.push({uid:'o-'+x.k,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.size,fmt:String(x.fmt||'').toLowerCase(),name:''}); }
+    dlItems.sort((a,b)=>(b.at||0)-(a.at||0)); dlRender();
+  }catch{}
+}
+const dlFileOn=()=>LS.get('muse_dlfile','1')!=='0';
+const dlPlayable=()=>dlItems.filter(x=>x.status==='done'&&(!offlineNow()||offSet.has(x.k))).map(x=>x.track);
 function dlSave(){
-  try{ LS.set(dlKey(),JSON.stringify(dlItems.filter(x=>x.status==='done').slice(0,200).map(x=>({uid:x.uid,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,fmt:x.fmt,name:x.name})))); }catch{}
+  try{ LS.set(dlKey(),JSON.stringify(dlItems.filter(x=>x.status==='done').slice(0,200).map(x=>({uid:x.uid,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.osize,fmt:x.fmt,name:x.name})))); }catch{}
 }
 function dlSize(n){ return n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB'; }
 function dlStatus(x){
@@ -2589,12 +2794,17 @@ function dlStatus(x){
 }
 function dlRowHtml(x){
   const t=x.track, busy=x.status==='loading'||x.status==='converting', bar=(x.status==='loading'||x.status==='converting')?`<div class="dlbar"><i style="width:${x.status==='converting'?100:(x.pct||0)}%"></i></div>`:'';
-  return `<div class="dlr" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="dls ${x.status}">${esc(dlStatus(x))}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${x.status==='error'?`<button class="ico" data-a="retry" title="Thử lại">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
+  const has=offSet.has(x.k), badge=x.status==='done'?(has?`<span class="offb">${ic('check','sm')} Nghe offline</span>`:`<span class="offb no">Chưa lưu offline</span>`):'';
+  const redo=x.status==='error'||(x.status==='done'&&!has&&t.src==='yt');
+  return `<div class="dlr${x.status==='done'&&!has&&offlineNow()?' dim':''}" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" data-k="${esc(x.k)}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="dls ${x.status}">${esc(dlStatus(x))} ${badge}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${redo?`<button class="ico" data-a="retry" title="${x.status==='error'?'Thử lại':'Tải lại để nghe offline'}">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
 }
 function dlRender(){
-  const sub=$('#dlSub'); if(sub){ const run=dlItems.filter(x=>x.status==='queued'||x.status==='loading'||x.status==='converting').length, done=dlItems.filter(x=>x.status==='done').length; sub.textContent=run?'Đang tải '+run+' bài…':done?done+' bài đã tải':'Danh sách tải xuống'; }
+  const done=dlItems.filter(x=>x.status==='done'), offN=done.filter(x=>offSet.has(x.k)).length, offB=done.reduce((n,x)=>n+(offSet.has(x.k)?(x.osize||0):0),0);
+  const sub=$('#dlSub'); if(sub){ const run=dlItems.filter(x=>x.status==='queued'||x.status==='loading'||x.status==='converting').length; sub.textContent=run?'Đang tải '+run+' bài…':offN?offN+' bài nghe được offline':done.length?done.length+' bài đã tải':'Danh sách tải xuống'; }
   const box=$('#dlList'); if(!box||page!=='downloads') return;
-  box.innerHTML=dlItems.map(dlRowHtml).join('');
+  const info=$('#dlInfo'); if(info) info.textContent=done.length?`${done.length} bài · ${offN} bài nghe được khi không có mạng${offB?' · '+dlSize(offB):''}`:'Chưa có bài nào. Bấm nút tải xuống ở bài hát để lưu về nghe offline.';
+  box.innerHTML=dlItems.length?dlItems.map(dlRowHtml).join(''):'<p class="empty">Chưa có bài nào được tải.</p>';
+  box.querySelectorAll('.dlr img[data-k]').forEach(img=>{ img.onerror=()=>{ img.onerror=null; offCoverUrl(img.dataset.k).then(u=>{ if(u) img.src=u; }); }; if(img.complete&&!img.naturalWidth) img.onerror&&img.onerror(); });
 }
 function dlPump(){
   while(dlRunning<DL_PAR){
@@ -2618,7 +2828,7 @@ async function dlRun(it){
   const t=it.track;
   const safe=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,120)||'bai-hat';
   try{
-    let blob, ext;
+    let blob, ext, offOk=false;
     if(t.src!=='yt'){
       if(!t.url) throw new Error('Bài này không có file để tải');
       const r=await fetch(t.url); if(!r.ok) throw new Error('HTTP '+r.status);
@@ -2641,17 +2851,24 @@ async function dlRun(it){
         if(r.status!==206||pos>=total) break;
       }
       blob=new Blob(parts,{type:mime||'audio/mp4'}); ext=/webm/i.test(mime)?'webm':'m4a';
+      /* bản nghe offline trong app (giữ định dạng gốc cho nhẹ) */
+      try{ offOk=await offSave(t,blob,mime||'audio/mp4',ext); it.osize=blob.size; }
+      catch(e){ it.note='không lưu được bản offline trong app (hết bộ nhớ?)'; }
     }
-    if(dlFmt==='wav'&&ext!=='wav'){
-      if(blob.size>WAV_MAX) it.note='quá dài nên giữ định dạng gốc';
-      else{
-        it.status='converting'; it.pct=100; dlRender();
-        try{ blob=await dlToWav(blob); ext='wav'; }
-        catch(e){ it.note='không đổi được sang WAV, đã lưu bản gốc'; }
+    if((dlFileOn()&&!it.offOnly)||!offOk){
+      if(dlFmt==='wav'&&ext!=='wav'){
+        if(blob.size>WAV_MAX) it.note='quá dài nên giữ định dạng gốc';
+        else{
+          it.status='converting'; it.pct=100; dlRender();
+          try{ blob=await dlToWav(blob); ext='wav'; }
+          catch(e){ it.note='không đổi được sang WAV, đã lưu bản gốc'; }
+        }
       }
-    }
-    await dlSaveFile(safe+'.'+ext,blob,ext);
-    it.status='done'; it.size=blob.size; it.fmt=ext; it.name=safe+'.'+ext; it.at=Date.now(); it.pct=100;
+      try{ await dlSaveFile(safe+'.'+ext,blob,ext); it.name=safe+'.'+ext; }
+      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy, vẫn nghe offline trong app'; }
+    } else { it.name=''; }
+    it.offOnly=false;
+    it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
     if(!it.quiet) notify('Đã tải xong: '+(t.title||'')); return true;
   }catch(e){
     it.status='error'; it.err=String(e&&e.message||e).slice(0,200);
@@ -2661,21 +2878,23 @@ async function dlRun(it){
 pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><small>${esc(me.display_name||'')}</small><h2>Tải xuống</h2>
-    </div></div><div id="dlList"></div>`;
+    <p class="dlInfo" id="dlInfo"></p>
+    <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button></div>
+    <div class="dlOpts"><span>File xuất ra:</span><button class="chip ${dlFmt==='wav'?'on':''}" data-fmt="wav">WAV</button><button class="chip ${dlFmt==='orig'?'on':''}" data-fmt="orig">Gốc</button><button class="chip ${dlFileOn()?'on':''}" id="dlFileT">Lưu thêm vào Music</button></div>
+    </div><div id="dlList"></div>`;
   dlRender();
   m.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{ dlFmt=b.dataset.fmt==='orig'?'orig':'wav'; LS.set('muse_dlfmt',dlFmt); m.querySelectorAll('[data-fmt]').forEach(x=>x.classList.toggle('on',x===b)); });
-  const clearBtn = $("#dlClear");
-
-if (clearBtn) {
-    clearBtn.onclick = () => {
-    };
-}
+  $('#dlFileT').onclick=e=>{ const on=!dlFileOn(); LS.set('muse_dlfile',on?'1':'0'); e.currentTarget.classList.toggle('on',on); notify(on?'Tải xong sẽ lưu thêm file vào thư mục Music':'Chỉ lưu bản nghe offline trong app (tiết kiệm bộ nhớ)'); };
+  const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
+  $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
   $('#dlList').onclick=e=>{
     const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
     const a=(e.target.closest('[data-a]')||{dataset:{}}).dataset.a;
-    if(a==='rm'){ if(x.status==='loading'||x.status==='converting') return; dlItems=dlItems.filter(i=>i!==x); dlSave(); dlRender(); }
-    else if(a==='retry'){ x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); dlRender(); dlPump(); }
-    else { const list=dlItems.filter(i=>i.status==='done').map(i=>i.track), i=list.indexOf(x.track); if(i>=0) playList(list,i,'Tải xuống'); else playList([x.track],0,'Tải xuống'); }
+    if(a==='rm'){ if(x.status==='loading'||x.status==='converting') return; dlItems=dlItems.filter(i=>i!==x); if(x.k) offDelete(x.k); dlSave(); dlRender(); }
+    else if(a==='retry'){ if(offlineNow()){ notify('Cần có mạng để tải lại'); return; } if(x.status==='done') x.offOnly=true; x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); dlRender(); dlPump(); }
+    else {
+      if(x.status==='done'&&offlineNow()&&!offSet.has(x.k)){ notify('Bài này chưa lưu offline – hãy tải lại khi có mạng'); return; }
+      const list=dlPlayable(), i=list.indexOf(x.track); if(i>=0) playList(list,i,'Tải xuống'); else playList([x.track],0,'Tải xuống'); }
   };
 };
 let dlAllBusy=false;
@@ -2746,8 +2965,8 @@ $('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
 $('#npAdd').onclick=e=>cur&&addMenu(cur,e);
 $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').forEach(x=>x.remove());
   const pop=document.createElement('div'); pop.className='pop'; const r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.right-210)+'px'; pop.style.top=r.bottom+6+'px';
-  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="lnk">Chép link YouTube</div><div data-a="room">Chép link phòng</div>`;
-  pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); };
+  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="lnk">Chép link YouTube</div><div data-a="room">Chép link phòng</div><div data-a="code">Chép mã phòng</div>`;
+  pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); else if(a==='code') copyRoomCode(); else if(a==='shr') shareTrack(cur); };
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
 setInterval(()=>{
@@ -2949,19 +3168,21 @@ setInterval(()=>{
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
 /* ===== Khởi động ===== */
-async function start(u){
+async function start(u,offlineBoot){
   applyUser(u);
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
   /* Nạp cài đặt đã lưu trên máy trước (để khi offline vẫn biết có bật "lưu playlist offline" không), rồi hỏi server SONG SONG
      (trước đây 5 lượt gọi nối đuôi nhau mới hiện trang chủ và phát lại bài cũ). */
   try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{}
   const [c,s,f]=await Promise.all([
-    api('/api/config').catch(()=>null),
-    api('/api/settings').catch(()=>null),
-    api('/api/favorites').catch(()=>null),
+    offlineBoot?null:api('/api/config').catch(()=>null),
+    offlineBoot?null:api('/api/settings').catch(()=>null),
+    offlineBoot?null:api('/api/favorites').catch(()=>null),
     loadPlaylists().catch(()=>{}),
-    sdkProbe()
+    sdkProbe(),
+    offInit
   ]);
+  const offline=!!offlineBoot||(!c&&!s&&netDown);
   if(c) cfg=c;
   if(s) Object.assign(S,s);
   LS.set('muse_s',JSON.stringify(S));
@@ -2969,6 +3190,8 @@ async function start(u){
   if(cfg.discord_login&&!guest){ try{ dl=await api('/api/discord/status'); }catch{} }
   { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
   if(S.discord_rpc&&cfg.discord_app_id&&dl.linked&&(DESK||sdkOn())) discordConnect().catch(()=>{});
+  if(offline){   /* không có server: vào thẳng danh sách bài đã tải, không mở WebSocket */
+    netDown=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
   applyVol(); restorePlayState(); go('home');
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
@@ -2987,11 +3210,11 @@ async function start(u){
 }
 (async()=>{
   if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
-  try{ start(await api('/api/me')); }
+  try{ const u=await api('/api/me'); LS.set('muse_me',JSON.stringify(u)); start(u); }
   catch(e){
-    /* mất mạng: nếu đã bật lưu offline thì vẫn mở app với dữ liệu đã lưu */
+    /* mất mạng: mở app bằng tài khoản đã nhớ và vào thẳng danh sách bài đã tải */
     let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
-    if(e.message!=='401'&&c&&JSON.parse(LS.get('muse_s','{}')).offline_pl) start(c); else showAuth();
+    if(e.net&&c) start(c,true); else if(e.message!=='401'&&c&&JSON.parse(LS.get('muse_s','{}')).offline_pl) start(c,true); else showAuth();
   }
 })();
 </script>
