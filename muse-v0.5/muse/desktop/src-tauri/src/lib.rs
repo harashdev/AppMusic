@@ -1,6 +1,3 @@
-
-    
-  
 use tauri::{WebviewUrl, WebviewWindowBuilder};
 #[cfg(desktop)]
 use serde_json::{json, Value};
