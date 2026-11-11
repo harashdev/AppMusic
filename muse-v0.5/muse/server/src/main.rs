@@ -1262,7 +1262,29 @@ async fn pl_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>
             Ok(json!({ "id": r.get::<_, i64>(0)?, "name": r.get::<_, String>(1)?, "count": r.get::<_, i64>(2)? }))
         })
         .map_err(|_| e500())?;
-    let v: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
+    let mut v: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
+    // Ảnh bìa playlist: lấy ảnh của 4 bài đầu có ảnh (giống ảnh ghép ở trang playlist)
+    for p in v.iter_mut() {
+        let pid = p.get("id").and_then(|x| x.as_i64()).unwrap_or(0);
+        let mut covers: Vec<String> = Vec::new();
+        if let Ok(mut s2) = db.prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid LIMIT 24") {
+            if let Ok(rows2) = s2.query_map([pid], |r| r.get::<_, String>(0)) {
+                for js in rows2.flatten() {
+                    if let Ok(tv) = serde_json::from_str::<Value>(&js) {
+                        if let Some(img) = tv.get("image").and_then(|x| x.as_str()) {
+                            if !img.is_empty() {
+                                covers.push(img.to_string());
+                                if covers.len() >= 4 {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        p["covers"] = json!(covers);
+    }
     Ok(Json(v))
 }
 
