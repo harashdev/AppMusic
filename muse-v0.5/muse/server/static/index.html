@@ -2739,12 +2739,14 @@ function msUpdate(){
 /* Ảnh bìa cho thông báo / màn hình khóa Android: lấy bản lớn (ảnh gốc từ tìm kiếm chỉ ~60–300px nên bị vỡ hạt khi phóng to) */
 function hiArt(u){
   u=String(u||'');
+  /* cỡ ảnh theo từng máy: bằng cạnh ngắn của màn hình tính theo điểm ảnh thật (máy nhỏ ~720px, máy nét cao ~1440px), làm tròn 100 */
+  const px=Math.min(1600,Math.max(600,Math.round(Math.min(screen.width||360,screen.height||800)*Math.min(window.devicePixelRatio||2,4)/100)*100));
   if(/googleusercontent\.com|ggpht\.com/.test(u)){
-    if(/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,'=w1200-h1200-l90-rj');
-    if(/=s\d+/.test(u)) return u.replace(/=s\d+[^?#]*$/,'=s1200');
+    if(/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${px}-h${px}-l90-rj`);
+    if(/=s\d+/.test(u)) return u.replace(/=s\d+[^?#]*$/,`=s${px}`);
     return u;
   }
-  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return 'https://i.ytimg.com/vi/'+m[1]+'/hq720.jpg';
+  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return 'https://i.ytimg.com/vi/'+m[1]+(px>480?'/hq720.jpg':'/mqdefault.jpg');
   return u;
 }
 function nativeSync(meta){

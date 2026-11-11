@@ -201,10 +201,19 @@ class KeepAliveService : Service() {
             /* hq720 không phải video nào cũng có: lỗi thì lùi về bản nhỏ hơn */
             val bmp = (fetchArt(url) ?: if (url.contains("/hq720.jpg")) fetchArt(url.replace("hq720", "mqdefault")) else null)?.let { b ->
                 val m = maxOf(b.width, b.height)
-                if (m > 1024) Bitmap.createScaledBitmap(b, b.width * 1024 / m, b.height * 1024 / m, true) else b
+                val cap = artCap()
+                if (m > cap) Bitmap.createScaledBitmap(b, b.width * cap / m, b.height * cap / m, true) else b
             }
             main.post { if (artUrl == raw && bmp != null) { artBmp = bmp; refresh() } }
         }
+    }
+
+    /** Cỡ ảnh bìa tối đa theo máy: bằng cạnh ngắn màn hình (tối đa 1280), máy RAM thấp thì 768 để khỏi tốn bộ nhớ. */
+    private fun artCap(): Int {
+        val dm = resources.displayMetrics
+        val side = minOf(dm.widthPixels, dm.heightPixels).coerceIn(512, 1280)
+        val low = (getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager).isLowRamDevice
+        return if (low) minOf(side, 768) else side
     }
 
     private fun fetchArt(url: String): Bitmap? = runCatching {
