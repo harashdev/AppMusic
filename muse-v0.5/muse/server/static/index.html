@@ -268,7 +268,7 @@ body.vid .art{aspect-ratio:16/9;width:100%}
 #bar{position:fixed;z-index:20;bottom:16px;left:calc(24px + var(--sw));right:calc(24px + var(--nw));width:880px;max-width:calc(100vw - 48px - var(--sw) - var(--nw));margin:0 auto;display:none;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:10px 18px;border-radius:999px;background:color-mix(in srgb,#1c1925 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 10px 40px #000a,inset 0 0 0 1px var(--line)}
 body.has-cur #bar{display:grid}
 #bar{cursor:pointer}#bar button,#bar input{cursor:pointer}
-.bm{border-radius:14px;outline-offset:2px}.bm img{transition:box-shadow .2s}
+.bm{border-radius:0;outline-offset:2px}.bm img{transition:box-shadow .2s}
 #bar:hover .bm img{box-shadow:0 0 0 2px var(--accent)}
 body.has-np #bar .bm img{box-shadow:0 0 0 2px var(--accent)}
 #bPip.on{color:var(--accent)}
@@ -277,7 +277,7 @@ body.has-np #bar .bm img{box-shadow:0 0 0 2px var(--accent)}
 #pp{width:46px;height:46px;color:#fff}#pp .i{width:28px;height:28px}
 #bMode.on,#bShuf.on{color:var(--accent)}
 .bm{display:flex;min-width:0;align-items:center;gap:12px;min-width:0}
-.bm img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#ffffff0d;flex:none}
+.bm img{width:40px;height:40px;border-radius:0;object-fit:cover;background:#ffffff0d;flex:none}
 .bt{flex:1;min-width:0}
 .bt .l1{display:flex;align-items:baseline;gap:10px}
 .bt b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
@@ -600,6 +600,17 @@ html.android{overscroll-behavior:none;touch-action:manipulation}
 html.android body{overscroll-behavior:none}
 html.android *{scroll-behavior:auto!important}
 
+.schips{display:flex;gap:8px;overflow-x:auto;padding:0 0 16px;scrollbar-width:none}.schips[hidden]{display:none}
+.schips::-webkit-scrollbar{display:none}
+.schips .chip{flex:none;cursor:pointer;border:0;color:inherit;font:inherit;font-weight:500;border-radius:999px;padding:7px 16px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.schips .chip:hover{background:var(--hover)}
+.schips .chip.on{background:var(--accent);color:var(--on);font-weight:600;box-shadow:none}
+.sent{gap:12px;margin-bottom:8px}.card.art .cvw{border-radius:50%}.card.art .ct,.card.art .ca{text-align:center}
+.sres-h{margin:18px 0 8px;font-size:20px;font-weight:700}
+.libdlg{width:min(520px,100%);max-height:82vh;display:flex;flex-direction:column}
+.libdlg .liblist{margin-top:14px;overflow-y:auto;border-radius:14px;background:var(--surf2);border:1px solid var(--line)}
+.libdlg .srow{padding:12px 16px}
+.srow .sbadge{white-space:normal;max-width:46%;text-align:center}
 .dlgov{position:fixed;inset:0;z-index:99999;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
 .dlg{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:22px;width:min(400px,100%);box-shadow:0 24px 70px #000c}
 .dlg h3{margin:0;font-size:18px;font-weight:700}
@@ -694,7 +705,6 @@ button *,#gear *,#meAv *{pointer-events:none}
   <div id="authErr"></div>
   <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
   <button id="aGuest" style="width:100%;padding:12px;margin-top:8px">Dùng không cần đăng nhập</button>
-  <small style="display:block;text-align:center;margin-top:8px;opacity:.7">Chỉ nghe nhạc: yêu thích và playlist lưu ngay trên máy này. Bạn bè và phòng nghe chung cần tài khoản.</small>
   <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
 </div></div>
 
@@ -830,7 +840,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
     'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Đang phát':'Now playing',
-    'Dùng không cần đăng nhập':'Continue without signing in','Chỉ nghe nhạc: yêu thích và playlist lưu ngay trên máy này. Bạn bè và phòng nghe chung cần tài khoản.':'Listen only: favorites and playlists are saved on this device. Friends and listening rooms need an account.',
+    'Dùng không cần đăng nhập':'Continue without signing in',
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
     'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
@@ -848,6 +858,14 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Gọi HTTP từ server':'HTTP client for the server','Cơ sở dữ liệu':'Database','Băm mật khẩu':'Password hashing','Đọc ghi JSON':'JSON read/write',
     'Đóng gói app máy tính':'Desktop app packaging','Thành phần app Android':'Android app components',
     'Web server (Rust)':'Web server (Rust)',
+    'Tất cả':'All','Bài hát':'Songs','Nghệ sĩ':'Artists','Danh sách phát nổi bật':'Featured playlists','Quay lại':'Back','Đang tải…':'Loading…','Đóng':'Close',
+    'Cần đăng nhập BBeat':'Sign in to BBeat required','Cần tải app BBeat':'BBeat app required','Cần đăng nhập và tải app BBeat':'Sign in and install the BBeat app',
+    'Danh sách phát':'Playlists','Podcast':'Podcast',
+    'Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0':'Inspiration and lyrics source – © maxrave-dev, GPL-3.0',
+    'Cách lấy dữ liệu YouTube Music (InnerTube) mà SimpMusic cũng tham khảo':'How to read YouTube Music data (InnerTube), also credited by SimpMusic',
+    'Tham khảo cách lấy luồng âm thanh YouTube':'Reference for extracting YouTube audio streams',
+    'Tạo mã định danh':'Unique ID generation','Tiện ích bất đồng bộ (Rust)':'Async utilities (Rust)',
+    'Hiện trạng thái đang nghe trên Discord (tuỳ chọn)':'Shows what you are listening to on Discord (optional)',
     /* lỗi chung */
     'Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)':'Cannot reach the server (it may be offline, or the uploaded file is too large)',
     'Hủy':'Cancel','Xác nhận':'Confirm','Bạn vừa mời người này rồi, đợi vài giây nhé':'You just invited this person – wait a few seconds',
@@ -1078,11 +1096,14 @@ const ABOUT={
   repo:'',          /* kho GitHub chứa bản phát hành, dạng 'tên-github/BBeat'. Bỏ trống thì chưa kiểm tra cập nhật được */
   supportUrl:'https://ko-fi.com/harashdev',    /* link "Hỗ trợ tôi" (Ko-fi, Buy Me a Coffee, MoMo…). Bỏ trống thì dùng DONATE_URL của server nếu có */
   libs:[
+    ['SimpMusic','Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0','https://github.com/maxrave-dev/SimpMusic'],
+    ['SimpMusic Lyrics','Lời bài hát (nguồn chính)','https://github.com/maxrave-dev/SimpMusic'],
+    ['LRCLIB','Lời bài hát có thời gian (dự phòng)','https://lrclib.net'],
+    ['InnerTune','Cách lấy dữ liệu YouTube Music (InnerTube) mà SimpMusic cũng tham khảo','https://github.com/z-huang/InnerTune'],
+    ['SmartTube','Tham khảo cách lấy luồng âm thanh YouTube','https://github.com/yuliskov/SmartTube'],
     ['YouTube IFrame Player API','Trình phát YouTube chính thức','https://developers.google.com/youtube/iframe_api_reference'],
     ['SponsorBlock','Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0','https://sponsor.ajay.app'],
     ['Return YouTube Dislike','Số lượt thích/không thích','https://returnyoutubedislike.com'],
-    ['SimpMusic Lyrics','Lời bài hát (nguồn chính)','https://github.com/maxrave-dev/SimpMusic'],
-    ['LRCLIB','Lời bài hát có thời gian (dự phòng)','https://lrclib.net'],
     ['yt-dlp','Lấy luồng âm thanh khi nguồn khác bị chặn','https://github.com/yt-dlp/yt-dlp'],
     ['Piped','Nguồn luồng âm thanh dự phòng','https://github.com/TeamPiped/Piped'],
     ['Axum','Web server (Rust)','https://github.com/tokio-rs/axum'],
@@ -1092,8 +1113,11 @@ const ABOUT={
     ['rusqlite / SQLite','Cơ sở dữ liệu','https://github.com/rusqlite/rusqlite'],
     ['argon2','Băm mật khẩu','https://github.com/RustCrypto/password-hashes'],
     ['serde / serde_json','Đọc ghi JSON','https://serde.rs'],
+    ['uuid','Tạo mã định danh','https://github.com/uuid-rs/uuid'],
+    ['futures-util','Tiện ích bất đồng bộ (Rust)','https://github.com/rust-lang/futures-rs'],
     ['Tauri','Đóng gói app máy tính','https://tauri.app'],
-    ['AndroidX Core / Activity','Thành phần app Android','https://developer.android.com/jetpack/androidx']
+    ['AndroidX Core / Activity','Thành phần app Android','https://developer.android.com/jetpack/androidx'],
+    ['Discord Social SDK','Hiện trạng thái đang nghe trên Discord (tuỳ chọn)','https://discord.com/developers/docs/discord-social-sdk/overview']
   ]
 };
 const bbPad=n=>String(n).padStart(2,'0');
@@ -1209,7 +1233,7 @@ async function api(path,opt={}){
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
   let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); }catch(e){ const ne=new Error(NET_ERR); ne.net=true; throw ne; }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
-  if(!r.ok){ const detail=await r.text(); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
+  if(!r.ok){ const detail=(await r.text()||'').trim(); if(r.status>=400&&r.status<500&&detail) throw new Error(detail); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
 }
 const isImg=a=>a&&(a.startsWith('/')||a.startsWith('https://')||a.startsWith('blob:'));
@@ -1253,6 +1277,16 @@ function askDialog(o){ return new Promise(res=>{
   c.onclick=no; k.onclick=okv; ov.onclick=e=>{ if(e.target===ov) no(); };
   setTimeout(()=>(inp||k).focus(),30);
 }); }
+function showLibs(){
+  const ov=document.createElement('div'); ov.className='dlgov';
+  ov.innerHTML=`<div class="dlg libdlg" role="dialog" aria-modal="true"><h3>Thư viện bên thứ ba</h3><p>Các thư viện và dịch vụ mà BBeat sử dụng</p><div class="liblist">${ABOUT.libs.map(([n,d,u])=>`<div class="srow btn" data-url="${esc(u)}" role="button" tabindex="0"><div class="sx"><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')}</div><div class="dlgb"><button class="dlgo">Đóng</button></div></div>`;
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
+  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
+  document.addEventListener('keydown',onKey,true);
+  ov.onclick=e=>{ if(e.target===ov){ close(); return; } const r=e.target.closest('[data-url]'); if(r) openExt(r.dataset.url); };
+  ov.querySelector('.dlgo').onclick=close;
+  document.body.appendChild(ov);
+}
 const askText=(title,def)=>askDialog({title:String(title).replace(/[:：]\s*$/,''),input:true,def});
 const askConfirm=(msg,ok)=>askDialog({title:'Xác nhận',msg,ok});
 /* Thông báo: không xếp chồng thông báo trùng, tối đa 3 cái cùng lúc (tránh tràn màn hình khi bị spam) */
@@ -1409,6 +1443,8 @@ function hero(title,sub,list,extra=''){
 const sec=(id,title,kicker,more)=>`<section class="sec"><div class="sh"><div>${kicker?`<small>${esc(kicker)}</small>`:''}<h3>${esc(title)}</h3></div><div class="shr">${more||'<a class="more" hidden>Phát tất cả</a>'}<button class="nv" data-nv="-1" title="Cuộn trái">${ic('chev','flip sm')}</button><button class="nv" data-nv="1" title="Cuộn phải">${ic('chev','sm')}</button></div></div><div id="g${id}">${skel(7)}</div></section>`;
 
 $('#main').addEventListener('click',e=>{
+  const en=e.target.closest('[data-ent]');
+  if(en){ const l=lists[en.dataset.ent], x=l&&l[+en.dataset.i]; if(x) go('ybrowse',x); return; }
   const hp=e.target.closest('[data-hp]');
   if(hp){ const l=lists[hp.dataset.hp]; if(l&&l.length) playList(hp.dataset.sh==='1'?shuffled(l):l,0,lnames[hp.dataset.hp]); return; }
   const hd=e.target.closest('[data-hd]');
@@ -1469,7 +1505,7 @@ function fillQuick(list){
   const row=(t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" decoding="async" ${j<8?'fetchpriority="high"':'loading="lazy"'} alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
   let cols=''; for(let a=0;a<list.length;a+=4) cols+=`<div class="qcol">${list.slice(a,a+4).map((t,j)=>row(t,a+j)).join('')}</div>`;
   q.innerHTML=`<section class="sec"><div class="sh"><div><small>Bắt đầu một đài phát</small><h3>Chọn nhanh đài phát</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a></div></div><div class="qpager">${cols}</div></section>`;
-  markNow(); if(window.ANDROID_APP) warmFirst(list,2);
+  markNow(); warmFirst(list,5);
 }
 /* ===== Kiểm tra cập nhật BBeat qua GitHub Release ===== */
 let updShown=false;
@@ -1536,7 +1572,7 @@ const pages={
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
         const items=h.slice(0,18), k=reg(items,'Nghe gần đây');
         const first=h.length>=4?`<div class="card" data-hp="${k}" data-sh="0" tabindex="0"><div class="cvw">${collage(items)}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">Nghe gần đây</div><div class="ca">${esc(me.display_name)} • ${h.length} bài hát</div></div>`:'';
-        box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div><small>${esc((me.display_name||'').toUpperCase())}</small><h3>Nghe lại</h3></div><div class="shr"><a class="more" data-go="history">Thêm</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${first}${items.map((t,i)=>cardHtml(t,reg(items,'Nghe gần đây'),i)).join('')}</div></section>`;
+        box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div>${guest?'':`<small>${esc((me.display_name||'').toUpperCase())}</small>`}<h3>Nghe lại</h3></div><div class="shr"><a class="more" data-go="history">Thêm</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${first}${items.map((t,i)=>cardHtml(t,reg(items,'Nghe gần đây'),i)).join('')}</div></section>`;
         markNow(); }).catch(()=>{});
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
@@ -1560,7 +1596,8 @@ const pages={
     try{ $('#rows').innerHTML=tracksHtml(await ytSearch(tabs[idx][1]),false,'Thịnh hành · '+tabs[idx][0]); markNow(); }catch(e){ $('#rows').innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
   },
   async search(m,q=''){
-    m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"></div><div id="sres"></div>`;
+    m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"></div><div class="schips" id="sChips" hidden></div><div id="sres"></div>`;
+    $('#sChips').onclick=e=>{ const b=e.target.closest('[data-sf]'); if(!b) return; sFilter=b.dataset.sf; LS.set('sfilter',sFilter); runSearch($('#sq').value.trim()); };
     const inp=$('#sq'); let tm;
     inp.onkeydown=e=>{ if(e.key==='Enter'){ clearTimeout(tm); runSearch(inp.value.trim()); } };
     inp.oninput=()=>{ clearTimeout(tm); tm=setTimeout(()=>runSearch(inp.value.trim()),600); };
@@ -1737,8 +1774,10 @@ const pages={
     <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
       <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
     </div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Tích hợp Discord</div><div class="scard">
-      ${cfg.discord_login
+    <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
+      ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập BBeat</span>','dis')}
+      ${row('Kết nối Discord','Kết nối với ứng dụng Discord','<span class="sbadge">Cần tải app BBeat</span>','dis')}
+      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
         ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
         :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
       ${useSdk
@@ -1746,7 +1785,7 @@ const pages={
         :DESK&&cfg.discord_app_id
         ?row('Kết nối Discord','Kết nối với ứng dụng Discord đang mở trên máy này (không cần nhập mật khẩu)',`<span class="sbadge" id="dcSt">${dc.user?'Đã kết nối: '+esc(dc.user):'Chưa kết nối'}</span>`,'btn','dcBtn')
         :row('Kết nối Discord','Kết nối với ứng dụng Discord',`<span class="sbadge">${!cfg.discord_app_id?'Server chưa đặt DISCORD_CLIENT_ID':'Chỉ có trên app desktop/Android bản mới'}</span>`,'dis')}
-      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':!dl.linked?'Cần đăng nhập Discord':sdkP.ok&&!dl.sdk?'Hủy liên kết rồi đăng nhập lại Discord':'Chỉ có trên app desktop/Android bản mới')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}
+      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':!dl.linked?'Cần đăng nhập Discord':sdkP.ok&&!dl.sdk?'Hủy liên kết rồi đăng nhập lại Discord':'Chỉ có trên app desktop/Android bản mới')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}`}
     </div></div>
     <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Sao lưu</div><div class="scard">
       ${row('Sao lưu','Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON','','btn','bkUp')}
@@ -1761,7 +1800,6 @@ const pages={
       ${row('Tác giả',esc(ABOUT.author))}
       ${row('Hỗ trợ tôi','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).','','btn','supBtn')}
       ${row('Thư viện bên thứ ba','Các thư viện và dịch vụ mà BBeat sử dụng','','btn','libsBtn')}
-      <div id="libsBox" hidden>${ABOUT.libs.map(([n,d,u])=>`<div class="srow btn" data-url="${esc(u)}" role="button" tabindex="0"><div class="sx"><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')}</div>
     </div></div>
     <div class="sgrp"><div class="scard">
       ${guest?row('Đăng nhập','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu','','btn','outBtn'):row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
@@ -1883,8 +1921,7 @@ const pages={
     act('chBtn',()=>{ if(ABOUT.repo) openExt('https://github.com/'+ABOUT.repo+'/releases'); else notify('Chưa gắn kho GitHub cho BBeat'); });
     act('updBtn',async()=>{ const el=$('#updTxt'); if(el) el.textContent='Đang kiểm tra…'; await checkUpdate(true); const e2=$('#updTxt'); if(e2){ const t=LS.get('bb_lastcheck',''); e2.textContent=t?'Lần kiểm tra cuối vào '+bbFmt(t):'Chưa kiểm tra lần nào'; } });
     act('supBtn',()=>{ const u=ABOUT.supportUrl||cfg.donate_url||''; if(u) openExt(u); else notify('Tác giả chưa gắn link hỗ trợ'); });
-    act('libsBtn',()=>{ const b=$('#libsBox'); b.hidden=!b.hidden; });
-    $('#libsBox').onclick=e=>{ const r=e.target.closest('[data-url]'); if(r) openExt(r.dataset.url); };
+    act('libsBtn',showLibs);
   }
 };
 async function go(p,arg,keep){
@@ -1929,21 +1966,49 @@ function browseTiles(){
   const t=[['Nhạc Việt','nhạc việt hot','#e8553a'],['Lofi','lofi chill beats','#6a5acd'],['K-Pop','kpop hits','#e0368f'],['EDM','edm party hits','#8e2de2'],['Rap Việt','rap việt hay nhất','#c9822b'],['Acoustic','acoustic chill songs','#2f9e8f'],['Piano','relaxing piano music','#3f6fd1'],['Workout','workout motivation songs','#c0392b'],['Anime','anime opening songs','#d64f9e'],['Game OST','game soundtrack','#4a7a3d'],['Cổ điển','classical study music','#7a5c3d'],['Nhạc Hoa','nhạc hoa hay nhất','#b8322f']];
   $('#sres').innerHTML=`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
 }
+/* Bộ lọc kết quả tìm kiếm (giống YouTube Music) */
+const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['albums','Albums'],['artists','Nghệ sĩ'],['playlists','Danh sách phát'],['featured','Danh sách phát nổi bật'],['podcasts','Podcasts']];
+let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
+const ytSearchF=(q,f)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f)
+  .then(r=>(r&&Array.isArray(r.tracks))?{tracks:r.tracks,entities:Array.isArray(r.entities)?r.entities:[]}:{tracks:Array.isArray(r)?r:[],entities:[]})
+  .catch(e=>{ delete ytCache[k]; throw e; })); };
+const ENT_LBL={album:'Album',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcast'};
+const ENT_HEAD={album:'Albums',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcasts'};
+function entCards(list){ const k=reg(list,'');
+  return `<div class="grid wrap sent">${list.map((e,i)=>`<div class="card ent ${e.kind==='artist'?'art':''}" data-ent="${k}" data-i="${i}" tabindex="0"><div class="cvw">${e.image?`<img src="${esc(thumb(e.image,360))}" loading="lazy" alt="">`:ic('note')}</div><div class="ct">${esc(e.title)}</div><div class="ca">${esc(e.sub||ENT_LBL[e.kind]||'')}</div></div>`).join('')}</div>`; }
 async function runSearch(q,fill){
   const inp=$('#sq'); if(fill&&inp) inp.value=q;
   lastQ=q; const my=++sTok; const box=$('#sres'); if(!box) return;
+  const ch=$('#sChips'); if(ch){ ch.hidden=!q; ch.innerHTML=q?SFILT.map(([k,n])=>`<button class="chip${k===sFilter?' on':''}" data-sf="${k}">${n}</button>`).join(''):''; }
   if(!q){ browseTiles(); return; }
   box.innerHTML='<p class="empty">Đang tìm…</p>';
-  let out=[]; const id=ytId(q);
+  const f=sFilter; let out=[], ents=[]; const id=ytId(q);
   if(id) out.push(await ytInfo(id));
   if(!id||q.length>11){
-    try{ out=out.concat(await ytSearch(q)); }
+    try{ const r=await ytSearchF(q,f); out=out.concat(r.tracks); ents=r.entities; }
     catch(e){ if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; return; } }
   }
   if(my!==sTok||!$('#sres')) return;
-  $('#sres').innerHTML=out.length?`<div class="sh"><h3>Kết quả cho “${esc(q)}”</h3></div>`+tracksHtml(out,false,'Kết quả: '+q):'<p class="empty">Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.</p>';
+  const trackMode=f==='all'||f==='songs'||f==='videos', entMode=f!=='songs'&&f!=='videos';
+  let html='';
+  if(trackMode&&out.length) html+=(f==='all'?`<div class="sres-h">Bài hát</div>`:'')+tracksHtml(out,false,'Kết quả: '+q);
+  if(entMode&&ents.length){
+    if(f==='all'){ ['album','artist','playlist','podcast'].forEach(kd=>{ const l=ents.filter(e=>e.kind===kd); if(l.length) html+=`<div class="sres-h">${ENT_HEAD[kd]}</div>`+entCards(l); }); }
+    else html+=entCards(ents);
+  }
+  $('#sres').innerHTML=html?`<div class="sh"><h3>Kết quả cho “${esc(q)}”</h3></div>`+html:'<p class="empty">Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.</p>';
   markNow();
 }
+/* Mở album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm */
+pages.ybrowse=async function(m,x){
+  const back=`<button class="out" id="ybBack">${ic('chev','flip sm')} Quay lại</button>`;
+  m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">Đang tải…</p>`;
+  const bk=()=>{ const b=$('#ybBack'); if(b) b.onclick=()=>go('search',lastQ); }; bk();
+  let r; try{ r=await api('/api/yt/browse?id='+encodeURIComponent(x.id)+'&kind='+encodeURIComponent(x.kind)); }
+  catch(e){ m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">${esc(errTxt(e))}</p>`; bk(); return; }
+  const tr=(r&&r.tracks)||[], title=(r&&r.title)||x.title;
+  m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div>`+hero(title,(r&&r.sub)||ENT_LBL[x.kind]||'',tr)+tracksHtml(tr,false,title); bk(); markNow();
+};
 async function startMix(sp,name){
   try{ let l=sp==='fav'?await api('/api/favorites'):sp==='hist'?await api('/api/history'):await ytSearch(sp);
     if(!l.length){ notify('Chưa có bài nào để tạo mix này.'); return; } playList(shuffled(l),0,name); }
@@ -2154,7 +2219,7 @@ let eng='yt'; const fxFail={};
 const A=()=>eng==='fx'?audYt:aud;
 let fxFmt=(()=>{ try{ return audYt.canPlayType('audio/webm; codecs="opus"')?'webm':'mp4'; }catch{ return 'mp4'; } })(); const fxTried={};
 let fxDownUntil=0;
-const MOBILE=(()=>{ try{ return matchMedia('(pointer:coarse)').matches&&LS.get('bgplay','1')==='1'; }catch{ return false; } })();
+const MOBILE=(()=>{ try{ return (window.ANDROID_APP||matchMedia('(pointer:coarse)').matches)&&LS.get('bgplay','1')==='1'; }catch{ return !!window.ANDROID_APP; } })();
 const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
 /* ytFail: player iframe của YouTube không phát được bài này (bị chặn nhúng / lỗi) -> phát bằng luồng do server chuyển tiếp */
 const ytFail={}, wdTries={};
@@ -2237,6 +2302,18 @@ function setPlaying(p){
   else { if(fx.ctx&&fx.ctx.state==='suspended'&&p) fx.ctx.resume().catch(()=>{}); p?A().play().catch(()=>sysLine('Trình duyệt chặn tự phát – bấm ▶ để nghe')):A().pause(); }
   pushPresence(); msUpdate();
 }
+let startGuard=0;
+/* Tắt màn hình / thoát ra ngoài: player iframe YouTube bị hệ thống dừng, nên chuyển sang luồng <audio> (chạy nền được).
+   Đồng thời nếu hệ thống tự tạm dừng <audio> trong lúc đang "phát" thì phát lại. */
+document.addEventListener('visibilitychange',()=>{
+  try{
+    if(document.hidden&&window.ANDROID_APP&&cur&&cur.src==='yt'&&playing&&eng==='yt'&&!fxFail[cur.id]){ ytFail[cur.id]=true; loadTrack(cur,getTime(),true); }
+    else if(!document.hidden&&playing&&eng==='fx'&&audYt.paused) audYt.play().catch(()=>{});
+  }catch{}
+});
+audYt.addEventListener('pause',()=>{
+  if(eng==='fx'&&playing&&cur&&!audYt.ended&&document.hidden) setTimeout(()=>{ if(eng==='fx'&&playing&&audYt.paused) audYt.play().catch(()=>{}); },400);
+});
 function loadTrack(t,pos=0,play=true,ts=null){
   fadeInAt=(play&&S.crossfade)?performance.now():0;
   cur=t; pend=ts?{pos,ts,play}:null; lyrLines=null;
@@ -2250,6 +2327,11 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
     audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
     audYt.src='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:''); setPlaying(play);
+    /* Bấm 1 lần là phát: nếu luồng server chưa có dữ liệu sau 7 giây thì không chờ nữa, chuyển sang player YouTube */
+    if(play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
+      if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
+      ytFail[t.id]=true; notify('Luồng server phản hồi chậm – chuyển sang player YouTube'); loadTrack(t,0,true);
+    },7000); }
   } else {
     if(ytReady) yt.pauseVideo(); audYt.pause();
     aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
