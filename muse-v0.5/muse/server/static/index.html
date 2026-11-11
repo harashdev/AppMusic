@@ -32,7 +32,7 @@
 @property --npfg{syntax:'<color>';inherits:true;initial-value:#ffffff}
 :root{--accent:#8ecbff;--on:#07131d;--bg:#07070b;--surf:#0e0c15;--surf2:#17141f;--card:#1b1823;--hover:#ffffff12;--hover2:#ffffff1c;--line:#ffffff17;--text:#f3f0fa;--sub:#a8a3b6;--red:#ff4d6a;--npbg:#2b2640;--npfg:#fff;--sw:268px;--nw:0px}
 body.skin-dark{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618}
-body.skin-ocean,body.skin-sunset,body.skin-forest,body.skin-custom{--surf:rgba(8,10,16,.74);--surf2:rgba(20,22,30,.85)}
+body.skin-ocean,body.skin-sunset,body.skin-forest,body.skin-custom{--surf:rgba(8,10,16,.5);--surf2:rgba(20,22,30,.62)}
 body.skin-ocean{background:linear-gradient(135deg,#0f2027,#2c5364) fixed}
 body.skin-sunset{background:linear-gradient(135deg,#42275a,#734b6d) fixed}
 body.skin-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a) fixed}
@@ -40,6 +40,16 @@ body.skin-custom{background:#000 center/cover fixed}
 body.side-min{--sw:76px}
 @media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
 *{box-sizing:border-box}
+/* Chỉ khóa chọn chữ trên control; văn bản nội dung vẫn có thể bôi đen/sao chép. */
+html,body{-webkit-tap-highlight-color:transparent}
+button,[role=button],.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn,#meAv,#gear,.rb,.ico,.pbtn,.playbtn{
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent
+}
+input,textarea,select,[contenteditable="true"],.sel-text,.sel-text *{ -webkit-user-select:text;user-select:text }
+img,svg,a,button{-webkit-user-drag:none;user-drag:none}
+img{pointer-events:auto}
+button:focus:not(:focus-visible),[tabindex]:focus:not(:focus-visible),#meAv:focus,#gear:focus{outline:none}
+::selection{background:color-mix(in srgb,var(--accent) 38%,transparent);color:var(--text)}
 html,body{height:100%;margin:0}
 body{font-family:"Segoe UI",Roboto,system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:14px;overflow:hidden}
 button,input,select{font:inherit;border:0;color:var(--text)}
@@ -77,7 +87,7 @@ img{display:block}
 #app{height:100vh;display:grid;grid-template-columns:var(--sw) minmax(0,1fr);gap:12px;padding:12px;transition:grid-template-columns .25s}
 @media(min-width:1100px){body.has-np #app{grid-template-columns:var(--sw) minmax(0,1fr) var(--nw)}}
 .pnl{background:var(--surf);border-radius:20px;min-height:0;overflow:hidden}
-body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{backdrop-filter:blur(18px)}
+body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{backdrop-filter:blur(3px)}
 /* sidebar */
 #side{display:flex;flex-direction:column;padding:12px}
 .ni{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:999px;cursor:pointer;color:var(--text);white-space:nowrap;user-select:none}
@@ -236,7 +246,7 @@ body.vid .art{aspect-ratio:16/9;width:100%}
 .qi img{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none;background:#0003}
 .qi .qm{min-width:0;flex:1}.qi .qm div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qi small{color:inherit;opacity:.7}
 /* thanh phát */
-#bar{position:fixed;z-index:20;bottom:16px;left:calc(24px + var(--sw));right:calc(24px + var(--nw));width:880px;max-width:calc(100vw - 48px - var(--sw) - var(--nw));margin:0 auto;display:none;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:10px 18px;border-radius:999px;background:color-mix(in srgb,#1c1925 92%,transparent);backdrop-filter:blur(20px);box-shadow:0 10px 40px #000a,inset 0 0 0 1px var(--line)}
+#bar{position:fixed;z-index:20;bottom:16px;left:calc(24px + var(--sw));right:calc(24px + var(--nw));width:880px;max-width:calc(100vw - 48px - var(--sw) - var(--nw));margin:0 auto;display:none;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:10px 18px;border-radius:999px;background:color-mix(in srgb,#1c1925 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 10px 40px #000a,inset 0 0 0 1px var(--line)}
 body.has-cur #bar{display:grid}
 #bar{cursor:pointer}#bar button,#bar input{cursor:pointer}
 .bm{border-radius:14px;outline-offset:2px}.bm img{transition:box-shadow .2s}
@@ -383,8 +393,8 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .stage.s-sunset{background:linear-gradient(135deg,#42275a,#734b6d)}
 .stage.s-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a)}
 .stage.s-custom{background-color:#000;background-size:cover;background-position:center}
-.stage .pc{--pcbg:rgba(14,12,21,.82);backdrop-filter:blur(14px)}
-.stage .mini{margin-top:14px;display:flex;align-items:center;gap:10px;background:rgba(14,12,21,.8);backdrop-filter:blur(14px);border-radius:999px;padding:8px 14px}
+.stage .pc{--pcbg:rgba(14,12,21,.7);backdrop-filter:blur(5px)}
+.stage .mini{margin-top:14px;display:flex;align-items:center;gap:10px;background:rgba(14,12,21,.7);backdrop-filter:blur(5px);border-radius:999px;padding:8px 14px}
 .mini i{flex:1;height:4px;border-radius:2px;background:linear-gradient(to right,var(--accent) 38%,#ffffff26 38%)}
 .mini b{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center;flex:none}
 .mini b .i{width:16px;height:16px}
@@ -598,6 +608,59 @@ html.android *{scroll-behavior:auto!important}
   body.has-np #bar{background:var(--npbg)}
  }
 }
+
+/* ===== Fixes tương tác, nền và cuộn (2026-11) ===== */
+/* Giảm blur để ảnh nền vẫn nhận diện rõ, nhưng giữ lớp phủ đủ tối cho chữ. */
+body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{
+  -webkit-backdrop-filter:blur(1.25px)!important;
+  backdrop-filter:blur(1.25px)!important;
+}
+.stage .pc{
+  --pcbg:rgba(14,12,21,.58);
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+}
+.stage .mini{
+  background:rgba(14,12,21,.58);
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+}
+/* Bảo đảm các vùng điều khiển luôn nhận pointer/touch, không bị lớp trang trí chặn. */
+button,[role="button"],#meAv,#gear,.rb,.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn{
+  pointer-events:auto;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+button,#meAv,#gear,.rb,.ni,[role="button"]{cursor:pointer}
+button:disabled{cursor:wait;opacity:.65}
+#meAv,#gear{position:relative;z-index:3}
+#top,#topChips{position:relative;z-index:4}
+#top button,#top a,#top [role="button"]{position:relative;z-index:5;pointer-events:auto}
+img,svg{ -webkit-user-drag:none; user-drag:none }
+button *,#gear *,#meAv *{pointer-events:none}
+/* Vùng cuộn có một trục dọc ổn định; tránh nội dung tràn ngang làm lệch breakpoint. */
+#center{min-width:0;min-height:0;overflow:hidden}
+#main{
+  min-width:0;min-height:0;
+  overflow-x:hidden;overflow-y:auto;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+}
+#main>*{min-width:0;max-width:100%}
+#main .sec,#main .stage,#main .set,#main .grid{min-width:0}
+@media(max-width:700px){
+  #center{height:100dvh;min-height:0}
+  #main{
+    overscroll-behavior-y:contain;
+    scrollbar-gutter:auto;
+    scroll-padding-top:8px;
+  }
+  #top{flex-shrink:0}
+  #topChips{min-width:0;max-width:100%;overscroll-behavior-x:contain}
+  #main .grid{max-width:100%;overflow-x:auto}
+}
+
 </style>
 </head>
 <body class="skin-default">
@@ -1079,7 +1142,7 @@ async function api(path,opt={}){
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
   let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); }catch(e){ throw new Error('Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)'); }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
-  if(!r.ok) throw new Error(await r.text());
+  if(!r.ok){ const detail=await r.text(); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
 }
 const isImg=a=>a&&(a.startsWith('/')||a.startsWith('https://')||a.startsWith('blob:'));
@@ -1672,10 +1735,20 @@ const pages={
     /* ---- Nhập playlist YouTube bằng link (không cần đăng nhập) ---- */
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
         if(!url){ msg.textContent='Hãy dán link playlist YouTube'; return; }
-        btn.disabled=true; msg.textContent='Đang nhập… (playlist dài có thể mất vài chục giây)';
-        try{ const x=await api('/api/yt-import/url',{json:{url}}); msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`; inp.value=''; await loadPlaylists(); }
-        catch(e){ if(e.message!=='401') msg.textContent=e.message; }
-        btn.disabled=false; };
+        btn.disabled=true; msg.textContent='Đang kiểm tra link và yêu cầu YouTube…'; msg.dataset.kind='loading';
+        try{
+          const x=await api('/api/yt-import/url',{json:{url}});
+          msg.dataset.kind='success'; msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
+          inp.value=''; await loadPlaylists();
+        }catch(e){
+          if(e.message!=='401'){
+            msg.dataset.kind='error';
+            const detail=String(e&&e.message||e).trim();
+            msg.textContent='Nhập thất bại: '+(detail||'Máy chủ không trả về nội dung lỗi.')+' (Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)';
+            console.error('[YouTube playlist import]',{url, error:e, message:detail});
+          }
+        }finally{ btn.disabled=false; }
+      };
       $('#ytUrlGo').onclick=go1; $('#ytUrl').onkeydown=e=>{ if(e.key==='Enter') go1(); }; }
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
