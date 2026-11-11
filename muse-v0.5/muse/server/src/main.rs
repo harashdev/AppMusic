@@ -2281,6 +2281,7 @@ fn yt_find<'a>(v: &'a Value, key: &str) -> Option<&'a Value> {
     }
 }
 
+#[allow(dead_code)]
 fn yt_collect_videos(v: &Value, out: &mut Vec<Value>) {
     match v {
         Value::Object(m) => {
@@ -2325,15 +2326,184 @@ async fn yt_browse(client: &reqwest::Client, body: Value) -> Result<Value, ApiEr
     r.json().await.map_err(|_| fail("YouTube trả dữ liệu lạ"))
 }
 
-// Nhập 1 playlist: body {"url":"https://www.youtube.com/playlist?list=PL...","title":"(tùy chọn)"}
+// Đổi "3:45" / "1:02:03" thành số giây (0 nếu không đọc được).
+fn yt_clock_secs(s: &str) -> u64 {
+    let mut sec = 0u64;
+    for x in s.trim().split(':') {
+        match x.trim().parse::<u64>() {
+            Ok(n) => sec = sec * 60 + n,
+            Err(_) => return 0,
+        }
+    }
+    sec
+}
+
+// Thêm 1 bài vào danh sách nhập (bỏ qua bài trùng, video đã xóa/riêng tư không có thời lượng).
+fn yt_push_track(tracks: &mut Vec<Value>, seen: &mut HashSet<String>, vid: &str, name: &str, artist: &str, secs: u64, allow_zero: bool, image: String) {
+    if tracks.len() >= MAX_PL_TRACKS || vid.len() != 11 || name.is_empty() || (secs == 0 && !allow_zero) {
+        return;
+    }
+    if !seen.insert(vid.to_string()) {
+        return;
+    }
+    let artist = artist.strip_suffix(" - Topic").unwrap_or(artist);
+    tracks.push(json!({ "src": "yt", "id": vid, "title": name, "artist": artist, "image": image, "url": "", "dur": secs, "explicit": false }));
+}
+
+// Dạng cũ của YouTube: playlistVideoRenderer.
+fn yt_push_pl_renderer(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
+    let name = yt_rtext(r.get("title"));
+    let secs: u64 = r.get("lengthSeconds").and_then(|x| x.as_str()).and_then(|x| x.parse().ok()).unwrap_or(0);
+    let artist = yt_rtext(r.get("shortBylineText"));
+    let image = r
+        .pointer("/thumbnail/thumbnails")
+        .and_then(|t| t.as_array())
+        .and_then(|t| t.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|x| x.as_str())
+        .map(|x| x.split('?').next().unwrap_or(x).to_string())
+        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+    yt_push_track(tracks, seen, vid, &name, &artist, secs, false, image);
+}
+
+// Dạng mới của YouTube: lockupViewModel (contentId = ID video).
+fn yt_push_lockup(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    let vid = r.get("contentId").and_then(|x| x.as_str()).unwrap_or("");
+    let name = r.pointer("/metadata/lockupMetadataViewModel/title/content").and_then(|x| x.as_str()).unwrap_or("");
+    let artist = r
+        .pointer("/metadata/lockupMetadataViewModel/metadata/contentMetadataViewModel/metadataRows/0/metadataParts/0/text/content")
+        .and_then(|x| x.as_str())
+        .unwrap_or("");
+    let secs = yt_find(r, "thumbnailBadgeViewModel")
+        .and_then(|b| b.get("text"))
+        .and_then(|t| t.as_str())
+        .map(yt_clock_secs)
+        .unwrap_or(0);
+    yt_push_track(tracks, seen, vid, name, artist, secs, false, format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+}
+
+fn yt_collect_playlist_tracks(v: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistVideoRenderer") {
+                yt_push_pl_renderer(r, tracks, seen);
+                return;
+            }
+            if let Some(r) = m.get("lockupViewModel") {
+                yt_push_lockup(r, tracks, seen);
+                return;
+            }
+            for x in m.values() {
+                yt_collect_playlist_tracks(x, tracks, seen);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_playlist_tracks(x, tracks, seen);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Cách 1: đọc qua InnerTube. Err(400) = YouTube báo rõ lý do (riêng tư / không tồn tại); lỗi khác thì để đi cách 2.
+async fn innertube_playlist(client: &reqwest::Client, pid: &str) -> Result<(String, Vec<Value>), ApiErr> {
+    let ctx = json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "vi", "gl": "VN" } });
+    let first = yt_browse(client, json!({ "context": ctx, "browseId": format!("VL{pid}") })).await?;
+    {
+        let s = first.to_string();
+        eprintln!(
+            "[yt-import] {pid}: InnerTube trả {} byte, playlistVideoRenderer={}, lockupViewModel={}, alerts={}",
+            s.len(),
+            s.contains("playlistVideoRenderer"),
+            s.contains("lockupViewModel"),
+            first.get("alerts").is_some()
+        );
+    }
+    if first.get("alerts").is_some() && yt_find(&first, "playlistVideoRenderer").is_none() && yt_find(&first, "lockupViewModel").is_none() {
+        let msg = yt_find(&first, "alertWithButtonRenderer")
+            .or_else(|| yt_find(&first, "alertRenderer"))
+            .map(|a| yt_rtext(a.get("text")))
+            .unwrap_or_default();
+        return Err(bad(if msg.is_empty() { "Không đọc được playlist (riêng tư hoặc không tồn tại)" } else { &msg }));
+    }
+    let title = yt_find(&first, "playlistHeaderRenderer")
+        .map(|h| yt_rtext(h.get("title")))
+        .filter(|t| !t.is_empty())
+        .or_else(|| yt_find(&first, "playlistMetadataRenderer").and_then(|m| m.get("title")).and_then(|t| t.as_str()).map(|t| t.to_string()))
+        .unwrap_or_default();
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut cur = first;
+    for _page in 0..(MAX_PL_TRACKS / 90 + 2) {
+        yt_collect_playlist_tracks(&cur, &mut tracks, &mut seen);
+        if tracks.len() >= MAX_PL_TRACKS {
+            break;
+        }
+        let token = yt_find(&cur, "continuationCommand").and_then(|c| c.get("token")).and_then(|t| t.as_str()).map(|t| t.to_string());
+        let Some(token) = token else { break };
+        match yt_browse(client, json!({ "context": ctx, "continuation": token })).await {
+            Ok(v) => cur = v,
+            Err(_) => break,
+        }
+    }
+    Ok((title, tracks))
+}
+
+// Cách 2 (dự phòng): dùng yt-dlp (đã có sẵn cho phần phát nhạc) để liệt kê playlist, không cần đăng nhập/cookies.
+async fn ytdlp_playlist(pid: &str, use_proxy: bool) -> Result<(String, Vec<Value>), String> {
+    let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
+    let mut cmd = tokio::process::Command::new(&bin);
+    cmd.arg("--flat-playlist").arg("-J").arg("--no-warnings").arg("--yes-playlist");
+    if use_proxy {
+        if let Ok(p) = std::env::var("YT_PROXY") {
+            let p = p.trim().to_string();
+            if !p.is_empty() {
+                cmd.arg("--proxy").arg(p);
+            }
+        }
+    }
+    cmd.arg(format!("https://www.youtube.com/playlist?list={pid}"));
+    cmd.kill_on_drop(true);
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    let out = tokio::time::timeout(Duration::from_secs(90), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp: {line}"));
+    }
+    let v: Value = serde_json::from_slice(&out.stdout).map_err(|_| "yt-dlp: dữ liệu trả về không đọc được".to_string())?;
+    let title = v.get("title").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let entries = v.get("entries").and_then(|x| x.as_array()).cloned().unwrap_or_default();
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for e in entries {
+        let vid = e.get("id").and_then(|x| x.as_str()).unwrap_or("");
+        let name = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+        if name == "[Private video]" || name == "[Deleted video]" {
+            continue;
+        }
+        let secs = e.get("duration").and_then(|x| x.as_f64()).unwrap_or(0.0).max(0.0) as u64;
+        let artist = e.get("channel").and_then(|x| x.as_str()).filter(|s| !s.is_empty()).or_else(|| e.get("uploader").and_then(|x| x.as_str())).unwrap_or("");
+        yt_push_track(&mut tracks, &mut seen, vid, name, artist, secs, true, format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+    }
+    Ok((title, tracks))
+}
+
+// Nhập 1 playlist: body {"url":"https://www.youtube.com/playlist?list=PL...","title":"(tùy chọn)"} (hoặc "urls": lấy link đầu tiên)
 async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
-       let raw = body
-       .get("url")
-       .and_then(|x| x.as_str())
-       .or_else(|| body.get("urls").and_then(|x| x.as_str()))
-       .and_then(|s| s.lines().map(|l| l.trim()).find(|l| !l.is_empty()))
-       .unwrap_or("");
+    let raw = body
+        .get("url")
+        .and_then(|x| x.as_str())
+        .or_else(|| body.get("urls").and_then(|x| x.as_str()))
+        .and_then(|s| s.lines().map(|l| l.trim()).find(|l| !l.is_empty()))
+        .unwrap_or("");
     let Some(pid) = yt_playlist_id(raw) else {
         return Err(bad("Link playlist không hợp lệ. Hãy dán link dạng youtube.com/playlist?list=..."));
     };
@@ -2342,68 +2512,46 @@ async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body
     }
     let (_, use_proxy) = user_net_prefs(&st, u.id);
     let client = pick_client(&st, use_proxy);
-    let ctx = json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "vi", "gl": "VN" } });
 
-    let first = yt_browse(&client, json!({ "context": ctx, "browseId": format!("VL{pid}") })).await?;
-    if first.get("alerts").is_some() && yt_find(&first, "playlistVideoRenderer").is_none() {
-        let msg = yt_find(&first, "alertWithButtonRenderer")
-            .or_else(|| yt_find(&first, "alertRenderer"))
-            .map(|a| yt_rtext(a.get("text")))
-            .unwrap_or_default();
-        return Err(bad(if msg.is_empty() { "Không đọc được playlist (riêng tư hoặc không tồn tại)" } else { &msg }));
+    let mut note = String::new();
+    let (mut title, mut tracks) = match innertube_playlist(&client, &pid).await {
+        Ok(x) => x,
+        Err(e) if e.0 == StatusCode::BAD_REQUEST => return Err(e),
+        Err(e) => {
+            eprintln!("[yt-import] {pid}: InnerTube lỗi: {}", e.1);
+            note = e.1.clone();
+            (String::new(), Vec::new())
+        }
+    };
+    if tracks.is_empty() {
+        eprintln!("[yt-import] {pid}: InnerTube không có bài nào, thử yt-dlp...");
+        match ytdlp_playlist(&pid, use_proxy).await {
+            Ok((t, tr)) => {
+                if title.is_empty() {
+                    title = t;
+                }
+                tracks = tr;
+            }
+            Err(e) => {
+                eprintln!("[yt-import] {pid}: {e}");
+                note = e;
+            }
+        }
     }
-    let mut title = body.get("title").and_then(|x| x.as_str()).unwrap_or("").trim().to_string();
-    if title.is_empty() {
-        title = yt_find(&first, "playlistHeaderRenderer")
-            .map(|h| yt_rtext(h.get("title")))
-            .filter(|t| !t.is_empty())
-            .or_else(|| yt_find(&first, "playlistMetadataRenderer").and_then(|m| m.get("title")).and_then(|t| t.as_str()).map(|t| t.to_string()))
-            .unwrap_or_default();
+    if tracks.is_empty() {
+        let extra = if note.is_empty() { String::new() } else { format!(" [{note}]") };
+        return Err(bad(&format!(
+            "Không đọc được bài nào từ playlist này. Hãy mở link trong cửa sổ ẩn danh để chắc chắn playlist ở chế độ Công khai hoặc Không công khai và có video.{extra}"
+        )));
+    }
+    if let Some(t) = body.get("title").and_then(|x| x.as_str()).map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        title = t.to_string();
     }
     if title.is_empty() {
         title = "Playlist YouTube".to_string();
     }
     let title: String = title.chars().take(100).collect();
 
-    let mut tracks: Vec<Value> = Vec::new();
-    let mut seen: HashSet<String> = HashSet::new();
-    let mut cur = first;
-    for _page in 0..(MAX_PL_TRACKS / 90 + 2) {
-        let mut vids = Vec::new();
-        yt_collect_videos(&cur, &mut vids);
-        for r in vids {
-            let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
-            let name = yt_rtext(r.get("title"));
-            let secs: u64 = r.get("lengthSeconds").and_then(|x| x.as_str()).and_then(|x| x.parse().ok()).unwrap_or(0);
-            // Video đã xóa / riêng tư không có thời lượng
-            if vid.len() != 11 || name.is_empty() || secs == 0 || !seen.insert(vid.to_string()) {
-                continue;
-            }
-            let artist = yt_rtext(r.get("shortBylineText"));
-            let artist = artist.strip_suffix(" - Topic").unwrap_or(&artist).to_string();
-            let image = r
-                .pointer("/thumbnail/thumbnails")
-                .and_then(|t| t.as_array())
-                .and_then(|t| t.last())
-                .and_then(|t| t.get("url"))
-                .and_then(|x| x.as_str())
-                .map(|x| x.split('?').next().unwrap_or(x).to_string())
-                .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
-            tracks.push(json!({ "src": "yt", "id": vid, "title": name, "artist": artist, "image": image, "url": "", "dur": secs, "explicit": false }));
-            if tracks.len() >= MAX_PL_TRACKS {
-                break;
-            }
-        }
-        if tracks.len() >= MAX_PL_TRACKS {
-            break;
-        }
-        let token = yt_find(&cur, "continuationCommand").and_then(|c| c.get("token")).and_then(|t| t.as_str()).map(|t| t.to_string());
-        let Some(token) = token else { break };
-        cur = yt_browse(&client, json!({ "context": ctx, "continuation": token })).await?;
-    }
-    if tracks.is_empty() {
-        return Err(bad("Playlist trống hoặc ở chế độ riêng tư. Hãy đặt playlist thành Công khai hoặc Không công khai rồi thử lại."));
-    }
     let db = st.db.lock().unwrap();
     let (np, nt) = insert_playlists(&db, u.id, &[json!({ "name": title, "tracks": tracks })])?;
     Ok(Json(json!({ "playlists": np, "tracks": nt, "name": title })))
