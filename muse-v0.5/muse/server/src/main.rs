@@ -323,6 +323,7 @@ async fn main() {
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
         .route("/api/yt/search", get(yt_search))
+        .route("/api/yt/browse", get(yt_browse_music))
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -1455,6 +1456,7 @@ async fn serve_icon(State(st): State<AppState>) -> Response {
 #[derive(Deserialize)]
 struct YtQ {
     q: Option<String>,
+    f: Option<String>,
 }
 
 fn yt_text(v: &Value) -> String {
@@ -1524,6 +1526,116 @@ fn yt_track(item: &Value) -> Option<Value> {
     Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit }))
 }
 
+// Mục không phải bài hát trong kết quả tìm kiếm: album, nghệ sĩ, danh sách phát, podcast.
+fn yt_entity(item: &Value) -> Option<Value> {
+    let be = item.pointer("/navigationEndpoint/browseEndpoint")?;
+    let id = be.get("browseId")?.as_str()?;
+    let pt = be
+        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+        .and_then(|x| x.as_str())
+        .unwrap_or("");
+    let kind = match pt {
+        "MUSIC_PAGE_TYPE_ALBUM" => "album",
+        "MUSIC_PAGE_TYPE_ARTIST" | "MUSIC_PAGE_TYPE_USER_CHANNEL" => "artist",
+        "MUSIC_PAGE_TYPE_PLAYLIST" => "playlist",
+        "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE" => "podcast",
+        _ => return None,
+    };
+    let cols = item.get("flexColumns")?.as_array()?;
+    let col = |i: usize| -> String {
+        cols.get(i)
+            .and_then(|c| c.pointer("/musicResponsiveListItemFlexColumnRenderer/text"))
+            .map(yt_text)
+            .unwrap_or_default()
+    };
+    let title = col(0);
+    if title.is_empty() {
+        return None;
+    }
+    let image = item
+        .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string();
+    Some(json!({ "kind": kind, "id": id, "title": title, "sub": col(1), "image": image }))
+}
+
+// Tập cả bài hát lẫn mục khác từ một kết quả tìm kiếm (giữ nguyên thứ tự YouTube Music trả về).
+fn yt_collect_all(v: &Value, tracks: &mut Vec<Value>, ents: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                if let Some(t) = yt_track(item) {
+                    tracks.push(t);
+                } else if let Some(e) = yt_entity(item) {
+                    ents.push(e);
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_all(x, tracks, ents);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_all(x, tracks, ents);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Tập tập podcast (dạng musicMultiRowListItemRenderer) ở trang chương trình podcast.
+fn yt_collect_episodes(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(it) = m.get("musicMultiRowListItemRenderer") {
+                let id = it.pointer("/onTap/watchEndpoint/videoId").and_then(|x| x.as_str()).unwrap_or("");
+                if id.len() == 11 {
+                    let title = it.get("title").map(yt_text).unwrap_or_default();
+                    let artist = it.get("subtitle").map(yt_text).unwrap_or_default();
+                    let image = it
+                        .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
+                        .and_then(|a| a.as_array())
+                        .and_then(|a| a.last())
+                        .and_then(|t| t.get("url"))
+                        .and_then(|u| u.as_str())
+                        .map(|x| x.to_string())
+                        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg"));
+                    out.push(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": 0, "explicit": false }));
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_episodes(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_episodes(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Tham số bộ lọc của YouTube Music (giống ytmusicapi). "all" = không lọc.
+fn yt_filter_params(f: &str) -> Option<&'static str> {
+    match f {
+        "songs" => Some("EgWKAQIIAWoMEA4QChADEAQQCRAF"),
+        "videos" => Some("EgWKAQIQAWoMEA4QChADEAQQCRAF"),
+        "albums" => Some("EgWKAQIYAWoMEA4QChADEAQQCRAF"),
+        "artists" => Some("EgWKAQIgAWoMEA4QChADEAQQCRAF"),
+        "podcasts" => Some("EgWKAQJQAWoMEA4QChADEAQQCRAF"),
+        "playlists" => Some("EgeKAQQoAEABagwQDhAKEAMQBBAJEAU="),
+        "featured" => Some("EgeKAQQoADgBagwQDhAKEAMQBBAJEAU="),
+        _ => None,
+    }
+}
+
 fn yt_collect(v: &Value, out: &mut Vec<Value>) {
     match v {
         Value::Object(m) => {
@@ -1575,18 +1687,27 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
     }
     let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
     // Cache 10 phút: trang chủ mở lại là có ngay, không phải chờ YouTube Music.
-    let ckey = format!("{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8);
+    // Có tham số f (all/songs/videos/albums/artists/playlists/featured/podcasts) thì trả {tracks, entities}; không có thì trả mảng bài hát như cũ.
+    let filt: Option<String> = q.f.as_deref().map(|x| x.trim().to_lowercase()).filter(|x| !x.is_empty());
+    let ckey = format!("{}|{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8, filt.clone().unwrap_or_default());
     if let Some((t, v)) = search_cache().lock().unwrap().get(&ckey) {
         if now_secs().saturating_sub(*t) < 600 {
             return Ok(Json(v.clone()));
         }
     }
-    let body = json!({
+    let mut body = json!({
         "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
         "query": text,
-        // Bộ lọc "Songs" của YouTube Music
-        "params": "EgWKAQIIAWoKEAkQBRAKEAMQBA=="
     });
+    match filt.as_deref() {
+        // Không có f: bộ lọc "Songs" như trước đây
+        None => body["params"] = json!("EgWKAQIIAWoKEAkQBRAKEAMQBA=="),
+        Some(f) => {
+            if let Some(p) = yt_filter_params(f) {
+                body["params"] = json!(p);
+            }
+        }
+    }
     let resp = client
         .post("https://music.youtube.com/youtubei/v1/search?prettyPrint=false")
         .header("origin", "https://music.youtube.com")
@@ -1600,13 +1721,28 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
     }
     let v: Value = resp.json().await.map_err(|_| fail("YouTube Music trả dữ liệu lạ"))?;
     let mut out: Vec<Value> = Vec::new();
-    yt_collect(&v, &mut out);
+    let mut ents: Vec<Value> = Vec::new();
+    if filt.is_some() {
+        yt_collect_all(&v, &mut out, &mut ents);
+    } else {
+        yt_collect(&v, &mut out);
+    }
     if !allow_explicit {
         out.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
     }
     out.truncate(30);
-    let val = Value::Array(out);
-    if !val.as_array().map(|a| a.is_empty()).unwrap_or(true) {
+    ents.truncate(30);
+    let val = if filt.is_some() {
+        json!({ "tracks": out, "entities": ents })
+    } else {
+        Value::Array(out)
+    };
+    let non_empty = match &val {
+        Value::Array(a) => !a.is_empty(),
+        Value::Object(o) => o.values().any(|x| x.as_array().map(|a| !a.is_empty()).unwrap_or(false)),
+        _ => false,
+    };
+    if non_empty {
         let mut c = search_cache().lock().unwrap();
         if c.len() > 300 {
             c.clear();
@@ -1619,6 +1755,95 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
 static SEARCH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
 fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     SEARCH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Mở một album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm: trả {title, sub, image, tracks}.
+#[derive(Deserialize)]
+struct YtBrowseQ {
+    id: Option<String>,
+    kind: Option<String>,
+}
+
+async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtBrowseQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id),
+        Err(_) => (false, false),
+    };
+    let client = pick_client(&st, use_proxy);
+    let id: String = q.id.unwrap_or_default().trim().chars().take(80).collect();
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err(bad("Mục không hợp lệ"));
+    }
+    let kind = q.kind.unwrap_or_default();
+    let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    // Danh sách phát thường: đọc bằng đường InnerTube sẵn có của phần nhập playlist.
+    if kind == "playlist" {
+        let pid = id.strip_prefix("VL").unwrap_or(&id).to_string();
+        let (title, mut tracks) = innertube_playlist(&client, &pid).await?;
+        if !allow_explicit {
+            tracks.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+        }
+        return Ok(Json(json!({ "title": title, "sub": "Danh sách phát", "image": "", "tracks": tracks })));
+    }
+    let body = json!({
+        "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
+        "browseId": id,
+    });
+    let resp = client
+        .post("https://music.youtube.com/youtubei/v1/browse?prettyPrint=false")
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(25))
+        .send()
+        .await
+        .map_err(|_| fail("Không kết nối được YouTube Music"))?;
+    if !resp.status().is_success() {
+        return Err(fail("YouTube Music trả về lỗi"));
+    }
+    let v: Value = resp.json().await.map_err(|_| fail("YouTube Music trả dữ liệu lạ"))?;
+    let header = ["musicResponsiveHeaderRenderer", "musicDetailHeaderRenderer", "musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer", "musicEditablePlaylistDetailHeaderRenderer"]
+        .iter()
+        .find_map(|k| yt_find(&v, k));
+    let title = header.and_then(|h| h.get("title")).map(yt_text).unwrap_or_default();
+    let strap = header
+        .and_then(|h| h.get("straplineTextOne").or_else(|| h.get("subtitle")))
+        .map(yt_text)
+        .unwrap_or_default();
+    let image = header
+        .and_then(|h| yt_find(h, "thumbnails"))
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string();
+    let mut tracks: Vec<Value> = Vec::new();
+    yt_collect(&v, &mut tracks);
+    if tracks.is_empty() || kind == "podcast" {
+        yt_collect_episodes(&v, &mut tracks);
+    }
+    let is_album = kind == "album";
+    let artist_hdr = if kind == "artist" { title.clone() } else { strap.split(" \u{2022} ").next().unwrap_or("").trim().to_string() };
+    for t in tracks.iter_mut() {
+        let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        // Trang album: cột 2 thường là lượt nghe ("1.2M plays"), không phải tên nghệ sĩ.
+        if a.is_empty() || a.to_lowercase().contains("plays") {
+            t["artist"] = json!(artist_hdr);
+        }
+        if is_album && !image.is_empty() {
+            t["image"] = json!(image);
+        }
+    }
+    let mut seen: HashSet<String> = HashSet::new();
+    tracks.retain(|t| seen.insert(t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string()));
+    if !allow_explicit {
+        tracks.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+    }
+    if tracks.is_empty() {
+        return Err(bad("Không mở được mục này"));
+    }
+    Ok(Json(json!({ "title": title, "sub": strap, "image": image, "tracks": tracks })))
 }
 
 // ===== Luồng âm thanh YouTube (để áp dụng Bộ chỉnh âm / Độ trễ / Độ vang bằng Web Audio) =====
