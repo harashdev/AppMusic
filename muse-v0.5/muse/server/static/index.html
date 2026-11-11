@@ -1735,9 +1735,12 @@ const pages={
     /* ---- Nhập playlist YouTube bằng link (không cần đăng nhập) ---- */
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
         if(!url){ msg.textContent='Hãy dán link playlist YouTube'; return; }
+        const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
+        if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
+        if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
         btn.disabled=true; msg.textContent='Đang kiểm tra link và yêu cầu YouTube…'; msg.dataset.kind='loading';
         try{
-          const x=await api('/api/yt-import/url',{json:{url}});
+          const x=await api('/api/yt-import/url',{json:{url,urls:url}});
           msg.dataset.kind='success'; msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
           inp.value=''; await loadPlaylists();
         }catch(e){
