@@ -1227,10 +1227,12 @@ document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,e
 function setIc(el,name,fill){ const s=name+(fill?'f':''); if(el.dataset.s===s) return; el.dataset.s=s; el.innerHTML=ic(name,fill?'fill':''); }
 
 /* ===== Ảnh bìa ===== */
-const thumb=(u,s=300)=>{ u=String(u||'');
+/* Màn hình điện thoại (AMOLED, mật độ điểm ảnh 2–3x) cần ảnh lớn gấp 2–3 lần kích thước hiển thị, không thì bị mờ / vỡ hạt */
+const thumb=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
   if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
   const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s>400?'hq720':'mqdefault'}.jpg`;
   return u; };
+document.addEventListener('error',e=>{ const i=e.target; if(i&&i.tagName==='IMG'&&/\/hq720\.jpg/.test(i.src)){ i.src=i.src.replace('hq720','mqdefault'); } },true);   /* video cũ không có bản hq720 */
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
 
