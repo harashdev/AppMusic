@@ -2131,10 +2131,14 @@ pages.library=function(m){
     <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
     <div class="lcH"><span>Bạn bè</span><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
   /* ảnh bìa lấy bản lớn (300–500px) để không bị vỡ hạt trên màn hình nét cao */
-  const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=[...new Set((list||[]).map(t=>t&&t.image).filter(Boolean))].slice(0,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="lazy">`).join(''); };
-  api('/api/favorites').then(l=>{ if(!Array.isArray(l)) return; art('favs',l,1); const e=m.querySelector('[data-sub="favs"]'); if(e) e.textContent=l.length+' bài hát'; }).catch(()=>{});
-  api('/api/history').then(l=>{ if(Array.isArray(l)) art('history',l,2); }).catch(()=>{});
-  try{ dlLoad(); art('downloads',dlItems.filter(x=>x.status==='done').map(x=>x.track),2); }catch{}
+  /* mỗi thẻ lấy ngẫu nhiên 1–2 ảnh bìa từ bài của bạn (mỗi lần mở lại đổi), dùng bản lớn để không vỡ hạt */
+  const pool=[];
+  const pick=(list,n)=>{ const seen=new Set(), u=[]; (list||[]).map(t=>t&&t.image).filter(Boolean).sort(()=>Math.random()-.5).forEach(x=>{ if(u.length<n&&!seen.has(x)){ seen.add(x); u.push(x); } }); return u; };
+  const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=pick(list,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="lazy">`).join(''); };
+  const mix=l=>{ pool.push(...(l||[])); art('charts',pool,2); art('together',pool,2); };
+  api('/api/favorites').then(l=>{ if(!Array.isArray(l)) return; art('favs',l,1); mix(l); const e=m.querySelector('[data-sub="favs"]'); if(e) e.textContent=l.length+' bài hát'; }).catch(()=>{});
+  api('/api/history').then(l=>{ if(Array.isArray(l)){ art('history',l,2); mix(l); } }).catch(()=>{});
+  try{ dlLoad(); const d=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); art('downloads',d,2); mix(d); }catch{}
   m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   plCoverFill();
