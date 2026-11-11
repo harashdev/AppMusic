@@ -859,7 +859,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Đóng gói app máy tính':'Desktop app packaging','Thành phần app Android':'Android app components',
     'Web server (Rust)':'Web server (Rust)',
     'Tất cả':'All','Bài hát':'Songs','Nghệ sĩ':'Artists','Danh sách phát nổi bật':'Featured playlists','Quay lại':'Back','Đang tải…':'Loading…','Đóng':'Close',
-    'Cần đăng nhập BBeat':'Sign in to BBeat required','Cần tải app BBeat':'BBeat app required','Cần đăng nhập và tải app BBeat':'Sign in and install the BBeat app',
+    'Cần đăng nhập':'Sign in required','Cần đăng nhập BBeat':'Sign in to BBeat required','Cần tải app BBeat':'BBeat app required','Cần đăng nhập và tải app BBeat':'Sign in and install the BBeat app',
     'Danh sách phát':'Playlists','Podcast':'Podcast',
     'Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0':'Inspiration and lyrics source – © maxrave-dev, GPL-3.0',
     'Cách lấy dữ liệu YouTube Music (InnerTube) mà SimpMusic cũng tham khảo':'How to read YouTube Music data (InnerTube), also credited by SimpMusic',
@@ -1123,7 +1123,16 @@ const ABOUT={
 const bbPad=n=>String(n).padStart(2,'0');
 const bbFmt=ms=>{ const d=new Date(+ms); return d.getFullYear()+'-'+bbPad(d.getMonth()+1)+'-'+bbPad(d.getDate())+' '+bbPad(d.getHours())+':'+bbPad(d.getMinutes())+':'+bbPad(d.getSeconds()); };
 const bbCmp=(a,b)=>{ const x=String(a).split('.').map(n=>parseInt(n)||0), y=String(b).split('.').map(n=>parseInt(n)||0); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0?1:-1; } return 0; };
-function openExt(u){ if(!u) return; if(window.ANDROID_APP) location.href=u; else window.open(u,'_blank','noopener'); }
+function openExt(u){
+  if(!u) return;
+  if(window.ANDROID_APP){ location.href=u; return; }
+  const T=window.__TAURI__;
+  if(T&&T.core){ /* app desktop (Tauri): window.open không mở được trình duyệt, phải nhờ lệnh phía Rust */
+    T.core.invoke('open_url',{url:u}).catch(()=>T.core.invoke('plugin:opener|open_url',{url:u}).catch(()=>{ try{ window.open(u,'_blank','noopener'); }catch{} }));
+    return;
+  }
+  window.open(u,'_blank','noopener');
+}
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
 let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=null, playing=false, regMode=false;
 let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30}, fadeMul=1, fadeInAt=0;
@@ -1775,8 +1784,7 @@ const pages={
       <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
     </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
-      ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập BBeat</span>','dis')}
-      ${row('Kết nối Discord','Kết nối với ứng dụng Discord','<span class="sbadge">Cần tải app BBeat</span>','dis')}
+      ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập</span>','dis')}
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
         ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
         :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
