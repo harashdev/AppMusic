@@ -1382,7 +1382,7 @@ const pages={
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
     const secs=sets[ci][1];
-    m.innerHTML=(ci===0?'<div id="hs"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('')+'<p class="sub" style="margin-top:28px">Nhạc từ YouTube Music, phát bằng player của YouTube.</p>';
+    m.innerHTML=(ci===0?'<div id="hs"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('');
     if(ci===0){
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
         const items=h.slice(0,18), k=reg(items,'Nghe gần đây');
