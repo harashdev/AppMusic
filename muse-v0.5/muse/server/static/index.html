@@ -992,7 +992,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Tối đa 50 playlist':'Up to 50 playlists','Không tìm thấy playlist':'Playlist not found','Ảnh nền tối đa 10MB':'Background image must be 10MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP':'Only PNG, JPG, GIF or WEBP images',
     'Banner tối đa 10MB':'Banner must be 10MB or less','Chỉ admin mới đổi được icon':'Only admins can change the icon','Icon phải là file PNG, tối đa 2MB':'The icon must be a PNG file, max 2MB',
     'Thiếu từ khoá tìm kiếm':'Missing search keyword','Không kết nối được YouTube Music':'Couldn’t connect to YouTube Music','YouTube Music trả về lỗi':'YouTube Music returned an error','YouTube Music trả dữ liệu lạ':'YouTube Music returned unexpected data',
-    'Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired','Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại':'Not signed in to Google or the session expired – please sign in again',
+    'Không kết nối được':'Couldn’t connect','Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired','Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại':'Not signed in to Google or the session expired – please sign in again',
     'Server chưa cấu hình đăng nhập Google':'The server isn’t set up for Google sign-in','Không kết nối được YouTube':'Couldn’t connect to YouTube','YouTube từ chối yêu cầu':'YouTube rejected the request',
     'Chưa chọn playlist nào':'No playlist selected','Playlist không hợp lệ':'Invalid playlist','Server chưa cấu hình đăng nhập Discord':'The server isn’t set up for Discord sign-in',
     'Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence':'Unlink, then sign in with Discord again to grant Rich Presence permission',
@@ -1721,6 +1721,12 @@ const pages={
     $('#bgFile').onchange=e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); if(f){ if(D.bgPrev) URL.revokeObjectURL(D.bgPrev); D.bgFile=f; D.bgPrev=URL.createObjectURL(f); refresh(); } e.target.value=''; };
     $('#bgUrl').oninput=e=>{ D.bgUrl=e.target.value.trim(); D.bgFile=null; if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; } refresh(); };
     $('#avBtn').onclick=()=>$('#avFile').click();
+    if(guest){ /* tài khoản khách: bấm avatar/banner thì chuyển sang đăng nhập, không cho chỉnh sửa */
+      ['#banBtn','#avBtn'].forEach(sel=>{ const el=$(sel); if(!el) return;
+        el.addEventListener('click',e=>{ e.stopImmediatePropagation(); e.preventDefault(); goLogin(); },true);
+        el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.stopImmediatePropagation(); e.preventDefault(); goLogin(); } },true); });
+      const bd=$('#banDel'); if(bd) bd.style.display='none';
+    }
     $('#avBtn').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#avFile').click(); } };
     $('#avFile').onchange=async e=>{ const f=pickFile(e.target.files[0],3*1048576,$('#profMsg')); e.target.value=''; if(!f) return;
       const url=URL.createObjectURL(f);
@@ -2289,7 +2295,7 @@ audYt.addEventListener('error',()=>{
     return why+real;
   }).then(why=>{
     console.warn('Luồng âm thanh lỗi:',why);
-    notify('Không lấy được luồng âm thanh ('+String(why).slice(0,420)+') – chuyển sang player YouTube');
+    notify('Không kết nối được');
   });
   loadTrack(t,pos,was);
 });
