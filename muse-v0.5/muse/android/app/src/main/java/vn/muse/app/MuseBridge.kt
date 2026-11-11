@@ -102,6 +102,15 @@ class MuseBridge(private val ctx: Context) {
     }
 
     // ---- Discord Social SDK (Rich Presence không cần app Discord) ----
+    /** Chia sẻ bài hát: mở bảng chia sẻ của Android (Zalo, Messenger, Telegram...). Trả false nếu không mở được. */
+    @JavascriptInterface
+    fun share(text: String): Boolean = try {
+        val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }
+        val chooser = Intent.createChooser(send, null).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        ctx.startActivity(chooser)
+        true
+    } catch (e: Exception) { false }
+
     @JavascriptInterface
     fun sdkAvailable(): Boolean = MuseSdk.available
 
