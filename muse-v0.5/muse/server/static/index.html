@@ -2489,7 +2489,7 @@ async function dlRun(it){
 pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><small>${esc(me.display_name||'')}</small><h2>Tải xuống</h2>
-    <div class="hb"><span class="dlfmt">Định dạng:</span><button class="chip ${dlFmt==='wav'?'on':''}" data-fmt="wav">WAV</button><button class="chip ${dlFmt==='orig'?'on':''}" data-fmt="orig">Gốc (m4a / webm)</button>
+    <div class="hb"><button class="chip ${dlFmt==='wav'?'on':''}" data-fmt="wav">WAV</button><button class="chip ${dlFmt==='orig'?'on':''}" data-fmt="orig">Gốc (m4a / webm)</button>
     <button class="out" id="dlClear">Xoá danh sách</button></div></div><div id="dlList"></div>`;
   dlRender();
   m.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{ dlFmt=b.dataset.fmt==='orig'?'orig':'wav'; LS.set('muse_dlfmt',dlFmt); m.querySelectorAll('[data-fmt]').forEach(x=>x.classList.toggle('on',x===b)); });
