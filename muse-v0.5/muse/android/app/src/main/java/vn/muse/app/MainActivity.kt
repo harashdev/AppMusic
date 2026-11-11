@@ -34,6 +34,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 
 /**
  * Muse cho Android = đúng giao diện web của server (giống app máy tính), đặt trong WebView.
@@ -55,6 +59,43 @@ class MainActivity : ComponentActivity() {
     private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         fileCb?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(r.resultCode, r.data))
         fileCb = null
+    }
+
+    // Bản sao giao diện web (HTML) lưu trong máy: khi không kết nối được server, vẫn mở app được để nghe các bài đã tải.
+    // Nạp bằng loadDataWithBaseURL với địa chỉ server nên dùng chung localStorage / IndexedDB với bản online.
+    private val shellFile by lazy { File(filesDir, "shell.html") }
+    private var lastShellFetch = 0L
+
+    private fun cacheShell() {
+        val now = System.currentTimeMillis()
+        if (now - lastShellFetch < 6 * 3600_000L && shellFile.exists()) return
+        val base = serverUrl()
+        if (base.isBlank()) return
+        lastShellFetch = now
+        thread(name = "muse-shell") {
+            try {
+                val c = URL("$base/").openConnection() as HttpURLConnection
+                c.connectTimeout = 8000; c.readTimeout = 8000
+                c.setRequestProperty("Accept", "text/html")
+                if (c.responseCode == 200) {
+                    val html = c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    if (html.contains("<title>BBeat")) shellFile.writeText(html, Charsets.UTF_8)
+                }
+                c.disconnect()
+            } catch (e: Exception) { lastShellFetch = 0L /* thử lại lần sau */ }
+        }
+    }
+
+    /** true nếu đã nạp được bản lưu sẵn. */
+    private fun loadCachedShell(): Boolean {
+        if (!shellFile.exists()) return false
+        return try {
+            val base = serverUrl() + "/"
+            errorBox.visibility = View.GONE
+            web.visibility = View.VISIBLE
+            web.loadDataWithBaseURL(base, shellFile.readText(Charsets.UTF_8), "text/html", "UTF-8", base)
+            true
+        } catch (e: Exception) { false }
     }
 
     private fun serverUrl(): String =
@@ -165,7 +206,10 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-                if (request.isForMainFrame) showError("Không kết nối được tới\n${serverUrl()}\n\n(${error.description})")
+                if (request.isForMainFrame) {
+                    if (loadCachedShell()) return   // offline: mở giao diện đã lưu, web tự chuyển sang danh sách bài đã tải
+                    showError("Không kết nối được tới\n${serverUrl()}\n\n(${error.description})")
+                }
             }
 
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
@@ -181,6 +225,7 @@ class MainActivity : ComponentActivity() {
 
             override fun onPageFinished(view: WebView, url: String?) {
                 if (errorBox.visibility != View.VISIBLE) web.visibility = View.VISIBLE
+                if (url != null && url.startsWith(serverUrl())) cacheShell()
             }
         }
     }
