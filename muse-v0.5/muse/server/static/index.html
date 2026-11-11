@@ -1323,10 +1323,18 @@ const ytId=v=>{v=v.trim();const m=v.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([
 const cardHtml=(t,k,i)=>`<div class="card ${isWide(t)?'wide':''}" data-l="${k}" data-i="${i}" data-tk="${esc(key(t))}" tabindex="0"><div class="cvw"><img src="${esc(thumb(t.image,isWide(t)?300:360))}" loading="lazy" alt=""><button class="pl" data-a="play" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(t.title)}</div><div class="ca">${esc(t.artist)}</div></div>`;
 const gridHtml=(list,name)=>{const k=reg(list,name);return `<div class="grid">${list.map((t,i)=>cardHtml(t,k,i)).join('')}</div>`};
 const skel=n=>`<div class="grid">${'<div class="card sk"><div class="cvw"></div><div class="ct">&nbsp;</div></div>'.repeat(n)}</div>`;
+/* Luôn đủ 4 khung: >=4 ảnh thì lấy 4 ảnh đầu; 3 ảnh -> lặp ảnh đầu; 2 ảnh -> xếp so le; 1 ảnh -> 1 ảnh lớn */
+function fill4(im){
+  const n=im.length;
+  if(n>=4) return im.slice(0,4);
+  if(n===3) return [im[0],im[1],im[2],im[0]];
+  if(n===2) return [im[0],im[1],im[1],im[0]];
+  return im;
+}
 function collage(list){
-  const im=list.filter(t=>t.image).slice(0,4);
-  if(im.length>=4) return `<div class="collage">${im.map(t=>`<img src="${esc(thumb(t.image,200))}" alt="">`).join('')}</div>`;
-  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0].image,400))}" alt=""></div>`;
+  const im=list.filter(t=>t.image).map(t=>t.image), f=fill4(im);
+  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,200))}" alt="">`).join('')}</div>`;
+  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],400))}" alt=""></div>`;
   return `<div class="collage one">${ic('note','lg')}</div>`;
 }
 function tracksHtml(list,inPl,name){
@@ -1824,6 +1832,7 @@ pages.library=function(m){
     <div class="sh" style="margin-top:22px"><h3>Bạn bè</h3><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
   m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
+  plCoverFill();
   $('#libNew').onclick=()=>$('#newPl').click();
   $('#libFrGo').onclick=()=>go('friends');
   api('/api/friends').then(list=>{
@@ -1878,13 +1887,24 @@ async function loadPlaylists(){
   playlists.forEach(p=>{ const d=document.createElement('div'); d.className='li'; d.tabIndex=0; d.dataset.pl=p.id;
     d.innerHTML=`<div class="tile">${plCover(p)}</div><div class="meta"><b>${esc(p.name)}</b><span>Danh sách phát · ${p.count} bài hát</span></div>`;
     d.onclick=()=>go('playlist',p.id); d.onkeydown=e=>{ if(e.key==='Enter') d.click(); }; box.appendChild(d); });
-  filterLib(); if(S.offline_pl&&navigator.onLine) cachePlaylists();
+  filterLib(); plCoverFill(); if(S.offline_pl&&navigator.onLine) cachePlaylists();
 }
 function plCover(p){
-  const im=(p.covers||[]).filter(Boolean);
-  if(im.length>=4) return `<div class="collage">${im.slice(0,4).map(u=>`<img src="${esc(thumb(u,96))}" alt="" loading="lazy">`).join('')}</div>`;
+  const im=(p.covers||[]).filter(Boolean), f=fill4(im);
+  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,96))}" alt="" loading="lazy">`).join('')}</div>`;
   if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],96))}" alt="" loading="lazy"></div>`;
   return ic('note');
+}
+/* Server cũ chưa trả "covers": tự lấy ảnh 4 bài đầu của playlist rồi vẽ lại ô ảnh (có nhớ tạm để khỏi tải lại) */
+const plCovCache={};
+function plCoverFill(){
+  (playlists||[]).forEach(p=>{
+    if(Array.isArray(p.covers)||!p.count) return;
+    const ck=p.id+':'+p.count, hit=plCovCache[ck];
+    const paint=()=>{ document.querySelectorAll('[data-pl="'+p.id+'"] .tile').forEach(t=>{ t.innerHTML=plCover(p); }); };
+    if(hit){ p.covers=hit; paint(); return; }
+    api('/api/playlists/'+p.id).then(j=>{ const c=((j&&j.tracks)||[]).map(t=>t.image).filter(Boolean).slice(0,4); plCovCache[ck]=c; p.covers=c; paint(); }).catch(()=>{});
+  });
 }
 function libCounts(){ $('#favSub').textContent=`Danh sách phát · ${favs.size} bài hát`; }
 function filterLib(){ const q=$('#libQ').value.trim().toLowerCase(); document.querySelectorAll('#lib .li').forEach(el=>{ el.style.display=!q||el.textContent.toLowerCase().includes(q)?'':'none'; }); }
