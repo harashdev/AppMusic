@@ -249,6 +249,34 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         web.onResume(); web.resumeTimers()
+        askBatteryOnce()
+    }
+
+    /** Tắt màn hình / ra màn hình chính: giữ WebView và bộ đếm giờ chạy tiếp để nhạc không bị dừng. */
+    override fun onStop() {
+        super.onStop()
+        if (Playback.playing) { web.onResume(); web.resumeTimers() }
+    }
+
+    /**
+     * Nhiều máy (Samsung, Xiaomi, Oppo...) tự tắt app nền khi tắt màn hình nếu bật "tối ưu pin".
+     * Hỏi một lần, đúng lúc đang nghe nhạc, để cho app chạy nền không bị giới hạn.
+     */
+    private fun askBatteryOnce() {
+        if (!Playback.playing || prefs.getBoolean("bat_asked", false)) return
+        val pm = getSystemService(PowerManager::class.java)
+        if (pm.isIgnoringBatteryOptimizations(packageName)) { prefs.edit().putBoolean("bat_asked", true).apply(); return }
+        prefs.edit().putBoolean("bat_asked", true).apply()
+        AlertDialog.Builder(this)
+            .setTitle("Giữ nhạc chạy khi tắt màn hình")
+            .setMessage("Cho phép app chạy nền không bị giới hạn pin để nhạc không bị dừng khi bạn tắt màn hình.")
+            .setPositiveButton("Cho phép") { _, _ ->
+                runCatching {
+                    startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
+                }
+            }
+            .setNegativeButton("Để sau", null)
+            .show()
     }
 
     override fun onDestroy() {
