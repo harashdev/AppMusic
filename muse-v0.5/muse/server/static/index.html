@@ -805,6 +805,7 @@ html.android *{scroll-behavior:auto!important}
     /* hồ sơ */
     'Mặc định':'Default','Tối':'Dark','Biển':'Ocean','Hoàng hôn':'Sunset','Rừng':'Forest','Ảnh riêng':'Custom image','Lưu':'Save','Đổi banner':'Change banner','Gỡ banner':'Remove banner',
     'Đổi avatar':'Change avatar','Chép tên đăng nhập':'Copy username',
+
     'Trạng thái':'Status','Trạng thái (hiện thành nhãn dưới avatar)':'Status (shown as a label under your avatar)','Nền hồ sơ':'Profile background',
     'Tải ảnh nền (GIF được)':'Upload background (GIFs allowed)','…hoặc dán link https://…/anh-nen.jpg':'…or paste a link https://…/background.jpg',
     'Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.':'Background ≤ 10MB. Applied to the app right away – click Save to keep it.','Màu chủ đạo':'Accent color',
@@ -1487,7 +1488,6 @@ const pages={
         <div class="prtxt"><div class="prname">${esc(me.display_name)}</div><div class="prun"><span>@${esc(me.username||'')}</span><button class="ico" id="cpUn" title="Chép tên đăng nhập">${ic('copy','sm')}</button></div></div></div>
     </div>
     <input type="file" id="banFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input type="file" id="avFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
-    <small class="hint" id="banMsg"></small><small class="hint" style="margin-bottom:16px">Di chuột vào banner hoặc avatar rồi bấm vào cây bút để đổi ảnh. Banner: PNG/JPG/GIF/WEBP ≤ 10MB (GIF được). Avatar ≤ 3MB. Đổi tên hiển thị và mật khẩu trong Cài đặt.</small>
     <div class="panel"><h3>Trạng thái</h3><input id="status" value="${esc(me.status||'')}" maxlength="60" placeholder="Trạng thái (hiện thành nhãn dưới avatar)"></div>
     <div class="panel"><h3>Nền hồ sơ</h3><div class="skins" id="skins">${skins.map(([v,l,bg])=>`<div class="sk ${(me.bg||'')===v?'sel':''}" data-v="${v}" style="${bg?'background:'+bg:''}">${l}</div>`).join('')}</div>
       <div id="bgCustom" style="display:${me.bg==='custom'?'block':'none'};margin-top:12px"><div class="bnrow"><button id="bgBtn">Tải ảnh nền (GIF được)</button><input type="file" id="bgFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input id="bgUrl" value="${esc(me.bg_url)}" placeholder="…hoặc dán link https://…/anh-nen.jpg" style="flex:1;min-width:180px"></div><small class="hint">Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.</small></div>
@@ -1578,7 +1578,7 @@ const pages={
         <div class="fxr"><label>Mức vang</label><input type="range" min="0" max="100" step="1" id="rMix" value="${S.reverb_mix}"><span id="rMixV"></span></div></div>
       ${row('Lưu trạng thái phát lại','Lưu chế độ trộn và phát lại',tog('tSave',S.save_state))}
       ${row('Chuyển bài mượt mà (BETA)','Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.',tog('tXfade',S.crossfade))}
-    </div><small class="hint" style="padding:0 6px">Khi bật Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy, nhạc YouTube được phát qua luồng âm thanh do server chuyển tiếp (không dùng player iframe nên không có chế độ xem video). Nếu không lấy được luồng, app tự quay về player YouTube.</small></div>
+    </div></div>
     <div class="sgrp"><div class="sgh">Lịch sử nghe</div><div class="scard">
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
