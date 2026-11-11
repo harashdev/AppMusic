@@ -198,17 +198,21 @@ class KeepAliveService : Service() {
         val url = if (raw.startsWith("/")) serverUrl() + raw else raw
         if (!url.startsWith("http")) return
         thread(isDaemon = true, name = "muse-art") {
-            val bmp = runCatching {
-                val c = URL(url).openConnection() as HttpURLConnection
-                c.connectTimeout = 6000; c.readTimeout = 8000
-                c.inputStream.use { BitmapFactory.decodeStream(it) }
-            }.getOrNull()?.let { b ->
+            /* hq720 không phải video nào cũng có: lỗi thì lùi về bản nhỏ hơn */
+            val bmp = (fetchArt(url) ?: if (url.contains("/hq720.jpg")) fetchArt(url.replace("hq720", "mqdefault")) else null)?.let { b ->
                 val m = maxOf(b.width, b.height)
-                if (m > 512) Bitmap.createScaledBitmap(b, b.width * 512 / m, b.height * 512 / m, true) else b
+                if (m > 1024) Bitmap.createScaledBitmap(b, b.width * 1024 / m, b.height * 1024 / m, true) else b
             }
             main.post { if (artUrl == raw && bmp != null) { artBmp = bmp; refresh() } }
         }
     }
+
+    private fun fetchArt(url: String): Bitmap? = runCatching {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = 6000; c.readTimeout = 8000
+        if (c.responseCode !in 200..299) return@runCatching null
+        c.inputStream.use { BitmapFactory.decodeStream(it) }
+    }.getOrNull()
 
     // ---------------------------------------------------------------- khoá tài nguyên
 

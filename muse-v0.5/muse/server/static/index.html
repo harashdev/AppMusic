@@ -2736,11 +2736,22 @@ function msUpdate(){
   nativeSync(true);
 }
 /* Cầu nối app Android: gửi bài/trạng thái cho dịch vụ phát nền, nhận lệnh từ thông báo / khoá màn hình / tai nghe */
+/* Ảnh bìa cho thông báo / màn hình khóa Android: lấy bản lớn (ảnh gốc từ tìm kiếm chỉ ~60–300px nên bị vỡ hạt khi phóng to) */
+function hiArt(u){
+  u=String(u||'');
+  if(/googleusercontent\.com|ggpht\.com/.test(u)){
+    if(/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,'=w1200-h1200-l90-rj');
+    if(/=s\d+/.test(u)) return u.replace(/=s\d+[^?#]*$/,'=s1200');
+    return u;
+  }
+  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return 'https://i.ytimg.com/vi/'+m[1]+'/hq720.jpg';
+  return u;
+}
 function nativeSync(meta){
   try{
     const N=window.MuseNative; if(!N) return;
     const t=cur, du=t?getDur():0, pos=t?getTime():0;
-    N.update(t?(t.title||''):'', t?(t.artist||''):'', t?(t.image||''):'', !!(t&&playing),
+    N.update(t?(t.title||''):'', t?(t.artist||''):'', t?hiArt(t.image):'', !!(t&&playing),
       Math.round((isFinite(pos)?pos:0)*1000), Math.round((isFinite(du)?du:0)*1000), !!t);
   }catch{}
 }
