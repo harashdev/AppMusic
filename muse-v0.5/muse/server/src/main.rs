@@ -1563,8 +1563,11 @@ fn pick_client(st: &AppState, use_proxy: bool) -> reqwest::Client {
 }
 
 async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtQ>) -> R<Value> {
-    let user = require(&st, &headers)?;
-    let (allow_explicit, use_proxy) = user_net_prefs(&st, user.id);
+    // Không bắt buộc đăng nhập: khách (không có token) vẫn tìm nhạc được với cài đặt mặc định.
+    let (allow_explicit, use_proxy) = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id),
+        Err(_) => (false, false),
+    };
     let client = pick_client(&st, use_proxy);
     let text: String = q.q.unwrap_or_default().trim().chars().take(100).collect();
     if text.is_empty() {
@@ -1634,7 +1637,7 @@ fn now_secs() -> u64 {
 
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
 // Đoạn đầu (bắt đầu bài / sau khi tua) nhỏ hơn để nhạc lên tiếng nhanh, không phải đợi tải đủ 2 MB.
-const AUDIO_FIRST_CHUNK: u64 = 512 * 1024;
+const AUDIO_FIRST_CHUNK: u64 = 256 * 1024;
 const AUDIO_TTL: u64 = 3 * 60 * 60;
 
 // (clientName, header id, clientVersion, user-agent, phần context thêm)
@@ -1812,6 +1815,44 @@ fn audio_mark_bad(id: &str, src: usize) {
         m.clear();
     }
     m.insert((id.to_string(), src), now_secs());
+}
+
+// Hỏi cùng lúc các client YouTube (ANDROID_VR / IOS / TV), cái nào trả về trước thì dùng.
+// Trước đây thử lần lượt: client đầu bị lỗi là mất thêm 1-2 lượt gọi mạng trước khi nhạc lên tiếng.
+async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[usize]) -> Result<(String, u64, String, usize), String> {
+    let mut set = tokio::task::JoinSet::new();
+    for &ci in cands {
+        let c = client.clone();
+        let v = vid.to_string();
+        set.spawn(async move { (ci, resolve_audio(&c, &v, webm, ci).await) });
+    }
+    let mut last = "Không lấy được luồng âm thanh".to_string();
+    while let Some(joined) = set.join_next().await {
+        match joined {
+            Ok((_, Ok(x))) => {
+                set.abort_all();
+                return Ok(x);
+            }
+            Ok((ci, Err(e))) => {
+                eprintln!("[audio] {vid} nguồn {ci}: {e}");
+                audio_mark_bad(vid, ci);
+                last = e;
+            }
+            Err(_) => {}
+        }
+    }
+    Err(last)
+}
+
+// Mỗi bài chỉ cho một yêu cầu đi lấy luồng tại một thời điểm: trình duyệt hay gửi nhiều yêu cầu Range cùng lúc
+// (kèm yêu cầu "làm nóng" trước đó), các yêu cầu sau chờ rồi dùng kết quả đã có trong cache thay vì lặp lại việc lấy luồng.
+static AUDIO_GATES: std::sync::OnceLock<Mutex<HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
+fn audio_gate(key: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {
+    let mut m = AUDIO_GATES.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    if m.len() > 500 {
+        m.clear();
+    }
+    m.entry(key.to_string()).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
 }
 
 // yt-dlp (cài riêng, đặt trong PATH hoặc biến YTDLP_PATH). YT_COOKIES = đường dẫn file cookies.txt (định dạng Netscape).
@@ -2102,11 +2143,14 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         let db = st.db.lock().unwrap();
         tok.and_then(|t| user_from_token(&db, &t)).map(|u| u.id)
     };
-    let Some(uid) = uid else { return (StatusCode::UNAUTHORIZED, "Phiên đăng nhập hết hạn").into_response() };
+    // Không bắt buộc đăng nhập: khách (không có token / token hết hạn) vẫn nghe được, dùng cài đặt mặc định.
     if id.len() != 11 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let (_, use_proxy) = user_net_prefs(&st, uid);
+    let use_proxy = match uid {
+        Some(uid) => user_net_prefs(&st, uid).1,
+        None => false,
+    };
     let client = pick_client(&st, use_proxy);
     let webm = q.f.as_deref() == Some("webm");
     let ckey = format!("{id}|{}|{}", use_proxy as u8, webm as u8);
@@ -2126,8 +2170,27 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         let (url, size, mime, ci) = match cached {
             Some((u, s, m, _, ci)) => (u, s, m, ci),
             None => {
-                let mut res = None;
-                while pos < order.len() {
+                // Chỉ một yêu cầu cho mỗi bài đi lấy luồng; yêu cầu đến sau chờ rồi dùng luôn kết quả trong cache.
+                let gate = audio_gate(&ckey);
+                let _gate_guard = gate.lock().await;
+                let mut res = {
+                    let c = st.audio.lock().unwrap();
+                    c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).map(|(u, s, m, _, ci)| (u.clone(), *s, m.clone(), *ci))
+                };
+                // Hỏi song song các client YouTube thay vì lần lượt: nhạc lên tiếng nhanh hơn khi client đầu bị chặn/chậm.
+                if res.is_none() && pos == 0 {
+                    let cands: Vec<usize> = order.iter().copied().filter(|s| *s < 90 && !audio_bad(&id, *s)).collect();
+                    if cands.len() > 1 {
+                        match resolve_race(&client, &id, webm, &cands).await {
+                            Ok(x) => res = Some(x),
+                            Err(e) => {
+                                notes.push_str(&format!("[{e}] "));
+                                pos = order.iter().position(|s| *s >= 90).unwrap_or(order.len());
+                            }
+                        }
+                    }
+                }
+                while res.is_none() && pos < order.len() {
                     let src = order[pos];
                     if audio_bad(&id, src) {
                         pos += 1;
