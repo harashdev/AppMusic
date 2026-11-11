@@ -183,7 +183,7 @@ body.has-cur #main{padding-bottom:116px}
 .tr .ac{display:flex;justify-content:flex-end}.tr .ac button{opacity:0;width:34px;height:34px}.tr:hover .ac button,.tr .ac button.on{opacity:1}
 .tr.now .t1,.tr.now .n{color:var(--accent)}.tr .ac button.on{color:var(--red)}
 .dlHead{padding:12px 0 8px}.dlHead small{color:var(--sub)}.dlHead h2{font-size:36px;margin:4px 0 12px;line-height:1.1}.dlHead .hb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.dlfmt{color:var(--sub)}.dlnote{color:var(--sub);font-size:13px;margin:12px 0 6px;max-width:720px}
+.dlfmt{color:var(--sub)}
 .dlr{display:grid;grid-template-columns:48px minmax(0,2fr) minmax(0,1.4fr) 84px;gap:12px;align-items:center;padding:6px 10px;border-radius:10px}
 .dlr:hover{background:var(--hover)}.dlr img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:var(--surf2)}
 .dls{font-size:13px;color:var(--sub);min-width:0}.dls.done{color:var(--accent)}.dls.error{color:var(--red)}
@@ -1820,7 +1820,7 @@ pages.library=function(m){
   const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
   m.innerHTML=`<h2>Thư viện</h2><div class="libL">${T.map(([k,i,t,sub,bg,fg,f])=>li(`data-p="${k}"`,`<div class="tile" style="background:${bg};color:${fg}">${ic(i,f?'fill':'')}</div>`,t,sub)).join('')}</div>
     <div class="sh" style="margin-top:22px"><h3>Danh sách phát</h3><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
-    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${ic('note')}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
+    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
     <div class="sh" style="margin-top:22px"><h3>Bạn bè</h3><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
   m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
@@ -1876,9 +1876,15 @@ async function loadPlaylists(){
   catch(e){ const c=e.message==='401'?null:cachedPlaylists(); if(!c||!S.offline_pl) throw e; playlists=c; notify('Đang offline – hiển thị danh sách phát đã lưu'); }
   const box=$('#plList'); box.innerHTML='';
   playlists.forEach(p=>{ const d=document.createElement('div'); d.className='li'; d.tabIndex=0; d.dataset.pl=p.id;
-    d.innerHTML=`<div class="tile">${ic('note')}</div><div class="meta"><b>${esc(p.name)}</b><span>Danh sách phát · ${p.count} bài hát</span></div>`;
+    d.innerHTML=`<div class="tile">${plCover(p)}</div><div class="meta"><b>${esc(p.name)}</b><span>Danh sách phát · ${p.count} bài hát</span></div>`;
     d.onclick=()=>go('playlist',p.id); d.onkeydown=e=>{ if(e.key==='Enter') d.click(); }; box.appendChild(d); });
   filterLib(); if(S.offline_pl&&navigator.onLine) cachePlaylists();
+}
+function plCover(p){
+  const im=(p.covers||[]).filter(Boolean);
+  if(im.length>=4) return `<div class="collage">${im.slice(0,4).map(u=>`<img src="${esc(thumb(u,96))}" alt="" loading="lazy">`).join('')}</div>`;
+  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],96))}" alt="" loading="lazy"></div>`;
+  return ic('note');
 }
 function libCounts(){ $('#favSub').textContent=`Danh sách phát · ${favs.size} bài hát`; }
 function filterLib(){ const q=$('#libQ').value.trim().toLowerCase(); document.querySelectorAll('#lib .li').forEach(el=>{ el.style.display=!q||el.textContent.toLowerCase().includes(q)?'':'none'; }); }
@@ -2464,8 +2470,7 @@ pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><small>${esc(me.display_name||'')}</small><h2>Tải xuống</h2>
     <div class="hb"><span class="dlfmt">Định dạng:</span><button class="chip ${dlFmt==='wav'?'on':''}" data-fmt="wav">WAV</button><button class="chip ${dlFmt==='orig'?'on':''}" data-fmt="orig">Gốc (m4a / webm)</button>
-    <button class="out" id="dlRetryAll">Thử lại bài lỗi</button><button class="out" id="dlClear">Xoá danh sách</button></div>
-    <p class="dlnote">YouTube chỉ cung cấp âm thanh nén (AAC/Opus). File WAV được giải mã từ đó nên nặng hơn (~10 MB/phút) nhưng không tốt hơn về chất lượng. File được lưu vào thư mục Tải xuống của trình duyệt.</p></div><div id="dlList"></div>`;
+    <button class="out" id="dlRetryAll">Thử lại bài lỗi</button><button class="out" id="dlClear">Xoá danh sách</button></div></div><div id="dlList"></div>`;
   dlRender();
   m.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{ dlFmt=b.dataset.fmt==='orig'?'orig':'wav'; LS.set('muse_dlfmt',dlFmt); m.querySelectorAll('[data-fmt]').forEach(x=>x.classList.toggle('on',x===b)); });
   $('#dlRetryAll').onclick=()=>{ dlItems.filter(x=>x.status==='error').forEach(x=>{ x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); }); dlRender(); dlPump(); };
