@@ -814,7 +814,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     /* điều hướng */
     'Trang chủ':'Home','Bạn bè':'Friends','Thư viện':'Library','Tìm kiếm':'Search','Thư viện của bạn':'Your library',
     'Lọc thư viện':'Filter library','Thu gọn':'Collapse','Yêu thích':'Favorites','Danh sách phát':'Playlists',
-    'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thử lại bài lỗi':'Retry failed','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
+    'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
     'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Đang phát':'Now playing',
     'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
@@ -2422,7 +2422,7 @@ function dlRowHtml(x){
 function dlRender(){
   const sub=$('#dlSub'); if(sub){ const run=dlItems.filter(x=>x.status==='queued'||x.status==='loading'||x.status==='converting').length, done=dlItems.filter(x=>x.status==='done').length; sub.textContent=run?'Đang tải '+run+' bài…':done?done+' bài đã tải':'Danh sách tải xuống'; }
   const box=$('#dlList'); if(!box||page!=='downloads') return;
-  box.innerHTML=dlItems.length?dlItems.map(dlRowHtml).join(''):'<p class="empty">Chưa có bài nào được tải. Bấm biểu tượng tải xuống ở mỗi bài, hoặc “Tải tất cả” trong danh sách phát.</p>';
+  box.innerHTML=dlItems.map(dlRowHtml).join('');
 }
 function dlPump(){
   while(dlRunning<DL_PAR){
@@ -2490,10 +2490,9 @@ pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><small>${esc(me.display_name||'')}</small><h2>Tải xuống</h2>
     <div class="hb"><span class="dlfmt">Định dạng:</span><button class="chip ${dlFmt==='wav'?'on':''}" data-fmt="wav">WAV</button><button class="chip ${dlFmt==='orig'?'on':''}" data-fmt="orig">Gốc (m4a / webm)</button>
-    <button class="out" id="dlRetryAll">Thử lại bài lỗi</button><button class="out" id="dlClear">Xoá danh sách</button></div></div><div id="dlList"></div>`;
+    <button class="out" id="dlClear">Xoá danh sách</button></div></div><div id="dlList"></div>`;
   dlRender();
   m.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{ dlFmt=b.dataset.fmt==='orig'?'orig':'wav'; LS.set('muse_dlfmt',dlFmt); m.querySelectorAll('[data-fmt]').forEach(x=>x.classList.toggle('on',x===b)); });
-  $('#dlRetryAll').onclick=()=>{ dlItems.filter(x=>x.status==='error').forEach(x=>{ x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); }); dlRender(); dlPump(); };
   $('#dlClear').onclick=async()=>{ if(!dlItems.some(x=>x.status==='done'||x.status==='error')) return; if(!(await askConfirm('Xoá các bài đã tải và bài lỗi khỏi danh sách? (file đã lưu trên máy không bị xoá)','Xoá'))) return; dlItems=dlItems.filter(x=>x.status==='queued'||x.status==='loading'||x.status==='converting'); dlSave(); dlRender(); };
   $('#dlList').onclick=e=>{
     const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
