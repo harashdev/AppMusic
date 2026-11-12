@@ -1636,6 +1636,8 @@ function tasteTags(t){
 }
 const dayIdx=()=>Math.floor(Date.now()/864e5);
 const rot=(l,n)=>{ const k=n%l.length; return l.slice(k).concat(l.slice(0,k)); };
+/* tên nghệ sĩ hợp lệ: không phải thời lượng (3:38), lượt xem, số, nhãn Song/Video */
+const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^\d{1,3}(:\d{2}){1,2}$/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
 let tasteCache=null;
 async function tasteProfile(){
   if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
@@ -1655,7 +1657,7 @@ async function tasteProfile(){
   for(const [t,w] of all){
     if(!t) continue; seen.add(key(t));
     tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; });
-    String(t.artist||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
+    String(t.artist||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x)).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
   }
   const total=all.reduce((x,y)=>x+y[1],0);
   const top=Object.entries(gc).sort((a,b)=>b[1]-a[1]).filter(([,c])=>c>=2&&c/total>=.1).slice(0,3).map(x=>x[0]);
@@ -3073,7 +3075,7 @@ $('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
 $('#npAdd').onclick=e=>cur&&addMenu(cur,e);
 $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').forEach(x=>x.remove());
   const pop=document.createElement('div'); pop.className='pop'; const r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.right-210)+'px'; pop.style.top=r.bottom+6+'px';
-  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="lnk">Chép link YouTube</div><div data-a="room">Chép link phòng</div><div data-a="code">Chép mã phòng</div>`;
+  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
   pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); else if(a==='code') copyRoomCode(); else if(a==='shr') shareTrack(cur); };
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
