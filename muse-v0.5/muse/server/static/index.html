@@ -1059,6 +1059,12 @@ button *,#gear *,#meAv *{pointer-events:none}
     [/^(\d+) bài$/,(m)=>plural(m[1],'song','songs')],
     [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
     [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
+    [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
+    [/^Giống (.+)$/,(m)=>'Similar to '+m[1]],
+    [/^(.+) · bài mới$/,(m)=>m[1]+' · new'],
+    [/^Dành cho bạn · (.+)$/,(m)=>'For you · '+tr(m[1])],
+    [/^Dành cho bạn$/,()=>'For you'],
+    [/^Khám phá$/,()=>'Discover'],
     [/^Kết quả cho “(.*)”$/,(m)=>'Results for “'+m[1]+'”'],
     [/^Kết quả: (.*)$/,(m)=>'Results: '+m[1]],
     [/^Bạn bè · (\d+) online$/,(m)=>'Friends · '+m[1]+' online'],
@@ -1247,7 +1253,9 @@ const thumb=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(windo
   if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
   const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s>400?'hq720':'mqdefault'}.jpg`;
   return u; };
-document.addEventListener('error',e=>{ const i=e.target; if(i&&i.tagName==='IMG'&&/\/hq720\.jpg/.test(i.src)){ i.src=i.src.replace('hq720','mqdefault'); } },true);   /* video cũ không có bản hq720 */
+document.addEventListener('error',e=>{ const i=e.target; if(i&&i.tagName==='IMG'&&/\/hq720\.jpg/.test(i.src)){ i.src=i.src.replace('hq720','mqdefault'); return; }
+  /* ảnh bìa tải lỗi (hết hạn / bị chặn) → thử ảnh thumbnail của video, tránh ô vuông đen trống */
+  if(i&&i.tagName==='IMG'&&!i.dataset.fb){ const h=i.closest('[data-tk]'), m=h&&String(h.dataset.tk).match(/^yt:([\w-]{11})$/); if(m&&!/ytimg\.com/.test(i.src)){ i.dataset.fb='1'; i.src='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg'; } } },true);   /* video cũ không có bản hq720 */
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
 
@@ -1636,44 +1644,163 @@ function tasteTags(t){
   return tags;
 }
 const dayIdx=()=>Math.floor(Date.now()/864e5);
-const rot=(l,n)=>{ const k=n%l.length; return l.slice(k).concat(l.slice(0,k)); };
-/* tên nghệ sĩ hợp lệ: không phải thời lượng (3:38), lượt xem, số, nhãn Song/Video */
-const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^\d{1,3}(:\d{2}){1,2}$/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
+/* tên nghệ sĩ hợp lệ: phải có chữ cái, không phải thời lượng (3:38 / 4:26), lượt xem, số, nhãn Song/Video */
+const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^[\d\s:.,·•\-–]+$/.test(x)&&!/^\d{1,3}(:\d{2}){1,2}\b/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
+const splitArtists=s=>String(s||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x));
+/* ===== Ghi nhận nghe hết / bỏ qua (skip) từng bài, có mốc thời gian ===== */
+/* Lịch sử trên server không có giờ nghe và không biết bài nào bị bỏ qua, nên app tự ghi lại ở máy: nghe >=70% bài = thích, bấm chuyển bài trong <30 giây = bỏ qua. */
+const listenGet=()=>{ try{ const o=JSON.parse(LS.get(uKey('muse_listen'),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 let tasteCache=null;
+function noteListen(t,sec,dur,auto){
+  try{
+    if(!t||!t.id||!(sec>=0)) return;
+    const d=dur>0?dur:(t.dur||0), ratio=d>0?sec/d:0;
+    let kind=0;
+    if(d>0?ratio>=.7:sec>=150) kind=1;
+    else if(!auto&&sec>=1.5&&sec<30&&(d<=0||ratio<.5)) kind=-1;   /* tự chuyển bài do lỗi tải (auto) hoặc bài vừa bấm đã lỗi (<1.5s) thì không tính là skip */
+    if(!kind) return;
+    const o=listenGet(), k=key(t), e=o[k]||{t:slim(t),ok:0,sk:0,last:0};
+    if(kind>0) e.ok++; else e.sk++;
+    e.t=slim(t); e.last=Date.now(); o[k]=e;
+    const ks=Object.keys(o); if(ks.length>600) ks.sort((x,y)=>o[x].last-o[y].last).slice(0,ks.length-600).forEach(x=>delete o[x]);
+    LS.set(uKey('muse_listen'),JSON.stringify(o)); tasteCache=null;
+  }catch{}
+}
+/* Giảm dần theo thời gian, nửa đời 30 ngày (ý tưởng từ Sonic Fingerprint của AudioMuse-AI): bài mới nghe nặng hơn bài nghe từ lâu */
+const recW=ts=>ts?Math.max(.15,Math.pow(.5,(Date.now()-ts)/(30*864e5))):.5;
+/* Số liệu thô (điểm thể loại gc, điểm nghệ sĩ ac) → hồ sơ gu nghe. Điểm âm = bài/nghệ sĩ hay bị bỏ qua. */
+function buildProfile(gc,ac,seen,n,skipKeys){
+  const pos=Object.values(gc).reduce((s,c)=>s+Math.max(0,c),0)||1;
+  const top=Object.entries(gc).filter(([nm,c])=>c>=2&&c/pos>=.08&&GENRES.some(g=>g[0]===nm)).sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>x[0]);
+  const avoidGenres=new Set(Object.entries(gc).filter(([nm,c])=>c<=-3&&!top.includes(nm)).map(x=>x[0]));
+  const aList=Object.values(ac).filter(a=>a&&goodArtist(a.n));
+  const arts=aList.filter(a=>a.c>=2.5).sort((x,y)=>y.c-x.c).slice(0,8);
+  const avoid=new Set(aList.filter(a=>a.c<=-2.5).map(a=>a.n.toLowerCase()));
+  const mx=arts.length?arts[0].c:1, artW={}; arts.forEach(a=>{ artW[a.n.toLowerCase()]=a.c/mx; });
+  return {top,arts,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc};
+}
 async function tasteProfile(){
   if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
-  const saved=()=>{ try{ const o=JSON.parse(LS.get('muse_taste','null')); if(o&&Array.isArray(o.top)&&o.top.length) return buildTaste(o.top,o.arts||[],new Set(),o.n||0); }catch{} return null; };
+  const tk='muse_taste3_'+((me&&me.id)||0);
+  /* bản lưu cũ (muse_taste) có thể chứa "nghệ sĩ" rác như 4:26 nên bỏ hẳn; bản mới được lọc lại khi đọc */
+  const saved=()=>{ try{ const o=JSON.parse(LS.get(tk,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ ac[a.n.toLowerCase()]={n:a.n,c:+a.c||0}; }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; };
+  const empty=buildProfile({},{},new Set(),0);
   const got=await Promise.race([
     Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
     new Promise(r=>setTimeout(()=>r(null),1500))
   ]);
-  const empty={secs:[],seen:new Set(),n:0,top:[],genres:{}};
   if(!got) return saved()||empty;
   const hist=Array.isArray(got[0])?got[0].slice(0,300):[], fav=Array.isArray(got[1])?got[1]:[];
   let dls=[]; try{ dlLoad(); dls=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); }catch{}
-  /* bài gần đây nặng hơn, yêu thích nặng hơn nữa, bài đã tải xuống cũng là tín hiệu mạnh (người dùng chủ động giữ lại) */
-  const all=[...hist.map((t,i)=>[t,1+Math.max(0,(60-i))/60]),...fav.map(t=>[t,3]),...dls.map(t=>[t,1.5]),...Object.values(playsGet()).filter(e=>e&&e.t).map(e=>[e.t,1+1.5*Math.log1p(e.n)])];
-  if(all.length<3) return saved()||empty;
-  const gc={}, ac={}, seen=new Set();
+  const L=listenGet(), P=playsGet();
+  /* [bài, trọng số]. Lịch sử: bài gần đây nặng hơn (index 0 = mới nhất). Yêu thích và tải xuống: tín hiệu chủ động nên nặng. Phát nhiều: log. Nghe hết +, bỏ qua − (đều giảm dần theo thời gian). */
+  const all=[
+    ...hist.map((t,i)=>[t,1.6*Math.max(.35,Math.pow(.5,i/50))]),
+    ...fav.map(t=>[t,3]),
+    ...dls.map(t=>[t,1.5]),
+    ...Object.values(P).filter(e=>e&&e.t).map(e=>[e.t,(1+1.5*Math.log1p(e.n))*(e.last?.4+.6*recW(e.last):.7)]),
+    ...Object.values(L).filter(e=>e&&e.t).map(e=>[e.t,Math.max(-6,Math.min(6,(1.2*(e.ok||0)-1.8*(e.sk||0))*recW(e.last)))])
+  ];
+  if(all.filter(x=>x[1]>0).length<3) return saved()||empty;
+  const gc={}, ac={}, seen=new Set(), skipKeys=new Set();
   for(const [t,w] of all){
     if(!t) continue; seen.add(key(t));
     tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; });
-    String(t.artist||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x)).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
+    splitArtists(t.artist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
   }
-  const total=all.reduce((x,y)=>x+y[1],0);
-  const top=Object.entries(gc).sort((a,b)=>b[1]-a[1]).filter(([,c])=>c>=2&&c/total>=.1).slice(0,3).map(x=>x[0]);
-  const arts=Object.values(ac).sort((a,b)=>b.c-a.c).filter(a=>a.c>=2.5).slice(0,2).map(a=>a.n);
-  try{ LS.set('muse_taste',JSON.stringify({top,arts,n:all.length})); }catch{}
-  const v=buildTaste(top,arts,seen,all.length); tasteCache={at:Date.now(),v}; return v;
+  /* nghệ sĩ đang theo dõi là tín hiệu rõ ràng nhất */
+  followGet().filter(goodArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
+  Object.entries(L).forEach(([k,e])=>{ if(e&&(e.sk||0)>(e.ok||0)) skipKeys.add(k); });
+  try{
+    const al=Object.values(ac).sort((x,y)=>y.c-x.c), keep=al.slice(0,24).concat(al.slice(-6).filter(a=>a.c<0));
+    const gk=Object.entries(gc).sort((x,y)=>y[1]-x[1]), gs={}; gk.slice(0,12).concat(gk.slice(-3).filter(x=>x[1]<0)).forEach(([k,v])=>{ gs[k]=v; });
+    LS.set(tk,JSON.stringify({gc:gs,ac:keep,n:all.length}));
+  }catch{}
+  const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; return v;
 }
-/* Từ danh sách thể loại + nghệ sĩ hay nghe → các kệ trang chủ (kệ đổi theo ngày để không lặp) và trang riêng cho từng thể loại */
-function buildTaste(top,arts,seen,n){
-  const d=dayIdx(), genres={}, secs=[];
-  top.forEach(name=>{ const g=GENRES.find(x=>x[0]===name); if(g) genres[name]=rot(g[2],d).slice(0,4).map(([t,q])=>[t,q]); });
-  top.forEach((name,i)=>{ const l=genres[name]; if(!l) return; const cnt=i===0?2:1;
-    l.slice(0,cnt).forEach(([t,q],j)=>secs.push([j===0?'Dành cho bạn · '+name:t,q])); });
-  arts.slice(0,2).forEach(a=>secs.push(['Vì bạn hay nghe '+a,/[^\x00-ɏ]/.test(a)?a+' best songs':a+' hay nhất']));
-  return {secs:secs.slice(0,5),seen,n,top,genres};
+/* ===== Lên kệ trang chủ: ưu tiên gu nghe (~2/3) + khám phá (~1/3), xoay vòng mỗi 6 giờ ===== */
+const strHash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
+const rngMake=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; };
+/* chọn n phần tử có trọng số, không lặp */
+function pickW(items,wf,rnd,n){
+  const pool=items.map(x=>({x,w:Math.max(0,wf(x))})).filter(o=>o.w>0), out=[];
+  while(out.length<n&&pool.length){ const tot=pool.reduce((s,o)=>s+o.w,0); let r=rnd()*tot, i=0; for(;i<pool.length-1;i++){ r-=pool[i].w; if(r<=0) break; } out.push(pool[i].x); pool.splice(i,1); }
+  return out;
+}
+/* Thể loại gần nhau: ai nghe A thì dễ thích B → kệ khám phá ưu tiên các thể loại này */
+const ADJ={'Nhạc Việt':['Ballad / Buồn','Acoustic','Bolero','Rap / Hip-hop','Lofi / Chill'],'Ballad / Buồn':['Nhạc Việt','Acoustic','Piano / Không lời','Bolero'],'Acoustic':['Ballad / Buồn','Lofi / Chill','Piano / Không lời','Nhạc Việt'],'Bolero':['Nhạc Việt','Ballad / Buồn'],
+  'K-Pop':['Nhạc Nhật','Nhạc Hoa','EDM / Remix','Anime & Game'],'Nhạc Nhật':['Anime & Game','K-Pop','Nhạc Hoa','Lofi / Chill'],'Anime & Game':['Nhạc Nhật','K-Pop','Lofi / Chill','Piano / Không lời'],'Nhạc Hoa':['K-Pop','Nhạc Nhật','Ballad / Buồn'],
+  'Lofi / Chill':['Acoustic','Piano / Không lời','Ballad / Buồn'],'Piano / Không lời':['Lofi / Chill','Acoustic','Anime & Game'],'EDM / Remix':['Rap / Hip-hop','K-Pop','Nhạc Việt'],'Rap / Hip-hop':['EDM / Remix','Nhạc Việt']};
+const explorePool=Y=>[
+  ['Nhạc Việt thịnh hành','nhạc việt hot','Nhạc Việt'],['Nhạc trẻ mới nhất',`nhạc trẻ mới nhất ${Y}`,'Nhạc Việt'],['Indie Việt','indie việt hay nhất','Nhạc Việt'],['Nhạc Việt 8x 9x','nhạc việt 8x 9x','Nhạc Việt'],
+  ['Rap Việt','rap việt hay nhất','Rap / Hip-hop'],['Hip-hop hits','hip hop hits','Rap / Hip-hop'],['Ballad buồn','ballad buồn nhạc việt','Ballad / Buồn'],['Nhạc tình yêu','nhạc tình yêu hay nhất','Ballad / Buồn'],
+  ['Bolero hay nhất','nhạc bolero hay nhất','Bolero'],['Nhạc xưa bất hủ','nhạc xưa bất hủ','Bolero'],['K-Pop thịnh hành','kpop hits','K-Pop'],['J-Pop & City Pop','japanese pop hits','Nhạc Nhật'],['Anime opening','anime opening songs','Anime & Game'],['Nhạc Hoa hay nhất','nhạc hoa hay nhất','Nhạc Hoa'],
+  ['Lofi chill','lofi chill beats','Lofi / Chill'],['Lofi học bài','lofi study beats','Lofi / Chill'],['Chill buổi tối','chill vibes evening','Lofi / Chill'],['Acoustic nhẹ nhàng','acoustic chill songs','Acoustic'],['Piano thư giãn','relaxing piano music','Piano / Không lời'],
+  ['Vinahouse / EDM','vinahouse remix hot','EDM / Remix'],['EDM bùng nổ','edm party hits','EDM / Remix'],
+  ['Top hits quốc tế','top global hits',null],['Pop Âu Mỹ',`pop hits ${Y}`,null],['R&B / Soul','r&b soul hits',null],['Rock mạnh mẽ','rock energy songs',null],['Jazz nhẹ nhàng','smooth jazz classics',null],['Indie / Alternative','indie alternative hits',null],['Nhạc phim & OST','movie soundtrack songs',null],['Hits thập niên 2000','2000s hits',null]
+].map(([t,q,g])=>({t,q,g}));
+/* Trả về danh sách kệ [tiêu đề, từ khóa, nhãn nhỏ, loại]. loại: 'taste' (theo gu) hoặc 'explore' (khám phá). */
+function planHome(tp,Y){
+  const rnd=rngMake(dayIdx()*4+Math.floor(new Date().getHours()/6)+strHash(String((me&&me.id)||0)));
+  const topSet=new Set(tp.top), arts=tp.arts||[], hasTaste=topSet.size>0||arts.length>0;
+  const TOTAL=6, nT=!hasTaste?0:tp.n>=8?4:tp.n>=3?3:0;
+  const taste=[], usedQ=new Set();
+  if(nT){
+    /* nghệ sĩ hay nghe: tối đa 2 kệ (3 nếu gu rất rõ) */
+    const nA=Math.min(arts.length,nT>=4&&arts.length>=5?3:nT>=4?2:1);
+    const artShelves=pickW(arts,a=>Math.sqrt(a.c),rnd,nA).map(a=>{
+      const n=a.n, lat=!/[^\x00-ɏ]/.test(n);
+      const tpl=lat?[['Vì bạn hay nghe '+n,n+' hay nhất'],['Giống '+n,'nhạc giống '+n],[n+' · bài mới',n+' mới nhất']]:[['Vì bạn hay nghe '+n,n+' best songs'],['Giống '+n,'songs like '+n],[n+' · bài mới',n+' new songs']];
+      const w=[.5,.3,.2], pick=pickW(tpl.map((x,i)=>({x,w:w[i]})),o=>o.w,rnd,1)[0].x;
+      return [pick[0],pick[1]];
+    });
+    /* thể loại hay nghe: mỗi thể loại 1 kệ, thể loại mạnh nhất có thể thêm kệ thứ 2 */
+    const gl=tp.top.map(n=>GENRES.find(g=>g[0]===n)).filter(Boolean), genShelves=[];
+    const need=nT-artShelves.length;
+    pickW(gl,g=>Math.max(.1,tp.gc[g[0]]),rnd,need).forEach(g=>{ const l=g[2]; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); });
+    for(let r=0;genShelves.length+artShelves.length<nT&&gl.length&&r<6;r++){ const g=gl[0], l=g[2].filter(x=>!genShelves.some(y=>y[1]===x[1])); if(!l.length) break; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); }
+    /* xen kẽ nghệ sĩ / thể loại cho đa dạng */
+    for(let i=0;i<Math.max(artShelves.length,genShelves.length);i++){
+      if(artShelves[i]) taste.push([artShelves[i][0],artShelves[i][1],'Dành cho bạn','taste']);
+      if(genShelves[i]) taste.push([i===0?'Dành cho bạn · '+genShelves[i][2]:genShelves[i][0],genShelves[i][1],'Dành cho bạn','taste']);
+    }
+    taste.forEach(x=>usedQ.add(x[1]));
+  }
+  /* khám phá: thể loại gần gu nghe nhất được ưu tiên, thể loại đã có kệ theo gu hoặc hay bị bỏ qua thì ít khi chọn */
+  const expW=x=>{ let w=x.g?1:1.2; if(x.g){ if(topSet.has(x.g)) w=.4; else if(tp.top.some(n=>(ADJ[n]||[]).includes(x.g))) w=2.4; if(tp.avoidGenres.has(x.g)) w*=.1; } return w; };
+  const nE=TOTAL-taste.length;
+  const explore=pickW(explorePool(Y).filter(x=>!usedQ.has(x.q)&&!taste.some(y=>y[0]===x.t)),expW,rnd,nE).map(x=>[x.t,x.q,'Khám phá','explore']);
+  /* xếp: 2 theo gu, 1 khám phá, lặp lại. Kệ đầu tiên luôn là theo gu (nếu có) vì nó cũng là nguồn của "Chọn nhanh đài phát". */
+  const out=[]; let ti=0, ei=0;
+  while(ti<taste.length||ei<explore.length){
+    for(let k=0;k<2&&ti<taste.length;k++) out.push(taste[ti++]);
+    if(ei<explore.length) out.push(explore[ei++]);
+    if(ti>=taste.length) while(ei<explore.length) out.push(explore[ei++]);
+  }
+  return out;
+}
+/* Lọc kệ: bỏ bài từng bị bỏ qua, nghệ sĩ hay bị bỏ qua; kệ theo gu ưu tiên bài chưa nghe; tránh một bài xuất hiện ở nhiều kệ */
+function cleanShelf(r,tp,kind,shown){
+  let a=r.filter(t=>t&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase())));
+  if(a.length>=10) r=a;
+  if(kind==='taste'){ const f=r.filter(t=>!tp.seen.has(key(t))); if(f.length>=14) r=f; }
+  if(shown){ const f=r.filter(t=>!shown.has(key(t))); if(f.length>=12) r=f; r.slice(0,24).forEach(t=>shown.add(key(t))); }
+  return r;
+}
+/* "Gợi ý cho bạn" từ server (item-item KNN) được sắp lại theo gu: nghệ sĩ/thể loại quen thuộc lên trước, bỏ bài đã skip, tối đa 2 bài/nghệ sĩ ở đầu danh sách */
+function rerankRec(list,tp){
+  const gS=new Set(tp.top);
+  const sc=list.map((t,i)=>{
+    if(!t||tp.skipKeys.has(key(t))) return null;
+    const as=splitArtists(t.artist).map(x=>x.toLowerCase());
+    if(as.some(x=>tp.avoid.has(x))) return null;
+    const aff=as.reduce((m,x)=>Math.max(m,tp.artW[x]||0),0), g=[...tasteTags(t)];
+    const s=1/(1+i/12)+.7*aff+(g.some(x=>gS.has(x))?.35:0)-(g.some(x=>tp.avoidGenres.has(x))?.6:0);
+    return [t,s,as[0]||''];
+  }).filter(Boolean).sort((x,y)=>y[1]-x[1]);
+  const per={}, out=[], rest=[];
+  for(const [t,,a] of sc){ per[a]=(per[a]||0)+1; (per[a]<=2?out:rest).push(t); }
+  return out.concat(rest);
 }
 let homeTg='';
 const pages={
@@ -1702,28 +1829,28 @@ const pages={
     $('#moodBtn').onclick=()=>{ homeTg=''; if(moodOpen){ moodOpen=false; homeCi=0; chipScroll=0; go('home'); } else { moodOpen=true; chipScroll=0; go('home'); } };
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeTg=''; homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
-    let taste={secs:[],seen:new Set(),top:[],genres:{}};
+    let taste=buildProfile({},{},new Set(),0);
     if(ci===0){ try{ taste=await tasteProfile(); }catch{} }
     if(page!=='home') return;
-    if(!(ci===0&&homeTg&&taste.genres[homeTg])) homeTg='';
-    /* (đã bỏ chip thể loại theo gu như Nhạc Việt / EDM – thanh chip chỉ còn Tất cả + Tâm trạng) */
-    const tgMode=ci===0&&!!homeTg;
-    const secs=tgMode?taste.genres[homeTg]:ci===0?[...taste.secs,...sets[0][1]].slice(0,Math.max(4,taste.secs.length+2)):sets[ci][1];
-    const tasteN=tgMode?secs.length:taste.secs.length;
-    m.innerHTML=(ci===0&&!tgMode?'<div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('');
+    homeTg='';
+    const tgMode=false;
+    /* mục 0 ("Tất cả"): kệ do planHome lên (theo gu + khám phá, xoay vòng); các mục tâm trạng giữ danh sách cố định */
+    const secs=ci===0?planHome(taste,Y):sets[ci][1].map(([t,q])=>[t,q,'','mood']);
+    m.innerHTML=(ci===0&&!tgMode?'<div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t,,kk],i)=>sec(i,t,kk)).join('');
     if(ci===0&&!tgMode){
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
         const items=h.slice(0,18), k=reg(items,'Nghe gần đây');
         const first=h.length>=4?`<div class="card" data-hp="${k}" data-sh="0" tabindex="0"><div class="cvw">${collage(items)}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">Nghe gần đây</div><div class="ca">${esc(me.display_name)} • ${h.length} bài hát</div></div>`:'';
         box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div>${guest?'':`<small>${esc((me.display_name||'').toUpperCase())}</small>`}<h3>Nghe lại</h3></div><div class="shr"><a class="more" data-go="history">Thêm</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${first}${items.map((t,i)=>cardHtml(t,reg(items,'Nghe gần đây'),i)).join('')}</div></section>`;
         markNow(); }).catch(()=>{});
-      api('/api/recommend').then(r=>{ const box=$('#rc'); if(!Array.isArray(r)||r.length<4||!box) return; const k=reg(r,'Gợi ý cho bạn');
+      api('/api/recommend').then(r=>{ const box=$('#rc'); if(!Array.isArray(r)||r.length<4||!box) return; const rr=rerankRec(r,taste); if(rr.length>=4) r=rr; const k=reg(r,'Gợi ý cho bạn');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Gợi ý cho bạn</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r.slice(0,24),'Gợi ý cho bạn')}</section>`; markNow(); }).catch(()=>{});
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
-    secs.forEach(async([name,q],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
-      if(ci===0&&i<tasteN){ const fresh=r.filter(t=>!taste.seen.has(key(t))); if(fresh.length>=14) r=fresh; }   /* mục theo gu: ưu tiên bài chưa nghe */
+    const shown=new Set();
+    secs.forEach(async([name,q,,kind],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
+      if(ci===0) r=cleanShelf(r,taste,kind,shown);
       let items=r.slice(0,20);
       if(ci===0&&!tgMode&&i===0&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,name);
@@ -2664,7 +2791,7 @@ function toggleFollow(n){ n=String(n||'').trim(); if(!n) return false; const a=f
 function updFollowBtn(){ const b=document.getElementById('npFollow'); if(!b) return; const n=cur?mainArtist(cur.artist):''; b.style.display=n?'':'none'; const on=!!n&&isFollow(n); b.classList.toggle('on',on); b.textContent=on?'Đã theo dõi':'Theo dõi'; }
 document.getElementById('npFollow').onclick=()=>{ const n=cur?mainArtist(cur.artist):''; if(!n) return; const on=toggleFollow(n); updFollowBtn(); notify(on?'Đã theo dõi '+n:'Đã bỏ theo dõi '+n); };
 const playsGet=()=>{ try{ const o=JSON.parse(LS.get(uKey('muse_plays'),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-function countPlay(t){ try{ if(!t||!t.id) return; const o=playsGet(), k=key(t); const e=o[k]||{t:slim(t),n:0}; e.n++; e.t=slim(t); o[k]=e;
+function countPlay(t){ try{ if(!t||!t.id) return; const o=playsGet(), k=key(t); const e=o[k]||{t:slim(t),n:0}; e.n++; e.t=slim(t); e.last=Date.now(); o[k]=e;
   const ks=Object.keys(o); if(ks.length>400){ ks.sort((a,b)=>o[a].n-o[b].n).slice(0,ks.length-400).forEach(x=>delete o[x]); }
   LS.set(uKey('muse_plays'),JSON.stringify(o)); }catch{} }
 const playsList=()=>Object.values(playsGet()).filter(e=>e&&e.t).sort((a,b)=>b.n-a.n).slice(0,50).map(e=>e.t);
@@ -2683,7 +2810,10 @@ pages.followed=function(m){
   m.querySelectorAll('[data-ar]').forEach(n=>{ n.onclick=e=>{ if(e.target.closest('[data-un]')) return; go('search',n.dataset.ar); }; n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   m.querySelectorAll('[data-un]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); toggleFollow(b.dataset.un); go('followed'); });
 };
-function userPlay(t){ countPlay(t); loadTrack(t,0,true); broadcastState(); if(S.track_history) api('/api/history',{json:slim(t)}).catch(()=>{}); }
+let autoAdv=false;
+function userPlay(t){ const prev=cur, auto=autoAdv; autoAdv=false;
+  if(prev&&prev.id&&t&&key(prev)!==key(t)){ try{ noteListen(prev,getTime(),getDur(),auto); }catch{} }   /* bài trước nghe được bao lâu → nghe hết hay bỏ qua */
+  countPlay(t); loadTrack(t,0,true); broadcastState(); if(S.track_history) api('/api/history',{json:slim(t)}).catch(()=>{}); }
 const blocked=t=>!!t&&!!t.explicit&&!S.explicit;
 function playList(list,i,name){
   if(blocked(list[i])){ notify('Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe'); return; }
@@ -2699,6 +2829,7 @@ function nextTrack(auto){
     qi=i; tries++;
   }while(blocked(queue[qi])&&tries<queue.length);
   if(blocked(queue[qi])){ setPlaying(false); return; }
+  autoAdv=!!auto;
   userPlay(queue[qi]);
 }
 function prevTrack(){ if(!queue.length) return; if(getTime()>3){ seekTo(0); broadcastState(); return; } qi=(qi-1+queue.length)%queue.length; userPlay(queue[qi]); }
