@@ -1289,9 +1289,110 @@ fn rec_load(
     Ok(())
 }
 
+// ----- "Radio" của YouTube Music cho một bài (danh sách bài liên quan do YouTube tính từ hành vi nghe của hàng triệu người) -----
+fn yt_panel_items<'a>(v: &'a Value, out: &mut Vec<&'a Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistPanelVideoRenderer") {
+                out.push(r);
+                return;
+            }
+            for x in m.values() {
+                yt_panel_items(x, out);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_panel_items(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn yt_panel_track(r: &Value) -> Option<Value> {
+    let id = r.get("videoId")?.as_str()?;
+    if id.len() != 11 {
+        return None;
+    }
+    let title = r.get("title").map(yt_text).unwrap_or_default();
+    if title.is_empty() {
+        return None;
+    }
+    let by = r.get("longBylineText").map(yt_text).unwrap_or_default();
+    let artist = by.split(" \u{2022} ").map(|x| x.trim()).find(|p| !yt_junk_part(p)).unwrap_or("").to_string();
+    let dur = r.get("lengthText").map(yt_text).and_then(|t| yt_dur(&t)).unwrap_or(0);
+    let image = r
+        .pointer("/thumbnail/thumbnails")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .map(|x| x.to_string())
+        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg"));
+    let explicit = r.get("badges").map(|b| b.to_string().contains("MUSIC_EXPLICIT_BADGE")).unwrap_or(false);
+    Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit }))
+}
+
+static RADIO_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
+fn radio_cache() -> &'static Mutex<HashMap<String, (u64, Vec<Value>)>> {
+    RADIO_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+async fn yt_radio(client: &reqwest::Client, id: &str) -> Vec<Value> {
+    if let Some((t, v)) = radio_cache().lock().unwrap().get(id) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return v.clone();
+        }
+    }
+    let body = json!({
+        "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
+        "videoId": id,
+        "playlistId": format!("RDAMVM{id}"),
+        "isAudioOnly": true,
+    });
+    let resp = match client
+        .post("https://music.youtube.com/youtubei/v1/next?prettyPrint=false")
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(12))
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r,
+        _ => return Vec::new(),
+    };
+    let v: Value = match resp.json().await {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
+    let mut items: Vec<&Value> = Vec::new();
+    yt_panel_items(&v, &mut items);
+    let mut tracks: Vec<Value> = items
+        .into_iter()
+        .filter_map(yt_panel_track)
+        .filter(|t| t.get("id").and_then(|x| x.as_str()) != Some(id))
+        .collect();
+    tracks.truncate(30);
+    if !tracks.is_empty() {
+        let mut c = radio_cache().lock().unwrap();
+        if c.len() > 500 {
+            c.clear();
+        }
+        c.insert(id.to_string(), (now_secs(), tracks.clone()));
+    }
+    tracks
+}
+
+// Gợi ý cho bạn = item-item KNN kiểu `implicit` (BM25 + cosine) trên các "hàng" dữ liệu:
+//   - hàng của từng tài khoản (yêu thích ×3, nghe ×1 – như độ tin cậy c = 1 + α·r của ALS) và từng playlist,
+//   - hàng "radio" của vài bài bạn yêu thích nhất (YouTube Music cho biết bài nào hay được nghe cùng bài đó).
+// Nhờ hàng radio, tài khoản chỉ có một người dùng vẫn có dữ liệu "bài nào đi với bài nào".
 async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
-    use std::collections::{HashMap, HashSet};
     let u = require(&st, &headers)?;
+    let (allow_explicit, use_proxy) = user_net_prefs(&st, u.id);
+    let client = pick_client(&st, use_proxy);
     let mut rows: RecRows = HashMap::new();
     let mut meta: HashMap<String, String> = HashMap::new();
     let mut mine: HashMap<String, f64> = HashMap::new();
@@ -1312,7 +1413,38 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
             &mut owned,
         )?;
     }
-    if mine.is_empty() || rows.len() < 2 {
+    if mine.is_empty() {
+        return Ok(Json(Vec::new()));
+    }
+
+    // Chọn tối đa 6 bài "hạt giống" trong 16 bài độ tin cậy cao nhất, xoay theo giờ để gợi ý không đứng yên.
+    let mut ranked_seeds: Vec<(String, f64)> = mine.iter().map(|(k, w)| (k.clone(), *w)).collect();
+    ranked_seeds.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
+    ranked_seeds.truncate(16);
+    let hour = (now_secs() / 3600) as usize;
+    let n_s = ranked_seeds.len();
+    let picked: Vec<(String, String)> = (0..n_s.min(6))
+        .filter_map(|i| {
+            let (k, _) = &ranked_seeds[(i + hour) % n_s];
+            let v: Value = serde_json::from_str(meta.get(k)?).ok()?;
+            if v.get("src").and_then(|x| x.as_str()) != Some("yt") {
+                return None;
+            }
+            let id = v.get("id").and_then(|x| x.as_str())?.to_string();
+            Some((k.clone(), id))
+        })
+        .collect();
+    let radios = futures_util::future::join_all(picked.iter().map(|(_, id)| yt_radio(&client, id))).await;
+    for ((seed_key, id), list) in picked.iter().zip(radios.into_iter()) {
+        let row = rows.entry(format!("r{}", id)).or_default();
+        *row.entry(seed_key.clone()).or_insert(0.0) += 2.0;
+        for (rank, t) in list.iter().enumerate() {
+            let Some(k) = track_key(t) else { continue };
+            *row.entry(k.clone()).or_insert(0.0) += 1.0 / (1.0 + rank as f64 / 8.0);
+            meta.entry(k).or_insert_with(|| t.to_string());
+        }
+    }
+    if rows.len() < 2 {
         return Ok(Json(Vec::new()));
     }
 
@@ -1370,12 +1502,32 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         }
     }
     let mut ranked: Vec<(&str, f64)> = score.into_iter().collect();
-    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    let out: Vec<Value> = ranked
-        .into_iter()
-        .take(40)
-        .filter_map(|(k, _)| meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()))
-        .collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
+
+    // Lọc: bỏ nội dung không phải nhạc (truyện, podcast, bản dài), tôn trọng cài đặt explicit, mỗi nghệ sĩ tối đa 3 bài.
+    let mut per_artist: HashMap<String, u32> = HashMap::new();
+    let mut out: Vec<Value> = Vec::new();
+    for (k, _) in ranked {
+        let Some(t) = meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()) else { continue };
+        let title = t.get("title").and_then(|x| x.as_str()).unwrap_or("").to_lowercase();
+        let dur = t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0);
+        if dur > 720 || ["truyện", "audiobook", "audio book", "podcast", "full album", "chương "].iter().any(|w| title.contains(w)) {
+            continue;
+        }
+        if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        let art = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_lowercase();
+        let cnt = per_artist.entry(art).or_insert(0);
+        if *cnt >= 3 {
+            continue;
+        }
+        *cnt += 1;
+        out.push(t);
+        if out.len() >= 40 {
+            break;
+        }
+    }
     Ok(Json(out))
 }
 
@@ -1593,6 +1745,31 @@ fn yt_text(v: &Value) -> String {
         .unwrap_or_default()
 }
 
+fn yt_dur(s: &str) -> Option<u64> {
+    let s = s.trim();
+    if s.is_empty() || !s.contains(':') {
+        return None;
+    }
+    let mut sec = 0u64;
+    for x in s.split(':') {
+        sec = sec * 60 + x.trim().parse::<u64>().ok()?;
+    }
+    Some(sec)
+}
+
+// Phần không phải tên nghệ sĩ: thời lượng (3:38), lượt xem/nghe, năm, nhãn Song/Video.
+fn yt_junk_part(p: &str) -> bool {
+    let l = p.trim().to_lowercase();
+    l.is_empty()
+        || yt_dur(&l).is_some()
+        || l.contains("views")
+        || l.contains("plays")
+        || l.contains("lượt")
+        || l == "song"
+        || l == "video"
+        || l.chars().all(|c| c.is_ascii_digit())
+}
+
 fn yt_track(item: &Value) -> Option<Value> {
     let id = item
         .pointer("/playlistItemData/videoId")
@@ -1616,28 +1793,14 @@ fn yt_track(item: &Value) -> Option<Value> {
         return None;
     }
     // Cột 2 dạng "Nghệ sĩ • Album • 3:45" (có thể có nhãn "Song"/"Video" ở đầu).
-    let mut parts: Vec<String> = col(1)
+    let parts: Vec<String> = col(1)
         .split(" \u{2022} ")
         .map(|x| x.trim().to_string())
         .filter(|x| !x.is_empty())
         .collect();
-    if parts.len() > 1 && (parts[0] == "Song" || parts[0] == "Video") {
-        parts.remove(0);
-    }
-    let artist = parts.first().cloned().unwrap_or_default();
-    let dur: u64 = parts
-        .last()
-        .map(|p| {
-            let mut sec = 0u64;
-            for x in p.split(':') {
-                match x.parse::<u64>() {
-                    Ok(n) => sec = sec * 60 + n,
-                    Err(_) => return 0,
-                }
-            }
-            sec
-        })
-        .unwrap_or(0);
+    // Tên nghệ sĩ là cột đầu tiên KHÔNG phải nhãn/thời lượng/lượt xem (trước đây video chỉ có "3:38" bị lấy nhầm làm nghệ sĩ).
+    let artist = parts.iter().find(|p| !yt_junk_part(p)).cloned().unwrap_or_default();
+    let dur: u64 = parts.iter().rev().find_map(|p| yt_dur(p)).unwrap_or(0);
     let image = item
         .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
         .and_then(|a| a.as_array())
