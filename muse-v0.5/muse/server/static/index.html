@@ -175,6 +175,28 @@ body.has-cur #main{padding-bottom:116px}
 .collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%;background:#2a2733}
 .collage img{width:100%;height:100%;object-fit:cover}
 .collage.one{display:flex;align-items:center;justify-content:center;color:#ffffff90}
+/* "This Is": thẻ nghệ sĩ nổi bật + trang danh sách */
+.tcv{--tc:#1ed7a1;background:#fff;color:#111;container-type:inline-size;border-radius:8px}
+.tcv>.tband{position:absolute;left:0;right:0;bottom:0;height:46%;background:var(--tc)}
+.tcv>img.tlogo{position:absolute;left:7%;top:6%;width:9%;height:auto;aspect-ratio:1;border-radius:50%;object-fit:cover;z-index:2}
+.tcv>.tt{position:absolute;top:7%;left:0;right:0;text-align:center;font-size:16px;font-size:11.5cqw;font-weight:900;letter-spacing:.01em;line-height:1;z-index:2}
+.tcv>img.tpic{position:absolute;left:50%;top:26%;width:56%;height:auto;aspect-ratio:1;transform:translateX(-50%);object-fit:cover;background:#ddd;z-index:1}
+.tcv>.tnm{position:absolute;left:5%;right:5%;bottom:5%;text-align:center;font-size:14px;font-size:8.6cqw;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
+.tic .tdesc{margin-top:8px;color:var(--sub);font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tih{--tc:#1ed7a1;display:flex;gap:24px;align-items:flex-end;padding:28px 24px 22px;border-radius:16px;background:linear-gradient(180deg,#00000040,#00000000),linear-gradient(180deg,var(--tc),#00000000 95%)}
+.tipic{width:220px;height:220px;flex:none;border-radius:10px;overflow:hidden;box-shadow:0 12px 36px #0008;background:#ffffff14}
+.tipic img{width:100%;height:100%;object-fit:cover}
+.tix{min-width:0}.tix small{font-size:13px;font-weight:600;color:var(--text)}
+.tix h2{font-size:clamp(30px,6vw,72px);line-height:1.04;margin:6px 0 10px;letter-spacing:-.02em;font-weight:900;overflow-wrap:anywhere}
+.tix .tid{margin:0 0 10px;color:#ffffffc4;font-size:14px}
+.tim{display:flex;align-items:center;gap:6px;font-size:14px;flex-wrap:wrap}.tim img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+.tibar{display:flex;align-items:center;gap:10px;padding:18px 4px 10px}
+.tibar .tiplay{width:56px;height:56px;padding:0;border-radius:50%;background:var(--accent);color:var(--on)}
+.tibar .tiplay:hover{filter:brightness(1.1);transform:scale(1.05)}
+.tibar button.ico{width:44px;height:44px}
+.tr.trh{color:var(--sub);font-size:13px;cursor:default;border-bottom:1px solid #ffffff1a;border-radius:0;margin-bottom:4px;text-transform:none}
+.tr.trh:hover{background:none}
+.shr .more{white-space:nowrap}
 /* tiêu đề trang */
 .hero{display:flex;gap:24px;align-items:flex-end;padding:12px 0 18px}
 .hcol{width:200px;height:200px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 12px 36px #0007}
@@ -306,6 +328,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 #auth .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;margin-bottom:16px}
 #auth .logo b{width:38px;height:38px;border-radius:12px;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center}
 #authErr{color:#ff7b82;min-height:18px;font-size:13px;margin:4px 0}
+@media(max-width:700px){.tcv>.pl{display:none}.tih{flex-direction:column;align-items:center;text-align:center;padding:20px 14px}.tipic{width:180px;height:180px}.tim{justify-content:center}.tr.trh{display:none}.tibar{justify-content:center}}
 @media(max-width:800px){
  :root{--sw:76px}.ni span,.li .meta,.libh .t span,#libS,#libQrow{display:none}.ni{justify-content:center;padding:12px}.libh{justify-content:center;flex-direction:column;padding:4px 0}.li{justify-content:center;padding:6px}
  #bar{grid-template-columns:1fr auto;border-radius:24px}.br .vol,#bQueueW{display:none}
@@ -896,6 +919,7 @@ button *,#gear *,#meAv *{pointer-events:none}
 
   /* Khớp nguyên văn (đã cắt khoảng trắng đầu/cuối) */
   const EN_EXACT={
+    'Nghệ sĩ nổi bật':'Best of artists','Tổng hợp những bài hát hàng đầu của một nghệ sĩ.':'Bringing together the top songs from an artist.','Danh sách phát công khai':'Public Playlist','Lưu thành danh sách phát':'Save as playlist','Đã lưu thành danh sách phát':'Saved as a playlist','Không tải được bài hát của nghệ sĩ này.':'Couldn’t load this artist’s songs.','Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.':'No artists to show yet. Try again later.',
     /* đăng nhập */
     'Đăng nhập':'Log in','Đăng ký':'Sign up','Tên đăng nhập':'Username','Tên hiển thị':'Display name',
     'Mật khẩu (≥ 8 ký tự)':'Password (8+ characters)','Tạo tài khoản':'Create account',
@@ -1071,6 +1095,9 @@ button *,#gear *,#meAv *{pointer-events:none}
   const plural=(n,a,b)=>n+' '+(+n===1?a:b);
   /* Mẫu có chứa số / tên – chỉ khớp cả đoạn văn bản */
   const EN_RULES=[
+    [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. The essential tracks, all in one playlist.'],
+    [/^(.+) • (\d+) bài hát, khoảng (\d+) giờ$/,(m)=>m[1]+' • '+m[2]+' songs, about '+m[3]+' hr'],
+    [/^(.+) • (\d+) bài hát, (\d+) phút$/,(m)=>m[1]+' • '+m[2]+' songs, '+m[3]+' min'],
     [/^(Sử dụng Proxy để vượt qua trình chặn nội dung)( .+)$/,(m)=>EN_EXACT[m[1]]+tr(m[2])],
     [/^Danh sách phát · (\d+) bài hát$/,(m)=>'Playlist · '+plural(m[1],'song','songs')],
     [/^(\d+) bài hát$/,(m)=>plural(m[1],'song','songs')],
@@ -1542,11 +1569,11 @@ function collage(list){
   if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],400))}" alt=""></div>`;
   return `<div class="collage one">${ic('note','lg')}</div>`;
 }
-function tracksHtml(list,inPl,name){
+function tracksHtml(list,inPl,name,col){
   if(!list.length) return '<p class="empty">Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.</p>';
   const k=reg(list,name);
   return list.map((t,i)=>{ const kk=key(t), f=favs.has(kk);
-    return `<div class="tr" data-l="${k}" data-i="${i}" data-tk="${esc(kk)}"><span class="n">${i+1}</span><div class="cvx"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><span class="pbtn">${ic('play','fill sm')}</span></div><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="ar">${esc(t.artist)}</div><span class="du">${t.dur?fmt(t.dur):''}</span><div class="ac"><button class="ico ${f?'on':''}" data-a="fav" title="Yêu thích">${ic('heart',f?'fill':'')}</button><button class="ico" data-a="add" title="Thêm vào playlist">${ic('plus')}</button><button class="ico" data-a="dl" title="Tải nhạc">${ic('download')}</button>${inPl?`<button class="ico" data-a="rm" title="Xoá khỏi playlist">${ic('x')}</button>`:''}</div></div>`; }).join('');
+    return `<div class="tr" data-l="${k}" data-i="${i}" data-tk="${esc(kk)}"><span class="n">${i+1}</span><div class="cvx"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><span class="pbtn">${ic('play','fill sm')}</span></div><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="ar">${esc(col?col(t):t.artist)}</div><span class="du">${t.dur?fmt(t.dur):''}</span><div class="ac"><button class="ico ${f?'on':''}" data-a="fav" title="Yêu thích">${ic('heart',f?'fill':'')}</button><button class="ico" data-a="add" title="Thêm vào playlist">${ic('plus')}</button><button class="ico" data-a="dl" title="Tải nhạc">${ic('download')}</button>${inPl?`<button class="ico" data-a="rm" title="Xoá khỏi playlist">${ic('x')}</button>`:''}</div></div>`; }).join('');
 }
 function hero(title,sub,list,extra=''){
   const k=reg(list,title);
@@ -1554,7 +1581,10 @@ function hero(title,sub,list,extra=''){
 }
 const sec=(id,title,kicker,more)=>`<section class="sec"><div class="sh"><div>${kicker?`<small>${esc(kicker)}</small>`:''}<h3>${esc(title)}</h3></div><div class="shr">${more||'<a class="more" hidden>Phát tất cả</a>'}<button class="nv" data-nv="-1" title="Cuộn trái">${ic('chev','flip sm')}</button><button class="nv" data-nv="1" title="Cuộn phải">${ic('chev','sm')}</button></div></div><div id="g${id}">${skel(7)}</div></section>`;
 
+let tiFrom='home';
 $('#main').addEventListener('click',e=>{
+  const ti=e.target.closest('[data-ti]');
+  if(ti){ const l=lists[ti.dataset.ti], x=l&&l[+ti.dataset.i]; if(x){ tiFrom=page==='bestartists'?'bestartists':'home'; go('thisis',{...x,auto:!!e.target.closest('.pl')}); } return; }
   const en=e.target.closest('[data-ent]');
   if(en){ const l=lists[en.dataset.ent], x=l&&l[+en.dataset.i]; if(x) go('ybrowse',x); return; }
   const jb=e.target.closest('[data-jb]');
@@ -1978,7 +2008,7 @@ const pages={
     const tgMode=false;
     /* mục 0 ("Tất cả"): kệ do planHome lên (theo gu + khám phá, xoay vòng); các mục tâm trạng giữ danh sách cố định */
     const secs=ci===0?planHome(taste,Y):sets[ci][1].map(([t,q])=>[t,q,'','mood']);
-    m.innerHTML=(ci===0&&!tgMode?'<div id="jb"></div><div id="fa"></div><div id="rd"></div><div id="cl"></div><div id="fg"></div><div id="bl"></div><div id="ex"></div><div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t,,kk],i)=>sec(i,t,kk)).join('');
+    m.innerHTML=(ci===0&&!tgMode?'<div id="jb"></div><div id="fa"></div><div id="ba"></div><div id="rd"></div><div id="cl"></div><div id="fg"></div><div id="bl"></div><div id="ex"></div><div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t,,kk],i)=>sec(i,t,kk)).join('');
     if(ci===0&&!tgMode){
       /* --- Tiếp tục nghe: các nơi bạn vừa nghe dở (danh sách, đài, nghệ sĩ…) --- */
       try{ const J=jumpGet(), box=$('#jb');
@@ -1997,6 +2027,9 @@ const pages={
             const list=l.slice(0,12).map(e=>({...e,sub:'Nghệ sĩ'}));
             bx.innerHTML=`<section class="sec"><div class="sh"><div><h3>Nghệ sĩ yêu thích của bạn</h3></div><div class="shr"><a class="more" data-go="followed">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${entCards(list).replace('grid wrap sent','grid')}</section>`; }).catch(()=>{});
         } }catch{}
+      /* --- Nghệ sĩ nổi bật ("This Is"): độ hot tính từ bảng xếp hạng (thứ hạng, lượt xem, lượt thích), pha nhẹ gu nghe của bạn --- */
+      getBestArtists(taste).then(l=>{ const box=$('#ba'); if(!box||l.length<3) return; const list=l.slice(0,12), k=reg(list,'');
+        box.innerHTML=`<section class="sec"><div class="sh"><div><small>Tổng hợp những bài hát hàng đầu của một nghệ sĩ.</small><h3>Nghệ sĩ nổi bật</h3></div><div class="shr"><a class="more" data-go="bestartists">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${list.map((e,i)=>tiCard(e,i,k)).join('')}</div></section>`; }).catch(()=>{});
       /* --- Gợi ý cho hôm nay: đổi mỗi ngày, dựa trên nghệ sĩ bạn hay nghe, ưu tiên bài/nghệ sĩ bạn chưa nghe --- */
       loadDaily(taste).then(r=>{ const box=$('#rd'); if(!Array.isArray(r)||r.length<6||!box) return; const k=reg(r,'Gợi ý cho hôm nay');
         box.innerHTML=`<section class="sec"><div class="sh"><div><small>Cập nhật mỗi ngày theo gu nghe của bạn</small><h3>Gợi ý cho hôm nay</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Gợi ý cho hôm nay')}</section>`; markNow(); }).catch(()=>{});
@@ -2411,7 +2444,7 @@ async function go(p,arg,keep){
   { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','top','followed','downloads','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
-  if(offlineNow()&&['home','search','charts','mix','ybrowse'].includes(p)){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>retryNet(p,arg,keep,r); if(d) d.onclick=()=>go('downloads'); return; }
+  if(offlineNow()&&['home','search','charts','mix','ybrowse','thisis','bestartists'].includes(p)){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>retryNet(p,arg,keep,r); if(d) d.onclick=()=>go('downloads'); return; }
   try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){
     if(e.message==='401') return;
     if(e.net){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>retryNet(p,arg,keep,r); if(d) d.onclick=()=>go('downloads'); }
@@ -2502,6 +2535,58 @@ pages.ybrowse=async function(m,x){
   catch(e){ m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">${esc(errTxt(e))}</p>`; bk(); return; }
   const tr=(r&&r.tracks)||[], title=(r&&r.title)||x.title;
   m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div>`+hero(title,(r&&r.sub)||ENT_LBL[x.kind]||'',tr)+tracksHtml(tr,false,title); bk(); markNow();
+};
+
+/* ===== Nghệ sĩ nổi bật / "This Is" ===== */
+const BA_COLORS=['#1ed7a1','#f59bd0','#ffb23f','#8fb8ff','#c9a7ff','#ff8f7a','#7ee0e8','#d6e66a'];
+const tiDesc=n=>`Đây là ${n}. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát.`;
+let baMemo=null;
+const bestRegion=()=>{ try{ return ((navigator.language||'').split('-')[1]||'').toUpperCase().slice(0,2); }catch{ return ''; } };
+/* Danh sách nghệ sĩ hot do server chấm điểm (lượt xem, lượt thích, thứ hạng); ở đây chỉ nhích nhẹ theo gu nghe và bỏ nghệ sĩ bạn hay bỏ qua. */
+async function getBestArtists(taste){
+  if(!baMemo||Date.now()-baMemo.t>6e5){
+    const j=await api('/api/yt/best-artists?region='+encodeURIComponent(bestRegion()));
+    const a=j&&Array.isArray(j.artists)?j.artists.filter(e=>e&&e.id&&e.title&&e.image):[];
+    if(a.length>=3) baMemo={t:Date.now(),a}; else return [];
+  }
+  const aw=(taste&&taste.artW)||{}, avoid=(taste&&taste.avoid)||new Set();
+  const l=baMemo.a.filter(e=>!avoid.has(String(e.title).toLowerCase()))
+    .map(e=>({e,s:(e.heat||0)*(1+.25*(aw[String(e.title).toLowerCase()]||0))})).sort((x,y)=>y.s-x.s).map(x=>x.e);
+  let prev=-1;   /* màu theo tên nghệ sĩ (ổn định), hai thẻ cạnh nhau không trùng màu */
+  return l.map(e=>{ let c=strHash(String(e.title).toLowerCase())%BA_COLORS.length; if(c===prev) c=(c+1)%BA_COLORS.length; prev=c; return {...e,color:BA_COLORS[c]}; });
+}
+const tiCard=(e,i,k)=>`<div class="card tic" data-ti="${k}" data-i="${i}" tabindex="0"><div class="cvw tcv" style="--tc:${esc(e.color||BA_COLORS[0])}"><img class="tlogo" src="/app-icon.png" alt=""><b class="tt">THIS IS</b><i class="tband"></i><img class="tpic" src="${esc(thumb(e.image,300))}" loading="lazy" alt=""><b class="tnm">${esc(e.title)}</b><button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="tdesc">${esc(tiDesc(e.title))}</div></div>`;
+pages.bestartists=async function(m){
+  m.innerHTML=`<div class="sh"><div><small>Tổng hợp những bài hát hàng đầu của một nghệ sĩ.</small><h3 style="font-size:32px">Nghệ sĩ nổi bật</h3></div></div><p class="empty">Đang tải…</p>`;
+  let taste; try{ taste=await tasteProfile(); }catch{}
+  const l=await getBestArtists(taste);
+  if(page!=='bestartists') return;
+  const hd=m.querySelector('.sh').outerHTML;
+  if(!l.length){ m.innerHTML=hd+'<p class="empty">Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.</p>'; return; }
+  const k=reg(l,'');
+  m.innerHTML=hd+`<div class="grid wrap">${l.map((e,i)=>tiCard(e,i,k)).join('')}</div>`;
+};
+pages.thisis=async function(m,x){
+  const back=`<div class="sh" style="margin-bottom:10px"><button class="out" id="tiBack">${ic('chev','flip sm')} Quay lại</button></div>`;
+  const bk=()=>{ const b=$('#tiBack'); if(b) b.onclick=()=>go(tiFrom); };
+  m.innerHTML=back+'<p class="empty">Đang tải…</p>'; bk();
+  let r; try{ r=await api('/api/yt/this-is?name='+encodeURIComponent(x.title)+'&id='+encodeURIComponent(x.id||'')); }
+  catch(e){ if(page!=='thisis') return; m.innerHTML=back+`<p class="empty">${esc(errTxt(e))}</p>`; bk(); return; }
+  if(page!=='thisis') return;
+  const tr=(r&&Array.isArray(r.tracks))?r.tracks:[], who=(r&&r.name)||x.title, name='This Is '+who;
+  if(!tr.length){ m.innerHTML=back+'<p class="empty">Không tải được bài hát của nghệ sĩ này.</p>'; bk(); return; }
+  const tot=tr.reduce((a,t)=>a+(t.dur||0),0), dur=tot>=3600?`khoảng ${Math.round(tot/3600)} giờ`:`${Math.max(1,Math.round(tot/60))} phút`;
+  const k=reg(tr,name), img=(r&&r.image)||x.image||(tr[0]&&tr[0].image)||'';
+  m.innerHTML=back+`<div class="tih" style="--tc:${esc(x.color||BA_COLORS[0])}"><div class="tipic">${img?`<img src="${esc(thumb(img,500))}" alt="">`:''}</div><div class="tix"><small>Danh sách phát công khai</small><h2>${esc(name)}</h2><p class="tid">${esc(tiDesc(who))}</p><div class="tim"><img src="/app-icon.png" alt=""><b>BBeat</b> • ${tr.length} bài hát, ${dur}</div></div></div>
+    <div class="tibar"><button class="tiplay" data-hp="${k}" data-sh="0" title="Phát">${ic('play','fill')}</button><button class="ico" data-hp="${k}" data-sh="1" title="Xáo trộn">${ic('shuffle')}</button><button class="ico" id="tiSave" title="Lưu thành danh sách phát">${ic('plus')}</button><button class="ico" data-hd="${k}" title="Tải tất cả">${ic('download')}</button></div>
+    <div class="tr trh"><span class="n">#</span><span></span><span>Tiêu đề</span><span class="ar">Album</span><span class="du"></span><span></span></div>`+tracksHtml(tr,false,name,t=>t.album||t.artist);
+  bk(); markNow();
+  const sv=$('#tiSave'); if(sv) sv.onclick=async()=>{
+    if(guest){ notify('Hãy đăng nhập để lưu danh sách phát'); return; }
+    sv.disabled=true;
+    try{ const p=await api('/api/playlists',{json:{name}}); for(const t of tr) await api(`/api/playlists/${p.id}/tracks`,{json:slim(t)}); await loadPlaylists(); notify('Đã lưu thành danh sách phát'); }
+    catch(e){ notify(errTxt(e)); } finally{ sv.disabled=false; } };
+  if(x.auto) playList(tr,0,name);
 };
 async function startMix(sp,name){
   try{ let l=sp==='fav'?await api('/api/favorites'):sp==='hist'?await api('/api/history'):await ytSearch(sp);
