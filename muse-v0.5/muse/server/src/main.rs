@@ -324,6 +324,7 @@ async fn main() {
         .route("/app-icon.png", get(serve_icon))
         .route("/api/yt/search", get(yt_search))
         .route("/api/yt/browse", get(yt_browse_music))
+        .route("/api/yt/similar", get(yt_similar))
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -2045,6 +2046,176 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
 static SEARCH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
 fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     SEARCH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// ---------- Nghệ sĩ liên quan (mục "Fans might also like" trên trang nghệ sĩ của YouTube Music) ----------
+// Dùng cho kệ "Giống X" ở trang chủ: thay vì tìm chữ "nhạc giống X", lấy đúng danh sách nghệ sĩ mà YouTube Music cho là gần với X,
+// rồi lấy vài bài của từng người và xen kẽ lại để một kệ có nhiều giọng khác nhau. Ý tưởng: get_artist(...)["related"] của thư viện ytmusicapi.
+#[derive(Deserialize)]
+struct YtSimQ {
+    artist: Option<String>,
+}
+
+static SIMILAR_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn similar_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    SIMILAR_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn yt_ctx() -> Value {
+    json!({ "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } })
+}
+
+// POST tới một endpoint InnerTube (search / browse ...), trả None nếu lỗi mạng hoặc YouTube báo lỗi.
+async fn yt_post(client: &reqwest::Client, ep: &str, body: Value) -> Option<Value> {
+    let resp = client
+        .post(format!("https://music.youtube.com/youtubei/v1/{ep}?prettyPrint=false"))
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(12))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    resp.json::<Value>().await.ok()
+}
+
+// Tìm bài hát (bộ lọc "Songs") theo từ khoá.
+async fn yt_songs(client: &reqwest::Client, query: &str) -> Vec<Value> {
+    let body = json!({ "context": yt_ctx(), "query": query, "params": "EgWKAQIIAWoKEAkQBRAKEAMQBA==" });
+    let mut out: Vec<Value> = Vec::new();
+    if let Some(v) = yt_post(client, "search", body).await {
+        yt_collect(&v, &mut out);
+    }
+    out
+}
+
+// Các thẻ nghệ sĩ (musicTwoRowItemRenderer có pageType = ARTIST) trên trang nghệ sĩ: chỉ mục "Fans might also like" có loại thẻ này.
+fn yt_related_artists(v: &Value, out: &mut Vec<(String, String)>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("");
+                    let name = r.get("title").map(yt_text).unwrap_or_default();
+                    if pt == "MUSIC_PAGE_TYPE_ARTIST" && !id.is_empty() && !name.is_empty() {
+                        out.push((name, id.to_string()));
+                    }
+                }
+            } else {
+                for x in m.values() {
+                    yt_related_artists(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_related_artists(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// GET /api/yt/similar?artist=Tên → { artist, related: [{name,id}], tracks: [...] }  (tracks xen kẽ giữa các nghệ sĩ liên quan)
+async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtSimQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id),
+        Err(_) => (false, false),
+    };
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let lname = name.to_lowercase();
+    let ckey = format!("{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = similar_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let empty = json!({ "artist": name, "related": [], "tracks": [] });
+
+    // 1) Tìm nghệ sĩ: ưu tiên tên trùng khớp, không có thì lấy kết quả nghệ sĩ đầu tiên.
+    let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
+        return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
+    };
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let is_artist = |e: &&Value| e.get("kind").and_then(|x| x.as_str()) == Some("artist");
+    let exact = ents
+        .iter()
+        .filter(is_artist)
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    let first = ents.iter().find(is_artist);
+    let aid: String = match exact.or(first).and_then(|e| e.get("id")).and_then(|x| x.as_str()) {
+        Some(s) => s.to_string(),
+        None => return Ok(Json(empty)),
+    };
+
+    // 2) Trang nghệ sĩ → danh sách nghệ sĩ liên quan.
+    let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await else {
+        return Ok(Json(empty));
+    };
+    let mut rel: Vec<(String, String)> = Vec::new();
+    yt_related_artists(&bv, &mut rel);
+    let mut seen_ids: HashSet<String> = HashSet::new();
+    rel.retain(|(n, id)| id != &aid && n.to_lowercase() != lname && seen_ids.insert(id.clone()));
+    rel.truncate(5);
+    if rel.is_empty() {
+        return Ok(Json(empty));
+    }
+
+    // 3) Vài bài của từng nghệ sĩ liên quan (tìm song song), rồi xen kẽ.
+    let lists = futures_util::future::join_all(rel.iter().map(|(n, _)| yt_songs(&client, n))).await;
+    let mut per: Vec<Vec<Value>> = Vec::new();
+    for ((n, _), l) in rel.iter().zip(lists.into_iter()) {
+        let ln = n.to_lowercase();
+        let mut mine: Vec<Value> = l
+            .iter()
+            .filter(|t| t.get("artist").and_then(|x| x.as_str()).map(|a| a.to_lowercase().contains(&ln)).unwrap_or(false))
+            .cloned()
+            .collect();
+        if mine.len() < 2 {
+            mine = l;
+        }
+        mine.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
+        if !allow_explicit {
+            mine.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+        }
+        mine.truncate(5);
+        per.push(mine);
+    }
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen_t: HashSet<String> = HashSet::new();
+    for i in 0..5 {
+        for l in per.iter() {
+            if let Some(t) = l.get(i) {
+                let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !id.is_empty() && seen_t.insert(id) {
+                    tracks.push(t.clone());
+                }
+            }
+        }
+    }
+    let related: Vec<Value> = rel.iter().map(|(n, id)| json!({ "name": n, "id": id })).collect();
+    let val = json!({ "artist": name, "related": related, "tracks": tracks });
+    if !tracks.is_empty() {
+        let mut c = similar_cache().lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
 }
 
 // Mở một album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm: trả {title, sub, image, tracks}.
