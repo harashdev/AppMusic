@@ -2132,8 +2132,7 @@ pages.library=function(m){
     <div class="lcTabs"><button class="chip on">Thư viện của bạn</button><button class="chip" data-p="charts">Thịnh hành</button><button class="chip" data-p="together">Nghe cùng nhau</button><button class="chip" data-p="friends">Bạn bè</button></div>
     <div class="libG">${card('favs','Yêu thích',nf,'heart',1)}${card('history','Nghe gần đây','Lịch sử nghe','clock')}${card('charts','Thịnh hành','50 bài hát','trend')}${card('downloads','Đã tải xuống',dn?dn+' bài hát':'Nghe không cần mạng','download')}${card('together','Nghe cùng nhau','Phòng nghe chung','users')}</div>
     <div class="lcH"><span>Đã thêm gần đây</span><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
-    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>
-    <div class="lcH"><span>Bạn bè</span><button id="libFrGo">Quản lý</button></div><div class="libL" id="libFr"></div>`;
+    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>`;
   /* ảnh bìa lấy bản lớn (300–500px) để không bị vỡ hạt trên màn hình nét cao */
   /* mỗi thẻ lấy ngẫu nhiên 1–2 ảnh bìa từ bài của bạn (mỗi lần mở lại đổi), dùng bản lớn để không vỡ hạt */
   const pool=[];
@@ -2147,12 +2146,6 @@ pages.library=function(m){
   m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
   plCoverFill();
   $('#libNew').onclick=()=>$('#newPl').click();
-  $('#libFrGo').onclick=()=>go('friends');
-  api('/api/friends').then(list=>{
-    const box=$('#libFr'); if(!box) return; list.sort((a,b)=>(b.online-a.online)||a.display_name.localeCompare(b.display_name)); list.forEach(f=>fmap.set(f.id,f));
-    box.innerHTML=list.map(f=>`<div class="li" data-fid="${f.id}" tabindex="0">${avU(f)}<div class="meta"><b>${esc(f.display_name)}</b><span><span class="dot ${f.online?'on':''}" style="margin:0 6px 0 0"></span>${f.online?'Đang online':'Offline'}</span></div></div>`).join('')||'<p class="empty">Chưa có bạn bè nào.</p>';
-    box.onclick=e=>{ const r=e.target.closest('[data-fid]'); if(!r) return; const f=fmap.get(+r.dataset.fid); if(f){ e.stopPropagation(); showProfilePop(f,r); } };
-  }).catch(()=>{});
 };
 document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
 $('#gear').onclick=()=>go('settings');
