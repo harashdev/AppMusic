@@ -1463,7 +1463,12 @@ function showProfilePop(u,anchor,mine){
 const ytCache={};
 /* Trang chủ dùng cache bền: có dữ liệu cũ thì hiện ngay (<24h), dữ liệu quá 10 phút thì tải lại ngầm cho lần mở sau. */
 const ycKey=q=>'muse_yc_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
-const ytFetch=q=>api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
+/* q dạng 'sim:Tên nghệ sĩ' = bài của các nghệ sĩ YouTube Music cho là gần với nghệ sĩ đó (/api/yt/similar); lỗi hoặc rỗng thì quay về tìm kiếm chữ như cũ */
+const ytFetch=q=>{
+  if(q.startsWith('sim:')){ const n=q.slice(4);
+    return api('/api/yt/similar?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]).then(t=>t.length>=6?t:ytFetch('nhạc giống '+n)); }
+  return api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
+};
 function ytSearch(q,swr){
   if(ytCache[q]) return ytCache[q];
   const save=r=>{ if(swr&&r.length) LS.set(ycKey(q),JSON.stringify({t:Date.now(),r})); return r; };
@@ -1750,7 +1755,7 @@ function planHome(tp,Y){
     const nA=Math.min(arts.length,nT>=4&&arts.length>=5?3:nT>=4?2:1);
     const artShelves=pickW(arts,a=>Math.sqrt(a.c),rnd,nA).map(a=>{
       const n=a.n, lat=!/[^\x00-ɏ]/.test(n);
-      const tpl=lat?[['Vì bạn hay nghe '+n,n+' hay nhất'],['Giống '+n,'nhạc giống '+n],[n+' · bài mới',n+' mới nhất']]:[['Vì bạn hay nghe '+n,n+' best songs'],['Giống '+n,'songs like '+n],[n+' · bài mới',n+' new songs']];
+      const tpl=lat?[['Vì bạn hay nghe '+n,n+' hay nhất'],['Giống '+n,'sim:'+n],[n+' · bài mới',n+' mới nhất']]:[['Vì bạn hay nghe '+n,n+' best songs'],['Giống '+n,'sim:'+n],[n+' · bài mới',n+' new songs']];
       const w=[.5,.3,.2], pick=pickW(tpl.map((x,i)=>({x,w:w[i]})),o=>o.w,rnd,1)[0].x;
       return [pick[0],pick[1]];
     });
