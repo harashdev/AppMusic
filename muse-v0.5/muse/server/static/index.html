@@ -978,7 +978,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Đưa âm nhạc vào trong một phòng, hội trường hoặc tấm kim loại':'Place the music in a room, a hall or a metal plate','Không gian':'Space','Phòng':'Room','Hội trường':'Hall','Tấm kim loại':'Plate',
     'Mức vang':'Reverb level','Lưu trạng thái phát lại':'Save playback state','Lưu chế độ trộn và phát lại':'Remember shuffle and repeat modes','Chuyển bài mượt mà (BETA)':'Smooth track transitions (BETA)',
     'Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.':'Crossfade between songs by fading out the current one while fading in the next.',
-    'Phát video của nhạc':'Play music videos','Đã theo dõi':'Following','Phát nhiều nhất':'Most played','Theo dõi':'Follow','Nghệ sĩ bạn theo dõi':'Artists you follow',
+    'Phát video của nhạc':'Play music videos','Gợi ý cho bạn':'Recommended for you','Đã theo dõi':'Following','Phát nhiều nhất':'Most played','Theo dõi':'Follow','Nghệ sĩ bạn theo dõi':'Artists you follow',
     'Lịch sử nghe':'Listening history','Theo dõi lịch sử nghe':'Track listening history','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản':'Save your listening history to your account’s database',
     'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube',
     'Đăng nhập Google':'Sign in with Google','Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Read access to your YouTube playlists is granted. Click to disconnect and revoke it.',
@@ -1649,7 +1649,7 @@ async function tasteProfile(){
   const hist=Array.isArray(got[0])?got[0].slice(0,300):[], fav=Array.isArray(got[1])?got[1]:[];
   let dls=[]; try{ dlLoad(); dls=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); }catch{}
   /* bài gần đây nặng hơn, yêu thích nặng hơn nữa, bài đã tải xuống cũng là tín hiệu mạnh (người dùng chủ động giữ lại) */
-  const all=[...hist.map((t,i)=>[t,1+Math.max(0,(60-i))/60]),...fav.map(t=>[t,3]),...dls.map(t=>[t,1.5])];
+  const all=[...hist.map((t,i)=>[t,1+Math.max(0,(60-i))/60]),...fav.map(t=>[t,3]),...dls.map(t=>[t,1.5]),...Object.values(playsGet()).filter(e=>e&&e.t).map(e=>[e.t,1+1.5*Math.log1p(e.n)])];
   if(all.length<3) return saved()||empty;
   const gc={}, ac={}, seen=new Set();
   for(const [t,w] of all){
@@ -1707,13 +1707,15 @@ const pages={
     const tgMode=ci===0&&!!homeTg;
     const secs=tgMode?taste.genres[homeTg]:ci===0?[...taste.secs,...sets[0][1]].slice(0,Math.max(4,taste.secs.length+2)):sets[ci][1];
     const tasteN=tgMode?secs.length:taste.secs.length;
-    m.innerHTML=(ci===0&&!tgMode?'<div id="hs"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('');
+    m.innerHTML=(ci===0&&!tgMode?'<div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t],i)=>sec(i,t)).join('');
     if(ci===0&&!tgMode){
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
         const items=h.slice(0,18), k=reg(items,'Nghe gần đây');
         const first=h.length>=4?`<div class="card" data-hp="${k}" data-sh="0" tabindex="0"><div class="cvw">${collage(items)}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">Nghe gần đây</div><div class="ca">${esc(me.display_name)} • ${h.length} bài hát</div></div>`:'';
         box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div>${guest?'':`<small>${esc((me.display_name||'').toUpperCase())}</small>`}<h3>Nghe lại</h3></div><div class="shr"><a class="more" data-go="history">Thêm</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${first}${items.map((t,i)=>cardHtml(t,reg(items,'Nghe gần đây'),i)).join('')}</div></section>`;
         markNow(); }).catch(()=>{});
+      api('/api/recommend').then(r=>{ const box=$('#rc'); if(!Array.isArray(r)||r.length<4||!box) return; const k=reg(r,'Gợi ý cho bạn');
+        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Gợi ý cho bạn</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r.slice(0,24),'Gợi ý cho bạn')}</section>`; markNow(); }).catch(()=>{});
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
@@ -1919,9 +1921,6 @@ const pages={
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
-      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
-    </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập</span>','dis')}
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
@@ -2005,27 +2004,6 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
-    /* ---- Nhập playlist YouTube bằng link (không cần đăng nhập) ---- */
-    if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
-        if(!url){ msg.textContent='Hãy dán link playlist YouTube'; return; }
-        const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
-        if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
-        if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
-        btn.disabled=true; msg.textContent='Đang kiểm tra link và yêu cầu YouTube…'; msg.dataset.kind='loading';
-        try{
-          const x=await api('/api/yt-import/url',{json:{url,urls:url}});
-          msg.dataset.kind='success'; msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
-          inp.value=''; await loadPlaylists();
-        }catch(e){
-          if(e.message!=='401'){
-            msg.dataset.kind='error';
-            const detail=String(e&&e.message||e).trim();
-            msg.textContent='Nhập thất bại: '+(detail||'Máy chủ không trả về nội dung lỗi.')+' (Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)';
-            console.error('[YouTube playlist import]',{url, error:e, message:detail});
-          }
-        }finally{ btn.disabled=false; }
-      };
-      $('#ytUrlGo').onclick=go1; $('#ytUrl').onkeydown=e=>{ if(e.key==='Enter') go1(); }; }
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
