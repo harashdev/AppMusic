@@ -1067,6 +1067,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     [/^Thư viện của (.+)$/,(m)=>m[1]+"'s library"],
     [/^↻ Làm mới$/,()=>'↻ Refresh'],
     [/^Khám phá$/,()=>'Discover'],
+    [/^Khám phá (.+)$/,(m)=>'Discover '+m[1]],
     [/^Kết quả cho “(.*)”$/,(m)=>'Results for “'+m[1]+'”'],
     [/^Kết quả: (.*)$/,(m)=>'Results: '+m[1]],
     [/^Bạn bè · (\d+) online$/,(m)=>'Friends · '+m[1]+' online'],
@@ -1468,11 +1469,16 @@ function showProfilePop(u,anchor,mine){
 /* ===== YouTube Music (tìm qua server → InnerTube) ===== */
 const ytCache={};
 /* Trang chủ dùng cache bền: có dữ liệu cũ thì hiện ngay (<24h), dữ liệu quá 10 phút thì tải lại ngầm cho lần mở sau. */
-const ycKey=q=>'muse_yc_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
+const ycKey=q=>'muse_yc2_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
 /* q dạng 'sim:Tên nghệ sĩ' = bài của các nghệ sĩ YouTube Music cho là gần với nghệ sĩ đó (/api/yt/similar); lỗi hoặc rỗng thì quay về tìm kiếm chữ như cũ */
+/* Gợi ý thể loại cho kệ "Giống X" (X chỉ là một ca sĩ/DJ, không phải cả franchise → chỉ hiện đúng thể loại này). Thêm dòng khác tuỳ ý: 'tên nghệ sĩ viết thường':'edm' | 'lofi' | 'rap'. Không khai báo thì server tự đoán từ bài của nghệ sĩ. */
+const ARTIST_GENRE={'saki hanami':'edm'};
+const FRESH_DAYS=14;   /* bài ra trong vòng 14 ngày mới gọi là "bài mới"; cũ hơn là "khám phá" */
 const ytFetch=q=>{
-  if(q.startsWith('sim:')){ const n=q.slice(4);
-    return api('/api/yt/similar?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]).then(t=>t.length>=6?t:ytFetch('nhạc giống '+n).then(l=>l.filter(x=>!String(x.title||'').toLowerCase().startsWith(n.toLowerCase())))); }
+  if(q.startsWith('new:')){ const n=q.slice(4);
+    return api('/api/yt/fresh?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks.filter(t=>(t.age??999)<=FRESH_DAYS):[]).catch(()=>[]); }
+  if(q.startsWith('sim:')){ const n=q.slice(4), g=ARTIST_GENRE[n.toLowerCase()]||'';
+    return api('/api/yt/similar?artist='+encodeURIComponent(n)+(g?'&genre='+encodeURIComponent(g):'')).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]); }   /* không còn tìm chữ "nhạc giống X" làm dự phòng: nó trả bài trùng tên lung tung. Không đủ bài đúng thì ẩn kệ */
   return api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
 };
 function ytSearch(q,swr){
@@ -1775,7 +1781,7 @@ function planHome(tp,Y){
     const artShelves=pickW(arts,a=>Math.sqrt(a.c),rnd,nA).map(a=>{
       const n=a.n, lat=!/[^\x00-ɏ]/.test(n);
       /* phần tử thứ 3 = true nếu là tìm theo TÊN nghệ sĩ (kết quả phải lọc đúng nghệ sĩ đó, tránh bài có tựa trùng tên người hát) */
-      const tpl=lat?[['Vì bạn hay nghe '+n,n+' hay nhất',true],['Giống '+n,'sim:'+n,false],[n+' · bài mới',n+' mới nhất',true]]:[['Vì bạn hay nghe '+n,n+' best songs',true],['Giống '+n,'sim:'+n,false],[n+' · bài mới',n+' new songs',true]];
+      const tpl=lat?[['Vì bạn hay nghe '+n,n+' hay nhất',true],['Giống '+n,'sim:'+n,false],[n+' · bài mới','new:'+n,false]]:[['Vì bạn hay nghe '+n,n+' best songs',true],['Giống '+n,'sim:'+n,false],[n+' · bài mới','new:'+n,false]];
       const w=[.5,.3,.2], pick=pickW(tpl.map((x,i)=>({x,w:w[i]})),o=>o.w,rnd,1)[0].x;
       return [pick[0],pick[1],n,!!pick[2]];   /* [tiêu đề, từ khoá, tên nghệ sĩ, tìm-theo-tên?] */
     });
@@ -1885,8 +1891,14 @@ const pages={
     secs.forEach(async([name,q,,kind,art,byName],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
       let nm=name;
       if(ci===0&&art&&byName){ r=r.filter(t=>artistHit(t,art)); if(r.length<6){ try{ r=await ytSearch('sim:'+art,true); nm='Giống '+art; const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
+      /* kệ "bài mới": chỉ bài thật sự mới ra (≤14 ngày) VÀ tài khoản/khách này chưa nghe (lịch sử, yêu thích, lượt phát trên máy). Không còn bài mới chưa nghe → đổi thành kệ "Khám phá": bài cũ của nghệ sĩ mà bạn chưa nghe. */
+      const isNew=ci===0&&art&&String(q).startsWith('new:'); let minN=6;
+      if(isNew){ const heard=t=>taste.seen.has(key(t)); const f=r.filter(t=>!heard(t));
+        if(f.length){ r=f; minN=1; }
+        else{ try{ const old=await ytSearch(art+' songs',true); r=old.filter(t=>artistHit(t,art)&&!heard(t)); nm='Khám phá '+art; const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
+      if(ci===0&&art&&!byName&&String(q).startsWith('sim:')) r=r.filter(t=>!artistHit(t,art));   /* kệ "Giống X": không bao giờ hiện bài của chính X */
       if(ci===0) r=cleanShelf(r,taste,kind,shown,'');
-      if(ci===0&&art&&r.length<6){ el2.closest('.sec').remove(); return; }   /* kệ theo nghệ sĩ mà không đủ bài đúng nghệ sĩ thì ẩn, không nhồi bài lạc đề */
+      if(ci===0&&art&&r.length<(isNew?minN:6)){ el2.closest('.sec').remove(); return; }   /* kệ theo nghệ sĩ mà không đủ bài đúng nghệ sĩ thì ẩn, không nhồi bài lạc đề */
       let items=r.slice(0,20);
       if(ci===0&&!tgMode&&i===qpIdx&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,nm);
