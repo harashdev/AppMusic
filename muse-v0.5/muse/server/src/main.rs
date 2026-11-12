@@ -325,6 +325,7 @@ async fn main() {
         .route("/api/yt/search", get(yt_search))
         .route("/api/yt/browse", get(yt_browse_music))
         .route("/api/yt/similar", get(yt_similar))
+        .route("/api/yt/fresh", get(yt_fresh))
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -2054,11 +2055,49 @@ fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
 #[derive(Deserialize)]
 struct YtSimQ {
     artist: Option<String>,
+    genre: Option<String>,
 }
 
 static SIMILAR_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
 fn similar_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     SIMILAR_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Thể loại cho kệ "Giống X": (từ khoá để tìm kiếm, dấu hiệu trong tên bài/nghệ sĩ để ưu tiên). Chỉ liệt kê vài thể loại hay gặp.
+fn genre_spec(g: &str) -> Option<(&'static str, &'static [&'static str])> {
+    match g.trim().to_lowercase().as_str() {
+        "edm" | "edm / remix" | "electronic" | "electro" => Some((
+            "edm",
+            &["edm", "remix", "house", "bass", "dj ", " dj", "club", "electro", "trance", "dubstep", "dnb", "drum and bass", "hardstyle", "future", "vip", "festival"],
+        )),
+        "lofi" | "lofi / chill" | "chill" => Some(("lofi", &["lofi", "lo-fi", "chill", "beats", "study"])),
+        "rap" | "hiphop" | "hip-hop" | "rap / hip-hop" => Some(("hip hop", &["rap", "hip hop", "hip-hop", "trap", "drill", "cypher"])),
+        _ => None,
+    }
+}
+fn genre_match(t: &Value, words: &[&str]) -> bool {
+    let txt = format!(
+        "{} {}",
+        t.get("title").and_then(|x| x.as_str()).unwrap_or(""),
+        t.get("artist").and_then(|x| x.as_str()).unwrap_or("")
+    )
+    .to_lowercase();
+    words.iter().any(|w| txt.contains(w))
+}
+
+// Chuẩn hoá tên để so khớp: bỏ dấu cách / ký tự đặc biệt, chữ thường ("Hatsuboshi Gakuen" == "hatsuboshi-gakuen").
+fn norm_name(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên đã chuẩn hoá.
+fn credit_names(s: &str) -> Vec<String> {
+    let t = s.to_lowercase().replace(" feat. ", ",").replace(" feat ", ",").replace(" ft. ", ",").replace(" ft ", ",").replace(" x ", ",");
+    t.split(|c: char| matches!(c, ',' | '&' | ';' | '/' | '、' | '・')).map(norm_name).filter(|x| !x.is_empty()).collect()
+}
+// Bài này có phải của nghệ sĩ gốc (hoặc người cùng nhóm/franchise với họ) không?
+fn is_blocked_track(t: &Value, block: &HashSet<String>) -> bool {
+    let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+    credit_names(a).iter().any(|n| block.contains(n) || block.iter().any(|b| b.chars().count() >= 4 && n.contains(b.as_str())))
 }
 
 fn yt_ctx() -> Value {
@@ -2135,7 +2174,8 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         return Err(bad("Thiếu tên nghệ sĩ"));
     }
     let lname = name.to_lowercase();
-    let ckey = format!("{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8);
+    let genre_in: String = q.genre.unwrap_or_default().trim().chars().take(30).collect();
+    let ckey = format!("{}|{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8, genre_in.to_lowercase());
     if let Some((t, v)) = similar_cache().lock().unwrap().get(&ckey) {
         if now_secs().saturating_sub(*t) < 6 * 3600 {
             return Ok(Json(v.clone()));
@@ -2155,30 +2195,123 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         .iter()
         .filter(is_artist)
         .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
-    let first = ents.iter().find(is_artist);
-    let aid: String = match exact.or(first).and_then(|e| e.get("id")).and_then(|x| x.as_str()) {
+    // Chỉ nhận trang nghệ sĩ có tên thật sự khớp (trùng hoặc chứa nhau). Trước đây lấy kết quả đầu tiên nên "Ume Hanami" (không có trang riêng)
+    // bị nhận nhầm thành một nghệ sĩ lạ rồi gợi ý lung tung.
+    let nname = norm_name(&name);
+    let near = ents.iter().filter(is_artist).find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let seed_ent = exact.or(near);
+    let aid: String = match seed_ent.and_then(|e| e.get("id")).and_then(|x| x.as_str()) {
         Some(s) => s.to_string(),
-        None => return Ok(Json(empty)),
+        None => {
+            // Không có trang nghệ sĩ riêng (vd. chỉ là một giọng trong franchise). Có thể loại thì vẫn cho kệ đúng thể loại đó; không thì ẩn kệ.
+            if let Some((kw, _)) = genre_spec(&genre_in) {
+                let mut extra = yt_songs(&client, &format!("{kw} hits")).await;
+                extra.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
+                if !allow_explicit {
+                    extra.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+                }
+                extra.truncate(20);
+                return Ok(Json(json!({ "artist": name, "related": [], "tracks": extra })));
+            }
+            return Ok(Json(empty));
+        }
     };
+    let seed_title: String = seed_ent.and_then(|e| e.get("title")).and_then(|x| x.as_str()).unwrap_or("").to_string();
 
-    // 2) Trang nghệ sĩ → danh sách nghệ sĩ liên quan.
-    let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await else {
+    // "Nhóm loại trừ": nghệ sĩ gốc + tất cả người từng đứng chung tên với họ trên bài hát của họ.
+    // Vd. Hatsuboshi Gakuen là một franchise (Gakuen Idolmaster) do nhiều nhân vật / ca sĩ hát: Saki Hanami, Ume Hanami...
+    // đều là "người nhà", không phải "giống" → bỏ hết khỏi kệ.
+    let mut block: HashSet<String> = HashSet::new();
+    block.insert(norm_name(&name));
+    if !seed_title.is_empty() {
+        block.insert(norm_name(&seed_title));
+    }
+    block.retain(|x| !x.is_empty());
+
+    // 2) Trang nghệ sĩ → danh sách nghệ sĩ liên quan (song song với việc lấy bài của chính nghệ sĩ gốc để dò "người nhà").
+    let (bv_opt, seed_songs) = futures_util::future::join(
+        yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })),
+        yt_songs(&client, &name),
+    )
+    .await;
+    let Some(bv) = bv_opt else {
         return Ok(Json(empty));
     };
+    // Thể loại: ưu tiên tham số genre do app gửi; không có thì tự đoán từ chính các bài của nghệ sĩ gốc (đa số mang dấu hiệu EDM → EDM).
+    let own: Vec<&Value> = seed_songs.iter().filter(|t| is_blocked_track(t, &block)).collect();
+    let mut spec = genre_spec(&genre_in);
+    if spec.is_none() && own.len() >= 3 {
+        if let Some(e) = genre_spec("edm") {
+            if own.iter().filter(|t| genre_match(t, e.1)).count() * 100 >= own.len() * 40 {
+                spec = Some(e);
+            }
+        }
+    }
+    for t in seed_songs.iter() {
+        if is_blocked_track(t, &block) {
+            let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+            for n in credit_names(a) {
+                block.insert(n);
+            }
+        }
+    }
     let mut rel: Vec<(String, String)> = Vec::new();
     yt_related_artists(&bv, &mut rel);
     let mut seen_ids: HashSet<String> = HashSet::new();
-    rel.retain(|(n, id)| id != &aid && n.to_lowercase() != lname && seen_ids.insert(id.clone()));
-    rel.truncate(5);
-    if rel.is_empty() {
+    rel.retain(|(n, id)| id != &aid && n.to_lowercase() != lname && !block.contains(&norm_name(n)) && seen_ids.insert(id.clone()));
+    rel.truncate(7);
+    if rel.is_empty() && spec.is_none() {
         return Ok(Json(empty));
     }
 
     // 3) Vài bài của từng nghệ sĩ liên quan (tìm song song), rồi xen kẽ.
-    let lists = futures_util::future::join_all(rel.iter().map(|(n, _)| yt_songs(&client, n))).await;
+    let lists = futures_util::future::join_all(rel.iter().map(|(n, _)| {
+        let qs = match spec {
+            Some((kw, _)) => format!("{n} {kw}"),
+            None => n.clone(),
+        };
+        let c = client.clone();
+        async move { yt_songs(&c, &qs).await }
+    }))
+    .await;
+    // Một tên cùng đứng trong bài của nhiều nghệ sĩ liên quan khác nhau = nhãn / franchise (vd. Hatsuboshi Gakuen) chứ không phải một giọng riêng → coi là "người nhà", bỏ hết.
+    {
+        let mut cnt: HashMap<String, usize> = HashMap::new();
+        for ((n, _), l) in rel.iter().zip(lists.iter()) {
+            let own_n = norm_name(n);
+            let mut names: HashSet<String> = HashSet::new();
+            for t in l.iter() {
+                let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+                for c in credit_names(a) {
+                    if c != own_n && !own_n.contains(&c) && !c.contains(&own_n) {
+                        names.insert(c);
+                    }
+                }
+            }
+            for c in names {
+                *cnt.entry(c).or_insert(0) += 1;
+            }
+        }
+        let need = if rel.len() >= 3 { std::cmp::max(2, rel.len() / 2) } else { usize::MAX };
+        for (c, k) in cnt {
+            if k >= need {
+                block.insert(c);
+            }
+        }
+    }
     let mut per: Vec<Vec<Value>> = Vec::new();
     for ((n, _), l) in rel.iter().zip(lists.into_iter()) {
         let ln = n.to_lowercase();
+        // Nghệ sĩ "liên quan" mà phần lớn bài tìm được lại ghi tên nghệ sĩ gốc / người nhà → cũng là người nhà, bỏ cả người đó.
+        let hits = l.iter().filter(|t| is_blocked_track(t, &block)).count();
+        if !l.is_empty() && hits * 2 >= l.len() {
+            per.push(Vec::new());
+            continue;
+        }
+        let l: Vec<Value> = l.into_iter().filter(|t| !is_blocked_track(t, &block)).collect();
         let mut mine: Vec<Value> = l
             .iter()
             .filter(|t| t.get("artist").and_then(|x| x.as_str()).map(|a| a.to_lowercase().contains(&ln)).unwrap_or(false))
@@ -2190,6 +2323,9 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         mine.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
         if !allow_explicit {
             mine.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+        }
+        if let Some((_, words)) = spec {
+            mine.sort_by_key(|t| !genre_match(t, words));   // sort ổn định: bài đúng thể loại lên trước
         }
         mine.truncate(5);
         per.push(mine);
@@ -2206,11 +2342,279 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
             }
         }
     }
-    let related: Vec<Value> = rel.iter().map(|(n, id)| json!({ "name": n, "id": id })).collect();
+    // Có thể loại mà vẫn thiếu bài (vì nghệ sĩ liên quan phần lớn là "người nhà" đã bị loại) → bổ sung bằng bài hot của đúng thể loại đó.
+    if tracks.len() < 6 {
+        if let Some((kw, _)) = spec {
+            let extra = yt_songs(&client, &format!("{kw} hits")).await;
+            for t in extra {
+                if is_blocked_track(&t, &block) || t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) > 720 {
+                    continue;
+                }
+                if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+                    continue;
+                }
+                let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !id.is_empty() && seen_t.insert(id) {
+                    tracks.push(t);
+                }
+            }
+        }
+    }
+    let related: Vec<Value> = rel.iter().zip(per.iter()).filter(|(_, l)| !l.is_empty()).map(|((n, id), _)| json!({ "name": n, "id": id })).collect();
     let val = json!({ "artist": name, "related": related, "tracks": tracks });
     if !tracks.is_empty() {
         let mut c = similar_cache().lock().unwrap();
         if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+// ---------- Bài MỚI của một nghệ sĩ (kệ "X · bài mới" ở trang chủ) ----------
+// Tìm theo tên chỉ ra bài cũ nổi tiếng nên không dùng được. Ở đây: mở trang nghệ sĩ → các single/album của năm nay (và năm ngoái) →
+// lấy bài trong đó → hỏi YouTube ngày đăng thật của từng bài (microformat.publishDate). App chỉ coi là "mới" khi bài ra trong vài ngày gần đây.
+#[derive(Deserialize)]
+struct YtFreshQ {
+    artist: Option<String>,
+}
+
+static FRESH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn fresh_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    FRESH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+// ngày đăng của từng video (số ngày từ 1970-01-01); ngày đăng không đổi nên nhớ luôn
+static PUBDAY_CACHE: std::sync::OnceLock<Mutex<HashMap<String, i64>>> = std::sync::OnceLock::new();
+fn pubday_cache() -> &'static Mutex<HashMap<String, i64>> {
+    PUBDAY_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// (năm, tháng, ngày) → số ngày kể từ 1970-01-01
+fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = (if y >= 0 { y } else { y - 399 }) / 400;
+    let yoe = y - era * 400;
+    let mp = (m + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146097 + doe - 719468
+}
+// "2026-11-08T00:00:00-07:00" hoặc "2026-11-08" → số ngày
+fn parse_ymd_days(s: &str) -> Option<i64> {
+    let d = s.get(0..10)?;
+    let mut it = d.split('-');
+    let y: i64 = it.next()?.parse().ok()?;
+    let m: i64 = it.next()?.parse().ok()?;
+    let dd: i64 = it.next()?.parse().ok()?;
+    if !(1990..=2100).contains(&y) || !(1..=12).contains(&m) || !(1..=31).contains(&dd) {
+        return None;
+    }
+    Some(days_from_civil(y, m, dd))
+}
+
+async fn yt_pubday(client: &reqwest::Client, vid: &str) -> Option<i64> {
+    if let Some(d) = pubday_cache().lock().unwrap().get(vid) {
+        return Some(*d);
+    }
+    // thử lần lượt: client của YouTube Music rồi client web thường
+    let tries: [(&str, &str, Value); 2] = [
+        ("https://music.youtube.com", "https://music.youtube.com/youtubei/v1/player?prettyPrint=false", yt_ctx()),
+        (
+            "https://www.youtube.com",
+            "https://www.youtube.com/youtubei/v1/player?prettyPrint=false",
+            json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "en", "gl": "VN" } }),
+        ),
+    ];
+    for (origin, url, ctx) in tries {
+        let body = json!({ "context": ctx, "videoId": vid, "contentCheckOk": true, "racyCheckOk": true });
+        let Ok(resp) = client
+            .post(url)
+            .header("origin", origin)
+            .header("referer", format!("{origin}/"))
+            .json(&body)
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+        else {
+            continue;
+        };
+        if !resp.status().is_success() {
+            continue;
+        }
+        let Ok(v) = resp.json::<Value>().await else { continue };
+        let day = ["publishDate", "uploadDate"]
+            .iter()
+            .find_map(|k| v.pointer(&format!("/microformat/playerMicroformatRenderer/{k}")).and_then(|x| x.as_str()).and_then(parse_ymd_days));
+        if let Some(d) = day {
+            let mut c = pubday_cache().lock().unwrap();
+            if c.len() > 5000 {
+                c.clear();
+            }
+            c.insert(vid.to_string(), d);
+            return Some(d);
+        }
+    }
+    None
+}
+
+// Các thẻ album/single (musicTwoRowItemRenderer có pageType = ALBUM) trên trang nghệ sĩ: (browseId, năm, tên, ảnh).
+fn yt_album_cards(v: &Value, out: &mut Vec<(String, i64, String, String)>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("");
+                    if pt == "MUSIC_PAGE_TYPE_ALBUM" && !id.is_empty() {
+                        let sub = r.get("subtitle").map(yt_text).unwrap_or_default();
+                        let year = sub
+                            .split(|c: char| !c.is_ascii_digit())
+                            .filter(|w| w.len() == 4)
+                            .filter_map(|w| w.parse::<i64>().ok())
+                            .find(|y| (1990..=2100).contains(y))
+                            .unwrap_or(0);
+                        let title = r.get("title").map(yt_text).unwrap_or_default();
+                        let img = r
+                            .pointer("/thumbnailRenderer/musicThumbnailRenderer/thumbnail/thumbnails")
+                            .and_then(|a| a.as_array())
+                            .and_then(|a| a.last())
+                            .and_then(|t| t.get("url"))
+                            .and_then(|u| u.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        out.push((id.to_string(), year, title, img));
+                    }
+                }
+            } else {
+                for x in m.values() {
+                    yt_album_cards(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_album_cards(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// GET /api/yt/fresh?artist=Tên → { artist, tracks: [{..., age: số ngày kể từ ngày phát hành}] }  (mới nhất trước, chỉ giữ bài ≤ 60 ngày)
+async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtFreshQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id),
+        Err(_) => (false, false),
+    };
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let lname = name.to_lowercase();
+    let ckey = format!("{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = fresh_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 1800 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let empty = json!({ "artist": name, "tracks": [] });
+    let today = (now_secs() / 86400) as i64;
+    let cur_year = 1970 + (today as f64 / 365.2425) as i64;
+
+    // 1) tìm nghệ sĩ
+    let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
+        return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
+    };
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let is_artist = |e: &&Value| e.get("kind").and_then(|x| x.as_str()) == Some("artist");
+    let exact = ents
+        .iter()
+        .filter(is_artist)
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    let nname = norm_name(&name);
+    let near = ents.iter().filter(is_artist).find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let Some(aid) = exact.or(near).and_then(|e| e.get("id")).and_then(|x| x.as_str()).map(|s| s.to_string()) else {
+        return Ok(Json(empty));
+    };
+
+    // 2) trang nghệ sĩ → single/album của năm nay và năm ngoái
+    let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await else {
+        return Ok(Json(empty));
+    };
+    let mut cards: Vec<(String, i64, String, String)> = Vec::new();
+    yt_album_cards(&bv, &mut cards);
+    let mut seen_a: HashSet<String> = HashSet::new();
+    cards.retain(|c| c.1 >= cur_year - 1 && seen_a.insert(c.0.clone()));
+    cards.sort_by_key(|c| std::cmp::Reverse(c.1));   // năm mới trước (sắp xếp ổn định giữ thứ tự trên trang)
+    cards.truncate(10);
+    if cards.is_empty() {
+        return Ok(Json(empty));
+    }
+
+    // 3) bài trong từng album/single
+    let pages = futures_util::future::join_all(cards.iter().map(|c| {
+        let cl = client.clone();
+        let id = c.0.clone();
+        async move { yt_post(&cl, "browse", json!({ "context": yt_ctx(), "browseId": id })).await }
+    }))
+    .await;
+    let mut cand: Vec<Value> = Vec::new();
+    let mut seen_t: HashSet<String> = HashSet::new();
+    for (c, pg) in cards.iter().zip(pages.into_iter()) {
+        let Some(pg) = pg else { continue };
+        let mut ts: Vec<Value> = Vec::new();
+        yt_collect(&pg, &mut ts);
+        for mut t in ts {
+            let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            if a.is_empty() || a.to_lowercase().contains("plays") {
+                t["artist"] = json!(name);
+            }
+            if !c.3.is_empty() {
+                t["image"] = json!(c.3);
+            }
+            if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+                continue;
+            }
+            let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            if !id.is_empty() && seen_t.insert(id) {
+                cand.push(t);
+            }
+        }
+    }
+    cand.truncate(30);
+
+    // 4) ngày đăng thật của từng bài
+    let days = futures_util::future::join_all(cand.iter().map(|t| {
+        let cl = client.clone();
+        let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        async move { yt_pubday(&cl, &id).await }
+    }))
+    .await;
+    let mut out: Vec<(i64, Value)> = Vec::new();
+    for (mut t, d) in cand.into_iter().zip(days.into_iter()) {
+        let Some(d) = d else { continue };   // không biết ngày thì không coi là mới
+        let age = today - d;
+        if (-1..=60).contains(&age) {
+            t["age"] = json!(age.max(0));
+            out.push((age, t));
+        }
+    }
+    out.sort_by_key(|x| x.0);
+    let tracks: Vec<Value> = out.into_iter().map(|x| x.1).collect();
+    let val = json!({ "artist": name, "tracks": tracks });
+    {
+        let mut c = fresh_cache().lock().unwrap();
+        if c.len() > 200 {
             c.clear();
         }
         c.insert(ckey, (now_secs(), val.clone()));
