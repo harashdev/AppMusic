@@ -326,6 +326,9 @@ async fn main() {
         .route("/api/yt/browse", get(yt_browse_music))
         .route("/api/yt/similar", get(yt_similar))
         .route("/api/yt/fresh", get(yt_fresh))
+        .route("/api/yt/artists", get(yt_artists))
+        .route("/api/yt/best-artists", get(yt_best_artists))
+        .route("/api/yt/this-is", get(yt_this_is))
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -2614,6 +2617,801 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     let val = json!({ "artist": name, "tracks": tracks });
     {
         let mut c = fresh_cache().lock().unwrap();
+        if c.len() > 200 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+// ---------- Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is …" ----------
+// Không có danh sách nghệ sĩ viết sẵn: server đọc bảng xếp hạng YouTube Music (toàn cầu + khu vực của người dùng; nếu bảng lỗi thì
+// dùng kết quả tìm video "đang thịnh hành"), lấy vị trí xếp hạng, LƯỢT XEM của từng bài, rồi hỏi thêm LƯỢT THÍCH (Return YouTube Dislike)
+// cho các bài đứng đầu. Từ đó chấm điểm "độ hot" của từng nghệ sĩ (nhiều bài hot + bài hot nhiều lượt xem/thích + đứng cao trên
+// bảng nghệ sĩ + đang tăng hạng + lượng khán giả). Kết quả giữ 30 phút trong cache.
+
+// "1.2M views" / "523K" / "1,234,567 plays" -> số. None nếu không đọc được.
+fn parse_count(s: &str) -> Option<f64> {
+    let tok = s.trim().split_whitespace().next()?;
+    let mut num = String::new();
+    let mut mult = 1.0f64;
+    for c in tok.chars() {
+        if c.is_ascii_digit() || c == '.' {
+            num.push(c);
+        } else if c == ',' {
+            continue;
+        } else {
+            mult = match c.to_ascii_lowercase() {
+                'k' => 1e3,
+                'm' => 1e6,
+                'b' => 1e9,
+                _ => return None,
+            };
+            break;
+        }
+    }
+    if num.is_empty() {
+        return None;
+    }
+    num.parse::<f64>().ok().map(|n| n * mult)
+}
+
+// Lượt xem / lượt nghe trong các phần của dòng phụ ("Artist • 12M views • 3:45").
+fn parse_views(parts: &[String]) -> f64 {
+    for p in parts {
+        let l = p.trim().to_lowercase();
+        if l.contains("views") || l.contains("plays") {
+            if let Some(n) = parse_count(&l) {
+                return n;
+            }
+        }
+    }
+    0.0
+}
+
+// Số người theo dõi / khán giả hằng tháng trong dòng phụ của một nghệ sĩ ("Artist • 12M monthly audience", "1.2M subscribers").
+fn parse_audience(sub: &str) -> f64 {
+    for p in sub.split('\u{2022}') {
+        let l = p.trim().to_lowercase();
+        if l.contains("subscriber") || l.contains("audience") || l.contains("listener") || l.contains("follower") {
+            if let Some(n) = parse_count(&l) {
+                return n;
+            }
+        }
+    }
+    0.0
+}
+
+// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên (giữ nguyên chữ hoa/thường để hiển thị).
+fn split_credits(s: &str) -> Vec<String> {
+    let mut t = s.to_string();
+    for sep in [" feat. ", " feat ", " ft. ", " ft ", " x ", " X ", " × "] {
+        t = t.replace(sep, ",");
+    }
+    let v: Vec<String> = t
+        .split(|c: char| matches!(c, ',' | '&' | ';' | '/' | '、' | '・'))
+        .map(|x| x.trim().trim_end_matches("- Topic").trim().to_string())
+        .filter(|x| x.chars().count() >= 2 && x.chars().any(|c| c.is_alphabetic()))
+        .collect();
+    v
+}
+
+// log10(x) quy về 0..1 giữa hai mốc (lo, hi là số mũ của 10).
+fn norm_log(x: f64, lo: f64, hi: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    ((x.log10() - lo) / (hi - lo)).clamp(0.0, 1.0)
+}
+
+// Độ hot của MỘT bài: vị trí trên bảng (0..1) + lượt xem + lượt thích. Thiếu thành phần nào thì chia lại trọng số cho phần còn lại.
+fn track_heat(rank: f64, views: f64, likes: f64) -> f64 {
+    let mut w = 0.45;
+    let mut s = 0.45 * rank;
+    if views > 0.0 {
+        s += 0.35 * norm_log(views, 4.0, 9.0); // 10 nghìn -> 0, 1 tỷ -> 1
+        w += 0.35;
+    }
+    if likes > 0.0 {
+        s += 0.20 * norm_log(likes, 2.5, 7.0); // 300 -> 0, 10 triệu -> 1
+        w += 0.20;
+    }
+    s / w
+}
+
+// Độ hot của một nghệ sĩ: các bài hot nhất cộng dồn (bài thứ hai, ba… tính nhẹ dần), thêm điểm đứng trên bảng nghệ sĩ,
+// đang tăng/giảm hạng và quy mô khán giả.
+fn artist_heat(mut heats: Vec<f64>, chart_rank: f64, trend: i32, audience: f64) -> f64 {
+    heats.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
+    let mut s = 0.0;
+    let mut w = 1.0;
+    for h in heats.iter().take(6) {
+        s += h * w;
+        w *= 0.6;
+    }
+    s + 0.9 * chart_rank + 0.08 * trend as f64 + 0.25 * norm_log(audience, 4.0, 8.0)
+}
+
+struct ChartTrack {
+    id: String,
+    artists: Vec<String>,
+    shelf: usize,
+    views: f64,
+    trend: i32,
+}
+struct ChartArtist {
+    name: String,
+    id: String,
+    image: String,
+    shelf: usize,
+    audience: f64,
+    trend: i32,
+}
+#[derive(Default)]
+struct ChartAcc {
+    shelf: usize,
+    tracks: Vec<ChartTrack>,
+    artists: Vec<ChartArtist>,
+}
+struct HotTrack {
+    id: String,
+    artists: Vec<String>,
+    rank: f64,
+    views: f64,
+    likes: f64,
+    trend: i32,
+}
+struct HotArtist {
+    name: String,
+    id: String,
+    image: String,
+    rank: f64,
+    audience: f64,
+    trend: i32,
+}
+struct ArtistAgg {
+    name: String,
+    id: String,
+    image: String,
+    heats: Vec<f64>,
+    chart_rank: f64,
+    trend: i32,
+    audience: f64,
+}
+
+fn yt_trend(item: &Value) -> i32 {
+    let s = item.to_string();
+    if s.contains("ARROW_DROP_UP") {
+        1
+    } else if s.contains("ARROW_DROP_DOWN") {
+        -1
+    } else {
+        0
+    }
+}
+
+fn yt_thumb_last(v: Option<&Value>) -> String {
+    v.and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string()
+}
+
+// Các phần ("Artist", "Album", "3:45"…) của cột chữ thứ i trong một dòng danh sách của YouTube Music.
+fn yt_flex_parts(item: &Value, i: usize) -> Vec<String> {
+    let txt: String = item
+        .get("flexColumns")
+        .and_then(|c| c.as_array())
+        .and_then(|c| c.get(i))
+        .and_then(|c| c.pointer("/musicResponsiveListItemFlexColumnRenderer/text"))
+        .map(yt_text)
+        .unwrap_or_default();
+    let v: Vec<String> = txt.split(" \u{2022} ").map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+    v
+}
+
+// Duyệt một trang (bảng xếp hạng hoặc kết quả tìm kiếm), gom bài hát và nghệ sĩ kèm số "kệ" (shelf) để sau này suy ra thứ hạng trong kệ.
+fn yt_chart_walk(v: &Value, acc: &mut ChartAcc) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                let trend = yt_trend(item);
+                if let Some(t) = yt_track(item) {
+                    let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    let artist = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    let views = parse_views(&yt_flex_parts(item, 1));
+                    acc.tracks.push(ChartTrack { id, artists: split_credits(&artist), shelf: acc.shelf, views, trend });
+                } else if let Some(e) = yt_entity(item) {
+                    if e.get("kind").and_then(|x| x.as_str()) == Some("artist") {
+                        let name = e.get("title").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let sub = e.get("sub").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        if !name.is_empty() && !id.is_empty() {
+                            acc.artists.push(ChartArtist { name, id, image, shelf: acc.shelf, audience: parse_audience(&sub), trend });
+                        }
+                    }
+                }
+                return;
+            }
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                let title = r.get("title").map(yt_text).unwrap_or_default();
+                let sub = r.get("subtitle").map(yt_text).unwrap_or_default();
+                let parts: Vec<String> = sub.split(" \u{2022} ").map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+                if let Some(vid) = r.pointer("/navigationEndpoint/watchEndpoint/videoId").and_then(|x| x.as_str()) {
+                    let artist = parts.iter().find(|p| !yt_junk_part(p)).cloned().unwrap_or_default();
+                    acc.tracks.push(ChartTrack { id: vid.to_string(), artists: split_credits(&artist), shelf: acc.shelf, views: parse_views(&parts), trend: yt_trend(r) });
+                } else if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    if pt == "MUSIC_PAGE_TYPE_ARTIST" && !id.is_empty() && !title.is_empty() {
+                        let image = yt_thumb_last(r.pointer("/thumbnailRenderer/musicThumbnailRenderer/thumbnail/thumbnails"));
+                        acc.artists.push(ChartArtist { name: title, id, image, shelf: acc.shelf, audience: parse_audience(&sub), trend: yt_trend(r) });
+                    }
+                }
+                return;
+            }
+            if m.contains_key("musicCarouselShelfRenderer") || m.contains_key("musicShelfRenderer") {
+                acc.shelf += 1;
+            }
+            for x in m.values() {
+                yt_chart_walk(x, acc);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_chart_walk(x, acc);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Đổi vị trí trong kệ thành điểm 0..1 (đứng đầu = 1) rồi gộp vào danh sách chung.
+fn chart_finish(acc: ChartAcc, tr: &mut Vec<HotTrack>, ar: &mut Vec<HotArtist>) {
+    let ChartAcc { tracks, artists, .. } = acc;
+    let mut tcount: HashMap<usize, usize> = HashMap::new();
+    for t in &tracks {
+        *tcount.entry(t.shelf).or_insert(0) += 1;
+    }
+    let mut tseen: HashMap<usize, usize> = HashMap::new();
+    for t in tracks {
+        let n = *tcount.get(&t.shelf).unwrap_or(&1) as f64;
+        let i = tseen.entry(t.shelf).or_insert(0);
+        let rank = 1.0 - (*i as f64) / n.max(1.0);
+        *i += 1;
+        tr.push(HotTrack { id: t.id, artists: t.artists, rank, views: t.views, likes: 0.0, trend: t.trend });
+    }
+    let mut acount: HashMap<usize, usize> = HashMap::new();
+    for a in &artists {
+        *acount.entry(a.shelf).or_insert(0) += 1;
+    }
+    let mut aseen: HashMap<usize, usize> = HashMap::new();
+    for a in artists {
+        let n = *acount.get(&a.shelf).unwrap_or(&1) as f64;
+        let i = aseen.entry(a.shelf).or_insert(0);
+        let rank = 1.0 - (*i as f64) / n.max(1.0);
+        *i += 1;
+        ar.push(HotArtist { name: a.name, id: a.id, image: a.image, rank, audience: a.audience, trend: a.trend });
+    }
+}
+
+async fn yt_chart_page(client: &reqwest::Client, region: &str) -> Option<Value> {
+    let mut body = json!({ "context": yt_ctx(), "browseId": "FEmusic_charts" });
+    if !region.is_empty() {
+        body["formData"] = json!({ "selectedValues": [region] });
+    }
+    yt_post(client, "browse", body).await
+}
+
+static RYD_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, f64, f64)>>> = std::sync::OnceLock::new();
+fn ryd_cache() -> &'static Mutex<HashMap<String, (u64, f64, f64)>> {
+    RYD_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Lượt thích + lượt xem của một video từ Return YouTube Dislike (không cần khoá API). Lỗi thì None, bài đó chỉ mất phần điểm "thích".
+async fn ryd_votes(client: &reqwest::Client, id: &str) -> Option<(f64, f64)> {
+    if let Some((t, l, v)) = ryd_cache().lock().unwrap().get(id) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return Some((*l, *v));
+        }
+    }
+    let resp = client
+        .get(format!("https://returnyoutubedislikeapi.com/votes?videoId={id}"))
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let j: Value = resp.json().await.ok()?;
+    let likes = j.get("likes").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let views = j.get("viewCount").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    {
+        let mut c = ryd_cache().lock().unwrap();
+        if c.len() > 3000 {
+            c.clear();
+        }
+        c.insert(id.to_string(), (now_secs(), likes, views));
+    }
+    Some((likes, views))
+}
+
+static ARTIST_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn artist_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    ARTIST_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+static BEST_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn best_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    BEST_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+static THISIS_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn thisis_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    THISIS_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Tìm trang nghệ sĩ theo tên (ưu tiên trùng khớp, rồi tên chứa nhau). Trả {kind,id,title,sub,image}.
+async fn yt_find_artist(client: &reqwest::Client, name: &str) -> Option<Value> {
+    let sv = yt_post(client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await?;
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let lname = name.to_lowercase();
+    let nname = norm_name(name);
+    let artists: Vec<&Value> = ents.iter().filter(|e| e.get("kind").and_then(|x| x.as_str()) == Some("artist")).collect();
+    let exact = artists
+        .iter()
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    let near = artists.iter().find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let found: Option<Value> = exact.or(near).map(|e| (**e).clone());
+    found
+}
+
+// Như trên nhưng nhớ 24 giờ (chỉ nhớ khi tìm thấy; lỗi mạng hay không thấy thì lần sau thử lại).
+async fn yt_find_artist_cached(client: &reqwest::Client, name: &str) -> Option<Value> {
+    let k = norm_name(name);
+    if k.is_empty() {
+        return None;
+    }
+    if let Some((t, v)) = artist_cache().lock().unwrap().get(&k) {
+        if now_secs().saturating_sub(*t) < 86400 {
+            return Some(v.clone());
+        }
+    }
+    let r = yt_find_artist(client, name).await;
+    if let Some(v) = &r {
+        let mut c = artist_cache().lock().unwrap();
+        if c.len() > 2000 {
+            c.clear();
+        }
+        c.insert(k, (now_secs(), v.clone()));
+    }
+    r
+}
+
+// GET /api/yt/artists?names=A|B|C → [{kind:"artist",id,title,sub,image}]  (ảnh + trang nghệ sĩ cho kệ "Nghệ sĩ yêu thích")
+#[derive(Deserialize)]
+struct YtArtistsQ {
+    names: Option<String>,
+}
+
+async fn yt_artists(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtArtistsQ>) -> R<Value> {
+    let use_proxy = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id).1,
+        Err(_) => false,
+    };
+    let client = pick_client(&st, use_proxy);
+    let names: Vec<String> = q
+        .names
+        .unwrap_or_default()
+        .split('|')
+        .map(|x| x.trim().chars().take(80).collect::<String>())
+        .filter(|x| !x.is_empty())
+        .take(16)
+        .collect();
+    let found = futures_util::future::join_all(names.iter().map(|n| {
+        let cl = client.clone();
+        let n = n.clone();
+        async move { yt_find_artist_cached(&cl, &n).await }
+    }))
+    .await;
+    let mut out: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for e in found.into_iter().flatten() {
+        let id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        if !id.is_empty() && seen.insert(id) {
+            out.push(e);
+        }
+    }
+    Ok(Json(Value::Array(out)))
+}
+
+// GET /api/yt/best-artists?region=VN → { artists: [{kind,id,title,sub,image,heat}], region, source }   (đã xếp theo độ hot, giảm dần)
+#[derive(Deserialize)]
+struct YtBestQ {
+    region: Option<String>,
+}
+
+async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtBestQ>) -> R<Value> {
+    let use_proxy = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id).1,
+        Err(_) => false,
+    };
+    let client = pick_client(&st, use_proxy);
+    let region: String = q.region.unwrap_or_default().trim().to_uppercase().chars().filter(|c| c.is_ascii_alphabetic()).take(2).collect();
+    let ckey = format!("{}|{}", region, use_proxy as u8);
+    if let Some((t, v)) = best_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 1800 {
+            return Ok(Json(v.clone()));
+        }
+    }
+
+    // 1) bảng xếp hạng YouTube Music: toàn cầu + khu vực của người dùng
+    let mut regions: Vec<String> = vec!["ZZ".to_string()];
+    if region.len() == 2 && region != "ZZ" {
+        regions.push(region.clone());
+    }
+    let pages = futures_util::future::join_all(regions.iter().map(|r| {
+        let cl = client.clone();
+        let r = r.clone();
+        async move { yt_chart_page(&cl, &r).await }
+    }))
+    .await;
+    let mut tracks: Vec<HotTrack> = Vec::new();
+    let mut charted: Vec<HotArtist> = Vec::new();
+    let mut source = "charts";
+    for pg in pages.into_iter().flatten() {
+        let mut acc = ChartAcc::default();
+        yt_chart_walk(&pg, &mut acc);
+        chart_finish(acc, &mut tracks, &mut charted);
+    }
+    // 2) bảng không đọc được (YouTube đổi cấu trúc / bị chặn): dùng video đang thịnh hành từ tìm kiếm
+    if charted.len() < 6 && tracks.len() < 10 {
+        source = "search";
+        let qs = ["top songs this week", "trending music videos"];
+        let pages = futures_util::future::join_all(qs.iter().map(|text| {
+            let cl = client.clone();
+            let body = json!({ "context": yt_ctx(), "query": text, "params": yt_filter_params("videos").unwrap_or("") });
+            async move { yt_post(&cl, "search", body).await }
+        }))
+        .await;
+        for pg in pages.into_iter().flatten() {
+            let mut acc = ChartAcc::default();
+            yt_chart_walk(&pg, &mut acc);
+            chart_finish(acc, &mut tracks, &mut charted);
+        }
+    }
+    if tracks.is_empty() && charted.is_empty() {
+        return Ok(Json(json!({ "artists": [], "region": region, "source": "none" })));
+    }
+
+    // 3) gộp bài trùng (một bài có thể nằm ở nhiều bảng): lấy thứ hạng/lượt xem cao nhất
+    let mut tmap: HashMap<String, HotTrack> = HashMap::new();
+    for t in tracks {
+        if t.id.len() != 11 {
+            continue;
+        }
+        if let Some(e) = tmap.get_mut(&t.id) {
+            if t.rank > e.rank {
+                e.rank = t.rank;
+            }
+            if t.views > e.views {
+                e.views = t.views;
+            }
+            if t.trend > e.trend {
+                e.trend = t.trend;
+            }
+            continue;
+        }
+        tmap.insert(t.id.clone(), t);
+    }
+    let mut tv: Vec<HotTrack> = tmap.into_values().collect();
+    tv.sort_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap_or(std::cmp::Ordering::Equal));
+
+    // 4) lượt thích (và lượt xem nếu bảng không ghi) cho các bài đứng đầu
+    let top_n = tv.len().min(30);
+    let votes = futures_util::future::join_all(tv.iter().take(top_n).map(|t| {
+        let cl = client.clone();
+        let id = t.id.clone();
+        async move { ryd_votes(&cl, &id).await }
+    }))
+    .await;
+    for (t, v) in tv.iter_mut().zip(votes.into_iter()) {
+        if let Some((likes, views)) = v {
+            t.likes = likes;
+            if t.views <= 0.0 {
+                t.views = views;
+            }
+        }
+    }
+
+    // 5) chấm điểm từng nghệ sĩ
+    let mut agg: HashMap<String, ArtistAgg> = HashMap::new();
+    let skip_name = |k: &str| k.is_empty() || k == "variousartists" || k == "youtubemusic" || k == "unknown" || k == "various";
+    for a in charted {
+        let k = norm_name(&a.name);
+        if skip_name(&k) {
+            continue;
+        }
+        let e = agg.entry(k).or_insert_with(|| ArtistAgg {
+            name: a.name.clone(),
+            id: String::new(),
+            image: String::new(),
+            heats: Vec::new(),
+            chart_rank: 0.0,
+            trend: 0,
+            audience: 0.0,
+        });
+        if a.rank > e.chart_rank {
+            e.chart_rank = a.rank;
+        }
+        if e.id.is_empty() {
+            e.id = a.id;
+        }
+        if e.image.is_empty() {
+            e.image = a.image;
+        }
+        if a.audience > e.audience {
+            e.audience = a.audience;
+        }
+        if a.trend > e.trend {
+            e.trend = a.trend;
+        }
+    }
+    for t in &tv {
+        let heat = track_heat(t.rank, t.views, t.likes);
+        for name in &t.artists {
+            let k = norm_name(name);
+            if skip_name(&k) {
+                continue;
+            }
+            let e = agg.entry(k).or_insert_with(|| ArtistAgg {
+                name: name.clone(),
+                id: String::new(),
+                image: String::new(),
+                heats: Vec::new(),
+                chart_rank: 0.0,
+                trend: 0,
+                audience: 0.0,
+            });
+            e.heats.push(heat);
+            if t.trend > e.trend {
+                e.trend = t.trend;
+            }
+        }
+    }
+    let mut ranked: Vec<(f64, ArtistAgg)> = agg
+        .into_values()
+        .map(|a| (artist_heat(a.heats.clone(), a.chart_rank, a.trend, a.audience), a))
+        .collect();
+    ranked.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    ranked.truncate(24);
+
+    // 6) lấy ảnh + trang nghệ sĩ cho người chưa có (bảng nghệ sĩ đã kèm sẵn thì khỏi tìm)
+    let resolved = futures_util::future::join_all(ranked.iter().map(|(_, a)| {
+        let cl = client.clone();
+        let name = a.name.clone();
+        let have = !a.id.is_empty() && !a.image.is_empty();
+        async move {
+            if have {
+                None
+            } else {
+                yt_find_artist_cached(&cl, &name).await
+            }
+        }
+    }))
+    .await;
+    let mut out: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for ((heat, a), r) in ranked.into_iter().zip(resolved.into_iter()) {
+        let mut id = a.id;
+        let mut image = a.image;
+        let mut title = a.name;
+        if let Some(e) = r {
+            id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let t = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+            if !t.is_empty() {
+                title = t.to_string();
+            }
+        }
+        if id.is_empty() || image.is_empty() || !seen.insert(id.clone()) {
+            continue;
+        }
+        out.push(json!({ "kind": "artist", "id": id, "title": title, "sub": "Nghệ sĩ", "image": image, "heat": (heat * 1000.0).round() / 1000.0 }));
+    }
+    let val = json!({ "artists": out, "region": region, "source": source });
+    if out_len_ok(&val) {
+        let mut c = best_cache().lock().unwrap();
+        if c.len() > 50 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+fn out_len_ok(v: &Value) -> bool {
+    v.get("artists").and_then(|a| a.as_array()).map(|a| a.len() >= 3).unwrap_or(false)
+}
+
+// Thêm lượt xem / album / thời lượng (cột cố định của trang playlist) vào bài hát lấy từ một trang YouTube Music.
+fn yt_collect_meta(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                if let Some(mut t) = yt_track(item) {
+                    let p1 = yt_flex_parts(item, 1);
+                    let p2 = yt_flex_parts(item, 2);
+                    let views = parse_views(&p1).max(parse_views(&p2));
+                    if views > 0.0 {
+                        t["views"] = json!(views);
+                    }
+                    let alb2 = p2.into_iter().find(|p| !yt_junk_part(p));
+                    let alb1 = p1.iter().skip(1).find(|p| !yt_junk_part(p)).cloned();
+                    if let Some(a) = alb2.or(alb1) {
+                        t["album"] = json!(a);
+                    }
+                    if t["dur"].as_u64().unwrap_or(0) == 0 {
+                        let fixed = item
+                            .pointer("/fixedColumns/0/musicResponsiveListItemFixedColumnRenderer/text")
+                            .map(yt_text)
+                            .unwrap_or_default();
+                        if let Some(d) = yt_dur(&fixed) {
+                            t["dur"] = json!(d);
+                        }
+                    }
+                    out.push(t);
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_meta(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_meta(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// GET /api/yt/this-is?name=Tên&id=browseId → { title:"This Is …", name, id, image, tracks:[…tối đa 50 bài tiêu biểu…] }
+// Bài lấy từ mục "Songs" của trang nghệ sĩ (YouTube Music xếp theo độ phổ biến, nút "See all" cho cả danh sách), thiếu thì bổ sung bằng tìm kiếm.
+#[derive(Deserialize)]
+struct YtThisQ {
+    name: Option<String>,
+    id: Option<String>,
+}
+
+async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtThisQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id),
+        Err(_) => (false, false),
+    };
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.name.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let mut aid: String = q.id.unwrap_or_default().trim().chars().take(80).collect();
+    if !aid.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        aid.clear();
+    }
+    let ckey = format!("{}|{}|{}|{}", name.to_lowercase(), aid, allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = thisis_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 3600 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let mut title = name.clone();
+    let mut image = String::new();
+    if aid.is_empty() {
+        if let Some(e) = yt_find_artist_cached(&client, &name).await {
+            aid = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let t = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+            if !t.is_empty() {
+                title = t.to_string();
+            }
+        }
+    }
+
+    // 1) trang nghệ sĩ: mục Songs (5 bài đầu) + danh sách đầy đủ ở nút "See all"
+    let mut cand: Vec<Value> = Vec::new();
+    if !aid.is_empty() {
+        if let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await {
+            if image.is_empty() {
+                let header = ["musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer", "musicDetailHeaderRenderer"].iter().find_map(|k| yt_find(&bv, k));
+                image = yt_thumb_last(header.and_then(|h| yt_find(h, "thumbnails")));
+            }
+            yt_collect_meta(&bv, &mut cand);
+            let all_ep = yt_find(&bv, "musicShelfRenderer").and_then(|s| s.pointer("/bottomEndpoint/browseEndpoint").or_else(|| s.pointer("/title/runs/0/navigationEndpoint/browseEndpoint")));
+            if let Some(be) = all_ep {
+                let pid = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !pid.is_empty() && pid != aid {
+                    let mut body = json!({ "context": yt_ctx(), "browseId": pid });
+                    if let Some(p) = be.get("params").and_then(|x| x.as_str()) {
+                        body["params"] = json!(p);
+                    }
+                    if let Some(pv) = yt_post(&client, "browse", body).await {
+                        yt_collect_meta(&pv, &mut cand);
+                    }
+                }
+            }
+        }
+    }
+    for t in cand.iter_mut() {
+        if t.get("artist").and_then(|x| x.as_str()).unwrap_or("").is_empty() {
+            t["artist"] = json!(title);
+        }
+    }
+
+    // 2) chưa đủ bài: bổ sung từ tìm kiếm, chỉ giữ bài thật sự có tên nghệ sĩ này
+    if cand.len() < 15 {
+        let qs = [name.clone(), format!("{name} best songs")];
+        let found = futures_util::future::join_all(qs.iter().map(|text| {
+            let cl = client.clone();
+            let text = text.clone();
+            async move { yt_songs(&cl, &text).await }
+        }))
+        .await;
+        let mine: HashSet<String> = [norm_name(&name), norm_name(&title)].into_iter().filter(|x| !x.is_empty()).collect();
+        for list in found {
+            for t in list {
+                let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+                if credit_names(a).iter().any(|n| mine.contains(n) || mine.iter().any(|m| m.chars().count() >= 3 && n.contains(m.as_str()))) {
+                    cand.push(t);
+                }
+            }
+        }
+    }
+
+    // 3) lọc trùng (cùng id hoặc cùng tên bài), bỏ bản dài bất thường và nội dung nhạy cảm nếu người dùng tắt
+    let mut seen_id: HashSet<String> = HashSet::new();
+    let mut seen_title: HashSet<String> = HashSet::new();
+    let mut tracks: Vec<Value> = Vec::new();
+    for t in cand {
+        let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        if id.is_empty() || seen_id.contains(&id) {
+            continue;
+        }
+        if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        if t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) > 12 * 60 {
+            continue;
+        }
+        let raw = t.get("title").and_then(|x| x.as_str()).unwrap_or("");
+        let base = raw.split(|c: char| c == '(' || c == '[').next().unwrap_or(raw);
+        let tk = norm_name(base);
+        if !tk.is_empty() && !seen_title.insert(tk) {
+            continue;
+        }
+        seen_id.insert(id);
+        tracks.push(t);
+        if tracks.len() >= 50 {
+            break;
+        }
+    }
+    if image.is_empty() {
+        image = tracks.first().and_then(|t| t.get("image")).and_then(|x| x.as_str()).unwrap_or("").to_string();
+    }
+    let val = json!({ "title": format!("This Is {title}"), "name": title, "id": aid, "image": image, "tracks": tracks });
+    if val.get("tracks").and_then(|a| a.as_array()).map(|a| a.len() >= 3).unwrap_or(false) {
+        let mut c = thisis_cache().lock().unwrap();
         if c.len() > 200 {
             c.clear();
         }
