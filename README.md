@@ -1,113 +1,116 @@
-<div align="center">
-  <img src="muse-v0.5/muse/server/static/icon-512.png" alt="BBeat logo" width="128" height="128">
+# Muse – nghe nhạc cùng bạn bè (Rust)
 
-# BBeat
+```
+muse/
+├─ server/   Axum + SQLite: đăng nhập, avatar GIF, bạn bè, playlist, yêu thích, lịch sử, phòng nghe chung + giao diện web
+└─ desktop/  Tauri v2: app desktop kết nối tới server
+```
 
-**A free, self-hostable music app for listening together with friends.**
-Search and play YouTube Music, share a listening room, and keep it all on your own server.
+## Chạy server
+```bash
+cd server
+export DONATE_URL=https://ko-fi.com/ban    # tuỳ chọn
+cargo run --release                        # http://localhost:3000
+```
+Dữ liệu: `data/muse.db` (SQLite, chế độ WAL) + `data/avatars/`. Khi backup hãy chép **cả thư mục `data/`** (gồm `muse.db-wal` và `muse.db-shm`), nếu không sẽ mất dữ liệu mới nhất.
+Đưa lên mạng: VPS + Caddy/Nginx có HTTPS (cần cho wss:// và YouTube player).
 
-[![Stars](https://img.shields.io/github/stars/harashdev/appmusic?style=for-the-badge&logo=github)](https://github.com/harashdev/appmusic/stargazers)
-[![Last commit](https://img.shields.io/github/last-commit/harashdev/appmusic?style=for-the-badge)](https://github.com/harashdev/appmusic/commits/main)
-[![Issues](https://img.shields.io/github/issues/harashdev/appmusic?style=for-the-badge)](https://github.com/harashdev/appmusic/issues)
-[![License](https://img.shields.io/github/license/harashdev/appmusic?style=for-the-badge)](LICENSE)
-[![Rust](https://img.shields.io/badge/Rust-server-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org)
-[![Platforms](https://img.shields.io/badge/Web%20%7C%20Windows%20%7C%20Android-1db954?style=for-the-badge)](#download)
-[![Ko-fi](https://img.shields.io/badge/Support%20me-Ko--fi-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/harashdev)
+## Đóng gói desktop
+```bash
+cargo install tauri-cli --version "^2"
+cd desktop/src-tauri
+cargo tauri icon /duong/dan/logo.png
+MUSE_URL=https://muse.example.com cargo tauri build
+```
 
-</div>
+## Ra file .exe (Windows)
+Xem hướng dẫn trong cuộc trò chuyện, hoặc dùng GitHub Actions: đẩy thư mục này lên GitHub,
+đặt biến `MUSE_URL` (Settings → Secrets and variables → Actions → Variables), rồi chạy workflow
+"Build desktop (Muse)" và tải file .exe ở mục Artifacts.
 
----
-
-## About
-
-BBeat (code name *Muse*) is a music app built around three ideas:
-
-- **Listen together.** Create a room, share the link, and everyone hears the same song in sync, with shared controls and chat.
-- **Your server, your data.** One small Rust server stores accounts, playlists, favorites and history in a local SQLite file. No tracking, no ads.
-- **Works everywhere.** The same interface runs in any browser, as a Windows desktop app (Tauri), and as an Android app.
-
-Music comes from YouTube / YouTube Music, played through the official YouTube player (or a server-relayed audio stream when you turn on audio effects).
-
-<!--
-## Screenshots
-
-Put your screenshots in a `docs/` folder, then remove this comment and use a table like:
-
-| Home | Now playing | Listening room |
-| :--: | :--: | :--: |
-| <img src="docs/home.png" width="260"> | <img src="docs/now-playing.png" width="260"> | <img src="docs/room.png" width="260"> |
--->
-
-## Features
-
-**Music**
-- Search YouTube Music, or paste a YouTube link
-- Home with quick picks, listen-again, mixes, trending charts and 17 moods
-- Favorites, playlists, listening history, queue and shuffle / repeat
-- Synced (karaoke-style) lyrics from SimpMusic Lyrics, with LRCLIB as a fallback
-- [SponsorBlock](https://sponsor.ajay.app) support: skips sponsors, intros and outros automatically
-- Like / dislike counts via Return YouTube Dislike
-- Smooth crossfade between songs (beta)
-- Offline playlist view and a media-session player (lock screen, headset buttons)
-
-**Sound**
-- 10-band equalizer with presets, preamp, delay (echo) and reverb (room, hall, plate)
-
-**Social**
-- Listening rooms with synced playback, shared control and room chat
-- Friends list with invites by friend code or username
-- Discord-style profiles: animated GIF banner and avatar with a built-in image cropper, status line, custom backgrounds and accent color
-- Discord account linking and Rich Presence on the desktop app
-
-**Import & backup**
-- Import YouTube playlists by pasting their links. No Google sign-in needed (public / unlisted playlists)
-- Backup and restore your favorites, history and playlists as JSON
-
-**App**
-- English and Tiếng Việt, switchable in Settings
-- Desktop layout and a phone layout with a floating mini player
-- Self-update check through GitHub Releases
-
-## Download
-
-> Pre-built files are published in [**Releases**](https://github.com/harashdev/appmusic/releases) when available. You can also build them yourself with GitHub Actions (see [Build](#build)).
+## Nguồn nhạc & tính năng (v0.3)
+- Nguồn nhạc duy nhất: YouTube / YouTube Music (tìm qua InnerTube phía server, phát bằng player chính thức của YouTube). SoundCloud, Jamendo và Audius đã được gỡ; bài cũ của hai nguồn sau trong yêu thích/lịch sử/playlist vẫn phát được.
+- Trang Khám phá và Thịnh hành lấy từ các truy vấn tìm kiếm YouTube Music (không phải bảng xếp hạng chính thức).
+- **SponsorBlock**: luôn bật, tự bỏ qua đoạn quảng cáo/intro/outro trong video YouTube (không còn mục cài đặt riêng).
+- **Return YouTube Dislike**: hiện số 👍/👎 của video YouTube cạnh tên nghệ sĩ.
+- **Lời bài hát**: SimpMusic Lyrics (chính) → LRCLIB (dự phòng); ưu tiên bản có thời gian (karaoke).
+- Chưa có: nhận diện bài hát bằng Shazam.
 
 
+## Giao diện v0.4
+- **Banner hồ sơ kiểu Discord**: tải ảnh PNG/JPG/WEBP hoặc **GIF động** (≤ 10MB) ở trang *Hồ sơ & giao diện*; chưa có ảnh thì dùng màu banner. Kèm dòng **trạng thái** hiện trong bong bóng cạnh avatar. Bấm avatar của mình (góc trên) hoặc của bạn bè để xem thẻ hồ sơ. Ảnh lưu ở `data/banners/` (nhớ backup cùng thư mục `data/`).
+- **Nền hồ sơ** (trước đây là "Nền/skin"): chọn nền hoặc tải ảnh/GIF riêng, có khung **xem trước** ngay bên phải (chưa lưu thì chưa áp dụng) và nút *Xem thử toàn app*.
+- **Bấm vào thanh nhạc** để mở panel *Đang phát* bên phải, với 3 tab: Đang phát · Lời (karaoke, bấm vào dòng để tua) · Tiếp theo (hàng đợi). Bấm lại để đóng.
+- Trang chủ có mục **Chọn nhanh** (lưới bài gọn) lấy cảm hứng từ SimpMusic.
+- DB cũ tự được nâng cấp (thêm cột `banner`, `banner_color`, `status`). API mới: `POST/DELETE /api/banner`.
+- **Modal chỉnh ảnh** (kiểu Discord) hiện ngay khi chọn ảnh/GIF cho avatar hoặc banner: kéo để di chuyển, cuộn chuột hoặc kéo thanh để zoom, giữ thanh X/Y/Zoom; zoom nhỏ hơn mức phủ kín để thấy trọn ảnh (phần trống lấy màu banner). Ảnh gốc giữ nguyên (GIF vẫn động), thông số lưu trong cột `crop`.
+- Thẻ hồ sơ: banner nằm phía sau avatar và tên.
+- Thanh điều hướng trang chủ: nút **Tâm trạng** mở danh sách dài 17 tâm trạng (Thư giãn, Buồn, Lãng mạn, Tiệc tùng, Ngủ ngon…); chọn một mục để xem các mục nhạc theo tâm trạng đó.
 
-## Contributing
 
-Bug reports, ideas and pull requests are welcome. Please open an [issue](https://github.com/harashdev/appmusic/issues) first for larger changes.
+## Cài đặt & Hồ sơ (API mới)
+- `POST /api/account/name`, `POST /api/account/password` – đổi tên hiển thị / mật khẩu (đổi mật khẩu sẽ đăng xuất các thiết bị khác).
+- `GET|POST /api/settings` – cài đặt theo tài khoản (`track_history`, `save_state`, `crossfade`, `crossfade_secs`).
+- `DELETE /api/history` – xóa lịch sử nghe.
+- `GET /api/backup`, `POST /api/restore`, `POST /api/import` – sao lưu, khôi phục, nhập danh sách phát (JSON).
 
-**Translations:** the interface is written in Vietnamese and translated at runtime. To fix a translation or add a language, edit the `EN_EXACT` / `EN_RULES` tables at the top of `muse-v0.5/muse/server/static/index.html`.
 
-## Support
+## v0.5 – Cài đặt mới
+Biến môi trường mới cho server (tuỳ chọn): `YT_PROXY` (vd. `http://host:port` hoặc `socks5://host:port`), `DISCORD_CLIENT_ID` (Application ID tạo ở discord.com/developers).
 
-BBeat is a personal, non-profit project. If you like it, you can buy the author a coffee. It is completely optional.
+- **Bộ chỉnh âm 10 dải / Độ trễ (echo) / Độ vang (phòng, hội trường, tấm kim loại)**: xử lý bằng Web Audio. Vì player iframe của YouTube không cho can thiệp âm thanh, khi bật bất kỳ hiệu ứng nào nhạc YouTube sẽ phát qua `GET /api/yt/audio/:id` (server lấy luồng âm thanh qua InnerTube rồi chuyển tiếp từng đoạn Range). Nếu không lấy được luồng, app tự quay về player YouTube. Khi dùng luồng này sẽ không có chế độ xem video.
+- **Phát bài hát chứa nội dung nhạy cảm**: mặc định tắt; khi tắt, bài có nhãn Explicit bị ẩn khỏi kết quả tìm kiếm và bị bỏ qua trong hàng đợi.
+- **Giữ danh sách phát hiển thị khi offline**: lưu danh sách phát vào bộ nhớ trình duyệt; mất mạng vẫn mở được app và xem danh sách (kèm `sw.js` để mở giao diện offline).
+- **Proxy**: bật thì tìm kiếm và luồng âm thanh của bạn đi qua `YT_PROXY` trên server (nhạc được phát qua luồng của server thay vì iframe).
+- **Discord Rich Presence** (chỉ app desktop): cần `DISCORD_CLIENT_ID` trên server và Discord đang mở trên máy. Bấm *Kết nối Discord* rồi bật *Kích hoạt Rich Presence*. App desktop tự tạo capability cho `MUSE_URL` lúc build (`desktop/src-tauri/build.rs`).
+- API: `/api/settings` có thêm `explicit, offline_pl, proxy, discord_rpc, eq_on, eq_gains[10], eq_pre, delay_on/ms/fb/mix, reverb_on/type/mix`.
 
-<a href="https://ko-fi.com/harashdev"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi"></a>
 
-## Disclaimer
+## Android (v0.7.0: WebView + dịch vụ phát nhạc nền native)
+```
+android/   app Android = giao diện web của server đặt trong WebView + dịch vụ nền (KeepAliveService)
+```
+- Phát nhạc nền: khi bắt đầu phát, `MuseBridge` (JS `MuseNative.update`) bật **dịch vụ foreground** có `MediaSession`: thông báo Trước / Phát-Tạm dừng / Sau, ảnh bìa, điều khiển trên màn hình khoá và tai nghe, tự tạm dừng khi rút tai nghe hoặc có cuộc gọi, giữ WakeLock + WifiLock khi đang phát. Lệnh từ thông báo gửi ngược vào web qua `window.museCmd(...)`.
+- Trên Android, web tự dùng luồng âm thanh `<audio>` (`/api/yt/audio/:id`) thay cho iframe YouTube, vì iframe bị Android dừng khi tắt màn hình.
+- Giảm lag: bỏ `backdrop-filter`/blur trên Android, bỏ transition thuộc tính tuỳ biến trên `:root`, không vẽ lại thanh tiến trình khi app bị ẩn, WebView bật pre-raster, tự tải lại khi tiến trình WebView bị hệ thống thu hồi.
+- Lần đầu mở app sẽ hỏi cho phép bỏ tối ưu pin (giúp nhạc không bị cắt khi tắt màn hình lâu).
+- Nếu bấm phát mà nhạc dừng ngay: đặt `focusOff = true` ở đầu `KeepAliveService.kt` (tắt xử lý audio focus).
 
-BBeat is an independent project and is **not affiliated with, endorsed by, or sponsored by** YouTube, Google, Discord or any other service it connects to. All trademarks belong to their respective owners.
+**Lấy APK:** đẩy code lên GitHub → Actions → "Build Android (Muse)" → tải `muse-android` ở Artifacts. Nhớ build/chạy lại **server** vì `static/index.html` cũng đã đổi.
+**Build trên máy:** mở `android/` bằng Android Studio hoặc `gradle assembleDebug` (JDK 17 + Android SDK 34).
 
-BBeat does not host or store any music. Songs are streamed from YouTube, and you are responsible for following YouTube's Terms of Service and the laws of your country. This project is provided for personal and educational use, **as is, without warranty of any kind**.
+## Đăng nhập Discord (bắt buộc để bật Rich Presence)
+Người dùng phải đăng nhập Discord (OAuth2, scope `identify`) ở *Cài đặt → Tích hợp Discord → Đăng nhập Discord* thì mới bật được Rich Presence. Server từ chối `discord_rpc=true` nếu tài khoản chưa liên kết; hủy liên kết sẽ tắt luôn Rich Presence.
 
-## Credits
+Cấu hình (3 biến môi trường trên server):
+- `DISCORD_CLIENT_ID` – Application ID
+- `DISCORD_CLIENT_SECRET` – OAuth2 → Client Secret (giữ bí mật, không đưa vào app)
+- `PUBLIC_URL` – địa chỉ công khai của server, vd. `https://muse.example.com` (giống `MUSE_URL` của app)
 
-BBeat is built on the work of many open-source projects and services:
+Ở discord.com/developers → ứng dụng của bạn → **OAuth2 → Redirects** thêm đúng: `https://muse.example.com/api/discord/callback`.
 
-- [YouTube IFrame Player API](https://developers.google.com/youtube/iframe_api_reference): official YouTube player
-- [SponsorBlock](https://sponsor.ajay.app): skip-segment data, © Ajay Ramachandran and community, CC BY-NC-SA 4.0
-- [Return YouTube Dislike](https://returnyoutubedislike.com): like / dislike counts
-- [SimpMusic](https://github.com/maxrave-dev/SimpMusic): lyrics source and inspiration for the quick-picks layout
-- [LRCLIB](https://lrclib.net): time-synced lyrics
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [Piped](https://github.com/TeamPiped/Piped): fallback audio streams
-- [Axum](https://github.com/tokio-rs/axum), [Tokio](https://tokio.rs), [tower-http](https://github.com/tower-rs/tower-http), [reqwest](https://github.com/seanmonstar/reqwest), [rusqlite](https://github.com/rusqlite/rusqlite), [argon2](https://github.com/RustCrypto/password-hashes), [serde](https://serde.rs): the Rust server
-- [Tauri](https://tauri.app): desktop app
-- [AndroidX](https://developer.android.com/jetpack/androidx): Android app
+API: `GET /api/discord/status`, `POST /api/discord/link` (trả URL đăng nhập), `DELETE /api/discord/link`, `GET /api/discord/callback`. DB tự thêm cột `discord_id`, `discord_name`, `discord_avatar` và bảng `discord_states`.
 
-## License
+Lưu ý: Rich Presence thật sự (hiện "Đang nghe…" trên hồ sơ) vẫn chỉ chạy ở app desktop (qua Discord IPC). Trên Android (app native) chưa có mục này; muốn hiện trạng thái từ điện thoại cần Discord Social SDK cho Android (code Kotlin/Java riêng).
 
-BBeat is free software, released under the [GNU General Public License v3.0](LICENSE).
 
-Made by **BaoBu**.
+## Khi YouTube chặn luồng âm thanh (403 / "Sign in to confirm you're not a bot")
+Server thử lần lượt: ANDROID_VR → IOS → TV nhúng → **yt-dlp** → Piped; nguồn nào bị chặn được nhớ 10 phút. Mỗi đoạn tải thử 3 cách (Range header, `?range=`, đoạn 256KB).
+Cách chắc nhất: cài `yt-dlp` (đặt `yt-dlp.exe` cạnh `muse-server.exe`, hoặc đặt `YTDLP_PATH`) và đặt `YT_COOKIES` = file cookies.txt xuất từ trình duyệt đã đăng nhập YouTube (có cookies thì yt-dlp được thử đầu tiên). Nên dùng tài khoản phụ, vì tài khoản dùng cookies cho bot vẫn có rủi ro bị YouTube khóa. Cập nhật yt-dlp thường xuyên (`yt-dlp -U`).
+
+Nếu link yt-dlp bị googlevideo trả 403 (link gắn với client/PO token của yt-dlp), server tự cho yt-dlp tải file âm thanh về thư mục tạm (`%TEMP%\muse-audio`, tự dọn sau 6 giờ) rồi phát từ file đó.
+
+
+## Nhập playlist từ YouTube (bằng link, không cần Google)
+Vào *Cài đặt → Nhập playlist từ YouTube*, dán link playlist (mỗi link một dòng, tối đa 10 link) rồi bấm *Nhập playlist*. Không cần đăng nhập hay cấu hình gì thêm.
+- Playlist phải ở chế độ **Công khai** hoặc **Không công khai**. Playlist riêng tư và "Video đã thích" cần đăng nhập nên không nhập được. Video riêng tư/đã xóa bị bỏ qua.
+- Link hợp lệ có dạng `https://www.youtube.com/playlist?list=PL...` hoặc `https://www.youtube.com/watch?v=...&list=PL...` (cũng nhận thẳng ID playlist). Mix tự tạo của YouTube (`list=RD...`) không nhập được.
+- API: `POST /api/yt-import/url` với body `{"urls":"link1\nlink2"}`.
+
+
+
+## Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is"
+Kệ mới ở trang chủ (ngay dưới *Nghệ sĩ yêu thích*), bấm *Hiện tất cả* để xem toàn bộ. Bấm một thẻ để mở danh sách "This Is <nghệ sĩ>" (tối đa 50 bài tiêu biểu, có nút Phát / Xáo trộn / Lưu thành danh sách phát / Tải tất cả); bấm một bài để nghe.
+- **Không có danh sách nghệ sĩ viết sẵn.** Server đọc bảng xếp hạng YouTube Music (toàn cầu + khu vực theo ngôn ngữ trình duyệt; bảng lỗi thì dùng video đang thịnh hành từ tìm kiếm), lấy thứ hạng và **lượt xem** của từng bài, hỏi thêm **lượt thích** (Return YouTube Dislike) cho 30 bài đứng đầu, rồi chấm điểm độ hot của nghệ sĩ: các bài hot cộng dồn (bài thứ 2, 3… nhẹ dần) + hạng trên bảng nghệ sĩ + đang tăng/giảm hạng + quy mô khán giả. Kết quả cache 30 phút.
+- Trình duyệt chỉ nhích nhẹ thứ tự theo gu nghe của bạn (tối đa +25%) và ẩn nghệ sĩ bạn hay bỏ qua.
+- API mới: `GET /api/yt/best-artists?region=VN`, `GET /api/yt/this-is?name=…&id=…`, `GET /api/yt/artists?names=A|B` (ảnh nghệ sĩ cho kệ *Nghệ sĩ yêu thích*; route này trước đây frontend gọi nhưng server chưa có).
