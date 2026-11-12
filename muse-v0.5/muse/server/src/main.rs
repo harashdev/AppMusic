@@ -331,6 +331,7 @@ async fn main() {
         .route("/api/friends/:id", axum::routing::delete(remove_friend))
         .route("/api/favorites", get(fav_list).post(fav_toggle))
         .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
+        .route("/api/recommend", get(recommend))
         .route("/api/playlists", get(pl_list).post(pl_create))
         .route("/api/playlists/:id", get(pl_get).delete(pl_delete))
         .route("/api/playlists/:id/tracks", post(pl_add))
@@ -1250,6 +1251,132 @@ async fn hist_add(State(st): State<AppState>, headers: HeaderMap, Json(t): Json<
         params![u.id],
     );
     Ok(StatusCode::OK)
+}
+
+// ===== Gợi ý nhạc: item-item KNN với trọng số BM25 (ý tưởng từ thư viện `implicit`) =====
+// "Hàng" = mỗi tài khoản (yêu thích + lịch sử, yêu thích nặng hơn như độ tin cậy của ALS) và mỗi playlist.
+// Hai bài hay xuất hiện cùng nhau trong nhiều hàng thì giống nhau; bài chưa có trong thư viện của bạn
+// nhưng giống những bài bạn thích sẽ được xếp lên đầu.
+const BM25_K1: f64 = 100.0;
+const BM25_B: f64 = 0.8;
+
+type RecRows = std::collections::HashMap<String, std::collections::HashMap<String, f64>>;
+
+fn rec_load(
+    db: &Connection,
+    sql: &str,
+    prefix: &str,
+    w: f64,
+    me: i64,
+    rows: &mut RecRows,
+    meta: &mut std::collections::HashMap<String, String>,
+    mine: &mut std::collections::HashMap<String, f64>,
+    owned: &mut std::collections::HashSet<String>,
+) -> Result<(), ApiErr> {
+    let mut stmt = db.prepare(sql).map_err(|_| e500())?;
+    let it = stmt
+        .query_map([], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?)))
+        .map_err(|_| e500())?;
+    for (row_id, owner, key, js) in it.flatten() {
+        let rk = format!("{}{}", prefix, row_id);
+        *rows.entry(rk).or_default().entry(key.clone()).or_insert(0.0) += w;
+        meta.entry(key.clone()).or_insert(js);
+        if owner == me {
+            *mine.entry(key.clone()).or_insert(0.0) += w;
+            owned.insert(key);
+        }
+    }
+    Ok(())
+}
+
+async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
+    use std::collections::{HashMap, HashSet};
+    let u = require(&st, &headers)?;
+    let mut rows: RecRows = HashMap::new();
+    let mut meta: HashMap<String, String> = HashMap::new();
+    let mut mine: HashMap<String, f64> = HashMap::new();
+    let mut owned: HashSet<String> = HashSet::new();
+    {
+        let db = st.db.lock().unwrap();
+        rec_load(&db, "SELECT user_id, user_id, track_key, track_json FROM favorites", "u", 3.0, u.id, &mut rows, &mut meta, &mut mine, &mut owned)?;
+        rec_load(&db, "SELECT user_id, user_id, track_key, track_json FROM history", "u", 1.0, u.id, &mut rows, &mut meta, &mut mine, &mut owned)?;
+        rec_load(
+            &db,
+            "SELECT t.playlist_id, p.user_id, t.track_key, t.track_json FROM playlist_tracks t JOIN playlists p ON p.id=t.playlist_id",
+            "p",
+            2.0,
+            u.id,
+            &mut rows,
+            &mut meta,
+            &mut mine,
+            &mut owned,
+        )?;
+    }
+    if mine.is_empty() || rows.len() < 2 {
+        return Ok(Json(Vec::new()));
+    }
+
+    // BM25: giảm trọng số bài quá phổ biến (idf) và chuẩn hóa theo độ dài hàng
+    let n = rows.len() as f64;
+    let mut df: HashMap<&str, f64> = HashMap::new();
+    for r in rows.values() {
+        for k in r.keys() {
+            *df.entry(k.as_str()).or_insert(0.0) += 1.0;
+        }
+    }
+    let avg = (rows.values().map(|r| r.values().sum::<f64>()).sum::<f64>() / n).max(1e-9);
+    let mut wrows: Vec<Vec<(&str, f64)>> = Vec::new();
+    let mut norm: HashMap<&str, f64> = HashMap::new();
+    let mut inv: HashMap<&str, Vec<usize>> = HashMap::new();
+    for r in rows.values() {
+        let len: f64 = r.values().sum();
+        let mut v: Vec<(&str, f64)> = Vec::with_capacity(r.len());
+        for (k, x) in r.iter() {
+            let d = df.get(k.as_str()).copied().unwrap_or(1.0);
+            let idf = (1.0 + (n - d + 0.5) / (d + 0.5)).ln();
+            let w = *x * (BM25_K1 + 1.0) / (BM25_K1 * ((1.0 - BM25_B) + BM25_B * len / avg) + *x) * idf;
+            *norm.entry(k.as_str()).or_insert(0.0) += w * w;
+            v.push((k.as_str(), w));
+        }
+        let idx = wrows.len();
+        for (k, _) in v.iter() {
+            inv.entry(*k).or_default().push(idx);
+        }
+        wrows.push(v);
+    }
+
+    // điểm của bài j = Σ trọng số(bài i của bạn) × độ giống cosine(i, j)
+    let mut score: HashMap<&str, f64> = HashMap::new();
+    for (seed, sw) in mine.iter() {
+        let Some(rs) = inv.get(seed.as_str()) else { continue };
+        let ni = norm.get(seed.as_str()).copied().unwrap_or(0.0).sqrt();
+        if ni <= 0.0 {
+            continue;
+        }
+        for &ri in rs.iter() {
+            let row = &wrows[ri];
+            let wi = row.iter().find(|e| e.0 == seed.as_str()).map(|e| e.1).unwrap_or(0.0);
+            for e in row.iter() {
+                let (j, wj) = (e.0, e.1);
+                if j == seed.as_str() || owned.contains(j) {
+                    continue;
+                }
+                let nj = norm.get(j).copied().unwrap_or(0.0).sqrt();
+                if nj <= 0.0 {
+                    continue;
+                }
+                *score.entry(j).or_insert(0.0) += *sw * wi * wj / (ni * nj);
+            }
+        }
+    }
+    let mut ranked: Vec<(&str, f64)> = score.into_iter().collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let out: Vec<Value> = ranked
+        .into_iter()
+        .take(40)
+        .filter_map(|(k, _)| meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()))
+        .collect();
+    Ok(Json(out))
 }
 
 async fn pl_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
