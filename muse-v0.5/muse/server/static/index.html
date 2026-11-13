@@ -259,11 +259,17 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 .npctx b{font-weight:700}
 .art{position:relative;aspect-ratio:1;width:min(100%,max(200px,calc(100vh - 360px)));margin:14px auto 0;border-radius:14px;overflow:hidden;background:#0003;box-shadow:0 20px 50px #0006;flex:none}
 .art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* bài không có album: ảnh là khung hình 16:9 của video -> hiện đủ ảnh (không cắt hai bên), phần thừa là nền mờ của chính ảnh đó */
+.art.wide::before{content:"";position:absolute;inset:-24px;background:var(--bgi,none) center/cover;filter:blur(26px) brightness(.65) saturate(1.2)}
+.art.wide>img{object-fit:contain}
 /* Video riêng của BBeat: khung 16:9 rộng bằng ảnh bìa. Iframe YouTube được phóng to và cắt (mất thanh tiêu đề / logo / nút), tắt chuột trên iframe,
    chỉ hiện khi video thật sự đang chạy (.live) – lúc tải thì vẫn thấy ảnh bìa, không còn logo "…" xám của YouTube. */
 #ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
 #ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
-body.vid #ytbox.live{opacity:1}
+body.vid #ytbox.live{opacity:0}   /* iframe YouTube chỉ phát tiếng, không bao giờ hiện giao diện của nó */
+#vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .3s}
+#vidEl.on{opacity:1}
+body:not(.vid) #vidEl{display:none}
 #ytbox::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px #0006;border-radius:inherit}
 body.vid .art{aspect-ratio:16/9;margin-top:auto;margin-bottom:auto}
 body.vid .npt{margin-top:0}
@@ -873,6 +879,7 @@ button *,#gear *,#meAv *{pointer-events:none}
       <div class="art">
         <img id="npCov" alt="">
         <div id="ytbox"><div id="ytp"></div></div>
+        <video id="vidEl" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1"></video>
       </div>
       <div id="npLine"></div>
       <div class="npt">
@@ -2856,10 +2863,11 @@ function onYouTubeIframeAPIReady(){
       if(queue.length>1) setTimeout(()=>{ if(cur===t) nextTrack(true); },800); else setPlaying(false);
     },
     onStateChange:e=>{
+      ytCheckAlb();
       { const yb=$('#ytbox'); if(yb){
-        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?1500:3500,ytHold-Date.now())); ytSeen=true; }   /* đợi YouTube tự ẩn thanh tiêu đề rồi mới hiện video; trong lúc chờ vẫn thấy ảnh bìa */
+        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?600:1500,ytHold-Date.now())); ytSeen=true; }   /* đợi YouTube tự ẩn thanh tiêu đề rồi mới hiện video; trong lúc chờ vẫn thấy ảnh bìa */
         else if(e.data===2||e.data===0){ clearTimeout(ytLiveTm); ytLiveTm=0; yb.classList.remove('live'); }
-        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,2500); }   /* tua / đệm: YouTube hiện giao diện của nó, nên ẩn video cho tới khi phát lại ổn định */
+        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }   /* tua / đệm: YouTube hiện giao diện của nó, nên ẩn video cho tới khi phát lại ổn định */
         else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
       if(e.data===0){ playing=false; onEnded(); }
       if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
@@ -3544,14 +3552,24 @@ function setMarq(el,text){
   if(!el._mqo&&window.ResizeObserver){ el._mqo=new ResizeObserver(()=>mqFit(el)); el._mqo.observe(el); }
   requestAnimationFrame(()=>mqFit(el));
 }
+/* Tên nghệ sĩ / producer quá dài ở mọi danh sách (thẻ, hàng bài hát, tải xuống) cũng tự trượt ngang như tiêu đề */
+const MQ_SEL='.ca,.t2,.tr>.ar';
+function mqScan(root){
+  if(!root||root.nodeType!==1) return;
+  const list=root.matches&&root.matches(MQ_SEL)?[root]:[];
+  root.querySelectorAll&&root.querySelectorAll(MQ_SEL).forEach(e=>list.push(e));
+  for(const el of list){ if(el.dataset.mq!==undefined||el.children.length||!el.textContent.trim()) continue; setMarq(el,el.textContent); }
+}
+(function(){ const run=()=>{ mqScan(document.body); new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) mqScan(n); }).observe(document.body,{childList:true,subtree:true}); };
+  if(document.body) run(); else document.addEventListener('DOMContentLoaded',run); })();
 function updateBar(){
   const b=document.body; b.classList.toggle('has-cur',!!cur); b.classList.toggle('has-np',!!cur&&npOpen); $('#bPip').classList.toggle('on',!!cur&&npOpen);
-  setMarq($('#bTitle'),cur?cur.title:'Chưa phát'); $('#bArtist').textContent=cur?.artist||'';
+  setMarq($('#bTitle'),cur?cur.title:'Chưa phát'); setMarq($('#bArtist'),cur?.artist||'');
   const f=!!(cur&&favs.has(key(cur)));
   for(const id of ['#bFav','#npFav']){ $(id).classList.toggle('on',f); setIc($(id),'heart',f); }
   setIc($('#pp'),playing?'pause':'play',true);
   const k=cur?key(cur):null;
-  if(k!==npKey){ npKey=k; setImg($('#bCov'),cur?.image,96); setImg($('#npCov'),cur?.image,800); setMarq($('#npTitle'),cur?cur.title:'Chưa phát'); $('#npArtist').textContent=cur?.artist||''; updFollowBtn(); $('#npLine').textContent=''; $('#npInfoBox').classList.remove('show'); if(cur) npColor(cur); }
+  if(k!==npKey){ npKey=k; setImg($('#bCov'),cur?.image,96); setImg($('#npCov'),cur?.image,800); artFit(); setMarq($('#npTitle'),cur?cur.title:'Chưa phát'); setMarq($('#npArtist'),cur?.artist||''); updFollowBtn(); $('#npLine').textContent=''; $('#npInfoBox').classList.remove('show'); if(cur) npColor(cur); }
   $('#npCtx').textContent=qname; $('#npCtxW').hidden=!qname; $('#npInfoBox').innerHTML=cur?infoHtml(cur):'';
   markNow();
 }
@@ -3559,7 +3577,32 @@ function infoHtml(t){ const v=t.src==='yt'&&votesCache[t.id]; const vt=v&&typeof
 $('#npInfo').onclick=()=>$('#npInfoBox').classList.toggle('show');
 $('#npLyr').onclick=()=>setNp(true,'lyr');
 function setVideo(v){ showVideo=!!v; LS.set('vid',v?'1':'0'); syncVid(); }
-function syncVid(){ document.body.classList.toggle('vid',showVideo&&!!cur&&eng==='yt'&&cur.src==='yt'); $('#npVid').classList.toggle('on',showVideo); }
+/* Video riêng của app: server tải luồng hình (không tiếng) bằng yt-dlp, trình duyệt phát <video> tắt tiếng và bám theo giờ của âm thanh. */
+var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='';
+if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
+    /* hỏi lại server để biết lý do thật (chưa có endpoint video / thiếu yt-dlp / bị YouTube chặn) và báo cho người dùng */
+    fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ notify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ notify('Không phát được video: không kết nối được server'); }catch{} }); }
+  vidEl.classList.remove('on'); }; }
+function vidSync(){ try{ vidSync0(); }catch(e){} }
+function vidSync0(){
+  if(!vidEl||!vidFail) return;
+  const on=document.body.classList.contains('vid')&&cur&&cur.src==='yt'&&!vidFail[cur.id];
+  if(!on){ vidEl.classList.remove('on'); if(vidId){ vidId=''; try{ vidEl.pause(); vidEl.removeAttribute('src'); vidEl.load(); }catch{} } return; }
+  if(vidId!==cur.id){ vidId=cur.id; vidEl.classList.remove('on'); vidEl.src='/api/yt/video/'+encodeURIComponent(cur.id)+'?t='+encodeURIComponent(token); try{ vidEl.load(); }catch{} return; }
+  if(vidEl.readyState<2) return;
+  const t=getTime(), du=vidEl.duration||0; if(!(t>=0)) return;
+  const tt=du?Math.min(t,du-0.05):t;
+  if(playing){ if(Math.abs(vidEl.currentTime-tt)>0.4) vidEl.currentTime=tt; if(vidEl.paused) vidEl.play().catch(()=>{}); }
+  else { if(!vidEl.paused) vidEl.pause(); if(Math.abs(vidEl.currentTime-tt)>0.2) vidEl.currentTime=tt; }
+  if(Math.abs(vidEl.currentTime-tt)<1.5) vidEl.classList.add('on');
+}
+setInterval(vidSync,400);
+var ytAlb={};   /* id video -> true nếu là bài album tự tạo của YouTube (kênh '… - Topic'): video chỉ là ảnh bìa có viền đen hai bên */
+function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=document.getElementById('npCov'); if(!a||!im) return;
+  const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
+  a.style.setProperty('--bgi',w&&im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
+function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!d||!d.video_id) return; const a=/\s-\s*Topic\s*$/i.test(d.author||''); if(ytAlb[d.video_id]!==a){ ytAlb[d.video_id]=a; if(cur&&cur.id===d.video_id){ syncVid(); artFit(); } } }catch{} }
+function syncVid(){ document.body.classList.toggle('vid',showVideo&&!!cur&&cur.src==='yt'&&!(ytAlb&&ytAlb[cur.id])); vidSync(); $('#npVid').classList.toggle('on',showVideo); }
 $('#npVid').onclick=()=>{ setVideo(!showVideo); const c=$('#vidOn'); if(c) c.checked=showVideo; };
 /* ----- panel Đang phát bên phải: bấm vào thanh nhạc để mở/đóng ----- */
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
