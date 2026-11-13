@@ -882,10 +882,6 @@ button *,#gear *,#meAv *{pointer-events:none}
     </div>
     <div id="libQrow"><input id="libQ" placeholder="Lọc thư viện"></div>
     <div id="lib">
-      <div class="li ni0" data-p="favs" tabindex="0"><div class="tile" style="background:#3a2530;color:var(--red)"><i data-ic="heart" data-f="1" class="lgi"></i></div><div class="meta"><b>Yêu thích</b><span id="favSub">Danh sách phát</span></div></div>
-      <div class="li ni0" data-p="history" tabindex="0"><div class="tile" style="background:#22313f;color:var(--accent)"><i data-ic="clock"></i></div><div class="meta"><b>Nghe gần đây</b><span>Lịch sử</span></div></div>
-      <div class="li ni0" data-p="top" tabindex="0"><div class="tile" style="background:#2a2f26;color:#b6e08a"><i data-ic="trend"></i></div><div class="meta"><b>Phát nhiều nhất</b><span>Bài bạn nghe nhiều</span></div></div>
-      <div class="li ni0" data-p="followed" tabindex="0"><div class="tile" style="background:#3a2f1f;color:#ffc46b"><i data-ic="userplus"></i></div><div class="meta"><b>Đã theo dõi</b><span>Nghệ sĩ yêu thích</span></div></div>
       <div class="li ni0" data-p="together" tabindex="0"><div class="tile" style="background:#33283f;color:#d1a8ff"><i data-ic="users"></i></div><div class="meta"><b>Nghe cùng nhau</b><span id="roomSub">Phòng nghe chung</span></div></div>
       <div class="li ni0" data-p="friends" tabindex="0"><div class="tile" style="background:#1f3a33;color:#6fe0b5"><i data-ic="userplus"></i></div><div class="meta"><b>Bạn bè</b><span id="friendSub">Bạn bè &amp; lời mời</span></div></div>
       <div class="li ni0" data-p="downloads" tabindex="0"><div class="tile" style="background:#26364a;color:#8ec5ff"><i data-ic="download"></i></div><div class="meta"><b>Tải xuống</b><span id="dlSub">Danh sách tải xuống</span></div></div>
@@ -2854,7 +2850,7 @@ function plCoverFill(){
     api('/api/playlists/'+p.id).then(j=>{ const c=((j&&j.tracks)||[]).map(t=>t.image).filter(Boolean).slice(0,4); plCovCache[ck]=c; p.covers=c; paint(); }).catch(()=>{});
   });
 }
-function libCounts(){ $('#favSub').textContent=`Danh sách phát · ${favs.size} bài hát`; }
+function libCounts(){ const e=$('#favSub'); if(e) e.textContent=`Danh sách phát · ${favs.size} bài hát`; }
 function filterLib(){ const q=$('#libQ').value.trim().toLowerCase(); document.querySelectorAll('#lib .li').forEach(el=>{ el.style.display=!q||el.textContent.toLowerCase().includes(q)?'':'none'; }); }
 $('#libQ').oninput=filterLib;
 $('#libSbtn').onclick=()=>{ const r=$('#libQrow'); r.classList.toggle('show'); if(r.classList.contains('show')) $('#libQ').focus(); else { $('#libQ').value=''; filterLib(); } };
