@@ -891,7 +891,6 @@ button *,#gear *,#meAv *{pointer-events:none}
       <div class="li ni0" data-p="together" tabindex="0"><div class="tile" style="background:#33283f;color:#d1a8ff"><i data-ic="users"></i></div><div class="meta"><b>Nghe cùng nhau</b><span id="roomSub">Phòng nghe chung</span></div></div>
       <div class="li ni0" data-p="friends" tabindex="0"><div class="tile" style="background:#1f3a33;color:#6fe0b5"><i data-ic="userplus"></i></div><div class="meta"><b>Bạn bè</b><span id="friendSub">Bạn bè &amp; lời mời</span></div></div>
       <div class="li ni0" data-p="downloads" tabindex="0"><div class="tile" style="background:#26364a;color:#8ec5ff"><i data-ic="download"></i></div><div class="meta"><b>Tải xuống</b><span id="dlSub">Danh sách tải xuống</span></div></div>
-      <div id="sbFriends"></div>
       <div id="plList"></div>
     </div>
   </nav>
@@ -1547,9 +1546,9 @@ function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('
 const muted={}, inviteAt={};
 const isMuted=n=>muted[n]&&muted[n]>Date.now();
 async function sendInvite(id){
-  if(Date.now()-(inviteAt[id]||0)<15000) throw new Error('Bạn vừa mời người này rồi, đợi vài giây nhé');
+  if(Date.now()-(inviteAt[id]||0)<15000){ const e=new Error('Bạn vừa mời người này rồi, đợi vài giây nhé'); e.quiet=true; throw e; }
   inviteAt[id]=Date.now();
-  try{ return await sendInvite(id); }catch(e){ inviteAt[id]=0; throw e; }
+  try{ return await api('/api/invite',{json:{friend_id:id,room}}); }catch(e){ inviteAt[id]=0; throw e; }
 }
 
 /* ===== Đăng nhập ===== */
@@ -2321,7 +2320,7 @@ const pages={
       if(!b){ if(f&&e.target.closest('.fr')){ e.stopPropagation(); showProfilePop(f,row.querySelector('.fr')); } return; }
       if(b.dataset.a==='invite'){
         try{ await sendInvite(id); notify('Đã gửi lời mời tới '+f.display_name); }
-        catch(er){ if(await askConfirm(er.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
+        catch(er){ if(!er.quiet) notify(er.message); }
       } else if(b.dataset.a==='remove'){
         if(await askConfirm('Xoá '+f.display_name+' khỏi danh sách bạn bè?','Xoá')){ try{ await api('/api/friends/'+id,{method:'DELETE'}); notify('Đã xoá bạn'); renderFriendsPage(); }catch(er){ notify(er.message); } }
       } };
@@ -2692,11 +2691,6 @@ $('#gear').onclick=()=>go('settings');
 $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},$('#meAv'),true); };
 $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
-$('#sbFriends').onclick=async e=>{
-  const row=e.target.closest('.sbf'); if(!row) return; const id=+row.dataset.id; const f=fmap.get(id); if(!f) return;
-  if(e.target.closest('button')){ e.stopPropagation(); try{ await sendInvite(id); notify('Đã gửi lời mời tới '+f.display_name); }catch(er){ notify(er.message); } return; }
-  e.stopPropagation(); showProfilePop(f,row);
-};
 
 /* tìm kiếm */
 let sTok=0, appPrev=false;
@@ -2967,15 +2961,8 @@ function switchRoom(r){
   if(page==='together') go('together',null,true);
   notify('Đã tham gia phòng '+r);
 }
-async function refreshSbFriends(){
-  const box=$('#sbFriends'); if(!box) return;
-  try{
-    const list=await api('/api/friends'); list.sort((a,b)=>(b.online-a.online)||a.display_name.localeCompare(b.display_name)); list.forEach(f=>fmap.set(f.id,f));
-    box.innerHTML=list.length?'<div class="sbh">Bạn bè · '+list.filter(f=>f.online).length+' online</div>'+list.map(f=>`<div class="li sbf" data-id="${f.id}" tabindex="0">${avU(f)}<div class="meta"><b>${esc(f.display_name)}</b><span><span class="dot ${f.online?'on':''}" style="margin:0 6px 0 0"></span>${f.online?'Đang online':'Offline'}</span></div>${f.online?'<button class="ico" data-a="invite" title="Mời nghe chung">'+ic('plus','sm')+'</button>':''}</div>`).join(''):'';
-  }catch{}
-}
 async function refreshFriendBadge(){
-  try{ const r=await api('/api/friends/requests'); const n=r.incoming.length; const el=$('#friendSub'); if(el) el.textContent=n?n+' lời mời mới':'Bạn bè & lời mời'; refreshSbFriends(); return r; }catch{ return null; }
+  try{ const r=await api('/api/friends/requests'); const n=r.incoming.length; const el=$('#friendSub'); if(el) el.textContent=n?n+' lời mời mới':'Bạn bè & lời mời'; return r; }catch{ return null; }
 }
 async function renderFriendsPage(){
   const box=$('#friendList'), rq=$('#reqs'); if(!box||!rq) return;
@@ -2985,7 +2972,7 @@ async function renderFriendsPage(){
   const line=(u,right)=>`<div class="item" data-id="${u.id}"><span style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${avU(u)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(u.display_name)}</span></span>${right}</div>`;
   rq.innerHTML=(reqs.incoming.map(u=>line(u,'<button class="pri" data-a="accept">Chấp nhận</button><button data-a="decline">Từ chối</button>')).join('')
     +reqs.outgoing.map(u=>line(u,'<small>Đang chờ</small><button data-a="cancel">Huỷ</button>')).join(''))||'<p class="empty">Không có lời mời nào.</p>';
-  $('#fCount').textContent='· '+list.length; refreshSbFriends();
+  $('#fCount').textContent='· '+list.length;
   box.innerHTML=list.map(f=>`<div class="item" data-id="${f.id}"><span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button data-a="invite">Mời nghe</button><button data-a="remove">Xoá</button></div>`).join('')||'<p class="empty">Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.</p>';
 }
 function showFriendReq(m){
@@ -3005,7 +2992,7 @@ async function loadFriends(){
     d.querySelector('.fr').onclick=e=>{ e.stopPropagation(); showProfilePop(f,d.querySelector('.fr')); };
     d.querySelector('button').onclick=async()=>{
       try{ await sendInvite(f.id); sysLine('Đã gửi lời mời tới '+f.display_name); notify('Đã gửi lời mời tới '+f.display_name); }
-      catch(e){ if(await askConfirm(e.message+'\n\nChép link phòng để gửi thủ công?','Chép link')) copyInvite('Đã chép link phòng!'); }
+      catch(e){ if(!e.quiet) notify(e.message); }
     };
     box.appendChild(d);
   });
