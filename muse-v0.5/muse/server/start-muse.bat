@@ -25,6 +25,6 @@ set "PATH=%CD%;%PATH%"
 if not exist deno.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip -OutFile deno.zip; Expand-Archive -Force deno.zip -DestinationPath .; Remove-Item deno.zip"
 rem Tu tai yt-dlp neu chua co, roi tu cap nhat moi lan bat server
 if not exist yt-dlp.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -OutFile yt-dlp.exe"
-if exist yt-dlp.exe yt-dlp.exe -U
+if exist yt-dlp.exe yt-dlp.exe -U >nul 2>&1
 muse-server.exe
 pause
