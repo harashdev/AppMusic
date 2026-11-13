@@ -1996,6 +1996,7 @@ let homeShuf=false, rfBusy=false;
 function seededShuffle(a,seed){ const r=rngMake(seed), o=a.slice(); for(let i=o.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [o[i],o[j]]=[o[j],o[i]]; } return o; }
 function dropHomeCache(){
   Object.keys(ytCache).forEach(k=>{ if(!k.startsWith('f:')) delete ytCache[k]; });
+  try{ LS.set(uKey('muse_newdaily'),'null'); }catch{}
   try{ const re=new RegExp('^muse_yc2_'+(me&&me.id||0)+'e?_'); Object.keys(localStorage).filter(k=>re.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
 }
 async function refreshHome(){
@@ -2165,25 +2166,58 @@ async function loadDaily(tp){
   return res;
 }
 /* "Nhạc mới mỗi ngày": bài ra trong ≤14 ngày của các nghệ sĩ bạn hay nghe (mỗi người tối đa 2 thẻ), chưa nghe lần nào. Cố định theo ngày. Chưa có gu nghe / không có bài mới → lấy bản phát hành mới chung (không có chú thích). */
+/* ===== Nhạc mới mỗi ngày: chọn THEO GU, không nhét ngẫu nhiên =====
+   Nguồn (đều là bài MỚI PHÁT HÀNH): (1) nghệ sĩ bạn nghe nhiều / đang theo dõi, (2) nghệ sĩ gần gu với họ (mục "liên quan" của YouTube Music).
+   Mỗi bài có điểm = độ mê nghệ sĩ × độ mới + một chút ngẫu nhiên theo ngày, nên mỗi ngày (và mỗi lần bấm "Làm mới") ra bộ khác nhau.
+   Loại: bài đã nghe/đã bỏ qua, tuyển tập – album dài – liên khúc, và bài đã từng hiện ở mục này trong 14 ngày qua → không lặp lại.
+   Không có bài hợp gu thì ẩn mục, KHÔNG lấy nhạc đại trà cho đủ số (muốn tự chọn thì đã có mục Khám phá). */
+const ND_JUNK=/(\balbum\b(?!\s*version)|full album|tuyển tập|liên khúc|nonstop|non-stop|playlist|compilation|nhạc hot|hot tiktok|hot youtube|hot trend|\b\d{1,3}\s*(bài|songs|tracks)\b|top\s*\d+|bài hay nhất|best of|megamix)/i;
+const ND_CHANNEL=/\b(music|records?|entertainment|official|channel|tv|media|studio)\s*$/i;
+const ndJunk=(t,own)=>!t||!t.id||(t.dur>0&&t.dur>540)||ND_JUNK.test(String(t.title||''))||(!own&&ND_CHANNEL.test(String(t.artist||'').trim()));
+const ndTitleKey=t=>String(t.title||'').toLowerCase().replace(/[\(\[].*?[\)\]]/g,'').replace(/[^\p{L}\p{N}]+/gu,'');
+const freshRaw=n=>{ const k='f:fresh|'+n.toLowerCase(); return ytCache[k]||(ytCache[k]=api('/api/yt/fresh?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>{ delete ytCache[k]; return []; })); };
+const ndSeenKey=()=>uKey('muse_nd_seen');
+const ndSeenGet=()=>{ try{ const o=JSON.parse(LS.get(ndSeenKey(),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 async function loadNewDaily(tp){
-  const ck=uKey('muse_newdaily'), today=dayNum();
-  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&Array.isArray(o.r)){ const c=o.r.filter(x=>x&&x.t&&x.a&&!tp.skipKeys.has(key(x.t))); if(c.length>=2) return c; } }catch{}   /* bản lưu cũ có thẻ chung chung (không gắn nghệ sĩ) thì bỏ và tính lại */
-  const rnd=rngMake(strHash('nd'+today+':'+((typeof me!=='undefined'&&me&&me.id)||0)));
-  const pool=(tp.artsAll||[]).filter(a=>goodArtist(a.n)).slice(0,12);
-  const picks=pickW(pool,a=>Math.sqrt(Math.max(a.c,.05)),rnd,Math.min(12,pool.length));
-  const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
-  const got=await Promise.all(picks.map(a=>ytSearch('new:'+a.n,true).then(l=>l.filter(t=>okT(t)&&!tp.seen.has(key(t))&&artistHit(t,a.n)).slice(0,2).map(t=>({t,a:a.n}))).catch(()=>[])));
-  const out=[], used=new Set();
-  for(let r=0;r<2;r++) for(const l of got){ const x=l[r]; if(x&&!used.has(key(x.t))){ used.add(key(x.t)); out.push(x); } }
-  /* ít bài mới quá thì thêm bài CHƯA NGHE của chính các nghệ sĩ bạn mê (đúng nghệ sĩ, đúng gu). Tuyệt đối không lấy "nhạc mới" chung chung: nó ra nhạc đại trà lạc gu. */
-  if(out.length<6&&picks.length){
-    const top=picks.slice().sort((x,y)=>y.c-x.c).slice(0,4);
-    const ex=await Promise.all(top.map(a=>ytSearch(/[^\x00-\u024f]/.test(a.n)?a.n+' best songs':a.n+' hay nhất',true).then(l=>l.filter(t=>okT(t)&&!tp.seen.has(key(t))&&!used.has(key(t))&&artistHit(t,a.n)).slice(0,2).map(t=>({t,a:a.n}))).catch(()=>[])));
-    for(let r=0;r<2;r++) for(const l of ex){ const x=l[r]; if(x&&out.length<8&&!used.has(key(x.t))){ used.add(key(x.t)); out.push(x); } }
-  }
-  const res=out.filter(x=>x.a).slice(0,10);   /* mọi thẻ đều phải gắn với một nghệ sĩ bạn nghe */
-  if(res.length>=2){ try{ LS.set(ck,JSON.stringify({d:today,r:res.map(x=>({t:slim(x.t),a:x.a}))})); }catch{} }
-  return res;
+  const ck=uKey('muse_newdaily'), today=dayNum(), uid=(typeof me!=='undefined'&&me&&me.id)||0;
+  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&o.v===2&&Array.isArray(o.r)){ const c=o.r.filter(x=>x&&x.t&&x.a&&!tp.skipKeys.has(key(x.t))); if(c.length>=2) return c; } }catch{}
+  const rnd=rngMake(strHash('nd'+today+':'+uid+':'+(homeShuf?homeSeed:0)));
+  const dayOf=d=>{ const y=Math.floor(d/10000),m=Math.floor(d/100)%100-1,dd=d%100; return Math.floor(new Date(y,m,dd).getTime()/864e5); };
+  const seen=ndSeenGet(), nowD=dayOf(today);
+  Object.keys(seen).forEach(k=>{ if(nowD-dayOf(seen[k])>14) delete seen[k]; });
+  const ownL=(tp.artsAll||[]).filter(a=>goodArtist(a.n)).slice(0,14);
+  if(!ownL.length) return [];
+  const mx=Math.max(...ownL.map(a=>a.c),1), aff=a=>Math.sqrt(Math.max(a.c,.05)/mx);
+  const ownSet=new Set(ownL.map(a=>a.n.toLowerCase()));
+  const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!tp.seen.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
+  /* 1) nghệ sĩ của bạn (chọn theo trọng số, xoay theo ngày) + 2) nghệ sĩ liên quan tới 2 người trong số đó */
+  const ownPick=pickW(ownL,a=>aff(a)+.15,rnd,6);
+  const [ownRes,simRes]=await Promise.all([
+    Promise.all(ownPick.map(a=>freshRaw(a.n).then(l=>({a,l})))),
+    Promise.all(ownPick.slice(0,2).map(a=>api('/api/yt/similar?artist='+encodeURIComponent(a.n)).then(r=>({a,rel:(r&&Array.isArray(r.related)?r.related:[]).map(x=>x&&x.name).filter(n=>n&&goodArtist(n)&&n.length<40)})).catch(()=>({a,rel:[]}))))
+  ]);
+  const relPick=[]; const relSeen=new Set();
+  simRes.forEach(({a,rel})=>{ pickW(rel.filter(n=>!ownSet.has(canonArtist(n).toLowerCase())&&!tp.avoid.has(n.toLowerCase())&&!ND_CHANNEL.test(n)),()=>1,rnd,3).forEach(n=>{ const k=n.toLowerCase(); if(!relSeen.has(k)){ relSeen.add(k); relPick.push({n,from:a}); } }); });
+  const relRes=await Promise.all(relPick.slice(0,5).map(x=>freshRaw(x.n).then(l=>({x,l}))));
+  /* 3) chấm điểm: độ mê × độ mới + ngẫu nhiên nhẹ; bài của nghệ sĩ liên quan nhẹ hơn một chút */
+  const cands=[];
+  ownRes.forEach(({a,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,true)&&artistHit(t,a.n)&&(t.age??999)<=30) cands.push({t,a:a.n,w:'Dành cho người hâm mộ '+a.n,own:true,s:aff(a)*(1/(1+(t.age??30)/8))+rnd()*.25}); }));
+  relRes.forEach(({x,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,false)&&(t.age??999)<=21) cands.push({t,a:x.n,w:'Vì bạn nghe '+x.from.n,own:false,s:.55*aff(x.from)*(1/(1+(t.age??21)/8))+rnd()*.25}); }));
+  const pickFrom=(excludeToday)=>{
+    const out=[], used=new Set(), titles=new Set(), per={};
+    const blocked=k=>seen[k]!==undefined&&(excludeToday||seen[k]!==today);
+    for(const c of cands.slice().sort((x,y)=>y.s-x.s)){
+      const k=key(c.t), tk=ndTitleKey(c.t); if(used.has(k)||titles.has(tk)||blocked(k)) continue;
+      const an=c.a.toLowerCase(); if((per[an]||0)>=(c.own?2:1)) continue;
+      per[an]=(per[an]||0)+1; used.add(k); titles.add(tk); out.push(c); if(out.length>=10) break; }
+    return out;
+  };
+  let out=pickFrom(!!homeShuf); if(out.length<4) out=pickFrom(false);
+  /* xen kẽ: không để hai bài liền nhau cùng nghệ sĩ */
+  const res=[]; const rest=out.slice(); while(rest.length){ const last=res.length?res[res.length-1].a:''; let i=rest.findIndex(x=>x.a!==last); if(i<0) i=0; res.push(rest.splice(i,1)[0]); }
+  if(res.length>=2){ try{ LS.set(ck,JSON.stringify({d:today,v:2,r:res.map(x=>({t:slim(x.t),a:x.a,w:x.w}))}));
+    res.forEach(x=>{ seen[key(x.t)]=today; }); const ks=Object.keys(seen); if(ks.length>150) ks.sort((p,q)=>seen[p]-seen[q]).slice(0,ks.length-150).forEach(k=>delete seen[k]); LS.set(ndSeenKey(),JSON.stringify(seen)); }catch{} }
+  return res.map(x=>({t:x.t,a:x.a,w:x.w}));
 }
 let homeTg='';
 const pages={
@@ -2225,7 +2259,7 @@ const pages={
       /* --- Nhạc mới mỗi ngày: thẻ lớn, mỗi thẻ một bài mới ra của nghệ sĩ bạn hay nghe --- */
       loadNewDaily(taste).then(r=>{ const box=$('#nd'); if(!Array.isArray(r)||r.length<2||!box) return;
         const list=r.map(x=>x.t), k=reg(list,'Nhạc mới mỗi ngày');
-        box.innerHTML=`<section class="sec nmh"><div class="sh"><div><h3>Nhạc mới mỗi ngày</h3></div><div class="shr"><a class="more pill" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid nmd">${r.map((x,i)=>`<div class="nmc" data-l="${k}" data-i="${i}" data-tk="${esc(key(x.t))}" tabindex="0"><img src="${esc(thumb(x.t.image,600))}" alt=""><div class="nt"><b>${esc(x.t.title)}</b><span>${esc(x.t.artist)}</span></div>${x.a?`<div class="nc">${esc('Dành cho người hâm mộ '+x.a)}</div>`:''}</div>`).join('')}</div></section>`; markNow(); }).catch(()=>{});
+        box.innerHTML=`<section class="sec nmh"><div class="sh"><div><h3>Nhạc mới mỗi ngày</h3></div><div class="shr"><a class="more pill" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid nmd">${r.map((x,i)=>`<div class="nmc" data-l="${k}" data-i="${i}" data-tk="${esc(key(x.t))}" tabindex="0"><img src="${esc(thumb(x.t.image,600))}" alt=""><div class="nt"><b>${esc(x.t.title)}</b><span>${esc(x.t.artist)}</span></div>${x.a?`<div class="nc">${esc(x.w||('Dành cho người hâm mộ '+x.a))}</div>`:''}</div>`).join('')}</div></section>`; markNow(); }).catch(()=>{});
       /* --- Tiếp tục nghe: các nơi bạn vừa nghe dở (danh sách, đài, nghệ sĩ…) --- */
       try{ const J=jumpGet(), box=$('#jb');
         if(J.length&&box){
