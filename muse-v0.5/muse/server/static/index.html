@@ -1322,8 +1322,10 @@ function openExt(u){
   const T=window.__TAURI__;
   if(T&&T.core&&T.core.invoke){ /* app desktop (Tauri): window.open không mở được trình duyệt, phải nhờ lệnh phía Rust */
     (async()=>{
-      for(const [c,a] of [['open_url',{url:u}],['plugin:opener|open_url',{url:u}],['plugin:shell|open',{path:u}]]){ try{ await T.core.invoke(c,a); return; }catch{} }
-      try{ await navigator.clipboard.writeText(u); notify('Không mở được trình duyệt – đã chép link: '+u); }catch{ notify('Không mở được trình duyệt, link: '+u); }
+      let err='';   /* giữ lỗi của lệnh đầu tiên (open_url) để biết vì sao không mở được */
+      for(const [c,a] of [['open_url',{url:u}],['plugin:opener|open_url',{url:u}],['plugin:shell|open',{path:u}]]){ try{ await T.core.invoke(c,a); return; }catch(e){ if(!err) err=String((e&&e.message)||e).slice(0,140); } }
+      const why=err?' ['+err+']':'';
+      try{ await navigator.clipboard.writeText(u); notify('Không mở được trình duyệt – đã chép link: '+u+why); }catch{ notify('Không mở được trình duyệt, link: '+u+why); }
     })();
     return;
   }
