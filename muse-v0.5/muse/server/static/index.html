@@ -888,7 +888,6 @@ button *,#gear *,#meAv *{pointer-events:none}
       <div class="li ni0" data-p="followed" tabindex="0"><div class="tile" style="background:#3a2f1f;color:#ffc46b"><i data-ic="userplus"></i></div><div class="meta"><b>Đã theo dõi</b><span>Nghệ sĩ yêu thích</span></div></div>
       <div class="li ni0" data-p="together" tabindex="0"><div class="tile" style="background:#33283f;color:#d1a8ff"><i data-ic="users"></i></div><div class="meta"><b>Nghe cùng nhau</b><span id="roomSub">Phòng nghe chung</span></div></div>
       <div class="li ni0" data-p="friends" tabindex="0"><div class="tile" style="background:#1f3a33;color:#6fe0b5"><i data-ic="userplus"></i></div><div class="meta"><b>Bạn bè</b><span id="friendSub">Bạn bè &amp; lời mời</span></div></div>
-      <div class="li ni0" data-p="blend" tabindex="0"><div class="tile" style="background:#d6d2fb;color:#ff5a1f"><i data-ic="users"></i></div><div class="meta"><b>Hoà trộn gu</b><span>Gộp gu với bạn bè</span></div></div>
       <div class="li ni0" data-p="downloads" tabindex="0"><div class="tile" style="background:#26364a;color:#8ec5ff"><i data-ic="download"></i></div><div class="meta"><b>Tải xuống</b><span id="dlSub">Danh sách tải xuống</span></div></div>
       <div id="sbFriends"></div>
       <div id="plList"></div>
@@ -3640,8 +3639,35 @@ pages.downloads=function(m){
   m.innerHTML=`<div class="dlHead"><h2>Tải xuống</h2>
     <p class="dlInfo" id="dlInfo"></p>
     <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button></div>
-    </div><div id="dlList"></div>`;
+    </div>
+    <section class="card" style="margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card,transparent)">
+      <h3 style="margin:0 0 6px">Dán link playlist YouTube</h3>
+      <p class="sub" style="margin:0 0 12px">Dán tối đa 10 link playlist công khai hoặc không công khai, mỗi link một dòng. Playlist sẽ được thêm vào Thư viện của bạn.</p>
+      <textarea id="ytPlaylistLinks" rows="3" placeholder="https://www.youtube.com/playlist?list=…" style="display:block;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:10px"></textarea>
+      <div class="hb"><button class="pri" id="ytPlaylistImport">${ic('plus','sm')} Nhập playlist</button><span class="sub" id="ytPlaylistStatus" aria-live="polite"></span></div>
+    </section>
+    <div id="dlList"></div>`;
   dlRender();
+  $('#ytPlaylistImport').onclick=async()=>{
+    const urls=$('#ytPlaylistLinks').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    if(!urls.length){ notify('Hãy dán link playlist YouTube'); return; }
+    if(urls.length>10){ notify('Tối đa 10 link mỗi lần'); return; }
+    const btn=$('#ytPlaylistImport'), status=$('#ytPlaylistStatus'); btn.disabled=true; status.textContent='Đang nhập…';
+    let ok=0, failed=[];
+    try{
+      for(let i=0;i<urls.length;i++){
+        try{ await api('/api/yt-import/url',{json:{url:urls[i]}}); ok++; }
+        catch(e){ failed.push((i+1)+': '+e.message); }
+        status.textContent='Đã xử lý '+(i+1)+'/'+urls.length+' link…';
+      }
+      if(ok) await loadPlaylists();
+      status.textContent='';
+      notify('Đã nhập '+ok+'/'+urls.length+' playlist'+(failed.length?' · '+failed.length+' link lỗi':''));
+      if(failed.length) console.warn('YouTube playlist import errors:',failed);
+      if(ok===urls.length) $('#ytPlaylistLinks').value='';
+    }catch(e){ status.textContent=''; notify(e.message); }
+    finally{ btn.disabled=false; }
+  };
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
   $('#dlList').onclick=e=>{
