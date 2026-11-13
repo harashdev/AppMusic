@@ -874,6 +874,8 @@ html.android .pcpop .pc{overflow:visible;box-shadow:0 4px 14px #0007}
 .imgv>img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:default}
 .imgv-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff22;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .imgv-x .i{width:22px;height:22px}
+/* Đang xem ảnh toàn màn hình: ẩn các ảnh động phía sau để điện thoại chỉ giải mã một GIF/WebP động */
+body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img{display:none!important}
 </style>
 </head>
 <body class="skin-default">
@@ -1646,7 +1648,7 @@ function openCrop(o){ return new Promise(resolve=>{
    GIF avatar/banner/nền là thủ phạm chính gây lag trên điện thoại (WebView giải mã và vẽ lại từng khung hình, nhất là nền GIF phủ cả app).
    Android mặc định hiện KHUNG ĐẦU của GIF (ảnh tĩnh); bật lại trong Cài đặt → "Ảnh động (GIF)". Máy tính mặc định vẫn cho chạy.
    Bấm vào ảnh để xem ảnh gốc thì vẫn động. */
-const GIF_LIVE=LS.get('gif_live',window.ANDROID_APP?'0':'1')==='1';
+const GIF_LIVE=LS.get('gif_live','1')==='1';   /* mặc định BẬT cả trên Android (server đã thu nhỏ + đổi GIF sang WebP động); ai thấy lag thì tắt ở Cài đặt → Hiệu năng */
 const GIF_RE=/^\/(avatars|banners|backgrounds)\/[\w.-]+\.gif(\?.*)?$/i;
 const gifFrozen=new Map();
 function freezeUrl(u){
@@ -1676,12 +1678,13 @@ function profileCard(u,o={}){
 }
 /* Xem ảnh gốc (avatar / banner) toàn màn hình: bấm nền, nút X hoặc Esc để đóng */
 function openImgView(src,name){
-  document.querySelectorAll('.imgv').forEach(x=>x.remove());
+  document.querySelectorAll('.imgv').forEach(x=>x.remove()); document.body.classList.remove('imgv-open');
   const o=document.createElement('div'); o.className='imgv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',name||'');
   o.innerHTML=`<img alt="" decoding="async"><button class="imgv-x" aria-label="Đóng" title="Đóng">${ic('x')}</button>`;
   /* GIF chạy hết vòng thì WebView giữ trạng thái "đã xong" theo URL → mở lại bị đứng. Thêm tham số thời gian để mỗi lần mở là một lần phát mới. */
   o.querySelector('img').src=/\.gif(\?|$)/i.test(src)&&!/^(blob:|data:)/.test(src)?src+(src.includes('?')?'&':'?')+'_v='+Date.now():src;
-  const close=()=>{ o.remove(); document.removeEventListener('keydown',onKey,true); };
+  document.body.classList.add('imgv-open');
+  const close=()=>{ o.remove(); document.body.classList.remove('imgv-open'); document.removeEventListener('keydown',onKey,true); };
   const onKey=e=>{ if(e.key==='Escape'){ e.stopPropagation(); close(); } };
   o.onclick=e=>{ e.stopPropagation(); if(e.target.tagName!=='IMG') close(); };
   document.addEventListener('keydown',onKey,true);
@@ -2538,7 +2541,7 @@ const pages={
       <div class="srow col"><div class="sx"><b>Xóa tài khoản</b><small>Xóa vĩnh viễn tài khoản cùng bạn bè, yêu thích, lịch sử, playlist và dữ liệu nghe. Không thể khôi phục – hãy sao lưu trước nếu cần.</small></div>
         <div class="sinp v"><input type="password" id="delPw" placeholder="Nhập mật khẩu để xác nhận" autocomplete="current-password"><div><button id="delAcc" style="color:#ff6b6b;border-color:#ff6b6b">Xóa tài khoản</button></div></div><small id="delMsg" class="smsg"></small></div>
     </div></div>
-    <div class="sgrp"><div class="sgh">Hiệu năng</div><div class="scard">${row('Ảnh động (GIF)','Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định tắt trên Android.',tog('tGif',GIF_LIVE))}</div></div>
+    <div class="sgrp"><div class="sgh">Hiệu năng</div><div class="scard">${row('Ảnh động (GIF)','Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định bật; máy yếu bị giật thì tắt ở đây.',tog('tGif',GIF_LIVE))}</div></div>
     ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
