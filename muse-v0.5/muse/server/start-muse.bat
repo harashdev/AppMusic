@@ -14,6 +14,10 @@ rem File cookies.txt (dinh dang Netscape) xuat tu trinh duyet da dang nhap YouTu
 set YT_COOKIES=
 rem Cach de nhat: de ten trinh duyet da dang nhap YouTube (firefox, edge, chrome, brave) - yt-dlp tu doc cookies, khong can xuat file
 set YT_BROWSER=firefox
+rem Tai khoan admin (tu tao neu chua co) - NHO doi mat khau sau khi dang nhap, dung dua file nay len GitHub cong khai
+set ADMIN_USER=Saki_Hanami
+set ADMIN_PASS=2PiLogLn
+set ADMIN_NAME=Saki Hanami
 rem Link ung ho (tuy chon)
 set DONATE_URL=
 rem yt-dlp can mot JavaScript runtime (Deno) de giai ma YouTube; thieu thi bao "Requested format is not available"
