@@ -3938,7 +3938,8 @@ async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_r
 // ===== Video phát bằng thẻ <video> của app (không dùng khung YouTube) =====
 // yt-dlp tải luồng video (không âm thanh, tối đa YT_VIDEO_HEIGHT, mặc định 480p) về thư mục tạm rồi phát lại theo Range.
 // Âm thanh vẫn do engine âm thanh hiện có phát, phía trình duyệt chỉ đồng bộ hình theo thời gian của âm thanh.
-static YTDLP_VID_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+// Mỗi video một khóa riêng: tải sẵn bài kế tiếp không chặn bài đang phát (trước đây dùng 1 khóa chung nên phải chờ nhau).
+static YTDLP_VID_LOCKS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
 
 fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
     let prefix = format!("{vid}_v.");
@@ -3965,7 +3966,11 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
     if let Some(x) = find_local_video(vid) {
         return Ok(x);
     }
-    let lock = YTDLP_VID_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
+    let lock = {
+        let m = YTDLP_VID_LOCKS.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+        let mut g = m.lock().unwrap();
+        g.entry(vid.to_string()).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
+    };
     let _guard = lock.lock().await;
     if let Some(x) = find_local_video(vid) {
         return Ok(x);
@@ -3991,11 +3996,11 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
         .ok()
         .and_then(|x| x.trim().parse::<u32>().ok())
         .filter(|n| *n >= 144 && *n <= 2160)
-        .unwrap_or(480);
-    let fmt = format!("bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
+        .unwrap_or(360); // 360p đủ nét cho khung video nhỏ và nhẹ hơn 480p ~40% nên tải nhanh hơn (đặt YT_VIDEO_HEIGHT để đổi)
+    let fmt = format!("bv[height<={h}][ext=mp4][vcodec^=avc1]/bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
     let template = dir.join(format!("{vid}_v.%(ext)s"));
     let mut cmd = ytdlp_base(use_proxy);
-    cmd.arg("-f").arg(fmt).arg("--no-mtime").arg("--no-progress").arg("-o").arg(&template);
+    cmd.arg("-f").arg(fmt).arg("--no-mtime").arg("--no-progress").arg("-N").arg("4").arg("--socket-timeout").arg("15").arg("-o").arg(&template);
     cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
     let out = tokio::time::timeout(Duration::from_secs(120), cmd.output())
         .await
