@@ -327,6 +327,7 @@ async fn main() {
         .route("/api/profile", post(update_profile))
         .route("/api/account/name", post(account_name))
         .route("/api/account/password", post(account_password))
+        .route("/api/account", axum::routing::delete(account_delete))
         .route("/api/settings", get(settings_get).post(settings_set))
         .route("/api/discord/status", get(discord_status))
         .route("/api/discord/link", post(discord_link).delete(discord_unlink))
@@ -993,6 +994,40 @@ async fn account_password(State(st): State<AppState>, headers: HeaderMap, Json(r
     // Đăng xuất mọi thiết bị khác, giữ phiên hiện tại.
     let _ = db.execute("DELETE FROM sessions WHERE user_id=?1 AND token<>?2", params![user.id, token]);
     Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct AccDel {
+    password: String,
+}
+
+// Xóa tài khoản vĩnh viễn: cần nhập đúng mật khẩu. Xóa luôn bạn bè, yêu thích, lịch sử, playlist, dữ liệu đồng bộ (ON DELETE CASCADE) và ảnh đại diện/nền/banner.
+async fn account_delete(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<AccDel>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    let (hash, av, bg, bn): (String, String, String, String) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT pass_hash, avatar, bg_url, banner FROM users WHERE id=?1", [user.id], |x| Ok((x.get(0)?, x.get(1)?, x.get(2)?, x.get(3)?)))
+            .map_err(|_| e500())?
+    };
+    let pw = r.password.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
+    if !ok {
+        return Err((StatusCode::FORBIDDEN, "Mật khẩu không đúng".into()));
+    }
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("DELETE FROM users WHERE id=?1", [user.id]).map_err(|_| e500())?;
+    }
+    for (prefix, dir) in [("/avatars/", &st.avatar_dir), ("/backgrounds/", &st.bg_dir), ("/banners/", &st.banner_dir)] {
+        for url in [&av, &bg, &bn] {
+            if let Some(f) = url.strip_prefix(prefix) {
+                if !f.contains('/') && !f.contains("..") && !f.is_empty() {
+                    let _ = tokio::fs::remove_file(dir.join(f)).await;
+                }
+            }
+        }
+    }
+    Ok(StatusCode::NO_CONTENT)
 }
 
 // ===== Cài đặt người dùng (lưu dạng JSON, chỉ nhận các khóa đã biết) =====
