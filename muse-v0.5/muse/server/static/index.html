@@ -296,6 +296,10 @@ body.vid #vctl,body.vc #vctl{display:block}
 /* khi đang phát video: nút lùi/tới 5 giây và toàn màn hình luôn hiện sẵn (không cần rê chuột), mờ nhẹ cho đỡ vướng hình */
 body.vid #vctl button{opacity:.8;pointer-events:auto}
 body.vid #vctl.show button{opacity:1}
+/* toàn màn hình: ẩn hai nút tua 5 giây, chỉ còn nút thoát */
+.art:fullscreen #vctl .vcMid{display:none}
+.art:-webkit-full-screen #vctl .vcMid{display:none}
+.art.pfs #vctl .vcMid{display:none}
 #vctl button:active{background:#000a}
 #vctl .vcMid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:clamp(40px,24%,120px);pointer-events:none}
 #vctl .vcMid button{width:60px;height:60px;position:relative}
