@@ -10,11 +10,9 @@ on:
 
 jobs:
   build-android:
-    # App Android native (Kotlin + Jetpack Compose + Media3)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # Địa chỉ server gắn sẵn vào app. Đặt ở Settings → Secrets and variables → Actions → Variables → MUSE_URL.
       MUSE_URL: ${{ vars.MUSE_URL }}
     defaults:
       run:
@@ -35,8 +33,6 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      # Discord Social SDK (tùy chọn): tải từ Release "discord-sdk" của repo (repo private nên không lộ SDK).
-      # Không có release thì bỏ qua, app vẫn build nhưng không có Rich Presence không cần app Discord.
       - name: Tải Discord Social SDK
         working-directory: .
         shell: bash

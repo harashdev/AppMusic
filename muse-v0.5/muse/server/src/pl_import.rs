@@ -1,14 +1,6 @@
-// Nhập playlist từ Spotify / Apple Music / SoundCloud bằng link.
-// Muse chỉ phát nhạc từ YouTube, nên mỗi bài được đọc (tên, nghệ sĩ, thời lượng) từ app gốc
-// rồi khớp sang một bài trên YouTube Music trước khi lưu thành playlist của người dùng.
-//   - Spotify: trang nhúng công khai open.spotify.com/embed/... (tối đa khoảng 100 bài mỗi playlist)
-//   - Apple Music: dữ liệu có sẵn trong trang công khai music.apple.com/...
-//   - SoundCloud: dùng yt-dlp (đã có sẵn cho phần phát nhạc) để liệt kê bộ sưu tập (/sets/)
 use super::*;
 
-/// Số bài tối đa mỗi lần nhập (mỗi bài cần 1-2 lượt tìm trên YouTube Music).
 const IMPORT_MAX_TRACKS: usize = 300;
-/// Số lượt tìm chạy song song.
 const MATCH_CONCURRENCY: usize = 6;
 
 const BROWSER_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -44,12 +36,8 @@ struct SrcList {
     tracks: Vec<SrcTrack>,
 }
 
-// ---------- Nhận diện link ----------
-
-/// Trả về (loại app, đường dẫn đã chuẩn hoá để tải). Spotify trả thẳng link nhúng.
 fn detect(input: &str) -> Option<(Kind, String)> {
     let s = input.trim();
-    // URI của Spotify: spotify:playlist:ID
     if let Some(rest) = s.strip_prefix("spotify:") {
         let mut it = rest.split(':');
         let (kind, id) = (it.next()?, it.next()?);
@@ -70,7 +58,6 @@ fn detect(input: &str) -> Option<(Kind, String)> {
 
     match host.as_str() {
         "open.spotify.com" => {
-            // /playlist/ID, /album/ID, đôi khi có tiền tố /intl-vi/ hoặc /embed/
             let i = segs.iter().position(|x| matches!(*x, "playlist" | "album"))?;
             let id = segs.get(i + 1)?;
             if !spotify_id_ok(id) {
@@ -108,8 +95,6 @@ fn spotify_id_ok(id: &str) -> bool {
     !id.is_empty() && id.len() <= 40 && id.chars().all(|c| c.is_ascii_alphanumeric())
 }
 
-// ---------- Tiện ích đọc HTML ----------
-
 fn html_unescape(s: &str) -> String {
     s.replace("&quot;", "\"")
         .replace("&#39;", "'")
@@ -120,7 +105,6 @@ fn html_unescape(s: &str) -> String {
         .replace("&amp;", "&")
 }
 
-/// Lấy nội dung JSON của thẻ <script ... id="ID" ...>...</script>.
 fn script_json(html: &str, id: &str) -> Option<Value> {
     let key = format!("id=\"{id}\"");
     let i = html.find(&key)?;
@@ -129,7 +113,6 @@ fn script_json(html: &str, id: &str) -> Option<Value> {
     serde_json::from_str(html[start..end].trim()).ok()
 }
 
-/// Lấy content của thẻ <meta property="PROP" content="...">.
 fn meta_content(html: &str, prop: &str) -> Option<String> {
     let key = format!("property=\"{prop}\"");
     let i = html.find(&key)?;
@@ -175,8 +158,6 @@ fn ms_to_secs(n: f64) -> u64 {
     }
 }
 
-// ---------- Spotify ----------
-
 fn parse_spotify(html: &str) -> Result<SrcList, ApiErr> {
     let data = script_json(html, "__NEXT_DATA__").ok_or_else(|| bad("Không đọc được trang Spotify (Spotify có thể đã đổi giao diện)"))?;
     let list = yt_find(&data, "trackList")
@@ -205,10 +186,6 @@ fn parse_spotify(html: &str) -> Result<SrcList, ApiErr> {
     Ok(SrcList { name, tracks })
 }
 
-// ---------- Apple Music ----------
-
-// Mỗi bài trong trang Apple Music là một object có title + artistName + duration (mili-giây).
-// rank 3 = mục "track-lockup", 2 = mục có contentDescriptor.kind == "song", 1 = chỉ có duration.
 fn apple_collect(v: &Value, out: &mut Vec<(u8, SrcTrack)>) {
     match v {
         Value::Object(m) => {
@@ -256,7 +233,6 @@ fn parse_apple(html: &str) -> Result<SrcList, ApiErr> {
             tracks.push(t);
         }
     }
-    // og:title có dạng "Tên playlist by Người tạo on Apple Music"
     let name = meta_content(html, "og:title")
         .map(|t| {
             let t = t.strip_suffix(" on Apple Music").unwrap_or(&t).to_string();
@@ -268,8 +244,6 @@ fn parse_apple(html: &str) -> Result<SrcList, ApiErr> {
         .unwrap_or_default();
     Ok(SrcList { name, tracks })
 }
-
-// ---------- SoundCloud (qua yt-dlp) ----------
 
 async fn ytdlp_list(url: &str, use_proxy: bool) -> Result<(String, Vec<SrcTrack>), ApiErr> {
     let fail = |m: String| -> ApiErr { (StatusCode::BAD_GATEWAY, m) };
@@ -287,7 +261,7 @@ async fn ytdlp_list(url: &str, use_proxy: bool) -> Result<(String, Vec<SrcTrack>
     cmd.arg(url);
     cmd.kill_on_drop(true);
     #[cfg(windows)]
-    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    cmd.creation_flags(0x0800_0000);
     let out = tokio::time::timeout(Duration::from_secs(90), cmd.output())
         .await
         .map_err(|_| fail("yt-dlp: quá thời gian khi đọc playlist SoundCloud".to_string()))?
@@ -319,9 +293,6 @@ async fn ytdlp_list(url: &str, use_proxy: bool) -> Result<(String, Vec<SrcTrack>
     Ok((name, tracks))
 }
 
-// ---------- Khớp bài sang YouTube Music ----------
-
-/// Bỏ phần trong ngoặc và đuôi " - Remastered ...", " - Radio Edit", " - Live ..." để so tên bài dễ hơn.
 fn core_title(t: &str) -> String {
     let mut out = String::new();
     let mut depth = 0i32;
@@ -337,7 +308,6 @@ fn core_title(t: &str) -> String {
     norm_name(base)
 }
 
-/// Câu tìm kiếm. Tiêu đề SoundCloud hay đã có dạng "Nghệ sĩ - Bài" nên không ghép thêm tên kênh.
 fn search_query(t: &SrcTrack, kind: Kind) -> String {
     let q = if (kind == Kind::SoundCloud && t.title.contains(" - ")) || t.artist.is_empty() {
         t.title.clone()
@@ -361,7 +331,6 @@ fn score_candidate(src: &SrcTrack, cand: &Value) -> i32 {
             score += 2;
         }
     }
-    // Có ít nhất một nghệ sĩ của nguồn xuất hiện trong chuỗi nghệ sĩ (hoặc tiêu đề) của kết quả
     let haystack = format!("{} {}", norm_name(cartist), norm_name(ctitle));
     if credit_names(&src.artist).iter().any(|a| haystack.contains(a.as_str())) {
         score += 2;
@@ -412,7 +381,6 @@ async fn yt_music_search(client: &reqwest::Client, text: &str, filter: &str) -> 
     Vec::new()
 }
 
-/// Chọn kết quả khớp nhất trong 6 kết quả đầu; điểm dưới 4 thì coi là không khớp (tránh lưu nhầm bài khác).
 fn best_match(src: &SrcTrack, cands: &[Value]) -> Option<Value> {
     let mut best: Option<(i32, usize)> = None;
     for (i, c) in cands.iter().take(6).enumerate() {
@@ -432,14 +400,9 @@ async fn match_track(client: &reqwest::Client, src: &SrcTrack, kind: Kind) -> Op
     if let Some(m) = best_match(src, &yt_music_search(client, &q, "songs").await) {
         return Some(m);
     }
-    // Không thấy bản "Songs" (vd. remix/bootleg trên SoundCloud) thì thử thêm trong video.
     best_match(src, &yt_music_search(client, &q, "videos").await)
 }
 
-// ---------- Endpoint ----------
-
-// POST /api/pl-import/url  body {"url": "..."} (hoặc "urls": lấy link đầu tiên)
-// Nhận link Spotify / Apple Music / SoundCloud; link YouTube được chuyển cho bộ nhập YouTube sẵn có.
 pub async fn pl_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
     let raw = body
@@ -477,7 +440,6 @@ pub async fn pl_import_url(State(st): State<AppState>, headers: HeaderMap, Json(
     let truncated = total > IMPORT_MAX_TRACKS;
     let src_tracks: Vec<SrcTrack> = list.tracks.into_iter().take(IMPORT_MAX_TRACKS).collect();
 
-    // Khớp song song nhưng giữ đúng thứ tự gốc của playlist.
     let results: Vec<(SrcTrack, Option<Value>)> = futures_util::stream::iter(src_tracks)
         .map(|t| {
             let client = client.clone();

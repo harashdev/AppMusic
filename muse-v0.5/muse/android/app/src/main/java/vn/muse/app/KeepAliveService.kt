@@ -31,11 +31,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 
-/**
- * Dịch vụ phát nhạc nền: giữ app sống khi tắt màn hình / thoát ra màn hình chính, hiện thông báo điều khiển
- * (Trước / Phát-Tạm dừng / Sau), điều khiển trên màn hình khoá + tai nghe, xử lý rút tai nghe và cuộc gọi.
- * Tiếng vẫn do WebView phát; dịch vụ này chỉ giữ tiến trình và làm "mặt điều khiển" cho hệ thống.
- */
 class KeepAliveService : Service() {
     private lateinit var nm: NotificationManager
     private lateinit var session: MediaSession
@@ -45,7 +40,7 @@ class KeepAliveService : Service() {
     private var wifi: WifiManager.WifiLock? = null
     private var focusReq: AudioFocusRequest? = null
     private var focusAt = 0L
-    private var focusOff = false          // đặt true để tắt hẳn xử lý audio focus; cũng tự bật nếu thấy xung đột với focus của chính WebView
+    private var focusOff = false
     private var resumeOnFocus = false
     private var wasPlaying = false
 
@@ -73,7 +68,6 @@ class KeepAliveService : Service() {
                 override fun onSkipToNext() = Playback.command("next")
                 override fun onSkipToPrevious() = Playback.command("prev")
                 override fun onSeekTo(pos: Long) {
-                    // Cập nhật ngay vị trí trên thông báo / màn hình khoá (không chờ web báo lại), rồi mới ra lệnh tua cho web.
                     Playback.posMs = pos
                     Playback.onChanged?.invoke()
                     Playback.command("seek", pos)
@@ -99,7 +93,6 @@ class KeepAliveService : Service() {
         return START_NOT_STICKY
     }
 
-    /** Vuốt app khỏi danh sách gần đây = dừng nhạc (giống hầu hết app nghe nhạc). */
     override fun onTaskRemoved(rootIntent: Intent?) { stopSelf() }
 
     override fun onDestroy() {
@@ -111,8 +104,6 @@ class KeepAliveService : Service() {
         runCatching { session.isActive = false; session.release() }
         super.onDestroy()
     }
-
-    // ---------------------------------------------------------------- cập nhật
 
     private fun refresh() {
         val p = Playback
@@ -146,7 +137,7 @@ class KeepAliveService : Service() {
             else {
                 releaseLocks()
                 if (!resumeOnFocus) abandonFocus()
-                main.removeCallbacks(idleStop); main.postDelayed(idleStop, IDLE_MS) // tạm dừng lâu thì tự tắt dịch vụ
+                main.removeCallbacks(idleStop); main.postDelayed(idleStop, IDLE_MS)
             }
         }
     }
@@ -186,8 +177,6 @@ class KeepAliveService : Service() {
             .build()
     }
 
-    // ---------------------------------------------------------------- ảnh bìa
-
     private fun serverUrl(): String =
         (getSharedPreferences("muse", MODE_PRIVATE).getString("server", "")?.takeIf { it.isNotBlank() } ?: BuildConfig.MUSE_URL).trim().trimEnd('/')
 
@@ -198,7 +187,6 @@ class KeepAliveService : Service() {
         val url = if (raw.startsWith("/")) serverUrl() + raw else raw
         if (!url.startsWith("http")) return
         thread(isDaemon = true, name = "muse-art") {
-            /* hq720 không phải video nào cũng có: lỗi thì lùi về bản nhỏ hơn */
             val bmp = (fetchArt(url) ?: if (url.contains("/hq720.jpg")) fetchArt(url.replace("hq720", "mqdefault")) else null)?.let { b ->
                 val m = maxOf(b.width, b.height)
                 val cap = artCap()
@@ -208,7 +196,6 @@ class KeepAliveService : Service() {
         }
     }
 
-    /** Cỡ ảnh bìa tối đa theo máy: bằng cạnh ngắn màn hình (tối đa 1280), máy RAM thấp thì 768 để khỏi tốn bộ nhớ. */
     private fun artCap(): Int {
         val dm = resources.displayMetrics
         val side = minOf(dm.widthPixels, dm.heightPixels).coerceIn(512, 1280)
@@ -223,8 +210,6 @@ class KeepAliveService : Service() {
         c.inputStream.use { BitmapFactory.decodeStream(it) }
     }.getOrNull()
 
-    // ---------------------------------------------------------------- khoá tài nguyên
-
     private fun acquireLocks() {
         if (wl == null) wl = (getSystemService(POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "muse:playback").apply { setReferenceCounted(false) }
@@ -238,8 +223,6 @@ class KeepAliveService : Service() {
         wl?.let { if (it.isHeld) it.release() }
         wifi?.let { if (it.isHeld) it.release() }
     }
-
-    // ---------------------------------------------------------------- audio focus (cuộc gọi, app nhạc khác)
 
     private fun requestFocus() {
         if (focusOff) return
@@ -258,7 +241,6 @@ class KeepAliveService : Service() {
     }
 
     private fun onFocus(change: Int) {
-        // Mất focus ngay sau khi vừa xin = xung đột với focus của chính WebView, không phải app khác -> tắt xử lý focus và phát lại.
         if ((change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) &&
             SystemClock.elapsedRealtime() - focusAt < 2000
         ) {

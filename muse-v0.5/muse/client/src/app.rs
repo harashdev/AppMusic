@@ -1,5 +1,3 @@
-//! Giao diện Muse bằng egui: đăng nhập, trang chủ, tìm kiếm, yêu thích, lịch sử, hàng đợi, playlist, thanh phát nhạc.
-//! Mọi lời gọi mạng chạy trong thread riêng và trả kết quả về UI qua kênh `Msg`.
 
 use crate::api::{Api, Playlist, Track, User};
 use crate::player::Player;
@@ -10,7 +8,6 @@ use std::path::PathBuf;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{Duration, Instant};
 
-// Bảng màu bám theo bản web (nền tối tím, accent lấy từ hồ sơ người dùng).
 const BG: Color32 = Color32::from_rgb(0x14, 0x11, 0x1c);
 const PANEL: Color32 = Color32::from_rgb(0x1c, 0x19, 0x25);
 const CARD: Color32 = Color32::from_rgb(0x25, 0x21, 0x2f);
@@ -18,7 +15,6 @@ const TEXT: Color32 = Color32::from_rgb(0xe8, 0xe6, 0xee);
 const MUTED: Color32 = Color32::from_rgb(0x9a, 0x96, 0xa8);
 const DEFAULT_ACCENT: Color32 = Color32::from_rgb(0x31, 0xc2, 0x7c);
 
-// ---------- Cấu hình lưu trên máy ----------
 #[derive(Default, Serialize, Deserialize)]
 struct Config {
     server: String,
@@ -50,7 +46,6 @@ fn save_config(c: &Config) {
     }
 }
 
-// ---------- Kiểu dữ liệu nội bộ ----------
 #[derive(Clone, PartialEq)]
 enum Page {
     Home,
@@ -102,7 +97,6 @@ pub struct MuseApp {
     user: Option<User>,
     accent: Color32,
 
-    // Đăng nhập
     server_url: String,
     username: String,
     password: String,
@@ -127,7 +121,6 @@ pub struct MuseApp {
     loading: bool,
     play_gen: u64,
     repeat: bool,
-    /// Vị trí cuộn ngang của hàng thẻ "Nhạc mới mỗi ngày".
     carousel_x: f32,
     toast: Option<(String, Instant)>,
 }
@@ -138,8 +131,6 @@ impl MuseApp {
         apply_theme(&cc.egui_ctx, DEFAULT_ACCENT);
         let (tx, rx) = channel();
         let cfg = load_config();
-        // Mặc định: server chạy trên máy desktop-p2k8jsq, truy cập qua Tailscale (cổng 3000).
-        // Có thể đổi lúc build bằng biến môi trường MUSE_URL, hoặc sửa ngay ở màn hình đăng nhập.
         let default_server = option_env!("MUSE_URL")
             .filter(|s| !s.is_empty())
             .unwrap_or("http://100.112.197.104:3000")
@@ -185,7 +176,6 @@ impl MuseApp {
         app
     }
 
-    // ---------- Chạy việc nền ----------
     fn spawn_job<T: Send + 'static>(
         &self,
         ctx: &egui::Context,
@@ -206,7 +196,6 @@ impl MuseApp {
         self.toast = Some((s.into(), Instant::now()));
     }
 
-    // ---------- Đăng nhập ----------
     fn try_auto_login(&mut self, ctx: &egui::Context) {
         if self.cfg.token.is_empty() || self.cfg.server.is_empty() {
             return;
@@ -329,7 +318,6 @@ impl MuseApp {
         );
     }
 
-    // ---------- Nhận kết quả từ thread ----------
     fn pump(&mut self, ctx: &egui::Context) {
         while let Ok(m) = self.rx.try_recv() {
             match m {
@@ -401,7 +389,6 @@ impl MuseApp {
         }
     }
 
-    // ---------- Phát nhạc ----------
     fn play_list(&mut self, ctx: &egui::Context, list: Vec<Track>, idx: usize) {
         self.queue = list;
         self.play_index(ctx, idx);
@@ -465,7 +452,6 @@ impl MuseApp {
         if self.page == page {
             return;
         }
-        // Giải phóng ảnh đã nạp ở trang cũ để giữ RAM thấp.
         ctx.forget_all_images();
         match &page {
             Page::History => self.load_history(ctx),
@@ -547,7 +533,6 @@ impl MuseApp {
         }
     }
 
-    // ---------- Giao diện ----------
     fn login_ui(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default()
             .frame(egui::Frame::none().fill(BG))
@@ -756,7 +741,6 @@ impl MuseApp {
             )
             .show(ctx, |ui| {
                 ui.columns(3, |cols| {
-                    // Cột trái: bài đang phát
                     cols[0].horizontal_centered(|ui| {
                         if let Some(t) = &cur_track {
                             thumb_ui(ui, &t.image, 56.0, 8.0, 160);
@@ -780,7 +764,6 @@ impl MuseApp {
                         }
                     });
 
-                    // Cột giữa: điều khiển + thanh tua
                     cols[1].vertical_centered(|ui| {
                         ui.horizontal(|ui| {
                             ui.add_space((ui.available_width() - 150.0).max(0.0) / 2.0);
@@ -832,7 +815,6 @@ impl MuseApp {
                         });
                     });
 
-                    // Cột phải: lặp, hàng đợi, âm lượng
                     cols[2].with_layout(Layout::right_to_left(Align::Center), |ui| {
                         let mut vol = self.player.volume;
                         ui.spacing_mut().slider_width = 110.0;
@@ -1060,23 +1042,20 @@ impl eframe::App for MuseApp {
         if self.player.is_playing() {
             ctx.request_repaint_after(Duration::from_millis(250));
         }
-        // Phím cách: phát/tạm dừng khi không đang gõ chữ.
         if !ctx.wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::Space)) {
             self.player.toggle();
         }
 
-        // Thanh phát nhạc vẽ trước để trải hết chiều ngang, nằm dưới cả thanh bên.
         self.player_bar(ctx);
         self.sidebar(ctx);
         if self.user.is_none() {
-            return; // vừa đăng xuất
+            return;
         }
         self.main_panel(ctx);
         self.toast_ui(ctx);
     }
 }
 
-// ---------- Hàm vẽ phụ ----------
 fn heading(ui: &mut egui::Ui, text: &str) {
     ui.label(RichText::new(text).size(24.0).strong().color(TEXT));
     ui.add_space(8.0);
@@ -1202,7 +1181,6 @@ fn track_list(ui: &mut egui::Ui, tracks: &[Track], env: &RowEnv, actions: &mut V
         });
 }
 
-/// Vẽ ảnh bìa lấp đầy `rect`, cắt phần giữa cho vừa khung vuông (không méo ảnh).
 fn cover_image(ui: &mut egui::Ui, url: &str, rect: egui::Rect, round: f32) {
     let placeholder = |ui: &egui::Ui| {
         ui.painter()
@@ -1237,7 +1215,6 @@ fn cover_image(ui: &mut egui::Ui, url: &str, rect: egui::Rect, round: f32) {
     }
 }
 
-/// Vẽ một dòng chữ một hàng, tự cắt bằng "…" khi quá rộng (đúng cả với tiếng Nhật không có dấu cách).
 fn overlay_text(
     ui: &egui::Ui,
     pos: egui::Pos2,
@@ -1263,7 +1240,6 @@ fn overlay_text(
     ui.painter().galley(pos, galley, color);
 }
 
-/// Nền chuyển màu theo chiều dọc (đen mờ dần), dùng để chữ đọc rõ trên ảnh.
 fn vgradient(ui: &egui::Ui, rect: egui::Rect, top: Color32, bottom: Color32) {
     let mut mesh = egui::Mesh::default();
     mesh.colored_vertex(rect.left_top(), top);
@@ -1275,7 +1251,6 @@ fn vgradient(ui: &egui::Ui, rect: egui::Rect, top: Color32, bottom: Color32) {
     ui.painter().add(egui::Shape::mesh(mesh));
 }
 
-/// Hàng thẻ lớn cuộn ngang kiểu YouTube Music: ảnh bìa, tên bài + nghệ sĩ ở trên, "Dành cho người hâm mộ ..." ở dưới.
 fn featured_row(
     ui: &mut egui::Ui,
     title: &str,
@@ -1329,7 +1304,6 @@ fn featured_row(
                     let is_cur = env.current.as_deref() == Some(t.key().as_str());
 
                     cover_image(ui, &thumb_url(&t.image, 544), rect, round);
-                    // Đen mờ ở đầu và cuối thẻ để chữ trắng đọc rõ trên mọi ảnh.
                     let top = egui::Rect::from_min_size(rect.min, vec2(card, 110.0));
                     let bottom = egui::Rect::from_min_max(
                         egui::pos2(rect.min.x, rect.max.y - 90.0),
@@ -1445,7 +1419,6 @@ fn avatar_ui(ui: &mut egui::Ui, avatar: &str, base: &str, size: f32) {
     }
 }
 
-/// Xin ảnh nhỏ từ YouTube/Google để không tốn RAM cho ảnh bìa lớn.
 fn thumb_url(url: &str, px: u32) -> String {
     if url.is_empty() {
         return String::new();
@@ -1460,7 +1433,7 @@ fn thumb_url(url: &str, px: u32) -> String {
     }
     if url.contains("ytimg.com") {
         if px >= 400 {
-            return url.to_string(); // thẻ lớn: giữ nguyên ảnh gốc cho nét
+            return url.to_string();
         }
         return url
             .replace("maxresdefault", "mqdefault")
@@ -1518,7 +1491,6 @@ fn apply_theme(ctx: &egui::Context, accent: Color32) {
     });
 }
 
-/// Nạp font hệ thống để hiện đủ tiếng Việt và tiếng Nhật (nếu có). Không có thì dùng font mặc định của egui.
 fn setup_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
     let dir = std::path::Path::new(r"C:\Windows\Fonts");
