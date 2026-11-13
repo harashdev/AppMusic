@@ -859,12 +859,11 @@ button *,#gear *,#meAv *{pointer-events:none}
 /* ===== Xem ảnh hồ sơ + GIF mượt hơn ===== */
 .pc.flat .pc-ban{contain:none;transform:none;border-radius:0}
 .pc.flat .pc-av .av{transform:none}
-.pc-av,.pc-ban{cursor:zoom-in}
 .pc-ban>img,.pc-av .av img{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center}
 .pc-ban{contain:paint;isolation:isolate;border-radius:18px 18px 0 0;transform:translateZ(0)}
 .pc-av .av{overflow:hidden;border-radius:50%;transform:translateZ(0)}
 html.android .pcpop .pc{overflow:visible;box-shadow:0 4px 14px #0007}
-.imgv{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.imgv{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px}
 .imgv>img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:default}
 .imgv-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff22;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .imgv-x .i{width:22px;height:22px}
