@@ -1983,9 +1983,14 @@ function planHome(tp,Y){
     taste.forEach(x=>usedQ.add(x[1]));
   }
   /* khám phá: thể loại gần gu nghe nhất được ưu tiên, thể loại đã có kệ theo gu hoặc hay bị bỏ qua thì ít khi chọn */
-  const expW=x=>{ let w=x.g?1:1.2; if(x.g){ if(topSet.has(x.g)) w=.4; else if(tp.top.some(n=>(ADJ[n]||[]).includes(x.g))) w=2.4; if(tp.avoidGenres.has(x.g)) w*=.1; w*=hourBoost(x.g); } return w; };
+  /* gu đã rõ (đủ dữ liệu) mà không nghe nhạc Việt → KHÔNG đưa kệ khám phá tiếng Việt (nhạc Việt đại trà, viral, nhạc trẻ…) vào trang chủ; thể loại không liên quan cũng ít được chọn hơn */
+  const strong=tp.n>=8&&(topSet.size>0||arts.length>0);
+  const viRe=(GENRES.find(g=>g[0]==='Nhạc Việt')||[])[1];
+  const viTaste=['Nhạc Việt','Bolero','Ballad / Buồn'].some(g=>topSet.has(g))||!!(viRe&&arts.some(a=>viRe.test(a.n)));
+  const isVi=x=>x.g==='Nhạc Việt'||x.g==='Bolero'||(x.g!=='Nhạc Hoa'&&/nhạc|việt|vinahouse|bolero/i.test(x.q));
+  const expW=x=>{ let w=x.g?(strong?.5:1):(strong?.8:1.2); if(x.g){ if(topSet.has(x.g)) w=.4; else if(tp.top.some(n=>(ADJ[n]||[]).includes(x.g))) w=2.4; if(tp.avoidGenres.has(x.g)) w*=.1; w*=hourBoost(x.g); } return w; };
   const nE=TOTAL-taste.length;
-  const explore=pickW(explorePool(Y).filter(x=>!usedQ.has(x.q)&&!taste.some(y=>y[0]===x.t)),expW,rnd,nE).map(x=>[x.t,x.q,'','explore']);
+  const explore=pickW(explorePool(Y).filter(x=>!usedQ.has(x.q)&&!taste.some(y=>y[0]===x.t)&&!(strong&&!viTaste&&isVi(x))),expW,rnd,nE).map(x=>[x.t,x.q,'','explore']);
   /* xếp: 2 theo gu, 1 khám phá, lặp lại. Kệ đầu tiên luôn là theo gu (nếu có) vì nó cũng là nguồn của "Chọn nhanh đài phát". */
   const out=[]; let ti=0, ei=0;
   while(ti<taste.length||ei<explore.length){
@@ -2108,19 +2113,21 @@ async function loadDaily(tp){
 /* "Nhạc mới mỗi ngày": bài ra trong ≤14 ngày của các nghệ sĩ bạn hay nghe (mỗi người tối đa 2 thẻ), chưa nghe lần nào. Cố định theo ngày. Chưa có gu nghe / không có bài mới → lấy bản phát hành mới chung (không có chú thích). */
 async function loadNewDaily(tp){
   const ck=uKey('muse_newdaily'), today=dayNum();
-  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&Array.isArray(o.r)&&o.r.length>=2) return o.r.filter(x=>x&&x.t&&!tp.skipKeys.has(key(x.t))); }catch{}
+  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&Array.isArray(o.r)){ const c=o.r.filter(x=>x&&x.t&&x.a&&!tp.skipKeys.has(key(x.t))); if(c.length>=2) return c; } }catch{}   /* bản lưu cũ có thẻ chung chung (không gắn nghệ sĩ) thì bỏ và tính lại */
   const rnd=rngMake(strHash('nd'+today+':'+((typeof me!=='undefined'&&me&&me.id)||0)));
   const pool=(tp.artsAll||[]).filter(a=>goodArtist(a.n)).slice(0,12);
-  const picks=pickW(pool,a=>Math.sqrt(Math.max(a.c,.05)),rnd,Math.min(8,pool.length));
+  const picks=pickW(pool,a=>Math.sqrt(Math.max(a.c,.05)),rnd,Math.min(12,pool.length));
   const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
   const got=await Promise.all(picks.map(a=>ytSearch('new:'+a.n,true).then(l=>l.filter(t=>okT(t)&&!tp.seen.has(key(t))&&artistHit(t,a.n)).slice(0,2).map(t=>({t,a:a.n}))).catch(()=>[])));
   const out=[], used=new Set();
   for(let r=0;r<2;r++) for(const l of got){ const x=l[r]; if(x&&!used.has(key(x.t))){ used.add(key(x.t)); out.push(x); } }
-  if(out.length<3){
-    const Y=new Date().getFullYear(), M=new Date().getMonth()+1;
-    try{ (await ytSearch(`nhạc mới ra mắt tháng ${M} ${Y}`,true)).filter(t=>okT(t)&&!used.has(key(t))).slice(0,8-out.length).forEach(t=>{ used.add(key(t)); out.push({t,a:''}); }); }catch{}
+  /* ít bài mới quá thì thêm bài CHƯA NGHE của chính các nghệ sĩ bạn mê (đúng nghệ sĩ, đúng gu). Tuyệt đối không lấy "nhạc mới" chung chung: nó ra nhạc đại trà lạc gu. */
+  if(out.length<6&&picks.length){
+    const top=picks.slice().sort((x,y)=>y.c-x.c).slice(0,4);
+    const ex=await Promise.all(top.map(a=>ytSearch(/[^\x00-\u024f]/.test(a.n)?a.n+' best songs':a.n+' hay nhất',true).then(l=>l.filter(t=>okT(t)&&!tp.seen.has(key(t))&&!used.has(key(t))&&artistHit(t,a.n)).slice(0,2).map(t=>({t,a:a.n}))).catch(()=>[])));
+    for(let r=0;r<2;r++) for(const l of ex){ const x=l[r]; if(x&&out.length<8&&!used.has(key(x.t))){ used.add(key(x.t)); out.push(x); } }
   }
-  const res=out.slice(0,10);
+  const res=out.filter(x=>x.a).slice(0,10);   /* mọi thẻ đều phải gắn với một nghệ sĩ bạn nghe */
   if(res.length>=2){ try{ LS.set(ck,JSON.stringify({d:today,r:res.map(x=>({t:slim(x.t),a:x.a}))})); }catch{} }
   return res;
 }
