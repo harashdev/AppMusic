@@ -3824,7 +3824,8 @@ new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).obs
 (function(){
   const art=document.querySelector('#vPlay .art'), vc=document.getElementById('vctl'); if(!art||!vc) return;
   let hideTm=0;
-  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); hideTm=setTimeout(()=>vc.classList.remove('show'),2500); };
+  let mouseIn=false;   /* chuột đang nằm trên khung video → giữ layer hiện, không tự ẩn */
+  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); hideTm=setTimeout(()=>{ if(mouseIn) return; vc.classList.remove('show'); },2500); };
   const hide=()=>{ clearTimeout(hideTm); vc.classList.remove('show'); };
   const act=fn=>e=>{ e.stopPropagation(); if(cur) fn(); show(); };
   const skip=d=>{ const du=getDur(); seekTo(Math.max(0,Math.min(du?du-0.3:1e9,getTime()+d))); broadcastState(); };
@@ -3832,7 +3833,20 @@ new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).obs
   $('#vcFwd').onclick=act(()=>skip(5));
   /* chạm vào video: hiện/ẩn nút; chuột: rê vào là hiện */
   vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(vc.classList.contains('show')) hide(); else show(); });
-  vc.addEventListener('mousemove',show); vc.addEventListener('mouseleave',hide);
+  /* Rê chuột vào / di chuyển trong khung là hiện layer ngay (pointer events: chuột + bút; không cần bấm). Lắng nghe trên cả khung .art
+     nên không phụ thuộc lớp phủ nào đang nằm trên video. Cảm ứng không có hover → vẫn chạm để hiện/ẩn như cũ. */
+  const isMouse=e=>e.pointerType==='mouse'||e.pointerType==='pen'||!e.pointerType;
+  const onPtr=e=>{ if(!isMouse(e)) return; mouseIn=true; show(); };
+  ['pointerenter','pointerover','pointermove'].forEach(ev=>art.addEventListener(ev,onPtr,{passive:true}));
+  art.addEventListener('pointerleave',e=>{ if(!isMouse(e)) return; mouseIn=false; hide(); },{passive:true});
+  /* Vào video (bật video, video lên hình, đổi bài, mở panel Đang phát) mà chuột đứng yên / không có chuột → tự hiện layer một lúc */
+  const peek=()=>{ if(document.body.classList.contains('vid')) show(); };
+  new MutationObserver(peek).observe(document.body,{attributes:true,attributeFilter:['class']});
+  const ve=document.getElementById('vidEl');
+  if(ve) new MutationObserver(()=>{ if(ve.classList.contains('on')) peek(); }).observe(ve,{attributes:true,attributeFilter:['class']});
+  const tt=document.getElementById('npTitle');
+  if(tt) new MutationObserver(peek).observe(tt,{childList:true,characterData:true,subtree:true});
+  if(window.ResizeObserver) new ResizeObserver(()=>{ if(art.offsetWidth&&document.body.classList.contains('vid')) show(); }).observe(art);
   /* toàn màn hình (iOS không hỗ trợ cho div → dùng chế độ phủ kín màn hình) */
   const isFs=()=>document.fullscreenElement===art||document.webkitFullscreenElement===art||art.classList.contains('pfs');
   const paintFs=()=>{ const f=isFs(); setIc($('#vcFull'),f?'fullx':'full'); $('#vcFull').title=$('#vcFull').ariaLabel=f?(window.BB_LANG==='en'?'Exit fullscreen':'Thoát toàn màn hình'):(window.BB_LANG==='en'?'Fullscreen':'Toàn màn hình'); };
