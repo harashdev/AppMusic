@@ -305,11 +305,22 @@ pub fn run() {
     builder
         .setup(|app| {
             let url: tauri::Url = SERVER_URL.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
-            WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
+            let win = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
                 .title("Muse")
                 .inner_size(1280.0, 820.0)
-                .min_inner_size(420.0, 600.0)
-                .build()?;
+                .min_inner_size(420.0, 600.0);
+
+            // Giảm số tiến trình msedgewebview2.exe để tiết kiệm RAM (không đụng tới video/hiệu ứng).
+            // Lưu ý: additional_browser_args thay thế các cờ mặc định của Tauri nên phải gộp lại
+            // vào MỘT --disable-features duy nhất (nếu lặp cờ, cờ sau sẽ ghi đè cờ trước).
+            #[cfg(windows)]
+            let win = win.additional_browser_args(concat!(
+                "--in-process-gpu",
+                " --renderer-process-limit=1",
+                " --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,TranslateUI,IsolateOrigins,site-per-process",
+            ));
+
+            win.build()?;
             Ok(())
         })
         .run(tauri::generate_context!())
