@@ -2272,12 +2272,11 @@ const pages={
     if(ci>0) moodOpen=true;
     const moods=sets.slice(1).map(([l],i)=>`<button class="chip mi ${i+1===ci?'on':''}" data-m="${i+1}" style="--d:${i}">${esc(l)}</button>`).join('');
     tc.innerHTML=moodOpen
-      ? `<button class="chip on" id="moodBtn" aria-expanded="true" title="Thu gọn">Tâm trạng</button>${moods}<button class="chip" id="rfBtn" title="Làm mới gợi ý">↻ Làm mới</button>`
-      : `<button class="chip ${ci===0?'on':''}" data-chip="0">Tất cả</button><button class="chip" id="moodBtn" aria-expanded="false">Tâm trạng</button><button class="chip" id="rfBtn" title="Làm mới gợi ý">↻ Làm mới</button>`;
+      ? `<button class="chip on" id="moodBtn" aria-expanded="true" title="Thu gọn">Tâm trạng</button>${moods}`
+      : `<button class="chip ${ci===0?'on':''}" data-chip="0">Tất cả</button><button class="chip" id="moodBtn" aria-expanded="false">Tâm trạng</button>`;
     tc.scrollLeft=chipScroll;
     const keep=()=>{ chipScroll=tc.scrollLeft; };
     const all=tc.querySelector('[data-chip]'); if(all) all.onclick=()=>{ homeTg=''; homeCi=0; moodOpen=false; chipScroll=0; go('home'); };
-    const rfb=$('#rfBtn'); if(rfb) rfb.onclick=()=>{ refreshHome(); };
     $('#moodBtn').onclick=()=>{ homeTg=''; if(moodOpen){ moodOpen=false; homeCi=0; chipScroll=0; go('home'); } else { moodOpen=true; chipScroll=0; go('home'); } };
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeTg=''; homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
