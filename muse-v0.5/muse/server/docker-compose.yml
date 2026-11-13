@@ -8,6 +8,9 @@ services:
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
       - PUBLIC_URL=${PUBLIC_URL:-}
+      - ADMIN_USER=${ADMIN_USER:-}
+      - ADMIN_PASS=${ADMIN_PASS:-}
+      - ADMIN_NAME=${ADMIN_NAME:-}
     volumes:
       - ./data:/app/data
     expose:
