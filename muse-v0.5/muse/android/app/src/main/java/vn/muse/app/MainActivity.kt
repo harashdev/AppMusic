@@ -198,7 +198,10 @@ class MainActivity : ComponentActivity() {
                 if (!request.isForMainFrame) return false
                 val u = request.url
                 if (u.host != null && u.host == Uri.parse(serverUrl()).host) return false
-                // Link ra ngoài (Discord, v.v.) mở bằng trình duyệt.
+                // Đăng nhập Discord (OAuth) chạy ngay trong app: xong Discord chuyển về server (cùng địa chỉ với app) nên không phải sang trình duyệt rồi quay lại.
+                val h = u.host?.lowercase().orEmpty()
+                if (h == "discord.com" || h.endsWith(".discord.com") || h == "discordapp.com" || h.endsWith(".discordapp.com")) return false
+                // Các link ra ngoài khác mở bằng trình duyệt.
                 try { startActivity(Intent(Intent.ACTION_VIEW, u)) } catch (e: ActivityNotFoundException) { /* không có app mở link */ }
                 return true
             }
