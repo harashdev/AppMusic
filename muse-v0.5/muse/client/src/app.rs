@@ -127,6 +127,8 @@ pub struct MuseApp {
     loading: bool,
     play_gen: u64,
     repeat: bool,
+    /// Vị trí cuộn ngang của hàng thẻ "Nhạc mới mỗi ngày".
+    carousel_x: f32,
     toast: Option<(String, Instant)>,
 }
 
@@ -176,6 +178,7 @@ impl MuseApp {
             loading: false,
             play_gen: 0,
             repeat: false,
+            carousel_x: 0.0,
             toast: None,
         };
         app.try_auto_login(&cc.egui_ctx);
@@ -895,6 +898,7 @@ impl MuseApp {
         let mut do_search = false;
         let mut delete_pl: Option<i64> = None;
         let current = self.cur.and_then(|i| self.queue.get(i)).map(|t| t.key());
+        let mut carousel_x = self.carousel_x;
 
         egui::CentralPanel::default()
             .frame(egui::Frame::none().fill(BG).inner_margin(Margin::same(16.0)))
@@ -909,16 +913,17 @@ impl MuseApp {
                 };
                 match &self.page {
                     Page::Home => {
-                        let (title, list) = if !self.recs.is_empty() {
-                            ("Gợi ý cho bạn", &self.recs)
-                        } else {
-                            ("Nghe gần đây", &self.history)
-                        };
-                        heading(ui, title);
-                        if list.is_empty() {
+                        let has_recs = !self.recs.is_empty();
+                        if has_recs {
+                            let n = self.recs.len().min(12);
+                            featured_row(ui, "Nhạc mới mỗi ngày", &self.recs[..n], &env, &mut actions, &mut carousel_x);
+                            ui.add_space(16.0);
+                        }
+                        if !self.history.is_empty() {
+                            heading(ui, "Nghe gần đây");
+                            track_list(ui, &self.history, &env, &mut actions);
+                        } else if !has_recs {
                             hint(ui, "Chưa có gợi ý. Hãy tìm bài hát, thêm vào yêu thích hoặc playlist để bắt đầu.");
-                        } else {
-                            track_list(ui, list, &env, &mut actions);
                         }
                     }
                     Page::Search => {
@@ -990,6 +995,7 @@ impl MuseApp {
                 }
             });
 
+        self.carousel_x = carousel_x;
         if do_search {
             self.do_search(ctx);
         }
@@ -1196,6 +1202,215 @@ fn track_list(ui: &mut egui::Ui, tracks: &[Track], env: &RowEnv, actions: &mut V
         });
 }
 
+/// Vẽ ảnh bìa lấp đầy `rect`, cắt phần giữa cho vừa khung vuông (không méo ảnh).
+fn cover_image(ui: &mut egui::Ui, url: &str, rect: egui::Rect, round: f32) {
+    let placeholder = |ui: &egui::Ui| {
+        ui.painter()
+            .rect_filled(rect, round, Color32::from_rgb(0x33, 0x2e, 0x40));
+    };
+    if url.is_empty() {
+        placeholder(ui);
+        return;
+    }
+    match ui
+        .ctx()
+        .try_load_texture(url, egui::TextureOptions::LINEAR, egui::SizeHint::default())
+    {
+        Ok(egui::load::TexturePoll::Ready { texture }) => {
+            let (w, h) = (texture.size.x.max(1.0), texture.size.y.max(1.0));
+            let (mx, my) = if w > h {
+                ((w - h) / (2.0 * w), 0.0)
+            } else {
+                (0.0, (h - w) / (2.0 * h))
+            };
+            let uv = egui::Rect::from_min_max(egui::pos2(mx, my), egui::pos2(1.0 - mx, 1.0 - my));
+            egui::Image::from_texture(texture)
+                .uv(uv)
+                .rounding(round)
+                .paint_at(ui, rect);
+        }
+        Ok(egui::load::TexturePoll::Pending { .. }) => {
+            placeholder(ui);
+            ui.ctx().request_repaint_after(Duration::from_millis(120));
+        }
+        Err(_) => placeholder(ui),
+    }
+}
+
+/// Vẽ một dòng chữ một hàng, tự cắt bằng "…" khi quá rộng (đúng cả với tiếng Nhật không có dấu cách).
+fn overlay_text(
+    ui: &egui::Ui,
+    pos: egui::Pos2,
+    text: &str,
+    size: f32,
+    color: Color32,
+    width: f32,
+    italic: bool,
+) {
+    let mut job = egui::text::LayoutJob::simple(
+        text.to_string(),
+        egui::FontId::proportional(size),
+        color,
+        width,
+    );
+    job.wrap.max_rows = 1;
+    job.wrap.break_anywhere = true;
+    job.wrap.overflow_character = Some('…');
+    if let Some(sec) = job.sections.first_mut() {
+        sec.format.italics = italic;
+    }
+    let galley = ui.fonts(|f| f.layout_job(job));
+    ui.painter().galley(pos, galley, color);
+}
+
+/// Nền chuyển màu theo chiều dọc (đen mờ dần), dùng để chữ đọc rõ trên ảnh.
+fn vgradient(ui: &egui::Ui, rect: egui::Rect, top: Color32, bottom: Color32) {
+    let mut mesh = egui::Mesh::default();
+    mesh.colored_vertex(rect.left_top(), top);
+    mesh.colored_vertex(rect.right_top(), top);
+    mesh.colored_vertex(rect.right_bottom(), bottom);
+    mesh.colored_vertex(rect.left_bottom(), bottom);
+    mesh.add_triangle(0, 1, 2);
+    mesh.add_triangle(0, 2, 3);
+    ui.painter().add(egui::Shape::mesh(mesh));
+}
+
+/// Hàng thẻ lớn cuộn ngang kiểu YouTube Music: ảnh bìa, tên bài + nghệ sĩ ở trên, "Dành cho người hâm mộ ..." ở dưới.
+fn featured_row(
+    ui: &mut egui::Ui,
+    title: &str,
+    tracks: &[Track],
+    env: &RowEnv,
+    actions: &mut Vec<Action>,
+    scroll_x: &mut f32,
+) {
+    let card = ((ui.available_width() - 40.0) * 0.42).clamp(230.0, 340.0);
+    let gap = 14.0;
+    let round = 16.0;
+    let step = card + gap;
+    let mut scroll_delta = 0.0f32;
+
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(title).size(24.0).strong().color(TEXT));
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            let play_all = egui::Button::new(RichText::new("Phát tất cả").strong().color(TEXT))
+                .fill(Color32::TRANSPARENT)
+                .stroke(egui::Stroke::new(1.5, MUTED))
+                .rounding(20.0);
+            if ui.add(play_all).clicked() {
+                actions.push(Action::Play(tracks.to_vec(), 0));
+            }
+            if ui
+                .add(egui::Button::new(RichText::new("›").size(22.0)).rounding(20.0))
+                .clicked()
+            {
+                scroll_delta += step;
+            }
+            if ui
+                .add(egui::Button::new(RichText::new("‹").size(22.0)).rounding(20.0))
+                .clicked()
+            {
+                scroll_delta -= step;
+            }
+        });
+    });
+    ui.add_space(8.0);
+
+    let target = (*scroll_x + scroll_delta).max(0.0);
+    let out = egui::ScrollArea::horizontal()
+        .id_salt("featured_row")
+        .scroll_offset(egui::vec2(target, 0.0))
+        .auto_shrink([false, true])
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = gap;
+                for (i, t) in tracks.iter().enumerate() {
+                    let (rect, resp) = ui.allocate_exact_size(vec2(card, card), Sense::click());
+                    let is_cur = env.current.as_deref() == Some(t.key().as_str());
+
+                    cover_image(ui, &thumb_url(&t.image, 544), rect, round);
+                    // Đen mờ ở đầu và cuối thẻ để chữ trắng đọc rõ trên mọi ảnh.
+                    let top = egui::Rect::from_min_size(rect.min, vec2(card, 110.0));
+                    let bottom = egui::Rect::from_min_max(
+                        egui::pos2(rect.min.x, rect.max.y - 90.0),
+                        rect.max,
+                    );
+                    vgradient(
+                        ui,
+                        top,
+                        Color32::from_black_alpha(170),
+                        Color32::TRANSPARENT,
+                    );
+                    vgradient(
+                        ui,
+                        bottom,
+                        Color32::TRANSPARENT,
+                        Color32::from_black_alpha(190),
+                    );
+
+                    let pad = 18.0;
+                    let w = card - pad * 2.0;
+                    let title = if t.title.is_empty() {
+                        "(không tên)"
+                    } else {
+                        t.title.as_str()
+                    };
+                    overlay_text(
+                        ui,
+                        rect.min + vec2(pad, 16.0),
+                        title,
+                        17.0,
+                        Color32::WHITE,
+                        w,
+                        false,
+                    );
+                    overlay_text(
+                        ui,
+                        rect.min + vec2(pad, 42.0),
+                        &t.artist,
+                        15.0,
+                        Color32::from_white_alpha(185),
+                        w,
+                        false,
+                    );
+                    let fan = t.artist.split(',').next().unwrap_or("").trim();
+                    if !fan.is_empty() {
+                        let caption = format!("Dành cho người hâm mộ {fan}");
+                        overlay_text(
+                            ui,
+                            rect.left_bottom() + vec2(pad, -34.0),
+                            &caption,
+                            15.0,
+                            Color32::from_white_alpha(230),
+                            w,
+                            true,
+                        );
+                    }
+
+                    if resp.hovered() || is_cur {
+                        ui.painter()
+                            .rect_stroke(rect, round, egui::Stroke::new(2.0, env.accent));
+                    }
+                    if resp.hovered() {
+                        let c = rect.right_bottom() - vec2(40.0, 70.0);
+                        ui.painter().circle_filled(c, 22.0, env.accent);
+                        ui.painter().text(
+                            c,
+                            egui::Align2::CENTER_CENTER,
+                            "▶",
+                            egui::FontId::proportional(20.0),
+                            Color32::WHITE,
+                        );
+                    }
+                    if resp.clicked() {
+                        actions.push(Action::Play(tracks.to_vec(), i));
+                    }
+                }
+            });
+        });
+    *scroll_x = out.state.offset.x;
+}
+
 fn thumb_ui(ui: &mut egui::Ui, url: &str, size: f32, round: f32, px: u32) {
     let u = thumb_url(url, px);
     if u.is_empty() {
@@ -1244,6 +1459,9 @@ fn thumb_url(url: &str, px: u32) -> String {
         }
     }
     if url.contains("ytimg.com") {
+        if px >= 400 {
+            return url.to_string(); // thẻ lớn: giữ nguyên ảnh gốc cho nét
+        }
         return url
             .replace("maxresdefault", "mqdefault")
             .replace("sddefault", "mqdefault")
