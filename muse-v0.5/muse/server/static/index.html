@@ -270,6 +270,37 @@ body.vid #ytbox.live{opacity:0}   /* iframe YouTube chỉ phát tiếng, không 
 #vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .3s}
 #vidEl.on{opacity:1}
 body:not(.vid) #vidEl{display:none}
+/* ===== Ô mật khẩu có nút mắt ===== */
+.pwW{position:relative;flex:1;min-width:0;width:100%;display:block;line-height:0}
+.pwW>input{padding-right:46px;display:block}
+.pwEye,.pwEye:hover,.pwEye:active,.pwEye.on{position:absolute;right:8px;top:0;bottom:0;margin:auto 0;width:32px;height:32px;padding:0;background:none;color:var(--text);opacity:.6;border-radius:0;transform:none;transition:none;outline:0}
+.pwEye.on{opacity:1}
+.pwEye .i{width:20px;height:20px}
+/* ===== Giao diện điều khiển video riêng ===== */
+#vctl{position:absolute;inset:0;z-index:6;display:none;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+body.vid #vctl{display:block}
+#vctl::before{content:"";position:absolute;inset:0;background:linear-gradient(#0009,#0000 32%,#0000 58%,#000b);opacity:0;transition:opacity .25s;pointer-events:none}
+#vctl.show::before{opacity:1}
+#vctl button{background:none;color:#fff;padding:0;opacity:0;pointer-events:none;transition:opacity .25s,transform .1s,background .15s;border-radius:50%;filter:drop-shadow(0 1px 4px #0008)}
+#vctl.show button{opacity:1;pointer-events:auto}
+#vctl button:active{transform:scale(.9)}
+#vctl .vcMid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:clamp(18px,9%,44px)}
+#vctl .vcMid button{width:46px;height:46px;background:#0005}
+#vctl .vcMid .i{width:26px;height:26px}
+#vctl #vcPlay{width:60px;height:60px;background:#fff3;backdrop-filter:blur(6px)}
+#vctl #vcPlay .i{width:32px;height:32px}
+#vctl #vcFull{position:absolute;top:8px;right:8px;width:38px;height:38px;background:#0005}
+#vctl #vcFull .i{width:22px;height:22px}
+#vctl .vcBot{position:absolute;left:12px;right:12px;bottom:8px;display:flex;align-items:center;gap:10px;font-size:12px;font-variant-numeric:tabular-nums;opacity:0;pointer-events:none;transition:opacity .25s}
+#vctl.show .vcBot{opacity:1;pointer-events:auto}
+#vctl .vcBot input{flex:1;min-width:0}
+#vctl .vcBot input::-webkit-slider-thumb{width:12px}
+#vctl .vcBot input::-moz-range-thumb{width:12px}
+body.vid .art:fullscreen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
+body.vid .art:-webkit-full-screen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
+body.vid .art.pfs{position:fixed;inset:0;z-index:100000;width:100vw;height:100dvh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
+.art:fullscreen #vidEl,.art:-webkit-full-screen #vidEl,.art.pfs #vidEl{object-fit:contain}
+.art:fullscreen #vctl .vcBot,.art.pfs #vctl .vcBot{left:24px;right:24px;bottom:18px}
 #ytbox::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px #0006;border-radius:inherit}
 body.vid .art{aspect-ratio:16/9;margin-top:auto;margin-bottom:auto}
 body.vid .npt{margin-top:0}
@@ -880,6 +911,15 @@ button *,#gear *,#meAv *{pointer-events:none}
         <img id="npCov" alt="">
         <div id="ytbox"><div id="ytp"></div></div>
         <video id="vidEl" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1"></video>
+        <div id="vctl">
+          <button id="vcFull" title="Toàn màn hình" aria-label="Toàn màn hình"><i data-ic="full"></i></button>
+          <div class="vcMid">
+            <button id="vcBack" title="Lùi 5 giây" aria-label="Lùi 5 giây"><i data-ic="rew5"></i></button>
+            <button id="vcPlay" title="Phát / tạm dừng" aria-label="Phát / tạm dừng"><i data-ic="play" data-f="1"></i></button>
+            <button id="vcFwd" title="Tới 5 giây" aria-label="Tới 5 giây"><i data-ic="fwd5"></i></button>
+          </div>
+          <div class="vcBot"><span id="vcCur">0:00</span><input type="range" id="vcSeek" min="0" max="1000" value="0" aria-label="Tua"><span id="vcDur">0:00</span></div>
+        </div>
       </div>
       <div id="npLine"></div>
       <div class="npt">
@@ -956,7 +996,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
     'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Đang phát':'Now playing',
-    'Dùng không cần đăng nhập':'Continue without signing in',
+    'Dùng không cần đăng nhập':'Continue without signing in','Hiện mật khẩu':'Show password','Ẩn mật khẩu':'Hide password','Toàn màn hình':'Fullscreen','Thoát toàn màn hình':'Exit fullscreen','Lùi 5 giây':'Back 5 seconds','Tới 5 giây':'Forward 5 seconds','Tua':'Seek',
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
     'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
@@ -1324,6 +1364,12 @@ const IC={
  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
  download:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+ eyeoff:'<path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A16.8 16.8 0 0 0 2 12s3.6 7 10 7a9.8 9.8 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+ rew5:'<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M14.5 9.5h-3.2l-.4 2.8c.4-.3.9-.5 1.5-.5 1.1 0 1.9.7 1.9 1.7 0 1.1-.9 1.8-2 1.8-.7 0-1.2-.2-1.6-.6"/>',
+ fwd5:'<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/><path d="M14.5 9.5h-3.2l-.4 2.8c.4-.3.9-.5 1.5-.5 1.1 0 1.9.7 1.9 1.7 0 1.1-.9 1.8-2 1.8-.7 0-1.2-.2-1.6-.6"/>',
+ full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+ fullx:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
  cloudoff:'<path d="M3 3l18 18M8 18a4.5 4.5 0 0 1-1-8.9M10.5 6.2A6 6 0 0 1 18 11a4 4 0 0 1 1.6 7.6M9 18h8"/>'
 };
 $('#sprite').innerHTML=Object.entries(IC).map(([k,v])=>`<symbol id="i-${k}" viewBox="0 0 24 24">${v}</symbol>`).join('');
@@ -3597,6 +3643,62 @@ function vidSync0(){
   if(Math.abs(vidEl.currentTime-tt)<1.5) vidEl.classList.add('on');
 }
 setInterval(vidSync,400);
+
+/* ===== Nút mắt hiện/ẩn mật khẩu: tự gắn cho mọi ô <input type=password> (kể cả ô được vẽ sau) ===== */
+function pwEnhance(root){
+  (root||document).querySelectorAll('input[type=password]:not([data-pw])').forEach(inp=>{
+    inp.dataset.pw='1'; const w=document.createElement('span'); w.className='pwW';
+    inp.parentNode.insertBefore(w,inp); w.appendChild(inp);
+    const b=document.createElement('button'); b.type='button'; b.className='pwEye'; b.tabIndex=-1;
+    const paint=()=>{ const sh=inp.type==='text'; b.classList.toggle('on',sh); b.title=b.ariaLabel=sh?'Ẩn mật khẩu':'Hiện mật khẩu'; b.innerHTML=ic(sh?'eyeoff':'eye'); try{ if(window.BB_LANG==='en') b.title=b.ariaLabel=sh?'Hide password':'Show password'; }catch{} };
+    b.onmousedown=e=>e.preventDefault();   /* giữ con trỏ trong ô nhập */
+    b.onclick=()=>{ const s=inp.selectionStart,e=inp.selectionEnd; inp.type=inp.type==='password'?'text':'password'; paint(); try{ inp.focus(); inp.setSelectionRange(s,e); }catch{} };
+    paint(); w.appendChild(b);
+  });
+}
+pwEnhance();
+new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).observe(document.body,{childList:true,subtree:true});
+/* về lại ẩn mật khẩu khi form đăng nhập bị đóng/đổi chế độ */
+['#tLogin','#tReg'].forEach(q=>{ const el=document.querySelector(q); if(el) el.addEventListener('click',()=>{ const i=$('#aPass'); if(i&&i.type==='text'){ i.type='password'; const b=i.parentNode.querySelector('.pwEye'); if(b){ b.classList.remove('on'); b.innerHTML=ic('eye'); } } }); });
+
+/* ===== Giao diện điều khiển video riêng (lùi/tới 5 giây, phát/tạm dừng, tua, toàn màn hình) ===== */
+(function(){
+  const art=document.querySelector('#vPlay .art'), vc=document.getElementById('vctl'); if(!art||!vc) return;
+  let hideTm=0;
+  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); if(playing&&!seeking) hideTm=setTimeout(()=>vc.classList.remove('show'),3000); };
+  const hide=()=>{ clearTimeout(hideTm); vc.classList.remove('show'); };
+  const act=fn=>e=>{ e.stopPropagation(); if(cur) fn(); show(); };
+  const skip=d=>{ const du=getDur(); seekTo(Math.max(0,Math.min(du?du-0.3:1e9,getTime()+d))); broadcastState(); };
+  $('#vcBack').onclick=act(()=>skip(-5));
+  $('#vcFwd').onclick=act(()=>skip(5));
+  $('#vcPlay').onclick=act(()=>{ setPlaying(!playing); broadcastState(); });
+  /* chạm vào video: hiện/ẩn nút; chuột: rê vào là hiện */
+  vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(vc.classList.contains('show')&&playing) hide(); else show(); });
+  vc.addEventListener('mousemove',show); vc.addEventListener('mouseleave',()=>{ if(playing) hide(); });
+  /* thanh tua riêng */
+  const sk=$('#vcSeek');
+  sk.onpointerdown=()=>{ seeking=true; clearTimeout(hideTm); };
+  sk.oninput=e=>{ e.target.style.setProperty('--p',e.target.value/10+'%'); const d=getDur(); if(d) $('#vcCur').textContent=fmt(d*e.target.value/1000); };
+  sk.onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.target.value/1000); broadcastState(); } show(); };
+  /* toàn màn hình (iOS không hỗ trợ cho div → dùng chế độ phủ kín màn hình) */
+  const isFs=()=>document.fullscreenElement===art||document.webkitFullscreenElement===art||art.classList.contains('pfs');
+  const paintFs=()=>{ const f=isFs(); setIc($('#vcFull'),f?'fullx':'full'); $('#vcFull').title=$('#vcFull').ariaLabel=f?(window.BB_LANG==='en'?'Exit fullscreen':'Thoát toàn màn hình'):(window.BB_LANG==='en'?'Fullscreen':'Toàn màn hình'); };
+  const enter=async()=>{ const rq=art.requestFullscreen||art.webkitRequestFullscreen; if(rq){ try{ await rq.call(art); try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch{} return; }catch{} } art.classList.add('pfs'); paintFs(); };
+  const leave=()=>{ if(art.classList.contains('pfs')){ art.classList.remove('pfs'); } else { try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch{} try{ screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock(); }catch{} } paintFs(); };
+  $('#vcFull').onclick=act(()=>{ isFs()?leave():enter(); });
+  document.addEventListener('fullscreenchange',paintFs); document.addEventListener('webkitfullscreenchange',paintFs);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&art.classList.contains('pfs')) leave(); });
+  /* đổi bài / tắt video thì thoát toàn màn hình */
+  new MutationObserver(()=>{ if(!document.body.classList.contains('vid')&&isFs()) leave(); }).observe(document.body,{attributes:true,attributeFilter:['class']});
+  /* cập nhật nút phát/tạm dừng + tiến trình */
+  setInterval(()=>{
+    if(document.hidden||!document.body.classList.contains('vid')) return;
+    setIc($('#vcPlay'),playing?'pause':'play',true);
+    const d=getDur(),t=getTime(); $('#vcDur').textContent=fmt(d||0);
+    if(d&&!seeking){ const v=1000*t/d; sk.value=v; sk.style.setProperty('--p',v/10+'%'); $('#vcCur').textContent=fmt(t); }
+    if(!playing&&!vc.classList.contains('show')&&cur) vc.classList.add('show');   /* đang tạm dừng thì luôn hiện nút */
+  },400);
+})();
 var ytAlb={};   /* id video -> true nếu là bài album tự tạo của YouTube (kênh '… - Topic'): video chỉ là ảnh bìa có viền đen hai bên */
 function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=document.getElementById('npCov'); if(!a||!im) return;
   const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
