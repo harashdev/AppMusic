@@ -855,6 +855,19 @@ button *,#gear *,#meAv *{pointer-events:none}
 .nmc .nt span{display:block;font-size:18px;color:#ffffffb3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nmc .nc{position:absolute;left:24px;right:24px;bottom:20px;font-size:18px;font-style:italic;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:700px){.nmh h3{font-size:24px}.nmd{margin:0 -16px;padding-left:16px;padding-right:16px;scroll-padding-left:16px}.nmc{width:88%;border-radius:24px}.nmc .nt{left:20px;right:20px}.nmc .nc{left:20px;right:20px}}
+
+/* ===== Xem ảnh hồ sơ + GIF mượt hơn ===== */
+.pc.flat .pc-ban{contain:none;transform:none;border-radius:0}
+.pc.flat .pc-av .av{transform:none}
+.pc-av,.pc-ban{cursor:zoom-in}
+.pc-ban>img,.pc-av .av img{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center}
+.pc-ban{contain:paint;isolation:isolate;border-radius:18px 18px 0 0;transform:translateZ(0)}
+.pc-av .av{overflow:hidden;border-radius:50%;transform:translateZ(0)}
+html.android .pcpop .pc{overflow:visible;box-shadow:0 4px 14px #0007}
+.imgv{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.imgv>img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:default}
+.imgv-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff22;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.imgv-x .i{width:22px;height:22px}
 </style>
 </head>
 <body class="skin-default">
@@ -1204,7 +1217,6 @@ button *,#gear *,#meAv *{pointer-events:none}
     [/^Khám phá$/,()=>'Discover'],
     [/^Khám phá (.+)$/,(m)=>'Discover '+m[1]],
     [/^Kết quả cho “(.*)”$/,(m)=>'Results for “'+m[1]+'”'],
-    [/^Kết quả: (.*)$/,(m)=>'Results: '+m[1]],
     [/^Bạn bè · (\d+) online$/,(m)=>'Friends · '+m[1]+' online'],
     [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
     [/^Phòng (.+)$/,(m)=>'Room '+m[1]],
@@ -1343,7 +1355,7 @@ let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=
 let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30,show_errors:false}, fadeMul=1, fadeInAt=0;
 let leader=false, offset=0, pend=null, queue=[], qi=-1, shuf=false, rep=0, vol=+LS.get('vol',0.8), lastVol=.8, seeking=false, qname='';
 let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache={}, lyrLines=null, homeCi=0, lastQ='', showVideo=LS.get('vid','0')==='1', npOpen=LS.get('npopen','0')==='1', npTab='play';
-const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=n||'';return k};
+const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=String(n||'').replace(/^Kết quả: /,'');return k};
 const now=()=>Date.now()+offset;
 const aud=$('#aud');
 /* Kho nhạc offline: offSet = các bài đã lưu trong app, offUrl = blob URL đang mở, offBad = bài lưu bị hỏng, netDown = server không với tới được */
@@ -1623,18 +1635,35 @@ function openCrop(o){ return new Promise(resolve=>{
 /* ===== Thẻ hồ sơ kiểu Discord: banner (ảnh/GIF) + avatar + dòng trạng thái ===== */
 const okImgUrl=u=>/^(\/(banners|backgrounds|avatars)\/[\w.-]+|https:\/\/[^\s"'()\\]+|blob:[^\s"'()\\]+)$/.test(u||'');
 function profileCard(u,o={}){
-  const cr=cropOf(u), ban=okImgUrl(u.banner)?`<img src="${esc(u.banner)}" alt="" style="${cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)}">`:'';
+  const cr=cropOf(u), ban=okImgUrl(u.banner)?`<img src="${esc(u.banner)}" alt="" decoding="async" style="${cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)}">`:'';
   const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
   return `<div class="pc"><div class="pc-ban" style="background:${col}">${ban}
     <div class="pc-hd"><div class="pc-av">${avU(u)}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
+}
+/* Xem ảnh gốc (avatar / banner) toàn màn hình: bấm nền, nút X hoặc Esc để đóng */
+function openImgView(src,name){
+  document.querySelectorAll('.imgv').forEach(x=>x.remove());
+  const o=document.createElement('div'); o.className='imgv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',name||'');
+  o.innerHTML=`<img alt="" decoding="async"><button class="imgv-x" aria-label="Đóng" title="Đóng">${ic('x')}</button>`;
+  o.querySelector('img').src=src;
+  const close=()=>{ o.remove(); document.removeEventListener('keydown',onKey,true); };
+  const onKey=e=>{ if(e.key==='Escape'){ e.stopPropagation(); close(); } };
+  o.onclick=e=>{ e.stopPropagation(); if(e.target.tagName!=='IMG') close(); };
+  document.addEventListener('keydown',onKey,true);
+  document.body.appendChild(o);
 }
 function showProfilePop(u,anchor,mine){
   document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='pcpop';
   d.innerHTML=profileCard(u,{extra:mine?`<div class="pc-act"><button class="pri" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out" data-x="out">Đăng xuất</button></div>`:''});
   const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-330))+'px';
-  d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]'); if(!x) return; d.remove(); if(x.dataset.x==='edit') go('profile'); else logout(); };
+  d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
+    if(!x){
+      if(e.target.closest('.pc-av')){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
+      if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
+      return; }
+    d.remove(); if(x.dataset.x==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
 }
 
@@ -1771,7 +1800,7 @@ $('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classLi
 
 /* ===== Danh sách tâm trạng (menu dài) ===== */
 function closeMoodPop(){ document.querySelectorAll('.moodpop').forEach(x=>x.remove()); const b=$('#moodBtn'); if(b) b.setAttribute('aria-expanded','false'); }
-let moodOpen=true, chipScroll=0, chipsWheel=false;
+let moodOpen=false, chipScroll=0, chipsWheel=false;
 function bindChipsWheel(){
   if(chipsWheel) return; chipsWheel=true; const el=$('#topChips');
   /* lăn chuột dọc -> cuộn ngang thanh chip */
@@ -2770,7 +2799,7 @@ async function runSearch(q,fill){
   if(my!==sTok||!$('#sres')) return;
   const trackMode=f==='all'||f==='songs'||f==='videos', entMode=f!=='songs'&&f!=='videos';
   let html='';
-  if(trackMode&&out.length) html+=(f==='all'?`<div class="sres-h">Bài hát</div>`:'')+tracksHtml(out,false,'Kết quả: '+q);
+  if(trackMode&&out.length) html+=(f==='all'?`<div class="sres-h">Bài hát</div>`:'')+tracksHtml(out,false,q);
   if(entMode&&ents.length){
     if(f==='all'){ ['album','artist','playlist','podcast'].forEach(kd=>{ const l=ents.filter(e=>e.kind===kd); if(l.length) html+=`<div class="sres-h">${ENT_HEAD[kd]}</div>`+entCards(l); }); }
     else html+=entCards(ents);
@@ -3344,7 +3373,7 @@ pages.followed=function(m){
 let autoAdv=false;
 /* ===== Tiếp tục nghe (Jump back in): nhớ các danh sách / đài / nghệ sĩ vừa phát để bấm là nghe tiếp đúng chỗ đó ===== */
 const JUMP_MAX=10, jumpKey=()=>uKey('muse_jump');
-const jumpGet=()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a.filter(x=>x&&x.n&&Array.isArray(x.tr)&&x.tr.length):[]; }catch{ return []; } };
+const jumpGet=()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a.filter(x=>x&&x.n&&Array.isArray(x.tr)&&x.tr.length).map(x=>({...x,n:String(x.n).replace(/^Kết quả: /,'')})):[]; }catch{ return []; } };
 function noteJump(){
   if(!qname||!queue.length||qi<0||qi>=queue.length) return;
   const from=Math.max(0,qi-4), tr=queue.slice(from,from+40).map(slim), i=qi-from;   /* chỉ giữ ~40 bài quanh bài đang phát cho nhẹ */
@@ -3406,7 +3435,7 @@ setInterval(savePlayState,5000); addEventListener('beforeunload',savePlayState);
 function restorePlayState(){
   if(!S.save_state||cur) return;
   try{ const j=JSON.parse(LS.get(psKey(),'null')); if(!j||!j.t||!j.t.id) return;
-    queue=Array.isArray(j.q)&&j.q.length?j.q:[j.t]; qi=Number.isInteger(j.qi)?Math.min(Math.max(0,j.qi),queue.length-1):0; qname=j.qn||'';
+    queue=Array.isArray(j.q)&&j.q.length?j.q:[j.t]; qi=Number.isInteger(j.qi)?Math.min(Math.max(0,j.qi),queue.length-1):0; qname=String(j.qn||'').replace(/^Kết quả: /,'');
     loadTrack(j.t,+j.pos||0,false); }catch{}
 }
 function onEnded(){ const t=cur; if(leader) nextTrack(true); else setTimeout(()=>{ if(cur===t) nextTrack(true); },3000); }
