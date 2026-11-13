@@ -688,6 +688,13 @@ html.android *,html.android *::before,html.android *::after{backdrop-filter:none
 html.android{overscroll-behavior:none;touch-action:manipulation}
 html.android body{overscroll-behavior:none}
 html.android *{scroll-behavior:auto!important}
+/* Giảm tải vẽ trên điện thoại: bỏ blur nặng, bỏ hiệu ứng lặp, chỉ vẽ mục đang gần màn hình */
+html.android .art.wide::before{filter:none!important}
+html.android .card.sk .cvw,html.android .card.sk .ct{animation:none!important}
+html.android #topChips .chip.mi{animation:none!important}
+html.android .sec{content-visibility:auto;contain-intrinsic-size:auto 280px}
+html.android .card,html.android .qk,html.android .nmc,html.android .item{contain:layout style}
+html.android img{image-rendering:auto}
 
 .schips{display:flex;gap:8px;overflow-x:auto;padding:0 0 16px;scrollbar-width:none}.schips[hidden]{display:none}
 .schips::-webkit-scrollbar{display:none}
@@ -1440,6 +1447,7 @@ function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[s
   if((bad&&(force||(+i.dataset.rt||0)>=3&&now-(+i.dataset.t)>8000))||(!bad&&now-(+i.dataset.t)>7000)){ const r=+i.dataset.rt||0; if(force||r<6) imgReload(i,force?1:r+1); } }); }
 setInterval(()=>{ if(!document.hidden) imgSweep(false); },3000);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
+const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';   /* điện thoại: chỉ tải/giải mã ảnh khi sắp cuộn tới */
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
 
@@ -1585,7 +1593,9 @@ function paintTheme(acc,bg,url){
   const n=parseInt(acc.slice(1),16), l=((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/255000; rt.setProperty('--on',l>.6?'#07131d':'#ffffff');
   [...document.body.classList].filter(c=>c.startsWith('skin-')).forEach(c=>document.body.classList.remove(c));
   document.body.classList.add('skin-'+(bg||'default'));
-  document.body.style.backgroundImage=(bg==='custom'&&url)?`url("${url}")`:'';
+  const frz=!GIF_LIVE&&bg==='custom'&&url&&GIF_RE.test(url);
+  document.body.style.backgroundImage=(bg==='custom'&&url&&!frz)?`url("${url}")`:'';
+  if(frz) freezeUrl(url).then(b=>{ if(b&&document.body.classList.contains('skin-custom')) document.body.style.backgroundImage=`url("${b}")`; });
 }
 /* "Thư viện của bạn" khi chưa đăng nhập (khách), "Thư viện của <tên>" khi đã đăng nhập */
 const libTitle=()=>(guest||!me||!me.id)?'Thư viện của bạn':'Thư viện của '+(me.display_name||me.username||'bạn');
@@ -1632,6 +1642,30 @@ function openCrop(o){ return new Promise(resolve=>{
 }); }
 
 /* ===== Thẻ hồ sơ kiểu Discord: banner (ảnh/GIF) + avatar + dòng trạng thái ===== */
+/* ===== Ảnh động (GIF) =====
+   GIF avatar/banner/nền là thủ phạm chính gây lag trên điện thoại (WebView giải mã và vẽ lại từng khung hình, nhất là nền GIF phủ cả app).
+   Android mặc định hiện KHUNG ĐẦU của GIF (ảnh tĩnh); bật lại trong Cài đặt → "Ảnh động (GIF)". Máy tính mặc định vẫn cho chạy.
+   Bấm vào ảnh để xem ảnh gốc thì vẫn động. */
+const GIF_LIVE=LS.get('gif_live',window.ANDROID_APP?'0':'1')==='1';
+const GIF_RE=/^\/(avatars|banners|backgrounds)\/[\w.-]+\.gif(\?.*)?$/i;
+const gifFrozen=new Map();
+function freezeUrl(u){
+  if(gifFrozen.has(u)) return gifFrozen.get(u);
+  const p=new Promise(res=>{ const im=new Image();
+    im.onload=()=>{ try{ const w=im.naturalWidth,h=im.naturalHeight; if(!w||!h) return res(null); const sc=Math.min(1,640/Math.max(w,h)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(w*sc)); c.height=Math.max(1,Math.round(h*sc)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); c.toBlob(b=>res(b?URL.createObjectURL(b):null),'image/webp',.85); }catch{ res(null); } };
+    im.onerror=()=>res(null); im.src=u; });
+  gifFrozen.set(u,p); return p;
+}
+function freezeImg(img){
+  if(GIF_LIVE||img.dataset.fz||img.closest('.imgv')) return;
+  const s=img.getAttribute('src')||''; if(!GIF_RE.test(s)) return;
+  img.dataset.fz='1';
+  freezeUrl(s).then(b=>{ if(b&&img.getAttribute('src')===s) img.src=b; });
+}
+if(!GIF_LIVE){
+  const scan=n=>{ if(n.nodeType!==1) return; if(n.tagName==='IMG') freezeImg(n); else if(n.querySelectorAll) n.querySelectorAll('img').forEach(freezeImg); };
+  new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='attributes') scan(m.target); else m.addedNodes.forEach(scan); } }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+}
 const okImgUrl=u=>/^(\/(banners|backgrounds|avatars)\/[\w.-]+|https:\/\/[^\s"'()\\]+|blob:[^\s"'()\\]+)$/.test(u||'');
 function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?`<img src="${esc(u.banner)}" alt="" decoding="async" style="${cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)}">`:'';
@@ -1718,7 +1752,7 @@ async function ytInfo(id){
 const ytId=v=>{v=v.trim();const m=v.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||v.match(/^([\w-]{11})$/);return m&&m[1]};
 
 /* ===== Hiển thị danh sách ===== */
-const cardHtml=(t,k,i)=>`<div class="card ${isWide(t)?'wide':''}" data-l="${k}" data-i="${i}" data-tk="${esc(key(t))}" tabindex="0"><div class="cvw"><img src="${esc(thumb(t.image,isWide(t)?300:360))}" loading="eager" decoding="async" alt=""><button class="pl" data-a="play" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(t.title)}</div><div class="ca">${esc(t.artist)}</div></div>`;
+const cardHtml=(t,k,i)=>`<div class="card ${isWide(t)?'wide':''}" data-l="${k}" data-i="${i}" data-tk="${esc(key(t))}" tabindex="0"><div class="cvw"><img src="${esc(thumb(t.image,isWide(t)?300:360))}" loading="${IMG_LOAD}" decoding="async" alt=""><button class="pl" data-a="play" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(t.title)}</div><div class="ca">${esc(t.artist)}</div></div>`;
 const gridHtml=(list,name)=>{const k=reg(list,name);return `<div class="grid">${list.map((t,i)=>cardHtml(t,k,i)).join('')}</div>`};
 const skel=n=>`<div class="grid">${'<div class="card sk"><div class="cvw"></div><div class="ct">&nbsp;</div></div>'.repeat(n)}</div>`;
 /* Luôn đủ 4 khung: >=4 ảnh thì lấy 4 ảnh đầu; 3 ảnh -> lặp ảnh đầu; 2 ảnh -> xếp so le; 1 ảnh -> 1 ảnh lớn */
@@ -2504,6 +2538,7 @@ const pages={
       <div class="srow col"><div class="sx"><b>Xóa tài khoản</b><small>Xóa vĩnh viễn tài khoản cùng bạn bè, yêu thích, lịch sử, playlist và dữ liệu nghe. Không thể khôi phục – hãy sao lưu trước nếu cần.</small></div>
         <div class="sinp v"><input type="password" id="delPw" placeholder="Nhập mật khẩu để xác nhận" autocomplete="current-password"><div><button id="delAcc" style="color:#ff6b6b;border-color:#ff6b6b">Xóa tài khoản</button></div></div><small id="delMsg" class="smsg"></small></div>
     </div></div>
+    <div class="sgrp"><div class="sgh">Hiệu năng</div><div class="scard">${row('Ảnh động (GIF)','Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định tắt trên Android.',tog('tGif',GIF_LIVE))}</div></div>
     ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
@@ -2618,6 +2653,7 @@ const pages={
     [['dMs','delay_ms'],['dFb','delay_fb'],['dMix','delay_mix'],['rMix','reverb_mix']].forEach(([id,k])=>{ const el=$('#'+id); el.oninput=()=>live(k,+el.value); el.onchange=()=>setS(k,+el.value); });
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
+    if($('#tGif')) $('#tGif').onchange=e=>{ LS.set('gif_live',e.target.checked?'1':'0'); location.reload(); };
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
     /* ---- Nhập playlist bằng link: YouTube, Spotify, Apple Music, SoundCloud (không cần đăng nhập) ---- */
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
@@ -2764,7 +2800,7 @@ pages.library=function(m){
   /* mỗi thẻ lấy ngẫu nhiên 1–2 ảnh bìa từ bài của bạn (mỗi lần mở lại đổi), dùng bản lớn để không vỡ hạt */
   const pool=[];
   const pick=(list,n)=>{ const seen=new Set(), u=[]; (list||[]).map(t=>t&&t.image).filter(Boolean).sort(()=>Math.random()-.5).forEach(x=>{ if(u.length<n&&!seen.has(x)){ seen.add(x); u.push(x); } }); return u; };
-  const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=pick(list,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="eager" decoding="async">`).join(''); };
+  const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=pick(list,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="${IMG_LOAD}" decoding="async">`).join(''); };
   const mix=l=>{ pool.push(...(l||[])); art('together',pool,2); };
   art('top',playsList().slice(0,8),2);
   api('/api/favorites').then(l=>{ if(!Array.isArray(l)) return; art('favs',l,1); mix(l); const e=m.querySelector('[data-sub="favs"]'); if(e) e.textContent=l.length+' bài hát'; }).catch(()=>{});
@@ -2841,7 +2877,7 @@ function albPrefetch(tr,title){
 const ENT_LBL={album:'Album',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcast'};
 const ENT_HEAD={album:'Albums',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcasts'};
 function entCards(list){ const k=reg(list,'');
-  return `<div class="grid wrap sent">${list.map((e,i)=>`<div class="card ent ${e.kind==='artist'?'art':''}" data-ent="${k}" data-i="${i}" tabindex="0"><div class="cvw">${e.image?`<img src="${esc(thumb(e.image,360))}" loading="eager" decoding="async" alt="">`:ic('note')}</div><div class="ct">${esc(e.title)}</div><div class="ca">${esc(e.sub||ENT_LBL[e.kind]||'')}</div></div>`).join('')}</div>`; }
+  return `<div class="grid wrap sent">${list.map((e,i)=>`<div class="card ent ${e.kind==='artist'?'art':''}" data-ent="${k}" data-i="${i}" tabindex="0"><div class="cvw">${e.image?`<img src="${esc(thumb(e.image,360))}" loading="${IMG_LOAD}" decoding="async" alt="">`:ic('note')}</div><div class="ct">${esc(e.title)}</div><div class="ca">${esc(e.sub||ENT_LBL[e.kind]||'')}</div></div>`).join('')}</div>`; }
 async function runSearch(q,fill){
   const inp=$('#sq'); if(fill&&inp) inp.value=q;
   lastQ=q; const my=++sTok; const box=$('#sres'); if(!box) return;
@@ -2896,7 +2932,7 @@ async function getBestArtists(taste){
   let prev=-1;   /* màu theo tên nghệ sĩ (ổn định), hai thẻ cạnh nhau không trùng màu */
   return l.map(e=>{ let c=strHash(String(e.title).toLowerCase())%BA_COLORS.length; if(c===prev) c=(c+1)%BA_COLORS.length; prev=c; return {...e,color:BA_COLORS[c]}; });
 }
-const tiCard=(e,i,k)=>`<div class="card tic" data-ti="${k}" data-i="${i}" tabindex="0"><div class="cvw tcv" style="--tc:${esc(e.color||BA_COLORS[0])}"><img class="tlogo" src="/app-icon.png" alt=""><b class="tt">THIS IS</b><i class="tband"></i><img class="tpic" src="${esc(thumb(e.image,300))}" loading="eager" decoding="async" alt=""><b class="tnm">${esc(e.title)}</b><button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="tdesc">${esc(tiDesc(e.title))}</div></div>`;
+const tiCard=(e,i,k)=>`<div class="card tic" data-ti="${k}" data-i="${i}" tabindex="0"><div class="cvw tcv" style="--tc:${esc(e.color||BA_COLORS[0])}"><img class="tlogo" src="/app-icon.png" alt=""><b class="tt">THIS IS</b><i class="tband"></i><img class="tpic" src="${esc(thumb(e.image,300))}" loading="${IMG_LOAD}" decoding="async" alt=""><b class="tnm">${esc(e.title)}</b><button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="tdesc">${esc(tiDesc(e.title))}</div></div>`;
 pages.bestartists=async function(m){
   m.innerHTML=`<div class="sh"><div><small>Tổng hợp những bài hát hàng đầu của một nghệ sĩ.</small><h3 style="font-size:32px">Nghệ sĩ nổi bật</h3></div></div><p class="empty">Đang tải…</p>`;
   let taste; try{ taste=await tasteProfile(); }catch{}
@@ -2947,8 +2983,8 @@ async function loadPlaylists(){
 }
 function plCover(p){
   const im=(p.covers||[]).filter(Boolean), f=fill4(im);
-  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,160))}" alt="" loading="eager" decoding="async">`).join('')}</div>`;
-  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],256))}" alt="" loading="eager" decoding="async"></div>`;
+  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,160))}" alt="" loading="${IMG_LOAD}" decoding="async">`).join('')}</div>`;
+  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],256))}" alt="" loading="${IMG_LOAD}" decoding="async"></div>`;
   return ic('note');
 }
 /* Server cũ chưa trả "covers": tự lấy ảnh 4 bài đầu của playlist rồi vẽ lại ô ảnh (có nhớ tạm để khỏi tải lại) */
@@ -3057,6 +3093,9 @@ async function renderFriendsPage(){
   const box=$('#friendList'), rq=$('#reqs'); if(!box||!rq) return;
   const [list,reqs]=await Promise.all([api('/api/friends'),api('/api/friends/requests')]);
   fmap.clear(); list.forEach(f=>fmap.set(f.id,f));
+  const sig=JSON.stringify([list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]),reqs]);
+  if(box.dataset.sig===sig&&box.childElementCount) return;   /* không đổi gì thì giữ nguyên DOM */
+  box.dataset.sig=sig;
   const el=$('#friendSub'); if(el) el.textContent=reqs.incoming.length?reqs.incoming.length+' lời mời mới':'Bạn bè & lời mời';
   const line=(u,right)=>`<div class="item" data-id="${u.id}"><span style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${avU(u)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(u.display_name)}</span></span>${right}</div>`;
   rq.innerHTML=(reqs.incoming.map(u=>line(u,'<button class="pri" data-a="accept">Chấp nhận</button><button data-a="decline">Từ chối</button>')).join('')
@@ -3074,7 +3113,10 @@ function showFriendReq(m){
 }
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
-  const list=await api('/api/friends'); box.innerHTML='';
+  const list=await api('/api/friends');
+  const sig=JSON.stringify(list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]));
+  if(box.dataset.sig===sig&&box.childElementCount) return;
+  box.dataset.sig=sig; box.innerHTML='';
   list.forEach(f=>{
     const d=document.createElement('div'); d.className='item';
     d.innerHTML=`<span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button>Mời</button>`;
