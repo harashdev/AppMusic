@@ -262,13 +262,20 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 /* Video riêng của BBeat: khung 16:9 rộng bằng ảnh bìa. Iframe YouTube được phóng to và cắt (mất thanh tiêu đề / logo / nút), tắt chuột trên iframe,
    chỉ hiện khi video thật sự đang chạy (.live) – lúc tải thì vẫn thấy ảnh bìa, không còn logo "…" xám của YouTube. */
 #ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
-#ytbox iframe,#ytp{position:absolute;width:130%;height:130%;left:-15%;top:-20%;border:0;pointer-events:none}
-body.vid #ytbox.live{opacity:1;pointer-events:auto}
+#ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+body.vid #ytbox.live{opacity:1}
 #ytbox::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px #0006;border-radius:inherit}
-body.vid .art{aspect-ratio:16/9}
+body.vid .art{aspect-ratio:16/9;margin-top:auto;margin-bottom:auto}
+body.vid .npt{margin-top:0}
 #npLine{margin-top:18px;font-size:16px;font-weight:600;min-height:24px;line-height:1.4}
 .npt{margin-top:auto;padding-top:18px;display:flex;align-items:center;gap:6px}
 .npt .tx{flex:1;min-width:0}
+/* Tiêu đề quá dài thì trượt ngang từ từ và lặp lại */
+.mq{text-overflow:clip!important}
+.mqt{display:inline-block;white-space:nowrap;animation:mqs linear infinite;will-change:transform}
+.mqt>span{display:inline-block;padding-right:56px}
+@keyframes mqs{to{transform:translateX(calc(-1*var(--mw)))}}
+@media(prefers-reduced-motion:reduce){.mqt{animation:none}}
 #npTitle{font-size:21px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #npArtist{opacity:.72;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #npInfoBox{display:none;margin-top:10px;font-size:13px;opacity:.85;background:color-mix(in srgb,var(--npfg) 12%,transparent);border-radius:10px;padding:10px 12px}
@@ -593,7 +600,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  body.has-np #np{transform:none}
  .npv{padding:4px 22px 12px}
  .art{width:min(86vw,max(200px,calc(100dvh - 470px)));margin:12px auto 0;border-radius:22px;box-shadow:0 24px 60px #0008}
- body.vid .art{border-radius:18px}
  #vPlay.show{justify-content:center}
  .npt{margin-top:22px;padding-top:0}
  #npLine{margin-top:8px;min-height:0}
@@ -2837,6 +2843,9 @@ async function syncClock(n){
 }
 
 /* ===== Trình phát ===== */
+let ytLiveTm=0, ytSeen=false, ytHold=0;   /* ytHold: thời điểm (ms) trước đó chưa được hiện video lại, sau khi tua */
+/* Ẩn video ngay lập tức (khi vừa chọn bài mới) để không lộ khung tải / giao diện YouTube; video chỉ hiện lại khi đã phát ổn định */
+function ytHideNow(keep,hold){ if(hold) ytHold=Date.now()+hold; clearTimeout(ytLiveTm); ytLiveTm=0; if(!keep) ytSeen=false; const yb=document.getElementById('ytbox'); if(yb){ yb.style.transition='none'; yb.classList.remove('live'); void yb.offsetWidth; yb.style.transition=''; } }
 function onYouTubeIframeAPIReady(){
   yt=new YT.Player('ytp',{width:'100%',height:'100%',playerVars:{playsinline:1,rel:0,controls:0,disablekb:1,fs:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0},events:{
     onReady:()=>{ytReady=true;applyVol()},
@@ -2847,7 +2856,11 @@ function onYouTubeIframeAPIReady(){
       if(queue.length>1) setTimeout(()=>{ if(cur===t) nextTrack(true); },800); else setPlaying(false);
     },
     onStateChange:e=>{
-      { const yb=$('#ytbox'); if(yb){ if(e.data===1) yb.classList.add('live'); else if(e.data===-1||e.data===0||e.data===5) yb.classList.remove('live'); } }
+      { const yb=$('#ytbox'); if(yb){
+        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?1500:3500,ytHold-Date.now())); ytSeen=true; }   /* đợi YouTube tự ẩn thanh tiêu đề rồi mới hiện video; trong lúc chờ vẫn thấy ảnh bìa */
+        else if(e.data===2||e.data===0){ clearTimeout(ytLiveTm); ytLiveTm=0; yb.classList.remove('live'); }
+        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,2500); }   /* tua / đệm: YouTube hiện giao diện của nó, nên ẩn video cho tới khi phát lại ổn định */
+        else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
       if(e.data===0){ playing=false; onEnded(); }
       if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
     }}});
@@ -2990,7 +3003,7 @@ $('#vol').oninput=e=>{ vol=e.target.value/100; LS.set('vol',vol); applyVol(); };
 $('#bVol').onclick=()=>{ if(vol>0){ lastVol=vol; vol=0; } else vol=lastVol||.8; LS.set('vol',vol); applyVol(); };
 const getTime=()=>!cur?0:eng==='yt'?(ytReady?yt.getCurrentTime():0):A().currentTime;
 const getDur=()=>!cur?0:eng==='yt'?(ytReady?yt.getDuration():0):(A().duration||cur.dur||0);
-function seekTo(t){ if(!cur) return; if(eng==='yt'){ytReady&&yt.seekTo(t,true)} else A().currentTime=t; }
+function seekTo(t){ if(!cur) return; if(eng==='yt'){ if(ytReady){ ytHideNow(true,4500); yt.seekTo(t,true); } } else A().currentTime=t; }
 function setPlaying(p){
   playing=p; if(!cur) return;
   if(eng==='yt'){ if(ytReady) p?yt.playVideo():yt.pauseVideo(); }
@@ -3026,7 +3039,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
   if(eng==='yt'){
     aud.pause(); audYt.pause();
     if(!ytReady){ setTimeout(()=>{ if(cur===t) loadTrack(t,pos,play,ts); },200); updateBar(); return; }
-    yt.loadVideoById({videoId:t.id,startSeconds:startAt()}); playing=true; if(!play){yt.pauseVideo();playing=false}
+    ytHideNow(); yt.loadVideoById({videoId:t.id,startSeconds:startAt()}); playing=true; if(!play){yt.pauseVideo();playing=false}
   } else if(eng==='fx'){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
     audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
@@ -3496,8 +3509,8 @@ async function downloadAll(list,name){
 }
 $('#npDl').onclick=()=>cur&&downloadTrack(cur);
 $('#bClose').onclick=()=>{ if(cur){ setPlaying(false); if(ytReady){ try{yt.stopVideo()}catch{} } } audYt.pause(); cur=null; playing=false; lyrLines=null; sbSegs=[]; updateBar(); };
-$('#seek').onpointerdown=()=>seeking=true;
-$('#seek').oninput=e=>e.target.style.setProperty('--p',e.target.value/10+'%');
+$('#seek').onpointerdown=()=>{ seeking=true; if(eng==='yt') ytHideNow(true,4500); };
+$('#seek').oninput=e=>{ e.target.style.setProperty('--p',e.target.value/10+'%'); if(eng==='yt') ytHideNow(true,4500); };
 $('#seek').onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.target.value/1000); broadcastState(); } };
 /* Thanh điều hướng điện thoại: cuộn xuống thì thu thành vòng tròn, về đầu trang thì mở lại; chạm vòng tròn để mở */
 (function(){
@@ -3514,14 +3527,31 @@ $('#seek').onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.targ
   },true);
 })();
 let npKey=null;
+const MQ_GAP=56, MQ_SPEED=32;   /* px/giây: trượt chậm */
+function mqFit(el){
+  const text=el.dataset.mq; if(text==null) return; const cw=el.clientWidth; if(!cw) return;
+  const active=el.classList.contains('mq');
+  const nat=active?el.querySelector('.mqt>span').offsetWidth-MQ_GAP:el.scrollWidth;
+  if(!active&&nat>cw+2){
+    el.textContent=''; const tr=document.createElement('span'); tr.className='mqt';
+    for(let i=0;i<2;i++){ const sp=document.createElement('span'); sp.textContent=text; tr.appendChild(sp); }
+    el.classList.add('mq'); el.appendChild(tr);
+    const w=tr.firstChild.offsetWidth; tr.style.setProperty('--mw',w+'px'); tr.style.animationDuration=(w/MQ_SPEED)+'s';
+  } else if(active&&nat<=cw){ el.classList.remove('mq'); el.textContent=text; }
+}
+function setMarq(el,text){
+  if(!el||el.dataset.mq===text) return; el.dataset.mq=text; el.classList.remove('mq'); el.textContent=text; el.title=text;
+  if(!el._mqo&&window.ResizeObserver){ el._mqo=new ResizeObserver(()=>mqFit(el)); el._mqo.observe(el); }
+  requestAnimationFrame(()=>mqFit(el));
+}
 function updateBar(){
   const b=document.body; b.classList.toggle('has-cur',!!cur); b.classList.toggle('has-np',!!cur&&npOpen); $('#bPip').classList.toggle('on',!!cur&&npOpen);
-  $('#bTitle').textContent=cur?cur.title:'Chưa phát'; $('#bArtist').textContent=cur?.artist||'';
+  setMarq($('#bTitle'),cur?cur.title:'Chưa phát'); $('#bArtist').textContent=cur?.artist||'';
   const f=!!(cur&&favs.has(key(cur)));
   for(const id of ['#bFav','#npFav']){ $(id).classList.toggle('on',f); setIc($(id),'heart',f); }
   setIc($('#pp'),playing?'pause':'play',true);
   const k=cur?key(cur):null;
-  if(k!==npKey){ npKey=k; setImg($('#bCov'),cur?.image,96); setImg($('#npCov'),cur?.image,800); $('#npTitle').textContent=cur?cur.title:'Chưa phát'; $('#npArtist').textContent=cur?.artist||''; updFollowBtn(); $('#npLine').textContent=''; $('#npInfoBox').classList.remove('show'); if(cur) npColor(cur); }
+  if(k!==npKey){ npKey=k; setImg($('#bCov'),cur?.image,96); setImg($('#npCov'),cur?.image,800); setMarq($('#npTitle'),cur?cur.title:'Chưa phát'); $('#npArtist').textContent=cur?.artist||''; updFollowBtn(); $('#npLine').textContent=''; $('#npInfoBox').classList.remove('show'); if(cur) npColor(cur); }
   $('#npCtx').textContent=qname; $('#npCtxW').hidden=!qname; $('#npInfoBox').innerHTML=cur?infoHtml(cur):'';
   markNow();
 }
@@ -3530,7 +3560,6 @@ $('#npInfo').onclick=()=>$('#npInfoBox').classList.toggle('show');
 $('#npLyr').onclick=()=>setNp(true,'lyr');
 function setVideo(v){ showVideo=!!v; LS.set('vid',v?'1':'0'); syncVid(); }
 function syncVid(){ document.body.classList.toggle('vid',showVideo&&!!cur&&eng==='yt'&&cur.src==='yt'); $('#npVid').classList.toggle('on',showVideo); }
-$('#ytbox').onclick=()=>{ if(cur) setPlaying(!playing); };
 $('#npVid').onclick=()=>{ setVideo(!showVideo); const c=$('#vidOn'); if(c) c.checked=showVideo; };
 /* ----- panel Đang phát bên phải: bấm vào thanh nhạc để mở/đóng ----- */
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
