@@ -1987,6 +1987,18 @@ const explorePool=Y=>{ const M=new Date().getMonth()+1; return [
 /* Hạt giống đổi mỗi lần tải lại trang (và khi bấm "Làm mới") → mở lại web luôn ra bộ kệ khác; trong lúc dùng, chuyển trang qua lại thì giữ nguyên. */
 let homeSeed=(Math.random()*4294967296)>>>0;
 const rollSeed=()=>{ homeSeed=(Math.random()*4294967296)>>>0; };
+/* Nút "Làm mới": đổi hạt giống, bỏ cache các kệ (bộ nhớ + localStorage) và xáo lại bài trong từng kệ → luôn ra nội dung khác (cả khi đang ở một tâm trạng) */
+let homeShuf=false, rfBusy=false;
+function seededShuffle(a,seed){ const r=rngMake(seed), o=a.slice(); for(let i=o.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [o[i],o[j]]=[o[j],o[i]]; } return o; }
+function dropHomeCache(){
+  Object.keys(ytCache).forEach(k=>{ if(!k.startsWith('f:')) delete ytCache[k]; });
+  try{ const re=new RegExp('^muse_yc2_'+(me&&me.id||0)+'e?_'); Object.keys(localStorage).filter(k=>re.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
+}
+async function refreshHome(){
+  if(rfBusy) return; rfBusy=true;
+  try{ rollSeed(); homeShuf=true; dropHomeCache(); await go('home'); notify('Đã làm mới gợi ý'); }
+  finally{ rfBusy=false; }
+}
 /* Khung giờ: sáng nhẹ nhàng, tối sôi động, khuya êm */
 function hourBoost(g){
   const h=new Date().getHours();
@@ -2193,7 +2205,7 @@ const pages={
     tc.scrollLeft=chipScroll;
     const keep=()=>{ chipScroll=tc.scrollLeft; };
     const all=tc.querySelector('[data-chip]'); if(all) all.onclick=()=>{ homeTg=''; homeCi=0; moodOpen=false; chipScroll=0; go('home'); };
-    const rfb=$('#rfBtn'); if(rfb) rfb.onclick=()=>{ rollSeed(); go('home'); };
+    const rfb=$('#rfBtn'); if(rfb) rfb.onclick=()=>{ refreshHome(); };
     $('#moodBtn').onclick=()=>{ homeTg=''; if(moodOpen){ moodOpen=false; homeCi=0; chipScroll=0; go('home'); } else { moodOpen=true; chipScroll=0; go('home'); } };
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeTg=''; homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
@@ -2270,6 +2282,7 @@ const pages={
       if(ci===0&&art&&!byName&&String(q).startsWith('sim:')) r=r.filter(t=>!artistHit(t,art));   /* kệ "Giống X": không bao giờ hiện bài của chính X */
       if(ci===0) r=cleanShelf(r,taste,kind,shown,'');
       if(ci===0&&art&&r.length<(isNew?minN:6)){ el2.closest('.sec').remove(); return; }   /* kệ theo nghệ sĩ mà không đủ bài đúng nghệ sĩ thì ẩn, không nhồi bài lạc đề */
+      if(homeShuf) r=seededShuffle(r,homeSeed+i);
       let items=r.slice(0,20);
       if(ci===0&&!tgMode&&i===qpIdx&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,nm);
