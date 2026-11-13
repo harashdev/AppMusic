@@ -218,24 +218,28 @@ fn bootstrap_admin(db: &Connection) {
         eprintln!("ADMIN_USER không hợp lệ (3-24 ký tự: chữ, số, _)");
         return;
     }
+    // Chống chiếm tên: nếu tên admin đã bị đăng ký thường (chưa phải admin) thì xóa tài khoản đó cùng toàn bộ dữ liệu, rồi tạo lại admin sạch.
+    if std::env::var("ADMIN_PASS").map(|p| p.len() >= 8 && p.len() <= 128).unwrap_or(false) {
+        match db.execute("DELETE FROM users WHERE username=?1 AND is_admin=0", [&user]) {
+            Ok(n) if n > 0 => println!("Đã xóa tài khoản cũ {user} (không phải admin) và toàn bộ dữ liệu của nó"),
+            _ => {}
+        }
+    }
     let existing: Option<(i64, String)> = db
         .query_row("SELECT id, pass_hash FROM users WHERE username=?1", [&user], |r| Ok((r.get(0)?, r.get(1)?)))
         .ok();
     match existing {
         Some((id, hash)) => {
-            // Tài khoản đã có: chỉ cấp admin khi ADMIN_PASS khớp mật khẩu hiện tại (chống người khác đăng ký trước tên này).
-            match std::env::var("ADMIN_PASS") {
-                Ok(pw) if verify_pw(&pw, &hash) => {
-                    let _ = db.execute("UPDATE users SET is_admin=1 WHERE id=?1", [id]);
-                    if let Ok(name) = std::env::var("ADMIN_NAME") {
-                        let name: String = name.trim().chars().take(24).collect();
-                        if !name.is_empty() {
-                            let _ = db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, id]);
-                        }
-                    }
-                    println!("Tài khoản {user} có quyền admin");
+            // Còn lại chỉ có thể là tài khoản đã là admin: giữ nguyên mật khẩu hiện tại, chỉ cập nhật tên hiển thị.
+            if let Ok(name) = std::env::var("ADMIN_NAME") {
+                let name: String = name.trim().chars().take(24).collect();
+                if !name.is_empty() {
+                    let _ = db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, id]);
                 }
-                _ => eprintln!("Bỏ qua cấp admin cho {user}: cần ADMIN_PASS khớp mật khẩu hiện tại của tài khoản này"),
+            }
+            match std::env::var("ADMIN_PASS") {
+                Ok(pw) if !verify_pw(&pw, &hash) => println!("Tài khoản admin {user} đang dùng mật khẩu khác ADMIN_PASS (giữ nguyên)"),
+                _ => println!("Tài khoản {user} có quyền admin"),
             }
         }
         None => {
