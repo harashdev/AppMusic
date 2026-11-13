@@ -136,8 +136,11 @@ impl MuseApp {
         apply_theme(&cc.egui_ctx, DEFAULT_ACCENT);
         let (tx, rx) = channel();
         let cfg = load_config();
+        // Mặc định: server chạy trên máy desktop-p2k8jsq, truy cập qua Tailscale (cổng 3000).
+        // Có thể đổi lúc build bằng biến môi trường MUSE_URL, hoặc sửa ngay ở màn hình đăng nhập.
         let default_server = option_env!("MUSE_URL")
-            .unwrap_or("http://localhost:3000")
+            .filter(|s| !s.is_empty())
+            .unwrap_or("http://100.112.197.104:3000")
             .to_string();
         let server_url = if cfg.server.is_empty() {
             default_server

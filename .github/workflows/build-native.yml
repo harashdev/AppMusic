@@ -6,7 +6,7 @@ on:
       muse_url:
         description: "Địa chỉ server mặc định điền sẵn ở màn hình đăng nhập (vd. https://muse.example.com)"
         required: false
-        default: ""
+        default: "http://100.112.197.104:3000"
 
 jobs:
   build-windows:
