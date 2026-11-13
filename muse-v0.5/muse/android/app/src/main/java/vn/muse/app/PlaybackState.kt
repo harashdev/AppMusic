@@ -3,7 +3,6 @@ package vn.muse.app
 import android.os.Handler
 import android.os.Looper
 
-/** Trạng thái phát hiện tại (do web gửi sang) + kênh gửi lệnh ngược lại cho web. Dùng chung giữa Activity và Service. */
 object Playback {
     @Volatile var title: String = ""
     @Volatile var artist: String = ""
@@ -13,9 +12,7 @@ object Playback {
     @Volatile var durMs: Long = 0
     @Volatile var hasTrack: Boolean = false
 
-    /** Activity gán hàm này để chạy JS trong WebView. */
     @Volatile var sendToWeb: ((String) -> Unit)? = null
-    /** Service gán hàm này để được báo khi trạng thái đổi. */
     @Volatile var onChanged: (() -> Unit)? = null
 
     private val main = Handler(Looper.getMainLooper())

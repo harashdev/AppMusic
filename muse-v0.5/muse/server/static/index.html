@@ -9,9 +9,6 @@
 <link rel="preconnect" href="https://yt3.ggpht.com" crossorigin>
 <link rel="dns-prefetch" href="https://i.ytimg.com">
 <script>
-/* App Android (WebView có "MuseAndroid" trong User-Agent): mặc định dùng giao diện điện thoại; có thể chuyển sang giao diện máy tính trong Cài đặt.
-   Bố cục máy tính bật ở viewport >=1100px nên ép viewport 1100px rồi để WebView tự thu nhỏ cho vừa màn hình.
-   Xoay ngang màn hình thì giao diện máy tính sẽ to và dễ bấm hơn. */
 (function(){
   var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a; if(a) document.documentElement.classList.add('android');
   var m='phone'; try{ m=localStorage.getItem('uimode')||'phone'; }catch(e){}
@@ -45,7 +42,6 @@ body.skin-custom{background:#000 center/cover fixed}
 body.side-min{--sw:76px}
 @media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
 *{box-sizing:border-box}
-/* Chỉ khóa chọn chữ trên control; văn bản nội dung vẫn có thể bôi đen/sao chép. */
 html,body{-webkit-tap-highlight-color:transparent}
 html{touch-action:manipulation}
 button,[role=button],input[type=range]{touch-action:manipulation}
@@ -71,7 +67,6 @@ button.ico:hover{background:var(--hover2)}
 button.on{color:var(--accent)}
 input,select{background:var(--hover);outline:1px solid var(--line);width:100%;border-radius:12px;padding:10px 14px}
 select{color-scheme:dark}
-/* Thanh cuộn riêng: mảnh, bo tròn, nền tối, màu theo màu chủ đạo khi rê chuột (không còn thanh trắng mặc định của trình duyệt) */
 html{color-scheme:dark}
 *{scrollbar-width:thin;scrollbar-color:#ffffff30 transparent}
 *:hover{scrollbar-color:var(--accent) transparent}
@@ -84,7 +79,6 @@ html{color-scheme:dark}
 *::-webkit-scrollbar-thumb:active{background:var(--accent);background-clip:content-box;filter:brightness(.85)}
 select option,select optgroup{background:#1c1f26;color:#f1f3f5}
 select option:checked,select option:hover{background:var(--accent);color:var(--on)}
-/* Dropdown tùy chỉnh (thay popup mặc định của <select>) */
 .dd{position:relative;display:inline-block;min-width:0}
 .dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:var(--hover);outline:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--text)}
 .dd-btn:hover{background:var(--hover2)}
@@ -102,12 +96,10 @@ input[type=checkbox]{width:auto;accent-color:var(--accent);vertical-align:middle
 img{display:block}
 .i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;pointer-events:none}
 .i.fill{fill:currentColor}.i.flip{transform:scaleX(-1)}.i.sm{width:18px;height:18px}.i.lg{width:30px;height:30px}
-/* ===== bố cục ===== */
 #app{height:100vh;display:grid;grid-template-columns:var(--sw) minmax(0,1fr);gap:12px;padding:12px;transition:grid-template-columns .25s}
 @media(min-width:1100px){body.has-np #app{grid-template-columns:var(--sw) minmax(0,1fr) var(--nw)}}
 .pnl{background:var(--surf);border-radius:20px;min-height:0;overflow:hidden}
 body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{backdrop-filter:blur(3px)}
-/* sidebar */
 #side{display:flex;flex-direction:column;padding:12px}
 .ni{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:999px;cursor:pointer;color:var(--text);white-space:nowrap;user-select:none}
 .navLib{display:none}.navFr{display:none}#roomBar{display:none}
@@ -129,7 +121,6 @@ body.side-min .li{justify-content:center;padding:6px}
 .sbh{padding:12px 12px 4px;font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.04em}
 .sbf button.ico{margin-left:auto;width:30px;height:30px;padding:5px;flex:none}
 body.side-min .sbh,body.side-min .sbf button{display:none}
-/* trung tâm */
 #center{display:flex;flex-direction:column;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 13%,var(--surf)) 0,var(--surf) 380px),var(--surf)}
 #center{min-width:0}
 #top{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;padding:12px 16px 4px;flex:none;min-height:60px;min-width:0}
@@ -156,7 +147,6 @@ body.has-cur #main{padding-bottom:116px}
 .av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#8883;display:inline-flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex:none}
 .av{position:relative}.av>img,.av>video{width:100%;height:100%;object-fit:cover}
 .av.big{width:80px;height:80px;font-size:42px}
-/* mục + thẻ */
 .sec{margin-top:22px}
 .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
 .sh small{display:block;font-size:12px;color:var(--sub);margin-bottom:2px}
@@ -183,7 +173,6 @@ body.has-cur #main{padding-bottom:116px}
 .collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%;background:#2a2733}
 .collage img{width:100%;height:100%;object-fit:cover}
 .collage.one{display:flex;align-items:center;justify-content:center;color:#ffffff90}
-/* "This Is": thẻ nghệ sĩ nổi bật + trang danh sách */
 .tcv{--tc:#1ed7a1;background:#fff;color:#111;container-type:inline-size;border-radius:8px}
 .tcv>.tband{position:absolute;left:0;right:0;bottom:0;height:46%;background:var(--tc)}
 .tcv>img.tlogo{position:absolute;left:7%;top:6%;width:9%;height:auto;aspect-ratio:1;border-radius:50%;object-fit:cover;z-index:2}
@@ -205,12 +194,10 @@ body.has-cur #main{padding-bottom:116px}
 .tr.trh{color:var(--sub);font-size:13px;cursor:default;border-bottom:1px solid #ffffff1a;border-radius:0;margin-bottom:4px;text-transform:none}
 .tr.trh:hover{background:none}
 .shr .more{white-space:nowrap}
-/* tiêu đề trang */
 .hero{display:flex;gap:24px;align-items:flex-end;padding:12px 0 18px}
 .hcol{width:200px;height:200px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 12px 36px #0007}
 .hero small{color:var(--sub)}.hero h2{font-size:42px;margin:4px 0 14px;line-height:1.1}
 .hb{display:flex;gap:10px;flex-wrap:wrap}
-/* danh sách bài */
 .tr{display:grid;grid-template-columns:36px 48px minmax(0,2fr) minmax(0,1.3fr) 56px 112px;gap:12px;align-items:center;padding:6px 10px;border-radius:10px;cursor:pointer}
 .tr:hover{background:var(--hover)}
 .tr .n{color:var(--sub);text-align:center}
@@ -243,7 +230,6 @@ body.has-cur #main{padding-bottom:116px}
 .item>button{flex:none;white-space:nowrap}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-left:4px}.dot.on{background:#3ddc84}
 .skins{display:flex;gap:10px;flex-wrap:wrap}.skins .sk{width:90px;height:56px;border-radius:12px;cursor:pointer;display:flex;align-items:flex-end;padding:4px 8px;font-size:11px;color:#fff;border:2px solid transparent}.skins .sk.sel{border-color:var(--accent)}
-/* tìm kiếm & mix */
 .sbox{display:flex;align-items:center;gap:12px;background:var(--hover2);border-radius:999px;padding:0 20px;max-width:620px;margin:8px 0 20px}
 .sbox input{background:none;outline:0;padding:14px 0;font-size:16px}.sbox:focus-within{box-shadow:0 0 0 2px var(--accent)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
@@ -251,7 +237,6 @@ body.has-cur #main{padding-bottom:116px}
 .tl:hover{transform:translateY(-2px)}
 .tl .i{position:absolute;right:-6px;bottom:-6px;width:64px;height:64px;opacity:.28;transform:rotate(-14deg)}
 .tl small{display:block;color:#ffffffc0;font-weight:400;font-size:12px;margin-top:4px}
-/* panel đang phát (mở bằng cách bấm vào thanh nhạc) */
 #np{position:fixed;right:12px;top:12px;bottom:100px;width:min(420px,calc(100vw - 24px));z-index:30;display:flex;flex-direction:column;color:var(--npfg);background:linear-gradient(180deg,var(--npbg),color-mix(in srgb,var(--npbg) 60%,#000));box-shadow:0 18px 60px #000b;transform:translateX(calc(100% + 28px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
 body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 @media(min-width:1100px){#np{position:relative;right:auto;top:auto;bottom:auto;width:auto;z-index:auto;box-shadow:none;transform:none;visibility:visible;transition:none;display:none}body.has-np #np{display:flex}}
@@ -268,53 +253,43 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 .npctx b{font-weight:700}
 .art{position:relative;aspect-ratio:1;width:min(100%,max(200px,calc(100vh - 360px)));margin:14px auto 0;border-radius:14px;overflow:hidden;background:#0003;box-shadow:0 20px 50px #0006;flex:none}
 .art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-/* bài không có album: ảnh là khung hình 16:9 của video -> hiện đủ ảnh (không cắt hai bên), phần thừa là nền mờ của chính ảnh đó */
 .art.wide::before{content:"";position:absolute;inset:-24px;background:var(--bgi,none) center/cover;filter:blur(26px) brightness(.65) saturate(1.2)}
 .art.wide>img{object-fit:contain}
-/* Video riêng của BBeat: khung 16:9 rộng bằng ảnh bìa. Iframe YouTube được phóng to và cắt (mất thanh tiêu đề / logo / nút), tắt chuột trên iframe,
-   chỉ hiện khi video thật sự đang chạy (.live) – lúc tải thì vẫn thấy ảnh bìa, không còn logo "…" xám của YouTube. */
 #ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
 #ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
 body.vid #ytbox.live{opacity:0}
-body.vid.ytfb #ytbox.live{opacity:1}   /* video riêng lỗi → hiện thẳng video YouTube để bấm là chắc chắn có hình */
-/* video lỗi / không có video → không hiện player YouTube, cứ để ảnh album */
+body.vid.ytfb #ytbox.live{opacity:1}
 body.ytfb #ytbox iframe{transform:scale(1.2)}
-body.vid.ytfb #ytbox iframe{transform:scale(1.35)}   /* iframe YouTube chỉ phát tiếng, không bao giờ hiện giao diện của nó */
+body.vid.ytfb #ytbox iframe{transform:scale(1.35)}
 #vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .12s;transform:translateZ(0)}
 #vidEl.on{opacity:1}
 body:not(.vid) #vidEl{display:none}
-/* ===== Ô mật khẩu có nút mắt ===== */
 .pwW{position:relative;flex:1;min-width:0;width:100%;display:block;line-height:0}
 .pwW>input{padding-right:46px;display:block}
 .pwEye,.pwEye:hover,.pwEye:active,.pwEye.on{position:absolute;right:8px;top:0;bottom:0;margin:auto 0;width:32px;height:32px;padding:0;background:none;color:var(--text);opacity:.6;border-radius:0;transform:none;transition:none;outline:0}
 .pwEye.on{opacity:1}
 .pwEye .i{width:20px;height:20px}
-/* ===== Giao diện điều khiển video riêng ===== */
 #vctl{position:absolute;inset:0;z-index:6;display:none;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 body.vid #vctl,body.vc #vctl{display:block}
 #vctl::before{content:"";position:absolute;inset:0;background:linear-gradient(#0008,#0000 30%,#0000 70%,#0006);opacity:0;transition:opacity .15s;pointer-events:none}
 #vctl.show::before{opacity:1}
-/* Nút to, vùng chạm lớn, không blur/đổ bóng nặng để khỏi giật */
 #vctl button{background:#0007;color:#fff;padding:0;opacity:0;pointer-events:none;transition:opacity .15s;border-radius:50%;touch-action:manipulation}
 #vctl.show button{opacity:1;pointer-events:auto}
-/* khi đang phát video: nút lùi/tới 5 giây và toàn màn hình luôn hiện sẵn (không cần rê chuột), mờ nhẹ cho đỡ vướng hình */
 body.vid #vctl button{opacity:.8;pointer-events:auto}
 body.vid #vctl.show button{opacity:1}
-/* toàn màn hình: ẩn hai nút tua 5 giây, chỉ còn nút thoát */
 .art:fullscreen #vctl .vcMid{display:none}
 .art:-webkit-full-screen #vctl .vcMid{display:none}
 .art.pfs #vctl .vcMid{display:none}
 #vctl button:active{background:#000a}
 #vctl .vcMid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:clamp(40px,24%,120px);pointer-events:none}
 #vctl .vcMid button{width:60px;height:60px;position:relative}
-#vctl .vcMid button::after,#vctl #vcFull::after{content:"";position:absolute;inset:-10px}   /* mở rộng vùng bấm ra ngoài nút */
+#vctl .vcMid button::after,#vctl #vcFull::after{content:"";position:absolute;inset:-10px}
 #vctl .vcMid .i{width:30px;height:30px}
 #vctl #vcFull{position:absolute;top:10px;right:10px;width:48px;height:48px}
 #vctl #vcFull .i{width:26px;height:26px}
 body.vc .art:fullscreen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
 body.vc .art:-webkit-full-screen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
 body.vc .art.pfs{position:fixed;inset:0;z-index:100000;width:100vw;height:100dvh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
-/* Tắt video (chỉ nghe, hiện ảnh bìa): không hiện nút tua 5 giây / toàn màn hình, và ảnh bìa phủ kín khung (không còn dải nền mờ ở hai đầu, ảnh 16:9 có viền hai bên được cắt về đúng ô vuông của bìa) */
 body:not(.vid) #vctl{display:none}
 body:not(.vid) .art.wide::before{display:none}
 body:not(.vid) .art.wide>img{object-fit:cover}
@@ -326,7 +301,6 @@ body.vid .npt{margin-top:0}
 #npLine{margin-top:18px;font-size:16px;font-weight:600;min-height:24px;line-height:1.4}
 .npt{margin-top:auto;padding-top:18px;display:flex;align-items:center;gap:6px}
 .npt .tx{flex:1;min-width:0}
-/* Tiêu đề quá dài thì trượt ngang từ từ và lặp lại */
 .mq{text-overflow:clip!important}
 .mqt{display:inline-block;white-space:nowrap;animation:mqs linear infinite;will-change:transform}
 .mqt>span{display:inline-block;padding-right:56px}
@@ -338,7 +312,6 @@ body.vid .npt{margin-top:0}
 #npInfoBox.show{display:block}
 .npb{display:flex;justify-content:space-between;margin-top:12px}
 #np button.on{color:inherit;background:color-mix(in srgb,var(--npfg) 18%,transparent)}
-/* lời bài hát & hàng đợi trong panel */
 .lh{flex:none;padding:8px 0 4px}.lh b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lh span{display:block;font-size:13px;opacity:.72;margin-top:2px}
 #lyrBody{position:relative;flex:1;min-height:0;overflow:auto;font-size:22px;line-height:1.6;font-weight:700;scroll-behavior:smooth;scrollbar-width:none;padding:22% 0}
 #lyrBody div{opacity:.42;transition:opacity .25s;cursor:pointer;padding:2px 0}
@@ -353,7 +326,6 @@ body.vid .npt{margin-top:0}
 .qi.act{background:color-mix(in srgb,var(--npfg) 18%,transparent);font-weight:600}
 .qi img{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none;background:#0003}
 .qi .qm{min-width:0;flex:1}.qi .qm div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qi small{color:inherit;opacity:.7}
-/* thanh phát */
 #bar{position:fixed;z-index:20;bottom:16px;left:calc(24px + var(--sw));right:calc(24px + var(--nw));width:880px;max-width:calc(100vw - 48px - var(--sw) - var(--nw));margin:0 auto;display:none;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:10px 18px;border-radius:999px;background:color-mix(in srgb,#1c1925 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 10px 40px #000a,inset 0 0 0 1px var(--line)}
 body.has-cur #bar{display:grid}
 #bar{cursor:pointer}#bar button,#bar input{cursor:pointer}
@@ -402,7 +374,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
  .hero{flex-direction:column;align-items:flex-start}.hero h2{font-size:30px}
  #main{padding:8px 14px 28px}.sh h3{font-size:21px}
 }
-/* thanh phát (máy tính): đo theo chiều rộng của chính thanh, hẹp thì ẩn bớt nút để nút X không tràn ra ngoài viên thuốc */
 @media(min-width:701px){
  #bar{grid-template-columns:auto minmax(0,1fr) auto;container-type:inline-size;overflow:hidden}
  .bm{overflow:hidden}
@@ -410,7 +381,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 @container (max-width:700px){#bShuf,#bMode{display:none}}
 @container (max-width:580px){#bQueueW,#bPip,#tm{display:none}}
 @container (max-width:470px){.br .vol{display:none}}
-/* ===== thẻ hồ sơ kiểu Discord (banner + avatar + trạng thái) ===== */
 .pc{--pcbg:var(--card);position:relative;background:var(--pcbg);border-radius:18px;overflow:hidden;box-shadow:0 10px 36px #0008,inset 0 0 0 1px var(--line);width:100%}
 .pc-ban{position:relative;aspect-ratio:2/1;background:#5865f2;overflow:hidden}
 .pc-ban>img,.pc-ban>video{max-width:none}
@@ -429,7 +399,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-body{padding:12px 16px}.pc-body:empty{display:none}
 .pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
-/* ===== trang hồ sơ: chỉnh sửa + xem trước ===== */
 .set{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,390px);gap:20px;align-items:start}
 .setR{position:sticky;top:0}
 .setR h4{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -461,7 +430,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .prun{display:flex;align-items:center;gap:2px;margin-top:4px;font-size:17px;color:#ffffffb3}
 .prun .ico{pointer-events:auto;width:32px;height:32px;padding:6px;color:inherit}
 .pc-badge{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);background:var(--accent);color:var(--on);font-weight:700;font-size:12px;padding:3px 10px;border-radius:8px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
-/* trang Cài đặt */
 .sgrp{margin-bottom:26px}
 .sgh{font-size:13px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:0 6px 8px;font-weight:600}
 .scard{background:var(--surf2);border-radius:18px;overflow:hidden}
@@ -515,7 +483,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .row.wrapr{flex-wrap:wrap}
 .bnrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
-/* Chọn nhanh (kiểu SimpMusic): mỗi trang 4 hàng, vuốt ngang từng trang, trang kế ló ra bên phải */
 .qpager{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-behavior:auto}
 .qpager::-webkit-scrollbar{display:none}
 .qcol{flex:none;width:min(88%,380px);display:flex;flex-direction:column;scroll-snap-align:start;contain:layout paint style}
@@ -544,7 +511,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
 .crop button{justify-self:start;padding:5px 14px;font-size:12px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 
-/* ===== hiệu ứng âm thanh ===== */
 .fxp{padding:4px 20px 18px;border-top:1px solid var(--line);background:#00000012}
 .fxr{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:13px}.fxr>label{width:92px;color:var(--sub);flex:none}.fxr input[type=range]{flex:1}.fxr>span{width:56px;text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
 .fxr select{flex:1;color-scheme:dark}
@@ -556,7 +522,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
 .ui-pc body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 .ui-pc input,.ui-pc textarea{-webkit-user-select:text;user-select:text}
 .ui-pc #main,.ui-pc #side,.ui-pc #np{-webkit-overflow-scrolling:touch}
-/* ===== Giao diện điện thoại (≤700px): thanh điều hướng dưới, mini player nổi, Đang phát toàn màn hình ===== */
 @media(max-width:700px){
  :root{--sw:0px;--nw:0px}
  html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
@@ -564,9 +529,7 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  button:hover{background:var(--hover2)}button.pri:hover{background:var(--accent)}button.ico:hover{background:none}
  #app{display:block;height:100dvh;padding:0;gap:0}
  #center{border-radius:0;height:100dvh;display:flex;flex-direction:column}
- /* đầu trang */
  #top{padding:calc(10px + env(safe-area-inset-top)) 14px 6px;gap:8px;align-items:center}
- /* thanh chip Tất cả / Tâm trạng: xuống hàng riêng, rộng hết màn hình để hiện đủ (vuốt ngang khi nhiều mục) */
  #top{flex-wrap:wrap;row-gap:8px}
  #top .sp{display:block;flex:1 1 0}
  #topChips{order:5;flex:0 0 100%;width:100%;padding:2px 0}
@@ -579,7 +542,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  .sec{margin-top:18px}
  .sh h3{font-size:20px}.sh small{font-size:11px}
  .nv{display:none}
- /* thẻ nhạc: hàng cuộn ngang, chạm là phát */
  .grid{gap:12px;padding-bottom:6px;scroll-snap-type:x proximity;scroll-padding-left:16px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-behavior:auto}
  .card{width:140px;padding:0;scroll-snap-align:start;border-radius:14px}
  .card:hover{background:none}
@@ -592,7 +554,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
  .tl{height:88px;font-size:16px;padding:12px}
  .sbox{max-width:none;margin:6px 0 16px}
- /* danh sách bài: hàng gọn, nút luôn hiện */
  .tr{grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:7px 4px}
  .tr .n,.tr .ar,.tr .du{display:none}.t2{display:block}
  .tr .ac{gap:0}.tr .ac button{opacity:1;width:38px;height:38px}
@@ -601,14 +562,12 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  .hcol{width:min(64vw,260px);height:auto;aspect-ratio:1;border-radius:16px}
  .hero h2{font-size:26px;margin:2px 0 10px}
  .hb{justify-content:center}
- /* thư viện */
  .libL{display:flex;flex-direction:column;gap:2px}
  #main .libL .li{justify-content:flex-start;padding:8px 4px}
  #main .libL .li .meta{display:block;flex:1}
  .libL .tile{width:56px;height:56px;border-radius:12px}
  .libL .li .meta b{font-size:16px}.libL .li .meta span{font-size:13px}
  .libL .li:active{background:var(--hover)}
- /* ===== thanh điều hướng dưới: viên thuốc nổi + nút tìm kiếm tròn; cuộn xuống thì thu thành 1 vòng tròn (body.nav-min) ===== */
  :root{--cap:#1f1c29}
  #side{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;flex-direction:row;align-items:center;gap:12px;padding:0 16px calc(8px + env(safe-area-inset-bottom));height:auto;border-radius:0;overflow:visible;background:none;box-shadow:none;backdrop-filter:none!important;pointer-events:none}
  #side>*{pointer-events:auto}
@@ -625,18 +584,15 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  #side .navSearch,body.side-min #side .navSearch{flex:none;width:56px;height:56px;padding:0;border-radius:50%;justify-content:center;align-items:center;background:var(--cap);color:var(--text);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line)}
  #side .navSearch span{display:none}
  #side .navSearch.act{color:var(--accent);background:var(--cap)}
- /* thu gọn: chỉ còn vòng tròn chứa tab đang chọn; nút tìm kiếm ẩn */
  body.nav-min #side .navcap{width:56px;height:56px;padding:0}
  body.nav-min #side .navcap .ni{display:none}
  body.nav-min #side .navcap .ni.act{display:flex;flex:1;height:56px;background:none;color:var(--accent)}
  body.nav-min #side .navcap:not(:has(.ni.act)) .ni[data-p=home]{display:flex;flex:1;height:56px;color:var(--accent)}
  body.nav-min #side .navcap .ni span{display:none}
  body.nav-min #side .navSearch{display:none}
- /* phòng nghe chung: tab nằm bên phải Mix (chỉ hiện khi đang ở trong phòng) */
  #side .navcap #roomBar{display:flex}
  #side .navcap #roomBar:empty,body.nav-min #side .navcap #roomBar:not(.act){display:none}
  #roomInfo{display:none!important}
- /* mini player: viên thuốc 56px, bìa tròn có vòng tiến trình, tim + phát trong nút tròn (giống SimpMusic) */
  #bar{left:16px;right:16px;width:auto;max-width:none;margin:0;bottom:calc(80px + env(safe-area-inset-bottom));height:56px;padding:0 8px;gap:8px;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;border-radius:999px;z-index:26;background:var(--cap);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line);transition:left .3s,bottom .3s}
  body.nav-min #bar{left:calc(16px + 56px + 8px);bottom:calc(8px + env(safe-area-inset-bottom))}
  #bar .bm{order:1;position:relative;gap:10px;min-width:0}
@@ -652,7 +608,6 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  #bar #bFav.on{color:var(--red)}
  #bar #pp{background:var(--accent);color:var(--on)}
  #bar #pp .i{width:22px;height:22px}
- /* Đang phát: toàn màn hình, bìa lớn, thanh điều khiển ở dưới */
  #np{left:0;right:0;top:0;bottom:0;width:auto;height:100dvh;border-radius:0;z-index:35;padding-top:env(safe-area-inset-top);padding-bottom:calc(172px + env(safe-area-inset-bottom));transform:translateY(100%)}
  body.has-np #np{transform:none}
  .npv{padding:4px 22px 12px}
@@ -682,13 +637,11 @@ input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
  button.ico{min-width:40px;min-height:40px}
 }
 
-/* ===== Tối ưu cho app Android (WebView) ===== */
 html.android *{-webkit-tap-highlight-color:transparent}
 html.android *,html.android *::before,html.android *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html.android{overscroll-behavior:none;touch-action:manipulation}
 html.android body{overscroll-behavior:none}
 html.android *{scroll-behavior:auto!important}
-/* Giảm tải vẽ trên điện thoại: bỏ blur nặng, bỏ hiệu ứng lặp, chỉ vẽ mục đang gần màn hình */
 html.android .art.wide::before{filter:none!important}
 html.android .card.sk .cvw,html.android .card.sk .ct{animation:none!important}
 html.android #topChips .chip.mi{animation:none!important}
@@ -702,7 +655,6 @@ html.android img{image-rendering:auto}
 .schips .chip:hover{background:var(--hover)}
 .schips .chip.on{background:var(--accent);color:var(--on);font-weight:600;box-shadow:none}
 .sent{gap:12px;margin-bottom:8px}.card.art .cvw{border-radius:50%}.card.art .ct,.card.art .ca{text-align:center}
-/* Thẻ nghệ sĩ dùng chung class "art" với ảnh bìa đang phát nên bị phóng to; đặt lại về cỡ thẻ thường */
 .card.art,body.vid .card.art{width:150px;aspect-ratio:auto;margin:0;overflow:visible;background:none;box-shadow:none;border-radius:12px}
 @media(max-width:700px){.card.art,body.vid .card.art{width:120px;border-radius:14px}}
 .sres-h{margin:18px 0 8px;font-size:20px;font-weight:700}
@@ -726,7 +678,6 @@ html.android img{image-rendering:auto}
 .yti b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .yti small{color:var(--sub)}
 .yti input{width:18px;height:18px;accent-color:var(--accent);flex:none}
-/* WebView Android đời cũ (Chrome < 111) không hiểu color-mix(): nền panel Đang phát bị trong suốt nên trang chủ lộ xuyên qua. Dự phòng bằng màu thường. */
 @supports not (background:color-mix(in srgb,red 50%,blue)){
  #np{background:var(--npbg)}
  #bar{background:#1c1925}
@@ -738,8 +689,6 @@ html.android img{image-rendering:auto}
  }
 }
 
-/* ===== Fixes tương tác, nền và cuộn (2026-11) ===== */
-/* Giảm blur để ảnh nền vẫn nhận diện rõ, nhưng giữ lớp phủ đủ tối cho chữ. */
 body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{
   -webkit-backdrop-filter:blur(1.25px)!important;
   backdrop-filter:blur(1.25px)!important;
@@ -754,7 +703,6 @@ body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custo
   -webkit-backdrop-filter:blur(2px);
   backdrop-filter:blur(2px);
 }
-/* Bảo đảm các vùng điều khiển luôn nhận pointer/touch, không bị lớp trang trí chặn. */
 button,[role="button"],#meAv,#gear,.rb,.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn{
   pointer-events:auto;
   touch-action:manipulation;
@@ -767,7 +715,6 @@ button:disabled{cursor:wait;opacity:.65}
 #top button,#top a,#top [role="button"]{position:relative;z-index:5;pointer-events:auto}
 img,svg{ -webkit-user-drag:none; user-drag:none }
 button *,#gear *,#meAv *{pointer-events:none}
-/* Vùng cuộn có một trục dọc ổn định; tránh nội dung tràn ngang làm lệch breakpoint. */
 #center{min-width:0;min-height:0;overflow:hidden}
 #main{
   min-width:0;min-height:0;
@@ -790,8 +737,6 @@ button *,#gear *,#meAv *{pointer-events:none}
   #main .grid{max-width:100%;overflow-x:auto}
 }
 
-
-/* ===== Offline + Tải xuống + Thư viện (v0.9) ===== */
 #offBar{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;background:#2a2433;color:var(--text);box-shadow:0 6px 20px #0008,inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;white-space:nowrap;max-width:94vw}
 #offBar.ok{background:var(--accent);color:var(--on);font-weight:600}
 .offc{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:64px 20px}
@@ -802,7 +747,6 @@ button *,#gear *,#meAv *{pointer-events:none}
 .dlr.dim{opacity:.45}
 .offb{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent);vertical-align:middle}
 .offb .i{width:12px;height:12px}.offb.no{background:var(--hover2);color:var(--sub)}
-/* Thư viện kiểu SimpMusic: thẻ lớn "Yêu thích" + lưới thẻ nhỏ gọn + danh sách gần đây */
 .lcTabs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px;scrollbar-width:none}.lcTabs::-webkit-scrollbar{display:none}
 .lcTabs .chip{flex:none;border-radius:999px;padding:8px 18px;font-size:14px;background:none;box-shadow:inset 0 0 0 1px #ffffff40;color:var(--text)}
 .lcTabs .chip.on{background:var(--accent);color:var(--on);box-shadow:none;font-weight:600}
@@ -826,7 +770,6 @@ button *,#gear *,#meAv *{pointer-events:none}
 .lcH{font-size:21px;font-weight:700;margin:22px 0 6px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between}
 .lcH button{font-size:13px;padding:7px 14px}
 @media(min-width:700px){.libG{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.lc.wide{grid-column:span 2}}
-/* Thẻ rộng (Yêu thích, Nghe cùng nhau): thấp hơn, chữ căn giữa dọc ngang hàng với icon */
 .lc.wide{min-height:92px;justify-content:center;padding:12px 20px}
 .lc.wide .lcArt{right:22px;top:50%;transform:translateY(-50%)}
 .lc.wide .lcArt img,.lc.wide .lcArt .ph{width:60px;height:60px;border-radius:14px}
@@ -837,7 +780,6 @@ button *,#gear *,#meAv *{pointer-events:none}
 #npFollow.on{background:var(--accent);color:var(--on);box-shadow:none}
 .li .ico[data-un]{margin-left:auto}
 
-/* ===== Trang chủ: Tuyển tập, Hoà trộn gu, Khám phá ===== */
 .collg{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;scroll-snap-type:x proximity}.collg::-webkit-scrollbar{display:none}
 .coll{flex:none;width:min(360px,86vw);box-sizing:border-box;border-radius:22px;background:var(--surf2);padding:18px 16px 10px;scroll-snap-align:start}
 .coll .ccv{width:min(210px,62%);margin:0 auto;aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;background:#ffffff0d}.coll .ccv .collage{width:100%;height:100%}
@@ -850,7 +792,6 @@ button *,#gear *,#meAv *{pointer-events:none}
 .blb .bg1,.blb .bg2{position:absolute;right:6%;width:42%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 100%,#ff5a1f,#ff8a5c 55%,#ffd2c0)}.blb .bg1{top:-34%}.blb .bg2{bottom:-34%;transform:scaleY(-1)}
 .blb .bgp{position:absolute;right:14%;top:50%;transform:translateY(-50%);width:68px;height:68px;border-radius:50%;background:#ff5a1f;color:#fff;display:grid;place-items:center;z-index:1;font-size:40px;font-weight:300}
 @media(max-width:700px){.blb .blt{font-size:19px;max-width:58%}.blb{min-height:150px;padding:18px}}
-/* ===== Nhạc mới mỗi ngày: thẻ vuông lớn, lướt ngang, thẻ kế tiếp ló ra bên phải (giống YouTube Music) ===== */
 .nmh h3{font-size:30px;letter-spacing:-.01em}
 .nmh .more.pill{border:1px solid var(--line);border-radius:999px;padding:8px 16px;margin-right:0;font-size:14px;font-weight:600;color:var(--text)}.nmh .more.pill:hover{background:var(--hover)}
 .nmd{gap:14px;scroll-snap-type:x mandatory;scroll-padding-left:0}
@@ -863,7 +804,6 @@ button *,#gear *,#meAv *{pointer-events:none}
 .nmc .nc{position:absolute;left:24px;right:24px;bottom:20px;font-size:18px;font-style:italic;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:700px){.nmh h3{font-size:24px}.nmd{margin:0 -16px;padding-left:16px;padding-right:16px;scroll-padding-left:16px}.nmc{width:88%;border-radius:24px}.nmc .nt{left:20px;right:20px}.nmc .nc{left:20px;right:20px}}
 
-/* ===== Xem ảnh hồ sơ + GIF mượt hơn ===== */
 .pc.flat .pc-ban{contain:none;transform:none;border-radius:0}
 .pc.flat .pc-av .av{transform:none}
 .pc-ban>img,.pc-av .av img,.pc-ban>video,.pc-av .av video{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center}
@@ -874,7 +814,6 @@ html.android .pcpop .pc{overflow:visible;box-shadow:0 4px 14px #0007}
 .imgv>img,.imgv>video{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:default}
 .imgv-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff22;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .imgv-x .i{width:22px;height:22px}
-/* Đang xem ảnh toàn màn hình: ẩn các ảnh động phía sau để điện thoại chỉ giải mã một GIF/WebP động */
 body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body.imgv-open .pc-ban>video,body.imgv-open .pc-av video,body.imgv-open .av video{display:none!important}
 </style>
 </head>
@@ -1006,10 +945,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
 <div id="toasts"></div>
 <audio id="aud"></audio>
 <script>
-/* ===== Ngôn ngữ / Language (English mặc định · Tiếng Việt) =====
-   Giao diện gốc viết bằng tiếng Việt. Khi chọn English, mọi chữ tiếng Việt hiện ra trên màn hình
-   (nội dung, placeholder, tooltip, thông báo, hộp thoại) được dịch bằng bảng dưới đây.
-   Muốn đổi/sửa bản dịch hoặc thêm ngôn ngữ mới: sửa EN_EXACT / EN_RULES. */
 (function(){
   let L=/^vi/i.test(navigator.language||'')?'vi':'en'; try{ L=localStorage.getItem('bb_lang')||L; }catch{}
   if(L!=='vi'&&L!=='en') L='en';
@@ -1019,13 +954,10 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
   { const al=document.getElementById('aLang'); if(al) al.value=L; }
   if(L==='vi') return;
 
-  /* Khớp nguyên văn (đã cắt khoảng trắng đầu/cuối) */
   const EN_EXACT={
     'Nghệ sĩ nổi bật':'Best of artists','Tổng hợp những bài hát hàng đầu của một nghệ sĩ.':'Bringing together the top songs from an artist.','Danh sách phát công khai':'Public Playlist','Lưu thành danh sách phát':'Save as playlist','Đã lưu thành danh sách phát':'Saved as a playlist','Không tải được bài hát của nghệ sĩ này.':'Couldn’t load this artist’s songs.','Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.':'No artists to show yet. Try again later.',
-    /* đăng nhập */
     'Đăng nhập':'Log in','Đăng ký':'Sign up','Tên đăng nhập':'Username','Tên hiển thị':'Display name',
     'Mật khẩu (≥ 8 ký tự)':'Password (8+ characters)','Tạo tài khoản':'Create account',
-    /* điều hướng */
     'Trang chủ':'Home','Bạn bè':'Friends','Thư viện':'Library','Tìm kiếm':'Search','Thư viện của bạn':'Your library','Đã thêm gần đây':'Recently added','Chưa có bài nào':'No songs yet','Lịch sử nghe':'Listening history','Đang kết nối…':'Connecting…','Vẫn chưa có mạng, hãy thử lại sau':'Still offline, please try again later',
     'Lọc thư viện':'Filter library','Thu gọn':'Collapse','Yêu thích':'Favorites','Danh sách phát':'Playlists',
     'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
@@ -1040,7 +972,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
     'Bài sau':'Next','Lặp lại':'Repeat','Mở Đang phát bên phải':'Open Now playing panel','Bấm để xem đang phát':'Click to see what’s playing',
     'Mở / đóng Đang phát':'Open / close Now playing','Âm lượng':'Volume','Dừng phát':'Stop playback',
-    /* thư viện libs */
     'Trình phát YouTube chính thức':'Official YouTube player',
     'Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0':'Skip-segment data (ads, intros, outros) – © Ajay Ramachandran and community, CC BY-NC-SA 4.0',
     'Số lượt thích/không thích':'Like / dislike counts','Lời bài hát (nguồn chính)':'Lyrics (primary source)',
@@ -1057,7 +988,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Tham khảo cách lấy luồng âm thanh YouTube':'Reference for extracting YouTube audio streams',
     'Tạo mã định danh':'Unique ID generation','Tiện ích bất đồng bộ (Rust)':'Async utilities (Rust)',
     'Hiện trạng thái đang nghe trên Discord (tuỳ chọn)':'Shows what you are listening to on Discord (optional)',
-    /* lỗi chung */
     'Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)':'Cannot reach the server (it may be offline, or the uploaded file is too large)',
     'Hủy':'Cancel','Xác nhận':'Confirm','Bạn vừa mời người này rồi, đợi vài giây nhé':'You just invited this person – wait a few seconds',
     'Không đọc được ảnh này':'Couldn’t read this image','Kéo ảnh để di chuyển · cuộn chuột để zoom · ảnh luôn phủ kín khung.':'Drag to move · scroll to zoom · the image always fills the frame.',
@@ -1068,7 +998,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'đã có bản cập nhật mới':'has a new update','Tải về':'Download','Để sau':'Later',
     'Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)':'No GitHub repo is set for BBeat (set ABOUT.repo in index.html)',
     'Chưa có bản phát hành nào trên GitHub':'No releases on GitHub yet','GitHub trả về lỗi':'GitHub returned an error',
-    /* tâm trạng / chủ đề */
     'Tất cả':'All','Nhạc Việt thịnh hành':'Trending Vietnamese music','Nhạc trẻ mới nhất':'Latest young pop','Top hits quốc tế':'Top international hits',
     'Thư giãn':'Relax','Acoustic nhẹ nhàng':'Soft acoustic','Piano thư giãn':'Relaxing piano','Tập luyện':'Workout','EDM bùng nổ':'Explosive EDM',
     'Rap Việt':'Vietnamese rap','Tập trung':'Focus','Nhạc không lời':'Instrumentals','Lofi học bài':'Lofi study','Nhạc cổ điển':'Classical music',
@@ -1086,7 +1015,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Việt Nam':'Vietnam','Quốc tế':'International','Đang tải…':'Loading…',
     'Tìm bài hát, nghệ sĩ… hoặc dán link YouTube':'Search songs, artists… or paste a YouTube link',
     'Đang offline – hiển thị bản đã lưu':'Offline – showing the saved copy','Xoá playlist':'Delete playlist','Xoá playlist này?':'Delete this playlist?','Xoá':'Delete',
-    /* phòng + bạn bè */
     'Phòng hiện tại':'Current room','Mã phòng:':'Room code:','– mọi người trong phòng nghe đồng bộ và cùng điều khiển.':'– everyone in the room listens in sync and shares control.',
     'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Chia sẻ nhạc':'Share song','Đã chép link bài hát để chia sẻ':'Song link copied','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
     'Mã phòng hoặc link phòng':'Room code or room link','Mời bạn bè vào phòng':'Invite friends to the room','Quản lý bạn bè':'Manage friends','Chat phòng':'Room chat',
@@ -1100,7 +1028,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Chấp nhận':'Accept','Từ chối':'Decline','Đang chờ':'Pending','Huỷ':'Cancel','Không có lời mời nào.':'No invites.','Xem hồ sơ':'View profile','Mời nghe':'Invite to listen',
     'Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.':'No friends yet. Send an invite using a friend code above.','Mời':'Invite','Xem':'View','Bỏ qua':'Dismiss','Tham gia':'Join',
     'Đang online':'Online','Chưa có bạn bè nào.':'No friends yet.','Quản lý':'Manage',
-    /* hồ sơ */
     'Mặc định':'Default','Tối':'Dark','Biển':'Ocean','Hoàng hôn':'Sunset','Rừng':'Forest','Ảnh riêng':'Custom image','Lưu':'Save','Đổi banner':'Change banner','Gỡ banner':'Remove banner',
     'Đổi avatar':'Change avatar','Chép tên đăng nhập':'Copy username',
 
@@ -1108,7 +1035,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Tải ảnh nền (GIF được)':'Upload background (GIFs allowed)','…hoặc dán link https://…/anh-nen.jpg':'…or paste a link https://…/background.jpg',
     'Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.':'Background ≤ 10MB. Applied to the app right away – click Save to keep it.','Màu chủ đạo':'Accent color',
     'Đã chép tên đăng nhập':'Username copied','Chỉnh sửa banner':'Edit banner','Chỉnh sửa avatar':'Edit avatar','Đang lưu…':'Saving…','Đã lưu ✔':'Saved ✔',
-    /* cài đặt */
     'Tài khoản':'Account','Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.':'The name others see in listening rooms and on your profile.','Đổi mật khẩu':'Change password',
     'Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.':'After changing it, your other devices will be logged out. The new password must be 8–128 characters.',
     'Mật khẩu hiện tại':'Current password','Mật khẩu mới':'New password','Nhập lại mật khẩu mới':'Repeat new password','Giao diện app Android':'Android app layout','Giao diện máy tính':'Desktop layout',
@@ -1154,12 +1080,10 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?':'Restoring will replace your current favorites, history and playlists. Continue?','Đã khôi phục':'Restored',
     'Chưa gắn kho GitHub cho BBeat':'No GitHub repo is set for BBeat','Đang kiểm tra…':'Checking…','Tác giả chưa gắn link hỗ trợ':'The author hasn’t added a support link yet',
     'Tạo mới':'Create new','Chưa có danh sách phát nào.':'No playlists yet.',
-    /* tìm kiếm */
     'Nhạc Việt':'Vietnamese','Cổ điển':'Classical','Duyệt tất cả':'Browse all','Đang tìm…':'Searching…',
     'Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.':'No results found. Try another keyword or paste a YouTube link.','Chưa có bài nào để tạo mix này.':'Not enough songs to build this mix yet.',
     'Đang offline – hiển thị danh sách phát đã lưu':'Offline – showing saved playlists','Tên playlist mới':'New playlist name','＋ Playlist mới…':'＋ New playlist…','Đã thêm vào playlist':'Added to playlist',
     'Bạn đang ở phòng này rồi.':'You’re already in this room.',
-    /* trình phát */
     'Luồng âm thanh lỗi:':'Audio stream error:','Trình duyệt chặn tự phát – bấm ▶ để nghe':'The browser blocked autoplay – press ▶ to listen',
     'Ngẫu nhiên: bật':'Shuffle: on','Ngẫu nhiên: tắt':'Shuffle: off','Lặp lại: tắt':'Repeat: off','Lặp danh sách':'Repeat all','Lặp một bài':'Repeat one',
     'Thích':'Likes','· Không thích':'· Dislikes','Nguồn: YouTube Music':'Source: YouTube Music','Ẩn video':'Hide video','Hiện video':'Show video','Chép link YouTube':'Copy YouTube link','Đã chép link':'Link copied',
@@ -1170,7 +1094,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
     'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again','Đã kết nối Google, hãy chọn playlist để nhập':'Google connected – choose playlists to import',
     'Kết nối Google thất bại, hãy thử lại':'Google connection failed, please try again',
     'Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe':'This song is explicit – turn on “Play explicit songs” in Settings to listen',
-    /* thông báo từ server */
     'Chưa đăng nhập hoặc phiên hết hạn':'Not logged in or the session has expired','Lỗi máy chủ':'Server error','Tên đăng nhập 3-24 ký tự: chữ, số hoặc _':'Username must be 3–24 characters: letters, numbers or _',
     'Mật khẩu từ 8 đến 128 ký tự':'Password must be 8–128 characters','Tên đăng nhập đã tồn tại':'That username is already taken','Sai tên đăng nhập hoặc mật khẩu':'Wrong username or password',
     'Tên hiển thị không được trống':'Display name can’t be empty','Màu không hợp lệ':'Invalid color','Nền không hợp lệ':'Invalid background',
@@ -1195,7 +1118,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
   };
 
   const plural=(n,a,b)=>n+' '+(+n===1?a:b);
-  /* Mẫu có chứa số / tên – chỉ khớp cả đoạn văn bản */
   const EN_RULES=[
     [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. The essential tracks, all in one playlist.'],
     [/^(.+) • (\d+) bài hát, khoảng (\d+) giờ$/,(m)=>m[1]+' • '+m[2]+' songs, about '+m[3]+' hr'],
@@ -1303,11 +1225,10 @@ const key=t=>t.src+':'+t.id;
 const slim=t=>({src:t.src,id:String(t.id),title:t.title,artist:t.artist||'',image:t.image||'',url:t.url||'',dur:t.dur||0,explicit:!!t.explicit});
 const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const CID=Math.random().toString(36).slice(2,10);
-/* ===== Thông tin "Về tôi" – BBeat (sửa ở đây) ===== */
 const ABOUT={
   name:'BBeat', author:'BaoBu', version:'1.0.0',
-  repo:'harashdev/Bbeat',          /* kho GitHub chứa bản phát hành, dạng 'tên-github/BBeat'. Bỏ trống thì chưa kiểm tra cập nhật được */
-  supportUrl:'https://ko-fi.com/harashdev',    /* link "Hỗ trợ tôi" (Ko-fi, Buy Me a Coffee, MoMo…). Bỏ trống thì dùng DONATE_URL của server nếu có */
+  repo:'harashdev/Bbeat',
+  supportUrl:'https://ko-fi.com/harashdev',
   libs:[
     ['SimpMusic','Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0','https://github.com/maxrave-dev/SimpMusic'],
     ['SimpMusic Lyrics','Lời bài hát (nguồn chính)','https://github.com/maxrave-dev/SimpMusic'],
@@ -1338,12 +1259,12 @@ const bbFmt=ms=>{ const d=new Date(+ms); return d.getFullYear()+'-'+bbPad(d.getM
 const bbCmp=(a,b)=>{ const x=String(a).split('.').map(n=>parseInt(n)||0), y=String(b).split('.').map(n=>parseInt(n)||0); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0?1:-1; } return 0; };
 function openExt(u){
   u=String(u||'').trim(); if(!u) return;
-  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u='https://'+u.replace(/^\/+/,'');   /* thiếu https:// thì tự thêm */
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u='https://'+u.replace(/^\/+/,'');
   if(window.ANDROID_APP){ location.href=u; return; }
   const T=window.__TAURI__;
-  if(T&&T.core&&T.core.invoke){ /* app desktop (Tauri): window.open không mở được trình duyệt, phải nhờ lệnh phía Rust */
+  if(T&&T.core&&T.core.invoke){
     (async()=>{
-      let err='';   /* giữ lỗi của lệnh đầu tiên (open_url) để biết vì sao không mở được */
+      let err='';
       for(const [c,a] of [['open_url',{url:u}],['plugin:opener|open_url',{url:u}],['plugin:shell|open',{path:u}]]){ try{ await T.core.invoke(c,a); return; }catch(e){ if(!err) err=String((e&&e.message)||e).slice(0,140); } }
       const why=err?' ['+err+']':'';
       try{ await navigator.clipboard.writeText(u); notify('Không mở được trình duyệt – đã chép link: '+u+why); }catch{ notify('Không mở được trình duyệt, link: '+u+why); }
@@ -1352,7 +1273,6 @@ function openExt(u){
   }
   window.open(u,'_blank','noopener');
 }
-/* app desktop: mọi link/cửa sổ mới ra ngoài (target=_blank, window.open) đều mở bằng trình duyệt mặc định */
 if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP){
   const wo=window.open.bind(window);
   window.open=function(u,...r){ if(/^https?:\/\//i.test(String(u||''))&&!String(u).startsWith(location.origin)){ openExt(String(u)); return null; } return wo(u,...r); };
@@ -1366,11 +1286,9 @@ let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache=
 const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=String(n||'').replace(/^Kết quả: /,'');return k};
 const now=()=>Date.now()+offset;
 const aud=$('#aud');
-/* Kho nhạc offline: offSet = các bài đã lưu trong app, offUrl = blob URL đang mở, offBad = bài lưu bị hỏng, netDown = server không với tới được */
 const offSet=new Set(), offUrl={}, offBad={}; let offOrder=[], netDown=false;
 const offlineNow=()=>netDown||navigator.onLine===false;
 
-/* ===== Biểu tượng (SVG) ===== */
 const IC={
  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
@@ -1424,13 +1342,10 @@ const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
 document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,e.dataset.f?'fill':'')});
 function setIc(el,name,fill){ const s=name+(fill?'f':''); if(el.dataset.s===s) return; el.dataset.s=s; el.innerHTML=ic(name,fill?'fill':''); }
 
-/* ===== Ảnh bìa ===== */
-/* Màn hình điện thoại (AMOLED, mật độ điểm ảnh 2–3x) cần ảnh lớn gấp 2–3 lần kích thước hiển thị, không thì bị mờ / vỡ hạt */
 const thumb=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
   if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
   const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s>400?'hq720':'mqdefault'}.jpg`;
   return u; };
-/* Ảnh lỗi / treo → tự thử lại nhanh (tối đa 3 lần, kích thước nhỏ dần), không để ô trống */
 const IMG_NET=/^https?:\/\/(i\.ytimg\.com|[\w-]+\.(googleusercontent|ggpht)\.com)\//;
 function imgRetryUrl(u,n){ u=u.replace(/([?&])_r=\d+/,'').replace(/[?&]$/,'');
   if(n>=1&&/=w\d+-h\d+/.test(u)) u=u.replace(/=w(\d+)-h(\d+)/,(a,w)=>{ const v=Math.max(96,Math.round(w*(n>=2?.4:.65))); return '=w'+v+'-h'+v; });
@@ -1438,24 +1353,19 @@ function imgRetryUrl(u,n){ u=u.replace(/([?&])_r=\d+/,'').replace(/[?&]$/,'');
 function imgReload(i,n){ if(!i.isConnected) return; const o=i.dataset.o||(i.dataset.o=i.currentSrc||i.src); i.dataset.rt=n; i.dataset.t=Date.now(); i.loading='eager'; i.src=imgRetryUrl(o,n); }
 document.addEventListener('error',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||''; if(!src||/^data:/.test(src)) return;
   if(/\/hq720\.jpg/.test(src)){ i.src=src.replace('hq720','mqdefault'); return; }
-  /* ảnh bìa tải lỗi (hết hạn / bị chặn) → thử ảnh thumbnail của video, tránh ô vuông đen trống */
   if(!i.dataset.fb){ const h=i.closest('[data-tk]'), m=h&&String(h.dataset.tk).match(/^yt:([\w-]{11})$/); if(m&&!/ytimg\.com/.test(src)&&(+i.dataset.rt||0)>=1){ i.dataset.fb='1'; i.dataset.rt=0; delete i.dataset.o; i.src='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg'; return; } }
   const n=+(i.dataset.rt||0); if(n>=3||!IMG_NET.test(src)) return;
-  setTimeout(()=>imgReload(i,n+1),n===0?150:n===1?700:1800); },true);   /* video cũ không có bản hq720 */
-/* ảnh "treo" (không lỗi nhưng mãi không tải xong) hoặc hỏng khi vừa có mạng lại → nạp lại */
+  setTimeout(()=>imgReload(i,n+1),n===0?150:n===1?700:1800); },true);
 function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[src]').forEach(i=>{ const src=i.src; if(!IMG_NET.test(src)) return;
   const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
   if(!i.dataset.t) i.dataset.t=now;
   if((bad&&(force||(+i.dataset.rt||0)>=3&&now-(+i.dataset.t)>8000))||(!bad&&now-(+i.dataset.t)>7000)){ const r=+i.dataset.rt||0; if(force||r<6) imgReload(i,force?1:r+1); } }); }
 setInterval(()=>{ if(!document.hidden) imgSweep(false); },3000);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
-const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';   /* điện thoại: chỉ tải/giải mã ảnh khi sắp cuộn tới */
+const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
 
-/* ===== Chế độ khách: dùng không cần đăng nhập =====
-   Tìm nhạc và phát nhạc vẫn đi qua server (không cần token). Yêu thích, lịch sử, playlist và cài đặt lưu ngay trên máy (localStorage).
-   Bạn bè, phòng nghe chung, hồ sơ… cần tài khoản nên bị chặn bằng một lỗi nhẹ (e.guest). */
 let guest=!token&&LS.get('muse_guest','0')==='1';
 const GUEST_USER={id:0,username:'guest',display_name:'Khách',avatar:'🎧',accent:'#8ecbff',bg:'',bg_url:'',code:'',is_admin:false,banner:'',banner_color:'',status:'',crop:''};
 const GUEST_LOCAL=/^\/api\/(settings|favorites|history|playlists(\/.*)?)$/, GUEST_NET=/^\/api\/(yt\/|config$|time$)/;
@@ -1506,8 +1416,6 @@ async function api(path,opt={}){
 const isImg=a=>a&&(a.startsWith('/')||a.startsWith('https://')||a.startsWith('blob:'));
 const cropOf=u=>{ let c={}; try{ c=JSON.parse((u&&u.crop)||'{}')||{}; }catch{} const n=(v,lo,hi,d)=>{ v=(v===''||v===null||v===undefined)?NaN:+v; return Math.min(hi,Math.max(lo,Number.isFinite(v)?v:d)); };
   return {bx:n(c.bx,0,100,50),by:n(c.by,0,100,50),bz:n(c.bz,.1,4,1),ba:n(c.ba,0,20,0),ax:n(c.ax,0,100,50),ay:n(c.ay,0,100,50),az:n(c.az,.1,4,1),aa:n(c.aa,0,20,0)}; };
-/* Ảnh đặt theo "tâm ảnh" (x,y = % khung), zoom 1 = phủ kín khung (cover), <1 = thu nhỏ để thấy cả ảnh; ar = rộng/cao của ảnh, fa = rộng/cao của khung */
-/* Giới hạn tâm ảnh (% khung): ảnh to hơn khung thì luôn phủ kín khung, ảnh nhỏ hơn thì nằm gọn trong khung → không bao giờ trôi ra ngoài. */
 function cropRange(z,ar,fa){
   const w=Math.max(1,ar/fa)*100*z, h=Math.max(1,fa/ar)*100*z;
   const r=sz=>sz>=100?[100-sz/2,sz/2]:[sz/2,100-sz/2];
@@ -1519,14 +1427,13 @@ function cropClamp(x,y,z,ar,fa){
   return [c(x,g.x),c(y,g.y)];
 }
 function cropStyle(x,y,z,ar,fa){
-  z=Math.max(1,+z||1); /* luôn phủ kín khung, không thu nhỏ hơn khung */
+  z=Math.max(1,+z||1);
   [x,y]=cropClamp(x,y,z,ar,fa);
   if(!ar) return `position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;max-width:none;transform:scale(${z})`;
   return `position:absolute;left:${x}%;top:${y}%;width:${Math.max(1,ar/fa)*100}%;height:${Math.max(1,fa/ar)*100}%;max-width:none;transform:translate(-50%,-50%) scale(${z})`;
 }
 const avHtml=(a,cls='',cr,vid)=>isImg(a)?`<span class="av ${cls}">${vid?gvHtml(a,cr?cropStyle(cr.ax,cr.ay,cr.az,cr.aa,1):''):`<img src="${esc(a)}" alt=""${cr?` style="${cropStyle(cr.ax,cr.ay,cr.az,cr.aa,1)}"`:''}>`}</span>`:`<span class="av ${cls}">${esc(a||'🎧')}</span>`;
 const avU=(u,cls='')=>avHtml(u.avatar,cls,cropOf(u));
-// Hộp thoại trong app (thay prompt/confirm của trình duyệt vốn hiện "Trang tại ... cho biết")
 function askDialog(o){ return new Promise(res=>{
   const ov=document.createElement('div'); ov.className='dlgov';
   const box=document.createElement('div'); box.className='dlg'; box.setAttribute('role','dialog');
@@ -1556,16 +1463,13 @@ function showLibs(){
 }
 const askText=(title,def)=>askDialog({title:String(title).replace(/[:：]\s*$/,''),input:true,def});
 const askConfirm=(msg,ok)=>askDialog({title:'Xác nhận',msg,ok});
-/* Thông báo: không xếp chồng thông báo trùng, tối đa 3 cái cùng lúc (tránh tràn màn hình khi bị spam) */
 function pushToast(t,key,ms){
   const box=$('#toasts'); if(key){ box.querySelectorAll('.toast').forEach(x=>{ if(x.dataset.k===key) x.remove(); }); t.dataset.k=key; }
   box.appendChild(t); while(box.children.length>3) box.firstElementChild.remove();
   setTimeout(()=>t.remove(),ms);
 }
-/* Thông báo kỹ thuật (tìm video, yt-dlp, đổi luồng phát, nhạc bị đứng…): chỉ admin và chỉ khi bật "Hiện thông báo lỗi" trong Cài đặt */
 function adminNotify(msg){ if(/video/i.test(String(msg))) return; try{ if(me&&me.is_admin&&S.show_errors) notify(msg); }catch{} }
 function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
-/* Chặn người đã bấm "Bỏ qua" 10 phút + chống bấm mời liên tục từ phía mình */
 const muted={}, inviteAt={};
 const isMuted=n=>muted[n]&&muted[n]>Date.now();
 async function sendInvite(id){
@@ -1574,7 +1478,6 @@ async function sendInvite(id){
   try{ return await api('/api/invite',{json:{friend_id:id,room}}); }catch(e){ inviteAt[id]=0; throw e; }
 }
 
-/* ===== Đăng nhập ===== */
 function showAuth(){ $('#auth').style.display='flex'; }
 function setMode(reg){ regMode=reg; $('#aNameRow').style.display=reg?'':'none'; $('#aGo').textContent=reg?'Tạo tài khoản':'Đăng nhập'; $('#tReg').className=reg?'pri':''; $('#tLogin').className=reg?'':'pri'; $('#authErr').textContent=''; }
 $('#tLogin').onclick=()=>setMode(false); $('#tReg').onclick=()=>setMode(true);
@@ -1588,7 +1491,6 @@ $('#aGuest').onclick=()=>{ LS.set('muse_guest','1'); try{ localStorage.removeIte
 $('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
 async function logout(){ if(guest){ goLogin(); return; } try{ clearTimeout(syncTm); syncBusy=false; await syncNow(); }catch{} try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
 
-/* ===== Giao diện (skin) ===== */
 const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
 function paintTheme(acc,bg,url){
   const rt=document.documentElement.style; rt.setProperty('--accent',acc);
@@ -1599,7 +1501,6 @@ function paintTheme(acc,bg,url){
   document.body.style.backgroundImage=(bg==='custom'&&url&&!frz)?`url("${url}")`:'';
   if(frz) freezeUrl(url).then(b=>{ if(b&&document.body.classList.contains('skin-custom')) document.body.style.backgroundImage=`url("${b}")`; });
 }
-/* "Thư viện của bạn" khi chưa đăng nhập (khách), "Thư viện của <tên>" khi đã đăng nhập */
 const libTitle=()=>(guest||!me||!me.id)?'Thư viện của bạn':'Thư viện của '+(me.display_name||me.username||'bạn');
 function paintLibTitle(){ const sp=document.getElementById('libTitleTx'); if(!sp) return; const t=libTitle(); sp.textContent=t; if(sp.parentNode) sp.parentNode.title=t; }
 function applyUser(u){
@@ -1609,7 +1510,6 @@ function applyUser(u){
   paintLibTitle();
 }
 
-/* ===== Modal chỉnh ảnh (avatar tròn / banner 2:1): kéo để di chuyển, cuộn chuột hoặc kéo thanh để zoom ===== */
 function openCrop(o){ return new Promise(resolve=>{
   const FW=o.kind==='a'?260:480, FH=o.kind==='a'?260:240, fa=FW/FH, im=new Image();
   im.onerror=()=>{ notify('Không đọc được ảnh này'); resolve(null); };
@@ -1643,12 +1543,7 @@ function openCrop(o){ return new Promise(resolve=>{
   im.src=o.src;
 }); }
 
-/* ===== Thẻ hồ sơ kiểu Discord: banner (ảnh/GIF) + avatar + dòng trạng thái ===== */
-/* ===== Ảnh động (GIF) =====
-   GIF avatar/banner/nền là thủ phạm chính gây lag trên điện thoại (WebView giải mã và vẽ lại từng khung hình, nhất là nền GIF phủ cả app).
-   Android mặc định hiện KHUNG ĐẦU của GIF (ảnh tĩnh); bật lại trong Cài đặt → "Ảnh động (GIF)". Máy tính mặc định vẫn cho chạy.
-   Bấm vào ảnh để xem ảnh gốc thì vẫn động. */
-const GIF_LIVE=LS.get('gif_live','1')==='1';   /* mặc định BẬT cả trên Android (server đã thu nhỏ + đổi GIF sang WebP động); ai thấy lag thì tắt ở Cài đặt → Hiệu năng */
+const GIF_LIVE=LS.get('gif_live','1')==='1';
 const GIF_RE=/^\/(avatars|banners|backgrounds)\/[\w.-]+\.gif(\?.*)?$/i;
 const gifFrozen=new Map();
 function freezeUrl(u){
@@ -1668,9 +1563,6 @@ if(!GIF_LIVE){
   const scan=n=>{ if(n.nodeType!==1) return; if(n.tagName==='IMG') freezeImg(n); else if(n.querySelectorAll) n.querySelectorAll('img').forEach(freezeImg); };
   new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='attributes') scan(m.target); else m.addedNodes.forEach(scan); } }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
 }
-/* ===== Video thay ảnh động (avatar + banner trong thẻ hồ sơ) =====
-   Server tạo video MP4 {stem}.mp4 đi kèm ảnh {stem}.v.webp (hoặc .v.gif). Video được điện thoại giải mã bằng phần cứng nên nhẹ hơn GIF/WebP động nhiều.
-   Video lỗi / không có → tự quay về ảnh. Tắt "Ảnh động (GIF)" trong Cài đặt thì không dùng video. */
 function vidOf(u){ const m=/^(\/(?:avatars|banners)\/[\w-]+)\.v\.(?:webp|gif)$/i.exec(u||''); return m?m[1]+'.mp4':''; }
 function gvHtml(src,style){ const v=GIF_LIVE?vidOf(src):'';
   return v?`<video class="gv" data-gv="1" data-img="${esc(src)}" src="${esc(v)}" muted loop autoplay playsinline disablepictureinpicture preload="auto" style="${style}" onerror="gvFail(this)"></video>`
@@ -1687,12 +1579,10 @@ function profileCard(u,o={}){
     <div class="pc-hd"><div class="pc-av">${avHtml(u.avatar,'',cropOf(u),true)}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
 }
-/* Xem ảnh gốc (avatar / banner) toàn màn hình: bấm nền, nút X hoặc Esc để đóng */
 function openImgView(src,name){
   document.querySelectorAll('.imgv').forEach(x=>x.remove()); document.body.classList.remove('imgv-open'); document.querySelectorAll('video[data-gv]').forEach(gvKick);
   const o=document.createElement('div'); o.className='imgv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',name||'');
   o.innerHTML=`<img alt="" decoding="async"><button class="imgv-x" aria-label="Đóng" title="Đóng">${ic('x')}</button>`;
-  /* GIF chạy hết vòng thì WebView giữ trạng thái "đã xong" theo URL → mở lại bị đứng. Thêm tham số thời gian để mỗi lần mở là một lần phát mới. */
   const vs=GIF_LIVE?vidOf(src):'';
   if(vs){ const v=document.createElement('video'); v.src=vs; v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true; v.setAttribute('playsinline',''); v.dataset.gvv='1';
     v.onerror=()=>{ const i=document.createElement('img'); i.alt=''; i.src=src; v.replaceWith(i); }; o.querySelector('img').replaceWith(v); gvKick(v); }
@@ -1719,14 +1609,8 @@ function showProfilePop(u,anchor,mine){
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
 }
 
-/* ===== YouTube Music (tìm qua server → InnerTube) ===== */
 const ytCache={};
-/* Trang chủ dùng cache bền: có dữ liệu cũ thì hiện ngay (<24h), dữ liệu quá 10 phút thì tải lại ngầm cho lần mở sau. */
 const ycKey=q=>'muse_yc2_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
-/* q dạng 'sim:Tên nghệ sĩ' = bài của các nghệ sĩ YouTube Music cho là gần với nghệ sĩ đó (/api/yt/similar); lỗi hoặc rỗng thì quay về tìm kiếm chữ như cũ */
-/* Gợi ý thể loại cho kệ "Giống X" (X chỉ là một ca sĩ/DJ, không phải cả franchise → chỉ hiện đúng thể loại này). Thêm dòng khác tuỳ ý: 'tên nghệ sĩ viết thường':'edm' | 'lofi' | 'rap'. Không khai báo thì server tự đoán từ bài của nghệ sĩ. */
-/* Tiêu đề kệ theo nghệ sĩ KHÔNG dùng một khuôn cố định ("Giống X"): tên nghệ sĩ/producer có thể rất lạ (SEGA, một chữ, toàn chữ hoa, quá dài…).
-   Mẫu được chọn ổn định theo tên; tên quá dài / không có chữ cái thì bỏ tên, dùng tiêu đề chung. Thêm mẫu mới ở đây (nhớ thêm bản tiếng Anh trong EN_RULES). */
 const ART_TPL={
   hear:['Vì bạn hay nghe {n}','Dành cho người hâm mộ {n}'],
   sim:['Nếu bạn thích {n}','Cùng gu với {n}','Fan {n} cũng nghe'],
@@ -1741,12 +1625,12 @@ function artTitle(kind,n){
   return a[strHash(kind+n.toLowerCase())%a.length].replace('{n}',n);
 }
 const ARTIST_GENRE={'saki hanami':'edm'};
-const FRESH_DAYS=14;   /* bài ra trong vòng 14 ngày mới gọi là "bài mới"; cũ hơn là "khám phá" */
+const FRESH_DAYS=14;
 const ytFetch=q=>{
   if(q.startsWith('new:')){ const n=q.slice(4);
     return api('/api/yt/fresh?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks.filter(t=>(t.age??999)<=FRESH_DAYS):[]).catch(()=>[]); }
   if(q.startsWith('sim:')){ const n=q.slice(4), g=ARTIST_GENRE[n.toLowerCase()]||'';
-    return api('/api/yt/similar?artist='+encodeURIComponent(n)+(g?'&genre='+encodeURIComponent(g):'')).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]); }   /* không còn tìm chữ "nhạc giống X" làm dự phòng: nó trả bài trùng tên lung tung. Không đủ bài đúng thì ẩn kệ */
+    return api('/api/yt/similar?artist='+encodeURIComponent(n)+(g?'&genre='+encodeURIComponent(g):'')).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]); }
   return api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
 };
 function ytSearch(q,swr){
@@ -1770,11 +1654,9 @@ async function ytInfo(id){
 }
 const ytId=v=>{v=v.trim();const m=v.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||v.match(/^([\w-]{11})$/);return m&&m[1]};
 
-/* ===== Hiển thị danh sách ===== */
 const cardHtml=(t,k,i)=>`<div class="card ${isWide(t)?'wide':''}" data-l="${k}" data-i="${i}" data-tk="${esc(key(t))}" tabindex="0"><div class="cvw"><img src="${esc(thumb(t.image,isWide(t)?300:360))}" loading="${IMG_LOAD}" decoding="async" alt=""><button class="pl" data-a="play" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(t.title)}</div><div class="ca">${esc(t.artist)}</div></div>`;
 const gridHtml=(list,name)=>{const k=reg(list,name);return `<div class="grid">${list.map((t,i)=>cardHtml(t,k,i)).join('')}</div>`};
 const skel=n=>`<div class="grid">${'<div class="card sk"><div class="cvw"></div><div class="ct">&nbsp;</div></div>'.repeat(n)}</div>`;
-/* Luôn đủ 4 khung: >=4 ảnh thì lấy 4 ảnh đầu; 3 ảnh -> lặp ảnh đầu; 2 ảnh -> xếp so le; 1 ảnh -> 1 ảnh lớn */
 function fill4(im){
   const n=im.length;
   if(n>=4) return im.slice(0,4);
@@ -1827,18 +1709,16 @@ $('#main').addEventListener('click',e=>{
   else if(a==='rm') removeFromPl(t);
   else playList(list,i,lnames[el.dataset.l]);
 });
-/* Chạm vào bài là bảo server lấy sẵn luồng âm thanh (cache 3 giờ) -> lúc bấm phát gần như không phải chờ */
 const warmed={};
 function warmTrack(t){
   try{
-    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return; warmed[t.id]=Date.now();   /* server nhớ luồng 3 giờ, làm nóng lại sau 2 giờ */
+    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return; warmed[t.id]=Date.now();
     fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
   }catch{}
 }
 $('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
   const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrack(t); },{passive:true});
 function warmFirst(list,n=4){ (list||[]).slice(0,n).forEach(warmTrack); }
-/* Bài đang phát xong thì bài kế tiếp đã có luồng sẵn trên server -> chuyển bài gần như tức thì (không phải chờ lấy luồng từ YouTube). */
 let warmNextTm=0;
 function warmNext(){
   clearTimeout(warmNextTm);
@@ -1846,16 +1726,14 @@ function warmNext(){
     if(!cur||!queue.length||queue.length<2) return;
     if(shuf){ return; }
     for(let k=1;k<=2;k++){ const t=queue[(qi+k)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); }
-  }catch{} },1500);   /* chờ 1,5 giây để không tranh băng thông với chính bài đang bắt đầu phát */
+  }catch{} },1500);
 }
 $('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classList.contains('card')||e.target.classList.contains('qk'))) e.target.click(); });
 
-/* ===== Danh sách tâm trạng (menu dài) ===== */
 function closeMoodPop(){ document.querySelectorAll('.moodpop').forEach(x=>x.remove()); const b=$('#moodBtn'); if(b) b.setAttribute('aria-expanded','false'); }
 let moodOpen=false, chipScroll=0, chipsWheel=false;
 function bindChipsWheel(){
   if(chipsWheel) return; chipsWheel=true; const el=$('#topChips');
-  /* lăn chuột dọc -> cuộn ngang thanh chip */
   el.addEventListener('wheel',e=>{
     if(el.scrollWidth<=el.clientWidth) return;
     const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(!d) return;
@@ -1863,7 +1741,6 @@ function bindChipsWheel(){
   },{passive:false});
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMoodPop(); });
-/* ===== Trang ===== */
 function fillQuick(list){
   const q=$('#qp'); if(!q) return; const k=reg(list,'Chọn nhanh');
   const row=(t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" decoding="async" ${j<8?'fetchpriority="high"':'loading="lazy"'} alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
@@ -1871,7 +1748,6 @@ function fillQuick(list){
   q.innerHTML=`<section class="sec"><div class="sh"><div><h3>Chọn nhanh đài phát</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a></div></div><div class="qpager">${cols}</div></section>`;
   markNow(); warmFirst(list,5);
 }
-/* ===== Kiểm tra cập nhật BBeat qua GitHub Release ===== */
 let updShown=false;
 function showUpdateToast(v,url){
   if(updShown) return; updShown=true;
@@ -1894,8 +1770,6 @@ async function checkUpdate(manual){
   }catch(e){ if(manual) notify('Không kiểm tra được cập nhật: '+e.message); return null; }
 }
 const autoUpdate=()=>{ if(LS.get('bb_autoupd','1')==='1') checkUpdate(false); };
-/* ===== Gợi ý theo gu nghe: đếm thể loại / nghệ sĩ trong lịch sử + yêu thích rồi tạo các mục "Dành cho bạn" ===== */
-/* Mỗi thể loại: [tên, regex nhận diện theo chữ (hoặc null nếu nhận bằng bảng chữ), các kệ gợi ý [tiêu đề, từ khóa tìm kiếm]] */
 const GENRES=[
   ['Anime & Game',/anime|opening|ending|\b(?:op|ed)\s?\d+\b|\bost\b|vocaloid|visual novel|galge|eroge|character song|tv size|ゲーム|アニメ|主題歌|挿入歌|サントラ|キャラクターソング|オープニング|エンディング/i,
     [['Anime opening hay nhất','anime opening songs'],['Anime ending cảm xúc','anime ending songs'],['Visual novel & Game OST','visual novel opening songs'],['Vocaloid','vocaloid hits']]],
@@ -1922,7 +1796,6 @@ const GENRES=[
   ['Nhạc Việt',/[ăâđêôơư]|[àáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i,
     [['Nhạc Việt thịnh hành','nhạc việt hot'],['Nhạc trẻ mới nhất','nhạc trẻ mới nhất'],['Indie Việt','indie việt hay nhất']]]
 ];
-/* Nhận diện thể loại của 1 bài: chữ viết (kana → Nhật, hangul → Hàn, chỉ có hán tự → Hoa) + từ khóa trong tên bài / nghệ sĩ / album */
 function tasteTags(t){
   const txt=(t.title||'')+' '+(t.artist||'')+' '+(t.album||'');
   const tags=new Set();
@@ -1931,21 +1804,15 @@ function tasteTags(t){
   if(kana){ tags.add('Nhạc Nhật'); if(/アニメ|ゲーム|主題歌/.test(txt)) tags.add('Anime & Game'); }
   if(hangul) tags.add('K-Pop');
   if(han&&!kana&&!hangul&&!tags.has('Anime & Game')) tags.add('Nhạc Hoa');
-  if(tags.has('Nhạc Nhật')&&tags.has('Nhạc Việt')) tags.delete('Nhạc Việt');   /* tên Nhật phiên âm hay dính dấu tiếng Việt */
+  if(tags.has('Nhạc Nhật')&&tags.has('Nhạc Việt')) tags.delete('Nhạc Việt');
   return tags;
 }
 const dayIdx=()=>Math.floor(Date.now()/864e5);
-/* tên nghệ sĩ hợp lệ: phải có chữ cái, không phải thời lượng (3:38 / 4:26), lượt xem, số, nhãn Song/Video */
 const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^[\d\s:.,·•\-–]+$/.test(x)&&!/^\d{1,3}(:\d{2}){1,2}\b/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
-/* Alias nghệ sĩ: YouTube hay ghi TÊN KÊNH ("Abuse") thay cho tên nghệ sĩ ("Abu-Se-Ken") → gộp về một tên chuẩn để lịch sử nghe, theo dõi và gợi ý tính chung.
-   Khóa = tên viết thường chỉ giữ chữ/số. Server gửi danh sách đầy đủ qua /api/config (cfg.artist_aliases), bản dưới đây là mặc định khi chưa có/offline. */
 const artNorm=s=>String(s||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');
 let ARTIST_ALIAS={abuse:'Abu-Se-Ken',abuseken:'Abu-Se-Ken','アブセケン':'Abu-Se-Ken'};
 const canonArtist=n=>{ n=String(n||'').trim(); return ARTIST_ALIAS[artNorm(n)]||n; };
 const splitArtists=s=>{ const seen=new Set(); return String(s||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x)).map(canonArtist).filter(x=>{ const k=x.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; }); };
-/* ===== Ghi nhận nghe hết / bỏ qua (skip) từng bài, có mốc thời gian ===== */
-/* Lịch sử trên server không có giờ nghe và không biết bài nào bị bỏ qua, nên app tự ghi lại ở máy: nghe >=70% bài = thích, bấm chuyển bài trong <30 giây = bỏ qua. */
-/* Dữ liệu nghe lưu theo THIẾT BỊ (không theo tài khoản): đăng xuất, đổi tài khoản hay dùng chế độ khách vẫn giữ gu nghe ở máy này */
 const listenGet=()=>{ try{ const o=JSON.parse(LS.get('muse_listen_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 const devPlaysGet=()=>{ try{ const o=JSON.parse(LS.get('muse_plays_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 const playsAll=()=>{ const a=playsGet(), b=devPlaysGet(), o={...a}; for(const k in b){ if(!o[k]||(b[k].n||0)>(o[k].n||0)) o[k]=b[k]; } return o; };
@@ -1956,7 +1823,7 @@ function noteListen(t,sec,dur,auto){
     const d=dur>0?dur:(t.dur||0), ratio=d>0?sec/d:0;
     let kind=0;
     if(d>0?ratio>=.7:sec>=150) kind=1;
-    else if(!auto&&sec>=1.5&&sec<30&&(d<=0||ratio<.5)) kind=-1;   /* tự chuyển bài do lỗi tải (auto) hoặc bài vừa bấm đã lỗi (<1.5s) thì không tính là skip */
+    else if(!auto&&sec>=1.5&&sec<30&&(d<=0||ratio<.5)) kind=-1;
     if(!kind) return;
     const o=listenGet(), k=key(t), e=o[k]||{t:slim(t),ok:0,sk:0,last:0};
     if(kind>0) e.ok++; else e.sk++;
@@ -1965,17 +1832,15 @@ function noteListen(t,sec,dur,auto){
     LS.set('muse_listen_dev',JSON.stringify(o)); tasteCache=null; syncDirty('listen');
   }catch{}
 }
-/* Giảm dần theo thời gian, nửa đời 30 ngày (ý tưởng từ Sonic Fingerprint của AudioMuse-AI): bài mới nghe nặng hơn bài nghe từ lâu */
 const recW=ts=>ts?Math.max(.15,Math.pow(.5,(Date.now()-ts)/(30*864e5))):.5;
-/* Số liệu thô (điểm thể loại gc, điểm nghệ sĩ ac) → hồ sơ gu nghe. Điểm âm = bài/nghệ sĩ hay bị bỏ qua. */
 function buildProfile(gc,ac,seen,n,skipKeys){
   const pos=Object.values(gc).reduce((s,c)=>s+Math.max(0,c),0)||1;
-  const early=n<10;   /* ít dữ liệu thì hạ ngưỡng để vài bài đầu tiên đã ảnh hưởng ngay */
+  const early=n<10;
   const top=Object.entries(gc).filter(([nm,c])=>c>=(early?1:2)&&c/pos>=.08&&GENRES.some(g=>g[0]===nm)).sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>x[0]);
   const avoidGenres=new Set(Object.entries(gc).filter(([nm,c])=>c<=-3&&!top.includes(nm)).map(x=>x[0]));
   const aList=Object.values(ac).filter(a=>a&&goodArtist(a.n));
   const arts=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,8);
-  const artsAll=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,16);   /* danh sách dài hơn cho mục "Nghệ sĩ yêu thích" */
+  const artsAll=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,16);
   const avoid=new Set(aList.filter(a=>a.c<=-2.5).map(a=>a.n.toLowerCase()));
   const mx=arts.length?arts[0].c:1, artW={}; arts.forEach(a=>{ artW[a.n.toLowerCase()]=a.c/mx; });
   return {top,arts,artsAll,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc};
@@ -1983,7 +1848,6 @@ function buildProfile(gc,ac,seen,n,skipKeys){
 async function tasteProfile(){
   if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
   const tk='muse_taste3_dev';
-  /* bản lưu cũ (muse_taste) có thể chứa "nghệ sĩ" rác như 4:26 nên bỏ hẳn; bản mới được lọc lại khi đọc */
   const saved=()=>{ try{ const o=JSON.parse(LS.get(tk,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; };
   const empty=buildProfile({},{},new Set(),0);
   const got=await Promise.race([
@@ -1994,7 +1858,6 @@ async function tasteProfile(){
   const hist=Array.isArray(got[0])?got[0].slice(0,300):[], fav=Array.isArray(got[1])?got[1]:[];
   let dls=[]; try{ dlLoad(); dls=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); }catch{}
   const L=listenGet(), P=playsAll();
-  /* [bài, trọng số]. Lịch sử: bài gần đây nặng hơn (index 0 = mới nhất). Yêu thích và tải xuống: tín hiệu chủ động nên nặng. Phát nhiều: log. Nghe hết +, bỏ qua − (đều giảm dần theo thời gian). */
   const all=[
     ...hist.map((t,i)=>[t,1.6*Math.max(.35,Math.pow(.5,i/50))]),
     ...fav.map(t=>[t,3]),
@@ -2002,14 +1865,13 @@ async function tasteProfile(){
     ...Object.values(P).filter(e=>e&&e.t).map(e=>[e.t,(1+1.5*Math.log1p(e.n))*(e.last?.4+.6*recW(e.last):.7)]),
     ...Object.values(L).filter(e=>e&&e.t).map(e=>[e.t,Math.max(-6,Math.min(6,(1.2*(e.ok||0)-1.8*(e.sk||0))*recW(e.last)))])
   ];
-  if(all.filter(x=>x[1]>0).length<1) return saved()||empty;   /* chỉ cần 1 bài là bắt đầu học gu, khách chưa đăng nhập cũng vậy */
+  if(all.filter(x=>x[1]>0).length<1) return saved()||empty;
   const gc={}, ac={}, seen=new Set(), skipKeys=new Set();
   for(const [t,w] of all){
     if(!t) continue; seen.add(key(t));
     tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; });
     splitArtists(t.artist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
   }
-  /* nghệ sĩ đang theo dõi là tín hiệu rõ ràng nhất */
   followGet().filter(goodArtist).map(canonArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
   Object.entries(L).forEach(([k,e])=>{ if(e&&(e.sk||0)>(e.ok||0)) skipKeys.add(k); });
   try{
@@ -2019,16 +1881,13 @@ async function tasteProfile(){
   }catch{}
   const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; return v;
 }
-/* ===== Lên kệ trang chủ: ưu tiên gu nghe (~2/3) + khám phá (~1/3), xoay vòng mỗi 6 giờ ===== */
 const strHash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
 const rngMake=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; };
-/* chọn n phần tử có trọng số, không lặp */
 function pickW(items,wf,rnd,n){
   const pool=items.map(x=>({x,w:Math.max(0,wf(x))})).filter(o=>o.w>0), out=[];
   while(out.length<n&&pool.length){ const tot=pool.reduce((s,o)=>s+o.w,0); let r=rnd()*tot, i=0; for(;i<pool.length-1;i++){ r-=pool[i].w; if(r<=0) break; } out.push(pool[i].x); pool.splice(i,1); }
   return out;
 }
-/* Thể loại gần nhau: ai nghe A thì dễ thích B → kệ khám phá ưu tiên các thể loại này */
 const ADJ={'Nhạc Việt':['Ballad / Buồn','Acoustic','Bolero','Rap / Hip-hop','Lofi / Chill'],'Ballad / Buồn':['Nhạc Việt','Acoustic','Piano / Không lời','Bolero'],'Acoustic':['Ballad / Buồn','Lofi / Chill','Piano / Không lời','Nhạc Việt'],'Bolero':['Nhạc Việt','Ballad / Buồn'],
   'K-Pop':['Nhạc Nhật','Nhạc Hoa','EDM / Remix','Anime & Game'],'Nhạc Nhật':['Anime & Game','K-Pop','Nhạc Hoa','Lofi / Chill'],'Anime & Game':['Nhạc Nhật','K-Pop','Lofi / Chill','Piano / Không lời'],'Nhạc Hoa':['K-Pop','Nhạc Nhật','Ballad / Buồn'],
   'Lofi / Chill':['Acoustic','Piano / Không lời','Ballad / Buồn'],'Piano / Không lời':['Lofi / Chill','Acoustic','Anime & Game'],'EDM / Remix':['Rap / Hip-hop','K-Pop','Nhạc Việt'],'Rap / Hip-hop':['EDM / Remix','Nhạc Việt']};
@@ -2040,11 +1899,8 @@ const explorePool=Y=>{ const M=new Date().getMonth()+1; return [
   ['Vinahouse / EDM','vinahouse remix hot','EDM / Remix'],['EDM bùng nổ','edm party hits','EDM / Remix'],
   ['Mới ra mắt tháng '+M,`nhạc mới ra mắt tháng ${M} ${Y}`,null],['Viral mạng xã hội',`nhạc viral tiktok ${Y}`,null],['Top hits quốc tế','top global hits',null],['Pop Âu Mỹ',`pop hits ${Y}`,null],['R&B / Soul','r&b soul hits',null],['Rock mạnh mẽ','rock energy songs',null],['Jazz nhẹ nhàng','smooth jazz classics',null],['Indie / Alternative','indie alternative hits',null],['Nhạc phim & OST','movie soundtrack songs',null],['Hits thập niên 2000','2000s hits',null]
 ].map(([t,q,g])=>({t,q,g})); };
-/* Trả về danh sách kệ [tiêu đề, từ khóa, nhãn nhỏ, loại]. loại: 'taste' (theo gu) hoặc 'explore' (khám phá). */
-/* Hạt giống đổi mỗi lần tải lại trang (và khi bấm "Làm mới") → mở lại web luôn ra bộ kệ khác; trong lúc dùng, chuyển trang qua lại thì giữ nguyên. */
 let homeSeed=(Math.random()*4294967296)>>>0;
 const rollSeed=()=>{ homeSeed=(Math.random()*4294967296)>>>0; };
-/* Nút "Làm mới": đổi hạt giống, bỏ cache các kệ (bộ nhớ + localStorage) và xáo lại bài trong từng kệ → luôn ra nội dung khác (cả khi đang ở một tâm trạng) */
 let homeShuf=false, rfBusy=false;
 function seededShuffle(a,seed){ const r=rngMake(seed), o=a.slice(); for(let i=o.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [o[i],o[j]]=[o[j],o[i]]; } return o; }
 function dropHomeCache(){
@@ -2057,7 +1913,6 @@ async function refreshHome(){
   try{ rollSeed(); homeShuf=true; dropHomeCache(); await go('home'); notify('Đã làm mới gợi ý'); }
   finally{ rfBusy=false; }
 }
-/* Khung giờ: sáng nhẹ nhàng, tối sôi động, khuya êm */
 function hourBoost(g){
   const h=new Date().getHours();
   const set=h>=5&&h<11?['Acoustic','Lofi / Chill','Piano / Không lời']:h>=17&&h<22?['EDM / Remix','Rap / Hip-hop','K-Pop']:(h>=22||h<5)?['Lofi / Chill','Ballad / Buồn','Piano / Không lời','Acoustic']:[];
@@ -2069,29 +1924,23 @@ function planHome(tp,Y){
   const TOTAL=6, nT=!hasTaste?0:tp.n>=8?4:3;
   const taste=[], usedQ=new Set();
   if(nT){
-    /* nghệ sĩ hay nghe: tối đa 2 kệ (3 nếu gu rất rõ) */
     const nA=Math.min(arts.length,nT>=4&&arts.length>=5?3:nT>=4?2:1);
     const artShelves=pickW(arts,a=>Math.sqrt(a.c),rnd,nA).map(a=>{
       const n=a.n, lat=!/[^\x00-ɏ]/.test(n);
-      /* phần tử thứ 3 = true nếu là tìm theo TÊN nghệ sĩ (kết quả phải lọc đúng nghệ sĩ đó, tránh bài có tựa trùng tên người hát) */
       const tpl=[[artTitle('hear',n),lat?n+' hay nhất':n+' best songs',true],[artTitle('sim',n),'sim:'+n,false],[artTitle('new',n),'new:'+n,false]];
       const w=[.5,.3,.2], pick=pickW(tpl.map((x,i)=>({x,w:w[i]})),o=>o.w,rnd,1)[0].x;
-      return [pick[0],pick[1],n,!!pick[2]];   /* [tiêu đề, từ khoá, tên nghệ sĩ, tìm-theo-tên?] */
+      return [pick[0],pick[1],n,!!pick[2]];
     });
-    /* thể loại hay nghe: mỗi thể loại 1 kệ, thể loại mạnh nhất có thể thêm kệ thứ 2 */
     const gl=tp.top.map(n=>GENRES.find(g=>g[0]===n)).filter(Boolean), genShelves=[];
     const need=nT-artShelves.length;
     pickW(gl,g=>Math.max(.1,tp.gc[g[0]]),rnd,need).forEach(g=>{ const l=g[2]; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); });
     for(let r=0;genShelves.length+artShelves.length<nT&&gl.length&&r<6;r++){ const g=gl[0], l=g[2].filter(x=>!genShelves.some(y=>y[1]===x[1])); if(!l.length) break; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); }
-    /* xen kẽ nghệ sĩ / thể loại cho đa dạng */
     for(let i=0;i<Math.max(artShelves.length,genShelves.length);i++){
       if(artShelves[i]) taste.push([artShelves[i][0],artShelves[i][1],'','taste',artShelves[i][2],artShelves[i][3]]);
       if(genShelves[i]) taste.push([genShelves[i][0],genShelves[i][1],'','taste']);
     }
     taste.forEach(x=>usedQ.add(x[1]));
   }
-  /* khám phá: thể loại gần gu nghe nhất được ưu tiên, thể loại đã có kệ theo gu hoặc hay bị bỏ qua thì ít khi chọn */
-  /* gu đã rõ (đủ dữ liệu) mà không nghe nhạc Việt → KHÔNG đưa kệ khám phá tiếng Việt (nhạc Việt đại trà, viral, nhạc trẻ…) vào trang chủ; thể loại không liên quan cũng ít được chọn hơn */
   const strong=tp.n>=8&&(topSet.size>0||arts.length>0);
   const viRe=(GENRES.find(g=>g[0]==='Nhạc Việt')||[])[1];
   const viTaste=['Nhạc Việt','Bolero','Ballad / Buồn'].some(g=>topSet.has(g))||!!(viRe&&arts.some(a=>viRe.test(a.n)));
@@ -2099,7 +1948,6 @@ function planHome(tp,Y){
   const expW=x=>{ let w=x.g?(strong?.5:1):(strong?.8:1.2); if(x.g){ if(topSet.has(x.g)) w=.4; else if(tp.top.some(n=>(ADJ[n]||[]).includes(x.g))) w=2.4; if(tp.avoidGenres.has(x.g)) w*=.1; w*=hourBoost(x.g); } return w; };
   const nE=TOTAL-taste.length;
   const explore=pickW(explorePool(Y).filter(x=>!usedQ.has(x.q)&&!taste.some(y=>y[0]===x.t)&&!(strong&&!viTaste&&isVi(x))),expW,rnd,nE).map(x=>[x.t,x.q,'','explore']);
-  /* xếp: 2 theo gu, 1 khám phá, lặp lại. Kệ đầu tiên luôn là theo gu (nếu có) vì nó cũng là nguồn của "Chọn nhanh đài phát". */
   const out=[]; let ti=0, ei=0;
   while(ti<taste.length||ei<explore.length){
     for(let k=0;k<2&&ti<taste.length;k++) out.push(taste[ti++]);
@@ -2108,20 +1956,17 @@ function planHome(tp,Y){
   }
   return out;
 }
-/* Lọc kệ: bỏ bài từng bị bỏ qua, nghệ sĩ hay bị bỏ qua; kệ theo gu ưu tiên bài chưa nghe; tránh một bài xuất hiện ở nhiều kệ */
 const artistHit=(t,name)=>{ const la=canonArtist(name).toLowerCase(); return splitArtists(t.artist).some(x=>{ x=x.toLowerCase(); return x===la||x.includes(la)||(x.length>=3&&la.includes(x)); }); };
 function cleanShelf(r,tp,kind,shown,art){
-  /* bài có TỰA trùng tên một nghệ sĩ bạn hay nghe nhưng do người khác hát (vd. nghệ sĩ "hanami" → hàng loạt bài tên "Hanami") thì bỏ */
   const an=new Set((tp.arts||[]).map(a=>a.n.toLowerCase()));
   if(an.size) r=r.filter(t=>!an.has(String(t.title||'').trim().toLowerCase())||splitArtists(t.artist).some(x=>an.has(x.toLowerCase())));
-  if(art) r=r.filter(t=>artistHit(t,art));   /* kệ tìm theo tên nghệ sĩ: chỉ giữ bài của đúng nghệ sĩ đó */
+  if(art) r=r.filter(t=>artistHit(t,art));
   let a=r.filter(t=>t&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase())));
   if(a.length>=10) r=a;
   if(kind==='taste'){ const f=r.filter(t=>!tp.seen.has(key(t))); if(f.length>=14) r=f; }
   if(shown){ const f=r.filter(t=>!shown.has(key(t))); if(f.length>=12) r=f; r.slice(0,24).forEach(t=>shown.add(key(t))); }
   return r;
 }
-/* "Gợi ý cho bạn" từ server (item-item KNN) được sắp lại theo gu: nghệ sĩ/thể loại quen thuộc lên trước, bỏ bài đã skip, tối đa 2 bài/nghệ sĩ ở đầu danh sách */
 function rerankRec(list,tp){
   const gS=new Set(tp.top);
   const sc=list.map((t,i)=>{
@@ -2136,9 +1981,7 @@ function rerankRec(list,tp){
   for(const [t,,a] of sc){ per[a]=(per[a]||0)+1; (per[a]<=2?out:rest).push(t); }
   return out.concat(rest);
 }
-/* ===== Tuyển tập, quên lãng, Blend ===== */
 const uniqTracks=l=>{ const s=new Set(); return l.filter(t=>{ if(!t||!t.id) return false; const k=key(t); if(s.has(k)) return false; s.add(k); return true; }); };
-/* xen kẽ theo nghệ sĩ để một tuyển tập không bị dồn một người hát */
 function byArtistRR(l,rnd){ const g=new Map(); l.forEach(t=>{ const a=(splitArtists(t.artist)[0]||'?').toLowerCase(); if(!g.has(a)) g.set(a,[]); g.get(a).push(t); });
   const qs=[...g.values()].sort(()=>rnd()-.5), out=[]; for(let r=0;out.length<l.length;r++){ let any=false; for(const q of qs){ if(q[r]){ out.push(q[r]); any=true; } } if(!any) break; } return out; }
 const collRow=(t,j,k)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" loading="lazy" alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
@@ -2150,20 +1993,16 @@ async function loadCollections(tp,render){
   const A=x=>Array.isArray(x)?x:[], lib=uniqTracks([...A(fav),...A(hist)]);
   const okT=t=>t&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
   const slots=[]; const push=()=>render(slots.filter(Boolean));
-  /* 1) Siêu tuyển tập: thư viện của bạn + gợi ý, xen kẽ nghệ sĩ */
   const mixA=byArtistRR(uniqTracks([...A(fav).slice(0,40),...A(hist).slice(0,40),...A(rec).slice(0,20)]).filter(okT),rnd).slice(0,30);
   if(mixA.length>=6){ slots[0]={title:'Siêu tuyển tập nhạc của tôi',sub:'',tracks:mixA}; push(); }
-  /* 2) Theo nghệ sĩ hay nghe (2 người, xoay theo ngày) */
   const arts=pickW((tp.artsAll||[]).slice(0,8),a=>Math.sqrt(Math.max(a.c,.05)),rnd,2);
   const jobs=arts.map(async(a,i)=>{ try{ const own=lib.filter(t=>artistHit(t,a.n)&&okT(t)); let more=[]; try{ more=(await ytSearch(a.n+' songs',true)).filter(t=>artistHit(t,a.n)&&okT(t)); }catch{}
       const tr=uniqTracks([...own,...more]).slice(0,25); if(tr.length>=6){ slots[1+i]={title:'Tuyển tập '+a.n,sub:'',tracks:tr}; push(); } }catch{} });
-  /* 3) Theo thể loại hay nghe (2 thể loại) */
   const gens=(tp.top||[]).map(n=>GENRES.find(g=>g[0]===n)).filter(Boolean).slice(0,2);
   gens.forEach((g,i)=>jobs.push((async()=>{ try{ const own=lib.filter(t=>okT(t)&&[...tasteTags(t)].includes(g[0])); let more=[]; try{ const q=g[2][Math.floor(rnd()*g[2].length)][1]; more=(await ytSearch(q,true)).filter(okT); }catch{}
       const tr=byArtistRR(uniqTracks([...own,...more]),rnd).slice(0,25); if(tr.length>=6){ slots[3+i]={title:'Tuyển tập '+g[0],sub:'',tracks:tr}; push(); } }catch{} })()));
   await Promise.all(jobs);
 }
-/* Bài đã yêu thích nhưng >30 ngày chưa nghe và không có trong 40 bài nghe gần nhất; bài hợp gu hiện tại và bài thả tim lâu rồi được ưu tiên */
 async function loadForgotten(tp){
   const f=await api('/api/favorites').catch(()=>[]); if(!Array.isArray(f)||f.length<6) return [];
   const hist=await api('/api/history').catch(()=>[]), recent=new Set((Array.isArray(hist)?hist.slice(0,40):[]).map(key));
@@ -2191,7 +2030,6 @@ const blendPage=async function(m,fid){
     try{ const p=await api('/api/playlists',{json:{name:'Hoà trộn: '+title}}); for(const t of l) await api(`/api/playlists/${p.id}/tracks`,{json:slim(t)}); await loadPlaylists(); notify('Đã lưu thành danh sách phát'); }
     catch(e){ notify(errTxt(e)); } finally{ sv.disabled=false; } };
 };
-/* "Gợi ý cho hôm nay": chọn vài nghệ sĩ hay nghe (xoay theo ngày), lấy bài của các nghệ sĩ gần giống (không phải của chính họ), xen kẽ, ưu tiên bài chưa nghe, tối đa 3 bài/nghệ sĩ. Lưu theo ngày để cả ngày hiện cùng một danh sách. */
 const dayNum=()=>{ const d=new Date(); return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(); };
 async function loadDaily(tp){
   const ck=uKey('muse_daily'), today=dayNum();
@@ -2211,19 +2049,12 @@ async function loadDaily(tp){
       const a=(splitArtists(t.artist)[0]||'').toLowerCase(); if((per[a]||0)>=3) continue;
       used.add(key(t)); per[a]=(per[a]||0)+1; out.push(t); if(out.length>=24) break; }
   }
-  /* thêm 1–2 bài của chính nghệ sĩ bạn mê nhưng chưa nghe để danh sách có cả quen lẫn lạ */
   if(out.length>=8){ try{ const fav=picks[0], ex=(await ytSearch(fav.n+' best songs',true)).filter(t=>artistHit(t,fav.n)&&okT(t)&&!tp.seen.has(key(t))&&!used.has(key(t))).slice(0,2);
     ex.forEach((t,i)=>out.splice(Math.min(out.length,3+i*5),0,t)); }catch{} }
   const res=out.slice(0,24);
   if(res.length>=8){ try{ LS.set(ck,JSON.stringify({d:today,r:res.map(slim)})); }catch{} }
   return res;
 }
-/* "Nhạc mới mỗi ngày": bài ra trong ≤14 ngày của các nghệ sĩ bạn hay nghe (mỗi người tối đa 2 thẻ), chưa nghe lần nào. Cố định theo ngày. Chưa có gu nghe / không có bài mới → lấy bản phát hành mới chung (không có chú thích). */
-/* ===== Nhạc mới mỗi ngày: chọn THEO GU, không nhét ngẫu nhiên =====
-   Nguồn (đều là bài MỚI PHÁT HÀNH): (1) nghệ sĩ bạn nghe nhiều / đang theo dõi, (2) nghệ sĩ gần gu với họ (mục "liên quan" của YouTube Music).
-   Mỗi bài có điểm = độ mê nghệ sĩ × độ mới + một chút ngẫu nhiên theo ngày, nên mỗi ngày (và mỗi lần bấm "Làm mới") ra bộ khác nhau.
-   Loại: bài đã nghe/đã bỏ qua, tuyển tập – album dài – liên khúc, và bài đã từng hiện ở mục này trong 14 ngày qua → không lặp lại.
-   Không có bài hợp gu thì ẩn mục, KHÔNG lấy nhạc đại trà cho đủ số (muốn tự chọn thì đã có mục Khám phá). */
 const ND_JUNK=/(\balbum\b(?!\s*version)|full album|tuyển tập|liên khúc|nonstop|non-stop|playlist|compilation|nhạc hot|hot tiktok|hot youtube|hot trend|\b\d{1,3}\s*(bài|songs|tracks)\b|top\s*\d+|bài hay nhất|best of|megamix)/i;
 const ND_CHANNEL=/\b(music|records?|entertainment|official|channel|tv|media|studio)\s*$/i;
 const ndJunk=(t,own)=>!t||!t.id||(t.dur>0&&t.dur>540)||ND_JUNK.test(String(t.title||''))||(!own&&ND_CHANNEL.test(String(t.artist||'').trim()));
@@ -2243,7 +2074,6 @@ async function loadNewDaily(tp){
   const mx=Math.max(...ownL.map(a=>a.c),1), aff=a=>Math.sqrt(Math.max(a.c,.05)/mx);
   const ownSet=new Set(ownL.map(a=>a.n.toLowerCase()));
   const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!tp.seen.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
-  /* 1) nghệ sĩ của bạn (chọn theo trọng số, xoay theo ngày) + 2) nghệ sĩ liên quan tới 2 người trong số đó */
   const ownPick=pickW(ownL,a=>aff(a)+.15,rnd,6);
   const [ownRes,simRes]=await Promise.all([
     Promise.all(ownPick.map(a=>freshRaw(a.n).then(l=>({a,l})))),
@@ -2252,7 +2082,6 @@ async function loadNewDaily(tp){
   const relPick=[]; const relSeen=new Set();
   simRes.forEach(({a,rel})=>{ pickW(rel.filter(n=>!ownSet.has(canonArtist(n).toLowerCase())&&!tp.avoid.has(n.toLowerCase())&&!ND_CHANNEL.test(n)),()=>1,rnd,3).forEach(n=>{ const k=n.toLowerCase(); if(!relSeen.has(k)){ relSeen.add(k); relPick.push({n,from:a}); } }); });
   const relRes=await Promise.all(relPick.slice(0,5).map(x=>freshRaw(x.n).then(l=>({x,l}))));
-  /* 3) chấm điểm: độ mê × độ mới + ngẫu nhiên nhẹ; bài của nghệ sĩ liên quan nhẹ hơn một chút */
   const cands=[];
   ownRes.forEach(({a,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,true)&&artistHit(t,a.n)&&(t.age??999)<=30) cands.push({t,a:a.n,w:'Dành cho người hâm mộ '+a.n,own:true,s:aff(a)*(1/(1+(t.age??30)/8))+rnd()*.25}); }));
   relRes.forEach(({x,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,false)&&(t.age??999)<=21) cands.push({t,a:x.n,w:'Vì bạn nghe '+x.from.n,own:false,s:.55*aff(x.from)*(1/(1+(t.age??21)/8))+rnd()*.25}); }));
@@ -2266,7 +2095,6 @@ async function loadNewDaily(tp){
     return out;
   };
   let out=pickFrom(!!homeShuf); if(out.length<4) out=pickFrom(false);
-  /* xen kẽ: không để hai bài liền nhau cùng nghệ sĩ */
   const res=[]; const rest=out.slice(); while(rest.length){ const last=res.length?res[res.length-1].a:''; let i=rest.findIndex(x=>x.a!==last); if(i<0) i=0; res.push(rest.splice(i,1)[0]); }
   if(res.length>=2){ try{ LS.set(ck,JSON.stringify({d:today,v:2,r:res.map(x=>({t:slim(x.t),a:x.a,w:x.w}))}));
     res.forEach(x=>{ seen[key(x.t)]=today; }); const ks=Object.keys(seen); if(ks.length>150) ks.sort((p,q)=>seen[p]-seen[q]).slice(0,ks.length-150).forEach(k=>delete seen[k]); LS.set(ndSeenKey(),JSON.stringify(seen)); }catch{} }
@@ -2304,15 +2132,12 @@ const pages={
     if(page!=='home') return;
     homeTg='';
     const tgMode=false;
-    /* mục 0 ("Tất cả"): kệ do planHome lên (theo gu + khám phá, xoay vòng); các mục tâm trạng giữ danh sách cố định */
     const secs=ci===0?planHome(taste,Y):sets[ci][1].map(([t,q])=>[t,q,'','mood']);
     m.innerHTML=(ci===0&&!tgMode?'<div id="nd"></div><div id="jb"></div><div id="fa"></div><div id="ba"></div><div id="rd"></div><div id="cl"></div><div id="fg"></div><div id="bl"></div><div id="ex"></div><div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t,,kk],i)=>sec(i,t,kk)).join('');
     if(ci===0&&!tgMode){
-      /* --- Nhạc mới mỗi ngày: thẻ lớn, mỗi thẻ một bài mới ra của nghệ sĩ bạn hay nghe --- */
       loadNewDaily(taste).then(r=>{ const box=$('#nd'); if(!Array.isArray(r)||r.length<2||!box) return;
         const list=r.map(x=>x.t), k=reg(list,'Nhạc mới mỗi ngày');
         box.innerHTML=`<section class="sec nmh"><div class="sh"><div><h3>Nhạc mới mỗi ngày</h3></div><div class="shr"><a class="more pill" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid nmd">${r.map((x,i)=>`<div class="nmc" data-l="${k}" data-i="${i}" data-tk="${esc(key(x.t))}" tabindex="0"><img src="${esc(thumb(x.t.image,600))}" alt=""><div class="nt"><b>${esc(x.t.title)}</b><span>${esc(x.t.artist)}</span></div>${x.a?`<div class="nc">${esc(x.w||('Dành cho người hâm mộ '+x.a))}</div>`:''}</div>`).join('')}</div></section>`; markNow(); }).catch(()=>{});
-      /* --- Tiếp tục nghe: các nơi bạn vừa nghe dở (danh sách, đài, nghệ sĩ…) --- */
       try{ const J=jumpGet(), box=$('#jb');
         if(J.length&&box){
           const cards=J.map((x,i)=>{ const cur_=x.tr[Math.min(x.i||0,x.tr.length-1)];
@@ -2320,7 +2145,6 @@ const pages={
             return `<div class="card" data-jb="${i}" tabindex="0"><div class="cvw">${cvr}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(x.n)}</div><div class="ca">${esc('Tiếp tục: '+(cur_?cur_.title:''))}</div></div>`; }).join('');
           box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div><h3>Tiếp tục nghe</h3></div><div class="shr"><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${cards}</div></section>`;
         } }catch{}
-      /* --- Nghệ sĩ yêu thích: nghệ sĩ nghe nhiều nhất / đang theo dõi, ảnh nghệ sĩ lấy từ YouTube Music --- */
       try{ const names=(taste.artsAll||[]).map(a=>a.n).filter(goodArtist).slice(0,14), box=$('#fa');
         if(names.length>=2&&box){
           api('/api/yt/artists?names='+encodeURIComponent(names.join('|'))).then(l=>{ const bx=$('#fa'); if(!Array.isArray(l)||l.length<2||!bx) return;
@@ -2329,23 +2153,17 @@ const pages={
             const list=l.slice(0,12).map(e=>({...e,sub:'Nghệ sĩ'}));
             bx.innerHTML=`<section class="sec"><div class="sh"><div><h3>Nghệ sĩ yêu thích của bạn</h3></div><div class="shr"><a class="more" data-go="followed">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${entCards(list).replace('grid wrap sent','grid')}</section>`; }).catch(()=>{});
         } }catch{}
-      /* --- Nghệ sĩ nổi bật ("This Is"): độ hot tính từ bảng xếp hạng (thứ hạng, lượt xem, lượt thích), pha nhẹ gu nghe của bạn --- */
       getBestArtists(taste).then(l=>{ const box=$('#ba'); if(!box||l.length<3) return; const list=l.slice(0,12), k=reg(list,'');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Nghệ sĩ nổi bật</h3></div><div class="shr"><a class="more" data-go="bestartists">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${list.map((e,i)=>tiCard(e,i,k)).join('')}</div></section>`; }).catch(()=>{});
-      /* --- Gợi ý cho hôm nay: đổi mỗi ngày, dựa trên nghệ sĩ bạn hay nghe, ưu tiên bài/nghệ sĩ bạn chưa nghe --- */
       loadDaily(taste).then(r=>{ const box=$('#rd'); if(!Array.isArray(r)||r.length<6||!box) return; const k=reg(r,'Gợi ý cho hôm nay');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Gợi ý cho hôm nay</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Gợi ý cho hôm nay')}</section>`; markNow(); }).catch(()=>{});
-      /* --- Tuyển tập nhạc cho bạn: bìa ghép + 3 bài đầu, lướt ngang; dựng từ yêu thích/lịch sử + nghệ sĩ & thể loại bạn hay nghe --- */
       loadCollections(taste,list=>{ const box=$('#cl'); if(!box||!list.length) return;
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Tuyển tập nhạc cho bạn</h3></div><div class="shr"><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid collg">${list.map(collCard).join('')}</div></section>`; markNow(); });
-      /* --- Những bản nhạc yêu thích dần trôi vào quên lãng: bài đã thả tim nhưng lâu rồi bạn chưa nghe --- */
       loadForgotten(taste).then(r=>{ const box=$('#fg'); if(!Array.isArray(r)||r.length<4||!box) return; const k=reg(r,'Những bản nhạc yêu thích dần trôi vào quên lãng');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc yêu thích dần trôi vào quên lãng</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Những bản nhạc yêu thích dần trôi vào quên lãng')}</section>`; markNow(); }).catch(()=>{});
-      /* --- Hoà trộn gu với bạn bè --- */
       { const box=$('#bl'); if(box&&!guest){
         box.innerHTML=`<section class="sec"><div class="blb" data-go="blend" role="button" tabindex="0"><div class="blt">Hoà trộn gu với bạn bè trong một danh sách phát</div><div class="bg1"></div><div class="bgp">+</div><div class="bg2"></div><div class="bla">${ic('chev')}</div></div></section>`;
         const b=box.querySelector('.blb'); if(b) b.onkeydown=e=>{ if(e.key==='Enter') go('blend'); }; } }
-      /* --- Khám phá --- */
       { const box=$('#ex'); if(box){ const Yx=new Date().getFullYear();
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Khám phá</h3></div></div><div class="tiles"><div class="tl" data-gs="nhạc mới ra mắt ${Yx}" style="background:linear-gradient(135deg,#f7971e,#d9423e)" tabindex="0">Bản phát hành mới${ic('note')}</div><div class="tl" data-go="charts" style="background:linear-gradient(135deg,#11998e,#38ef7d)" tabindex="0">Bảng xếp hạng${ic('trend')}</div><div class="tl" data-go="mix" style="background:linear-gradient(135deg,#8e2de2,#4a00e0)" tabindex="0">Mix${ic('shuffle')}</div></div></section>`; } }
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
@@ -2359,19 +2177,17 @@ const pages={
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
     const shown=new Set();
-    /* "Chọn nhanh đài phát" chỉ lấy từ kệ thể loại / khám phá, KHÔNG lấy từ kệ dựng theo tên nghệ sĩ (tìm theo tên hay ra bài có tựa trùng tên người hát) */
     const qpIdx=ci===0?secs.findIndex(s=>!s[4]):-1;
     secs.forEach(async([name,q,,kind,art,byName],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
       let nm=name;
       if(ci===0&&art&&byName){ r=r.filter(t=>artistHit(t,art)); if(r.length<6){ try{ r=await ytSearch('sim:'+art,true); nm=artTitle('sim',art); const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
-      /* kệ "bài mới": chỉ bài thật sự mới ra (≤14 ngày) VÀ tài khoản/khách này chưa nghe (lịch sử, yêu thích, lượt phát trên máy). Không còn bài mới chưa nghe → đổi thành kệ "Khám phá": bài cũ của nghệ sĩ mà bạn chưa nghe. */
       const isNew=ci===0&&art&&String(q).startsWith('new:'); let minN=6;
       if(isNew){ const heard=t=>taste.seen.has(key(t)); const f=r.filter(t=>!heard(t));
         if(f.length){ r=f; minN=1; }
         else{ try{ const old=await ytSearch(art+' songs',true); r=old.filter(t=>artistHit(t,art)&&!heard(t)); nm=artTitle('disc',art); const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
-      if(ci===0&&art&&!byName&&String(q).startsWith('sim:')) r=r.filter(t=>!artistHit(t,art));   /* kệ "Giống X": không bao giờ hiện bài của chính X */
+      if(ci===0&&art&&!byName&&String(q).startsWith('sim:')) r=r.filter(t=>!artistHit(t,art));
       if(ci===0) r=cleanShelf(r,taste,kind,shown,'');
-      if(ci===0&&art&&r.length<(isNew?minN:6)){ el2.closest('.sec').remove(); return; }   /* kệ theo nghệ sĩ mà không đủ bài đúng nghệ sĩ thì ẩn, không nhồi bài lạc đề */
+      if(ci===0&&art&&r.length<(isNew?minN:6)){ el2.closest('.sec').remove(); return; }
       if(homeShuf) r=seededShuffle(r,homeSeed+i);
       let items=r.slice(0,20);
       if(ci===0&&!tgMode&&i===qpIdx&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
@@ -2462,7 +2278,6 @@ const pages={
   },
   profile(m){
     const skins=[['','Mặc định','linear-gradient(135deg,#1a1530,#07070b)'],['dark','Tối','#000'],['ocean','Biển','linear-gradient(135deg,#0f2027,#2c5364)'],['sunset','Hoàng hôn','linear-gradient(135deg,#42275a,#734b6d)'],['forest','Rừng','linear-gradient(135deg,#1d2b1f,#3b5d3a)'],['custom','Ảnh riêng','']];
-    /* bản nháp: nền/màu áp dụng ngay lên app nhưng chỉ lưu khi bấm "Lưu" */
     const D={status:me.status||'',accent:me.accent,bg:me.bg||'',bgUrl:me.bg_url||'',bgFile:null,bgPrev:'',bannerColor:me.banner_color||'',bannerFile:null,bannerPrev:'',bannerClear:false,avatarFile:null,avatarPrev:'',...cropOf(me)};
     m.innerHTML=`<h2>Hồ sơ</h2><div class="setL">
     <div class="prhero">
@@ -2507,7 +2322,7 @@ const pages={
     $('#bgFile').onchange=e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); if(f){ if(D.bgPrev) URL.revokeObjectURL(D.bgPrev); D.bgFile=f; D.bgPrev=URL.createObjectURL(f); refresh(); } e.target.value=''; };
     $('#bgUrl').oninput=e=>{ D.bgUrl=e.target.value.trim(); D.bgFile=null; if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; } refresh(); };
     $('#avBtn').onclick=()=>$('#avFile').click();
-    if(guest){ /* tài khoản khách: bấm avatar/banner thì chuyển sang đăng nhập, không cho chỉnh sửa */
+    if(guest){
       ['#banBtn','#avBtn'].forEach(sel=>{ const el=$(sel); if(!el) return;
         el.addEventListener('click',e=>{ e.stopImmediatePropagation(); e.preventDefault(); goLogin(); },true);
         el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.stopImmediatePropagation(); e.preventDefault(); goLogin(); } },true); });
@@ -2515,7 +2330,6 @@ const pages={
     }
     $('#avBtn').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#avFile').click(); } };
     const AV_MAX=10*1048576;
-    /* Ảnh > 10MB: nén lại (thu nhỏ + giảm chất lượng) cho tới khi ≤ 10MB. GIF quá lớn không nén động được nên lấy khung đầu. */
     const shrinkImg=f=>new Promise(res=>{ if(!f||f.size<=AV_MAX) return res(f); const im=new Image(), u=URL.createObjectURL(f);
       im.onload=()=>{ URL.revokeObjectURL(u); let side=Math.min(2048,Math.max(im.naturalWidth,im.naturalHeight)), q=.9;
         const go=()=>{ const k=Math.min(1,side/Math.max(im.naturalWidth,im.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height);
@@ -2625,11 +2439,10 @@ const pages={
     if($('#tErr')) $('#tErr').onchange=e=>setS('show_errors',e.target.checked);
     $('#tOff').onchange=e=>setS('offline_pl',e.target.checked).then(()=>{ if(S.offline_pl){ cachePlaylists(true); notify('Đã lưu danh sách phát để xem khi offline'); } else clearPlCache(); });
     $('#tProxy').onchange=e=>setS('proxy',e.target.checked).then(reloadEngine);
-    /* ---- Bộ chỉnh âm / Độ trễ / Độ vang ---- */
     const showFx=()=>{ $('#eqP').style.display=S.eq_on?'':'none'; if(S.eq_on) setTimeout(()=>window.__drawEq&&window.__drawEq(),0); $('#delP').style.display=S.delay_on?'':'none'; $('#revP').style.display=S.reverb_on?'':'none'; };
     const lbl=()=>{ $('#dMsV').textContent=S.delay_ms+' ms'; $('#dFbV').textContent=S.delay_fb+'%'; $('#dMixV').textContent=S.delay_mix+'%'; $('#rMixV').textContent=S.reverb_mix+'%'; $('#eqPreV').textContent=(S.eq_pre>0?'+':'')+S.eq_pre+' dB';
       const pn=Object.keys(EQ_PRESETS).find(k=>EQ_PRESETS[k].every((v,i)=>v===S.eq_gains[i])); $('#eqPre').value=pn||''; $('#rType').value=S.reverb_type; };
-    const live=(k,v)=>{ S[k]=v; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };           /* nghe thay đổi ngay khi kéo */
+    const live=(k,v)=>{ S[k]=v; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };
     const toggleFx=(k,on)=>{ S[k]=on; showFx(); setS(k,on).then(()=>{ reloadEngine(); applyFx(); }); if(on&&!fxBuild()) notify('Trình duyệt không hỗ trợ Web Audio'); };
     $('#tEq').onchange=e=>toggleFx('eq_on',e.target.checked);
     $('#tDel').onchange=e=>toggleFx('delay_on',e.target.checked);
@@ -2639,7 +2452,6 @@ const pages={
     $('#eqReset').onclick=()=>{ live('eq_gains',EQ_PRESETS['Flat'].slice()); S.eq_pre=0; $('#eqPreamp').value=0; applyFx(); lbl(); drawEq(); saveGains(); setS('eq_pre',0); };
     $('#eqPreamp').oninput=e=>{ S.eq_pre=+e.target.value; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };
     $('#eqPreamp').onchange=e=>setS('eq_pre',+e.target.value);
-    /* đồ thị đường cong EQ: kéo các điểm lên/xuống */
     const cv=$('#eqCv'); let drag=-1;
     const geo=()=>{ const r=cv.getBoundingClientRect(); return {w:r.width,h:r.height,L:50,R:26,T:16,B:30}; };
     const px=(i,G)=>G.L+i*(G.w-G.L-G.R)/9, py=(g,G)=>G.T+(12-g)/24*(G.h-G.T-G.B);
@@ -2673,7 +2485,6 @@ const pages={
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tGif')) $('#tGif').onchange=e=>{ LS.set('gif_live',e.target.checked?'1':'0'); location.reload(); };
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
-    /* ---- Nhập playlist bằng link: YouTube, Spotify, Apple Music, SoundCloud (không cần đăng nhập) ---- */
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
         if(!url){ msg.textContent='Hãy dán link playlist'; return; }
         const isYt=/(^|\/\/|\.)(youtube\.com|youtu\.be)(\/|$)/i.test(url)||/^[A-Za-z0-9_-]{13,}$/.test(url);
@@ -2701,7 +2512,6 @@ const pages={
         }finally{ btn.disabled=false; }
       };
       $('#ytUrlGo').onclick=go1; $('#ytUrl').onkeydown=e=>{ if(e.key==='Enter') go1(); }; }
-    /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
         if(!(await askConfirm('Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.','Hủy liên kết'))) return;
@@ -2712,7 +2522,6 @@ const pages={
         const r=await api('/api/discord/link',{method:'POST'}); location.href=r.url;
       }
     }catch(e){ if(e.message!=='401') notify(e.message); } });
-    /* ---- Discord Rich Presence (chỉ app desktop) ---- */
     if($('#dcBtn')) act('dcBtn',async()=>{ try{ const u=await discordConnect(); $('#dcSt').textContent='Đã kết nối: '+u; notify('Đã kết nối Discord'); }catch(e){ notify(String(e&&e.message||e)); } });
     if($('#tDc')) $('#tDc').onchange=async e=>{ const on=e.target.checked;
       if(on&&!dc.user){ try{ await discordConnect(); const st=$('#dcSt'); if(st) st.textContent='Đã kết nối: '+dc.user; }catch(er){ e.target.checked=false; notify(String(er&&er.message||er)); return; } }
@@ -2739,7 +2548,6 @@ const pages={
       try{ const r=await api('/api/restore',{json:j}); await refreshLib(); notify(`Đã khôi phục ${r.favorites} bài yêu thích, ${r.playlists} danh sách phát`); }catch(er){ notify(er.message); } };
     act('bkImp',()=>$('#fImp').click());
     $('#fImp').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; let j=await readJson(f); if(!j) return;
-      /* chấp nhận file của BBeat, hoặc mảng [{name,tracks:[{videoId|id,title,artist}]}] từ app khác */
       const conv=t=>t&&t.src?t:{src:'yt',id:String(t&&(t.videoId||t.id)||''),title:(t&&(t.title||t.name))||'',artist:(t&&(t.artist||t.author||(Array.isArray(t.artists)?t.artists.map(a=>a.name||a).join(', '):'')))||'',image:(t&&(t.image||t.thumbnail))||'',url:'',dur:(t&&t.dur)||0};
       const list=Array.isArray(j)?j:(j.playlists||[]);
       j={playlists:list.map(p=>({name:p.name||p.title,tracks:(p.tracks||p.songs||[]).map(conv)}))};
@@ -2753,19 +2561,16 @@ const pages={
   }
 };
 const offlineCard=()=>`<div class="offc"><div class="offi">${ic('cloudoff')}</div><h3>Không thể kết nối</h3><p>Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</p><div class="offact"><button class="pri" data-oc="retry">Thử lại</button><button class="out" data-oc="dl">${ic('download','sm')} Nghe những bài đã tải xuống</button></div></div>`;
-/* Thanh báo offline: hiện khi không với tới server; tự dò lại mỗi 8 giây, có mạng thì mời tải lại (không ngắt nhạc đang phát) */
 let offWatchTm=0;
 function offBar(on){
   let b=$('#offBar'); if(!b){ b=document.createElement('button'); b.id='offBar'; b.onclick=()=>retryNet(page,undefined,false,null); document.body.appendChild(b); }
-  b.hidden=true; /* đã gỡ thông báo offline (spam) */
+  b.hidden=true;
 }
 let bootedOffline=false;
-/* Dò thử server có với tới được không (tối đa 6 giây) – không dựa vào navigator.onLine vì cờ này hay sai trên điện thoại */
 async function netProbe(){
   const c=new AbortController(), t=setTimeout(()=>c.abort(),6000);
   try{ const r=await fetch('/api/config',{cache:'no-store',signal:c.signal}); return r.status<500; }catch{ return false; }finally{ clearTimeout(t); }
 }
-/* Có mạng lại: bỏ cờ offline, ẩn thanh báo, vẽ lại trang đang hiện thẻ "Không thể kết nối" (không ngắt nhạc đang phát) */
 function netBack(){
   netDown=false; clearInterval(offWatchTm); offWatchTm=0;
   if(bootedOffline){
@@ -2814,8 +2619,6 @@ pages.library=function(m){
     <div class="libG">${card('favs','Yêu thích',nf,'heart',1)}${card('history','Nghe gần đây','Lịch sử nghe','clock')}${card('top','Phát nhiều nhất',playsList().length+' bài hát','trend')}${card('followed','Đã theo dõi',followGet().length+' nghệ sĩ','userplus')}${card('downloads','Đã tải xuống',dn?dn+' bài hát':'Nghe không cần mạng','download')}${card('together','Nghe cùng nhau','Phòng nghe chung','users',1)}</div>
     <div class="lcH"><span>Đã thêm gần đây</span><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
     <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>`;
-  /* ảnh bìa lấy bản lớn (300–500px) để không bị vỡ hạt trên màn hình nét cao */
-  /* mỗi thẻ lấy ngẫu nhiên 1–2 ảnh bìa từ bài của bạn (mỗi lần mở lại đổi), dùng bản lớn để không vỡ hạt */
   const pool=[];
   const pick=(list,n)=>{ const seen=new Set(), u=[]; (list||[]).map(t=>t&&t.image).filter(Boolean).sort(()=>Math.random()-.5).forEach(x=>{ if(u.length<n&&!seen.has(x)){ seen.add(x); u.push(x); } }); return u; };
   const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=pick(list,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="${IMG_LOAD}" decoding="async">`).join(''); };
@@ -2835,41 +2638,37 @@ $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},
 $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
 
-/* tìm kiếm */
 let sTok=0, appPrev=false;
 function browseTiles(){
   const t=[['Nhạc Việt','nhạc việt hot','#e8553a'],['Lofi','lofi chill beats','#6a5acd'],['K-Pop','kpop hits','#e0368f'],['EDM','edm party hits','#8e2de2'],['Rap Việt','rap việt hay nhất','#c9822b'],['Acoustic','acoustic chill songs','#2f9e8f'],['Piano','relaxing piano music','#3f6fd1'],['Workout','workout motivation songs','#c0392b'],['Anime','anime opening songs','#d64f9e'],['Game OST','game soundtrack','#4a7a3d'],['Cổ điển','classical study music','#7a5c3d'],['Nhạc Hoa','nhạc hoa hay nhất','#b8322f']];
   $('#sres').innerHTML=`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
 }
-/* Bộ lọc kết quả tìm kiếm (giống YouTube Music) */
 const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['albums','Albums'],['artists','Nghệ sĩ'],['playlists','Danh sách phát'],['featured','Danh sách phát nổi bật'],['podcasts','Podcasts']];
 let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
 const ytSearchF=(q,f)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f)
   .then(r=>(r&&Array.isArray(r.tracks))?{tracks:r.tracks,entities:Array.isArray(r.entities)?r.entities:[]}:{tracks:Array.isArray(r)?r:[],entities:[]})
   .catch(e=>{ delete ytCache[k]; throw e; })); };
-/* ===== Album: cố gắng tìm video (MV) cho từng bài; không có thì báo "album không có video" ===== */
 const nz=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[\(\[（][^\)\]）]*[\)\]）]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const ALB_BAD=['lyric','lyrics','cover','live','reaction','karaoke','instrumental','remix','sped up','slowed','nightcore','8d','tutorial','歌ってみた','カバー','piano ver','acoustic ver','ver','version','edit','mix','short','tv size','dance practice','performance','teaser','trailer','concert','fan made','fanmade','amv','mad','bootleg','mashup','reverb','bass boosted','loop','1 hour','10 hours'];
 function albScore(t,c){
   const tt=nz(t.title), ct=nz(c.title); if(!tt||!ct||c.id===t.id||/-\s*topic\s*$/i.test(c.artist||'')) return -1;
-  if(c.vt!=='OMV') return -1;   /* CHỈ nhận MV chính chủ do nghệ sĩ/hãng đăng (YouTube Music gắn OMV); video người dùng tự đăng (UGC) hay bản âm thanh thì bỏ */
-  for(const w0 of ALB_BAD){ const w=nz(w0); if(!w) continue; const hit=/^[\x00-\x7f]+$/.test(w)?(' '+ct+' ').includes(' '+w+' '):ct.includes(w), inT=/^[\x00-\x7f]+$/.test(w)?(' '+tt+' ').includes(' '+w+' '):tt.includes(w); if(hit&&!inT) return -1; }   /* từ ASCII khớp nguyên từ (tránh "made" dính "mad") */
+  if(c.vt!=='OMV') return -1;
+  for(const w0 of ALB_BAD){ const w=nz(w0); if(!w) continue; const hit=/^[\x00-\x7f]+$/.test(w)?(' '+ct+' ').includes(' '+w+' '):ct.includes(w), inT=/^[\x00-\x7f]+$/.test(w)?(' '+tt+' ').includes(' '+w+' '):tt.includes(w); if(hit&&!inT) return -1; }
   const ta=nz(String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?|\bx\b/i)[0]), ca=nz(c.artist), hasA=!!ta&&(ca.includes(ta)||ta.includes(ca)&&ca.length>1||ct.includes(ta));
   let s=0;
   if(ct.includes(tt)) s+=3; else { const w=tt.split(' ').filter(Boolean); if(!w.length) return -1; const r=w.filter(x=>(' '+ct+' ').includes(' '+x+' ')).length/w.length; if(r<.85) return -1; s+=2*r; }
-  if(!hasA) return -1; s+=2;   /* kênh/nghệ sĩ của video phải trùng nghệ sĩ của bài */
-  if(t.dur&&c.dur){ const d=Math.abs(c.dur-t.dur), tol=Math.max(20,t.dur*.15); if(d>tol) return -1; s+=1-Math.min(1,d/tol); }   /* lệch quá ~15% thời lượng = khác bản (remix, bản rút gọn…) */
+  if(!hasA) return -1; s+=2;
+  if(t.dur&&c.dur){ const d=Math.abs(c.dur-t.dur), tol=Math.max(20,t.dur*.15); if(d>tol) return -1; s+=1-Math.min(1,d/tol); }
   if(/official|\bmv\b|music video|m\/v|公式|ミュージックビデオ/i.test(c.title||'')) s+=1;
   return s; }
 const albVidC=new Map();
-/* bài đã tìm mà không có video: nhớ lại (kể cả lần sau mở app) để không tìm nữa, cứ hiện ảnh album */
 let noVid=new Set(); try{ noVid=new Set(JSON.parse(LS.get('muse_novid','[]'))); }catch{}
 function noVidAdd(k){ noVid.add(k); try{ LS.set('muse_novid',JSON.stringify([...noVid].slice(-800))); }catch{} }
 function albFind(t){ const k=key(t); if(albVidC.has(k)) return albVidC.get(k); if(noVid.has(k)){ albVidC.set(k,Promise.resolve(null)); return albVidC.get(k); }
   const qs=[(t.artist?t.artist+' ':'')+t.title, t.title+' '+(t.artist?String(t.artist).split(/,|&/)[0]+' ':'')+'official music video'];
   let sawVt=false;
   const p=(async()=>{ for(const q of qs){ let r; try{ r=await ytSearchF(q,'videos'); }catch{ continue; }
-      if(((r&&r.tracks)||[]).some(c=>c&&'vt' in c)) sawVt=true;   /* server cũ chưa gắn loại video thì không ghi nhớ "không có video" */
+      if(((r&&r.tracks)||[]).some(c=>c&&'vt' in c)) sawVt=true;
       let best=null, bs=3; for(const c of (r&&r.tracks)||[]){ const sc=albScore(t,c); if(sc>=bs){ bs=sc; best=c; } }
       if(best) return best; }
     if(sawVt) noVidAdd(k); return null; })();
@@ -2881,7 +2680,7 @@ function albSwap(t,v){
   const qk=queue.findIndex(x=>x===t||key(x)===key(t)); if(qk>=0) queue[qk]=nt;
   return nt; }
 function userPlay(t){
-  if(!showVideo||!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }   /* bài có ảnh vuông (album / 'Topic') → cố tìm MV thật; ảnh 16:9 là video sẵn rồi */
+  if(!showVideo||!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }
   const my=++albSeq; let shown=false; const tm=setTimeout(()=>{ if(my===albSeq){ shown=true; adminNotify('Đang tìm video…'); } },700);
   Promise.race([albFind(t).catch(()=>null),new Promise(r=>setTimeout(()=>r(undefined),4000))]).then(v=>{ clearTimeout(tm); if(my!==albSeq) return;
     if(v===null){ const ak=t.alb||t.album||'_'; if(!albToast[ak]){ albToast[ak]=1; adminNotify(t.alb?'Album "'+t.alb+'" không có video – phát âm thanh':'Không tìm thấy video cho bài này – phát âm thanh'); } }
@@ -2919,7 +2718,6 @@ async function runSearch(q,fill){
   $('#sres').innerHTML=html?`<div class="sh"><h3>Kết quả cho “${esc(q)}”</h3></div>`+html:'<p class="empty">Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.</p>';
   markNow();
 }
-/* Mở album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm */
 pages.ybrowse=async function(m,x){
   const back=`<button class="out" id="ybBack">${ic('chev','flip sm')} Quay lại</button>`;
   m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">Đang tải…</p>`;
@@ -2932,12 +2730,10 @@ pages.ybrowse=async function(m,x){
   if(isAlb&&tr.length) albPrefetch(tr,title);
 };
 
-/* ===== Nghệ sĩ nổi bật / "This Is" ===== */
 const BA_COLORS=['#1ed7a1','#f59bd0','#ffb23f','#8fb8ff','#c9a7ff','#ff8f7a','#7ee0e8','#d6e66a'];
 const tiDesc=n=>`Đây là ${n}. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát.`;
 let baMemo=null;
 const bestRegion=()=>{ try{ return ((navigator.language||'').split('-')[1]||'').toUpperCase().slice(0,2); }catch{ return ''; } };
-/* Danh sách nghệ sĩ hot do server chấm điểm (lượt xem, lượt thích, thứ hạng); ở đây chỉ nhích nhẹ theo gu nghe và bỏ nghệ sĩ bạn hay bỏ qua. */
 async function getBestArtists(taste){
   if(!baMemo||Date.now()-baMemo.t>6e5){
     const j=await api('/api/yt/best-artists?region='+encodeURIComponent(bestRegion()));
@@ -2947,7 +2743,7 @@ async function getBestArtists(taste){
   const aw=(taste&&taste.artW)||{}, avoid=(taste&&taste.avoid)||new Set();
   const l=baMemo.a.filter(e=>!avoid.has(String(e.title).toLowerCase()))
     .map(e=>({e,s:(e.heat||0)*(1+.25*(aw[String(e.title).toLowerCase()]||0))})).sort((x,y)=>y.s-x.s).map(x=>x.e);
-  let prev=-1;   /* màu theo tên nghệ sĩ (ổn định), hai thẻ cạnh nhau không trùng màu */
+  let prev=-1;
   return l.map(e=>{ let c=strHash(String(e.title).toLowerCase())%BA_COLORS.length; if(c===prev) c=(c+1)%BA_COLORS.length; prev=c; return {...e,color:BA_COLORS[c]}; });
 }
 const tiCard=(e,i,k)=>`<div class="card tic" data-ti="${k}" data-i="${i}" tabindex="0"><div class="cvw tcv" style="--tc:${esc(e.color||BA_COLORS[0])}"><img class="tlogo" src="/app-icon.png" alt=""><b class="tt">THIS IS</b><i class="tband"></i><img class="tpic" src="${esc(thumb(e.image,300))}" loading="${IMG_LOAD}" decoding="async" alt=""><b class="tnm">${esc(e.title)}</b><button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="tdesc">${esc(tiDesc(e.title))}</div></div>`;
@@ -2989,7 +2785,6 @@ async function startMix(sp,name){
   catch(e){ notify(e.message); }
 }
 
-/* ===== Playlist, yêu thích ===== */
 async function loadPlaylists(){
   try{ playlists=await api('/api/playlists'); }
   catch(e){ const c=e.message==='401'?null:cachedPlaylists(); if(!c||!S.offline_pl) throw e; playlists=c; notify('Đang offline – hiển thị danh sách phát đã lưu'); }
@@ -3005,7 +2800,6 @@ function plCover(p){
   if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],256))}" alt="" loading="${IMG_LOAD}" decoding="async"></div>`;
   return ic('note');
 }
-/* Server cũ chưa trả "covers": tự lấy ảnh 4 bài đầu của playlist rồi vẽ lại ô ảnh (có nhớ tạm để khỏi tải lại) */
 const plCovCache={};
 function plCoverFill(){
   (playlists||[]).forEach(p=>{
@@ -3042,7 +2836,6 @@ function addMenu(t,e){
 }
 async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${encodeURIComponent(key(t))}`,{method:'DELETE'}); loadPlaylists(); go('playlist',curPl,true); }
 
-/* ===== Phòng & đồng bộ ===== */
 function connect(){
   if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
     if(!p.get('room')) history.replaceState(null,'','?room='+room);
@@ -3073,7 +2866,6 @@ function onMsg(m){
 }
 function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
 async function copyRoomCode(){ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } }
-/* Chia sẻ bài đang phát: bảng chia sẻ của Android (nếu có) -> Web Share -> chép link */
 async function shareTrack(t){
   if(!t) return;
   const url=t.src==='yt'?'https://music.youtube.com/watch?v='+t.id:(/^https?:/.test(t.url||'')?t.url:'');
@@ -3112,7 +2904,7 @@ async function renderFriendsPage(){
   const [list,reqs]=await Promise.all([api('/api/friends'),api('/api/friends/requests')]);
   fmap.clear(); list.forEach(f=>fmap.set(f.id,f));
   const sig=JSON.stringify([list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]),reqs]);
-  if(box.dataset.sig===sig&&box.childElementCount) return;   /* không đổi gì thì giữ nguyên DOM */
+  if(box.dataset.sig===sig&&box.childElementCount) return;
   box.dataset.sig=sig;
   const el=$('#friendSub'); if(el) el.textContent=reqs.incoming.length?reqs.incoming.length+' lời mời mới':'Bạn bè & lời mời';
   const line=(u,right)=>`<div class="item" data-id="${u.id}"><span style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${avU(u)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(u.display_name)}</span></span>${right}</div>`;
@@ -3173,14 +2965,12 @@ async function syncClock(n){
   if(best) offset=best.off;
 }
 
-/* ===== Trình phát ===== */
-let ytLiveTm=0, ytSeen=false, ytHold=0;   /* ytHold: thời điểm (ms) trước đó chưa được hiện video lại, sau khi tua */
-/* Ẩn video ngay lập tức (khi vừa chọn bài mới) để không lộ khung tải / giao diện YouTube; video chỉ hiện lại khi đã phát ổn định */
+let ytLiveTm=0, ytSeen=false, ytHold=0;
 function ytHideNow(keep,hold){ if(hold) ytHold=Date.now()+hold; clearTimeout(ytLiveTm); ytLiveTm=0; if(!keep) ytSeen=false; const yb=document.getElementById('ytbox'); if(yb){ yb.style.transition='none'; yb.classList.remove('live'); void yb.offsetWidth; yb.style.transition=''; } }
 function onYouTubeIframeAPIReady(){
   yt=new YT.Player('ytp',{width:'100%',height:'100%',playerVars:{playsinline:1,rel:0,controls:0,disablekb:1,fs:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0},events:{
     onReady:()=>{ytReady=true;applyVol()},
-    onError:()=>{ /* 2/5/100/101/150: bài bị chặn nhúng, bị gỡ hoặc player lỗi -> trước đây đứng im ở 0:00 */
+    onError:()=>{
       const t=cur; if(!t||eng!=='yt') return;
       if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube không phát được bài này – chuyển sang luồng của server'); loadTrack(t,0,true); return; }
       adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
@@ -3189,23 +2979,18 @@ function onYouTubeIframeAPIReady(){
     onStateChange:e=>{
       ytCheckAlb();
       { const yb=$('#ytbox'); if(yb){
-        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?600:1500,ytHold-Date.now())); ytSeen=true; }   /* đợi YouTube tự ẩn thanh tiêu đề rồi mới hiện video; trong lúc chờ vẫn thấy ảnh bìa */
+        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?600:1500,ytHold-Date.now())); ytSeen=true; }
         else if(e.data===2||e.data===0){ clearTimeout(ytLiveTm); ytLiveTm=0; yb.classList.remove('live'); }
-        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }   /* tua / đệm: YouTube hiện giao diện của nó, nên ẩn video cho tới khi phát lại ổn định */
+        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }
         else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
       if(e.data===0){ playing=false; onEnded(); }
       if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
     }}});
 }
-/* Tải player YouTube không chặn trang (trước đây thẻ <script> đồng bộ làm cả app đứng chờ YouTube mới hiện ra, nhất là khi mạng chậm). */
 (function(){
   if(window.YT&&window.YT.Player){ onYouTubeIframeAPIReady(); return; }
   const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.async=true; document.head.appendChild(s);
 })();
-/* Ba "động cơ" phát nhạc:
-   'yt'  = player iframe chính thức của YouTube (có chế độ video, nhưng trình duyệt không cho xử lý âm thanh)
-   'fx'  = luồng âm thanh YouTube do server chuyển tiếp -> <audio> + Web Audio (Bộ chỉnh âm, Độ trễ, Độ vang, Proxy)
-   'aud' = <audio> với URL trực tiếp (bài cũ của SoundCloud/Jamendo/Audius) */
 const audYt=new Audio(); audYt.preload='auto';
 let eng='yt'; const fxFail={};
 const A=()=>eng==='fx'?audYt:aud;
@@ -3213,11 +2998,8 @@ let fxFmt=(()=>{ try{ return audYt.canPlayType('audio/webm; codecs="opus"')?'web
 let fxDownUntil=0;
 const MOBILE=(()=>{ try{ return (window.ANDROID_APP||matchMedia('(pointer:coarse)').matches)&&LS.get('bgplay','1')==='1'; }catch{ return !!window.ANDROID_APP; } })();
 const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
-/* ytFail: player iframe của YouTube không phát được bài này (bị chặn nhúng / lỗi) -> phát bằng luồng do server chuyển tiếp */
 const ytFail={}, wdTries={};
 const wantStream=t=>t&&t.src==='yt'&&!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available));
-/* ===== Kho nhạc offline (IndexedDB): bài đã tải được giữ ngay trong app để nghe không cần mạng =====
-   Ba kho: 'a' = file âm thanh (Blob), 'm' = thông tin bài (tên, nghệ sĩ, dung lượng…), 'i' = ảnh bìa (nếu lấy được) */
 const OFF=(()=>{
   let dbp=null;
   const open=()=>dbp||(dbp=new Promise((res,rej)=>{
@@ -3233,7 +3015,6 @@ const OFF=(()=>{
   return { get:(s,k)=>req(s,'readonly',o=>o.get(k)), all:s=>req(s,'readonly',o=>o.getAll()), put:(s,k,v)=>req(s,'readwrite',o=>o.put(v,k)), del:(s,k)=>req(s,'readwrite',o=>o.delete(k)) };
 })();
 const offInit=OFF.all('m').then(ms=>{ (ms||[]).forEach(x=>offSet.add(x.k)); return ms||[]; }).catch(()=>[]);
-/* bài này nên phát từ bản đã lưu? (đang offline, hoặc vốn dĩ sẽ phải phát qua server) */
 const useLocal=t=>!!t&&t.src==='yt'&&offSet.has(key(t))&&!offBad[t.id]&&(offlineNow()||MOBILE||fxNeeded()||!!ytFail[t.id]||(S.proxy&&cfg.proxy_available));
 function offRevoke(id){ if(offUrl[id]){ try{ URL.revokeObjectURL(offUrl[id]); }catch{} delete offUrl[id]; } offOrder=offOrder.filter(x=>x!==id); }
 async function offOpen(t){
@@ -3244,17 +3025,17 @@ async function offOpen(t){
     const blob=b.type?b:new Blob([b],{type:(m&&m.mime)||'audio/mp4'});
     offUrl[t.id]=URL.createObjectURL(blob);
     offOrder=offOrder.filter(x=>x!==t.id); offOrder.push(t.id);
-    offOrder.slice(0,-4).forEach(o=>{ try{ URL.revokeObjectURL(offUrl[o]); }catch{} delete offUrl[o]; }); offOrder=offOrder.slice(-4);   /* chỉ giữ 4 blob URL gần nhất */
+    offOrder.slice(0,-4).forEach(o=>{ try{ URL.revokeObjectURL(offUrl[o]); }catch{} delete offUrl[o]; }); offOrder=offOrder.slice(-4);
     return true;
   }catch{ return false; }
 }
 async function offSave(t,blob,mime,fmt){
   const k=key(t);
-  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch{}   /* xin hệ thống đừng tự dọn kho này */
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch{}
   await OFF.put('a',k,blob);
   await OFF.put('m',k,{k,track:slim(t),mime:mime||blob.type||'audio/mp4',size:blob.size,at:Date.now(),fmt:fmt||''});
   offSet.add(k); delete offBad[t.id]; offRevoke(t.id);
-  (async()=>{ try{ if(!t.image) return; const r=await fetch(thumb(t.image,300),{mode:'cors'}); if(!r.ok) return; const b=await r.blob(); if(b.size&&b.size<2e6) await OFF.put('i',k,b); }catch{} })();   /* ảnh bìa: cố gắng lưu, không được thì thôi */
+  (async()=>{ try{ if(!t.image) return; const r=await fetch(thumb(t.image,300),{mode:'cors'}); if(!r.ok) return; const b=await r.blob(); if(b.size&&b.size<2e6) await OFF.put('i',k,b); }catch{} })();
   return true;
 }
 async function offDelete(k){
@@ -3307,13 +3088,12 @@ aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } 
 audYt.addEventListener('error',()=>{
   if(eng!=='fx'||!cur) return;
   const t=cur, pos=audYt.currentTime||0, was=playing, ec=audYt.error?audYt.error.code:0;
-  if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){   /* bản lưu trong app bị hỏng: bỏ nó, phát lại bằng luồng server */
+  if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){
     offBad[t.id]=true; offRevoke(t.id); adminNotify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
-  if(!fxTried[t.id]){ /* thử định dạng còn lại (webm/opus <-> mp4/aac) trước khi bỏ cuộc */
+  if(!fxTried[t.id]){
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
-  fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000; /* nghỉ 5 phút để khỏi thử lại liên tục khi YouTube đang chặn */
+  fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000;
   fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
-    /* thử đúng đường phát thật (không phải chế độ chẩn đoán) để biết server trả gì cho trình duyệt */
     let real='';
     try{ const u=(audYt.currentSrc||audYt.src), r=await fetch(u,{headers:{Range:'bytes=0-65535'}}), b=new Uint8Array(await r.arrayBuffer());
       real=' || thật: HTTP '+r.status+' ct='+r.headers.get('content-type')+' cr='+r.headers.get('content-range')+' n='+b.length+(r.ok?'':' '+new TextDecoder().decode(b.slice(0,200))); }
@@ -3343,8 +3123,6 @@ function setPlaying(p){
   pushPresence(); msUpdate();
 }
 let startGuard=0;
-/* Tắt màn hình / thoát ra ngoài: player iframe YouTube bị hệ thống dừng, nên chuyển sang luồng <audio> (chạy nền được).
-   Đồng thời nếu hệ thống tự tạm dừng <audio> trong lúc đang "phát" thì phát lại. */
 document.addEventListener('visibilitychange',()=>{
   try{
     if(document.hidden&&window.ANDROID_APP&&cur&&cur.src==='yt'&&playing&&eng==='yt'&&!fxFail[cur.id]){ ytFail[cur.id]=true; loadTrack(cur,getTime(),true); }
@@ -3356,7 +3134,6 @@ audYt.addEventListener('pause',()=>{
 });
 function loadTrack(t,pos=0,play=true,ts=null){
   hoTok++; hoBusy=false; audYt.muted=false;
-  /* bài đã tải: mở bản lưu trong app trước (bất đồng bộ), rồi gọi lại chính hàm này; nếu mở lỗi thì offBad -> quay về luồng server */
   if(useLocal(t)&&!offUrl[t.id]){
     cur=t; updateBar();
     offOpen(t).then(ok=>{ if(!ok){ offBad[t.id]=true; offSet.delete(key(t)); } if(cur===t) loadTrack(t,pos,play,ts); });
@@ -3376,7 +3153,6 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
     audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
     audYt.src=loc||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:'')); setPlaying(play);
-    /* Bấm 1 lần là phát: nếu luồng server chưa có dữ liệu sau 7 giây thì không chờ nữa, chuyển sang player YouTube */
     if(!loc&&play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
       if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
       ytFail[t.id]=true; loadTrack(t,0,true);
@@ -3387,7 +3163,6 @@ function loadTrack(t,pos=0,play=true,ts=null){
   }
   trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence(); msUpdate(); warmNext();
 }
-/* Canh chừng nhạc bị đứng: đang "phát" mà không có dữ liệu quá lâu thì tải lại, rồi đổi động cơ, cuối cùng mới sang bài sau */
 const wd={k:'',pos:-1,at:0};
 function wdRecover(){
   const t=cur, pos=getTime(), was=playing; if(!t) return;
@@ -3407,7 +3182,7 @@ function wdRecover(){
 setInterval(()=>{
   try{
     if(!cur||!playing){ wd.at=0; return; }
-    if(navigator.userActivation&&!navigator.userActivation.hasBeenActive) return; /* chưa bấm gì trên trang: trình duyệt chặn tự phát, không phải lỗi */
+    if(navigator.userActivation&&!navigator.userActivation.hasBeenActive) return;
     const id=cur.id+'|'+eng, pos=getTime(); let stuck;
     if(eng==='yt'){ if(!ytReady) return; const s=yt.getPlayerState(); stuck=(s===-1||s===3); }
     else{ const a=A(); stuck=!a.paused&&!a.ended&&a.readyState<3; }
@@ -3415,13 +3190,10 @@ setInterval(()=>{
       if(!stuck&&wd.k===id&&pos>wd.pos+0.5) wdTries[cur.id]=0;
       wd.k=id; wd.pos=pos; wd.at=Date.now(); return;
     }
-    if(Date.now()-wd.at<12000) return;   /* đứng quá 12 giây là tải lại / đổi động cơ (player YouTube trước đây chờ tới 20 giây) */
+    if(Date.now()-wd.at<12000) return;
     wd.at=Date.now(); wdRecover();
   }catch{}
 },2000);
-/* bật/tắt hiệu ứng khi đang phát: đổi động cơ nhưng giữ nguyên vị trí */
-/* Chuyển từ player YouTube sang luồng <audio> (để có Bộ chỉnh âm/hiệu ứng) MÀ KHÔNG NGẮT NHẠC:
-   tải luồng ở chế độ tắt tiếng, khi luồng đã chạy được thì mới tắt player YouTube và bật tiếng -> nhạc liền mạch. */
 let hoTok=0, hoBusy=false;
 function seamlessToFx(){
   const t=cur; if(!t||t.src!=='yt'||!ytReady) return false;
@@ -3446,7 +3218,7 @@ function seamlessToFx(){
   };
   audYt.muted=true; audYt.onloadedmetadata=null;
   audYt.addEventListener('canplay',onCan); audYt.addEventListener('playing',onPlay); audYt.addEventListener('error',onErr);
-  tm=setTimeout(abort,20000);   /* quá chậm thì thôi, giữ nguyên player YouTube (không báo gì) */
+  tm=setTimeout(abort,20000);
   audYt.src=url;
   return true;
 }
@@ -3457,7 +3229,6 @@ function reloadEngine(){
   if(want==='fx'&&eng==='yt'&&playing&&seamlessToFx()) return;
   loadTrack(cur,getTime(),playing);
 }
-/* ===== Theo dõi nghệ sĩ + đếm lượt phát (lưu trên máy, theo từng tài khoản) ===== */
 const uKey=n=>n+'_'+((typeof me!=='undefined'&&me&&me.id)||0);
 const mainArtist=a=>canonArtist(String(a||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i)[0].trim());
 const followGet=()=>{ try{ const a=JSON.parse(LS.get(uKey('muse_follow'),'[]')); return Array.isArray(a)?a:[]; }catch{ return []; } };
@@ -3489,21 +3260,19 @@ pages.followed=function(m){
   m.querySelectorAll('[data-un]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); toggleFollow(b.dataset.un); go('followed'); });
 };
 let autoAdv=false;
-/* ===== Tiếp tục nghe (Jump back in): nhớ các danh sách / đài / nghệ sĩ vừa phát để bấm là nghe tiếp đúng chỗ đó ===== */
 const JUMP_MAX=10, jumpKey=()=>uKey('muse_jump');
 const jumpGet=()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a.filter(x=>x&&x.n&&Array.isArray(x.tr)&&x.tr.length).map(x=>({...x,n:String(x.n).replace(/^Kết quả: /,'')})):[]; }catch{ return []; } };
 function noteJump(){
   if(!qname||!queue.length||qi<0||qi>=queue.length) return;
-  const from=Math.max(0,qi-4), tr=queue.slice(from,from+40).map(slim), i=qi-from;   /* chỉ giữ ~40 bài quanh bài đang phát cho nhẹ */
+  const from=Math.max(0,qi-4), tr=queue.slice(from,from+40).map(slim), i=qi-from;
   const cov=queue.map(t=>t.image).filter(Boolean).slice(0,4);
   const a=jumpGet().filter(x=>x.n!==qname); a.unshift({n:qname,tr,i,cov,t:Date.now()});
   LS.set(jumpKey(),JSON.stringify(a.slice(0,JUMP_MAX))); syncDirty('jump');
 }
 function userPlay0(t){ setTimeout(()=>{ try{ syncVid(); const n=queue&&queue[qi+1]; if(n&&n.src==='yt'&&!n.fromVid&&(n.alb||!isWide(n))) albFind(n).catch(()=>{}); }catch{} },0); const prev=cur, auto=autoAdv; autoAdv=false; tasteCache=null; try{ noteJump(); }catch{}
-  if(prev&&prev.id&&t&&key(prev)!==key(t)){ try{ noteListen(prev,getTime(),getDur(),auto); }catch{} }   /* bài trước nghe được bao lâu → nghe hết hay bỏ qua */
+  if(prev&&prev.id&&t&&key(prev)!==key(t)){ try{ noteListen(prev,getTime(),getDur(),auto); }catch{} }
   countPlay(t); loadTrack(t,0,true); broadcastState(); if(S.track_history) api('/api/history',{json:slim(t)}).catch(()=>{}); }
 const blocked=t=>!!t&&!!t.explicit&&!S.explicit;
-/* ===== Không thích bài này: lưu ở máy, bài bị bỏ qua khi tự chuyển bài và gu nghe tránh bài/nghệ sĩ tương tự ===== */
 const disGet=()=>{ try{ const o=JSON.parse(LS.get('muse_dislike_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 const isDis=t=>!!t&&!!disGet()[key(t)];
 function toggleDislike(t){ if(!t||!t.id) return; const o=disGet(), k=key(t), L=listenGet();
@@ -3531,7 +3300,6 @@ function nextTrack(auto){
   userPlay(queue[qi]);
 }
 function prevTrack(){ if(!queue.length) return; if(getTime()>3){ seekTo(0); broadcastState(); return; } qi=(qi-1+queue.length)%queue.length; userPlay(queue[qi]); }
-/* chuyển bài mượt: nhỏ dần ở cuối bài, lớn dần ở đầu bài kế tiếp */
 setInterval(()=>{
   let mul=1;
   if(S.crossfade&&cur&&playing){
@@ -3542,7 +3310,6 @@ setInterval(()=>{
   }
   if(Math.abs(mul-fadeMul)>.02||(mul===1&&fadeMul!==1)){ fadeMul=mul; applyVol(); }
 },200);
-/* lưu/khôi phục trạng thái phát lại (hàng đợi, bài đang phát, vị trí) */
 const psKey=()=>'muse_ps_'+(me&&me.id);
 function savePlayState(){
   if(!S.save_state||!cur) return;
@@ -3557,7 +3324,6 @@ function restorePlayState(){
     loadTrack(j.t,+j.pos||0,false); }catch{}
 }
 function onEnded(){ const t=cur; if(leader) nextTrack(true); else setTimeout(()=>{ if(cur===t) nextTrack(true); },3000); }
-/* Media Session: tên bài, ảnh bìa và nút điều khiển trên màn hình khoá / thông báo / tai nghe */
 function msUpdate(){
   if(!('mediaSession' in navigator)){ nativeSync(true); return; }
   const m=navigator.mediaSession, t=cur;
@@ -3569,11 +3335,8 @@ function msUpdate(){
   }catch{}
   nativeSync(true);
 }
-/* Cầu nối app Android: gửi bài/trạng thái cho dịch vụ phát nền, nhận lệnh từ thông báo / khoá màn hình / tai nghe */
-/* Ảnh bìa cho thông báo / màn hình khóa Android: lấy bản lớn (ảnh gốc từ tìm kiếm chỉ ~60–300px nên bị vỡ hạt khi phóng to) */
 function hiArt(u){
   u=String(u||'');
-  /* cỡ ảnh theo từng máy: bằng cạnh ngắn của màn hình tính theo điểm ảnh thật (máy nhỏ ~720px, máy nét cao ~1440px), làm tròn 100 */
   const px=Math.min(1600,Math.max(600,Math.round(Math.min(screen.width||360,screen.height||800)*Math.min(window.devicePixelRatio||2,4)/100)*100));
   if(/googleusercontent\.com|ggpht\.com/.test(u)){
     if(/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${px}-h${px}-l90-rj`);
@@ -3602,7 +3365,6 @@ window.museCmd=function(c,v){
     else if(c==='seek'&&cur&&isFinite(+v)){ seekTo(+v/1000); broadcastState(); nativeSync(); }
   }catch{}
 };
-// Tua xong (kể cả từ màn hình khoá / thanh tiến trình) thì báo vị trí mới cho thông báo Android ngay
 [aud,audYt].forEach(a=>{ try{ a.addEventListener('seeked',()=>{ if(window.MuseNative&&cur) nativeSync(); }); }catch{} });
 setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
 (function msInit(){
@@ -3624,7 +3386,6 @@ const REP=['Lặp lại: tắt','Lặp danh sách','Lặp một bài'];
 $('#bMode').onclick=()=>{ rep=(rep+1)%3; setIc($('#bMode'),rep===2?'repeat1':'repeat'); $('#bMode').classList.toggle('on',rep>0); $('#bMode').title=REP[rep]; };
 $('#bFav').onclick=$('#npFav').onclick=()=>cur&&toggleFav(cur);
 $('#npDis').onclick=()=>cur&&toggleDislike(cur);
-/* ===== Dropdown tùy chỉnh: tự thay mọi <select> (trừ select có data-native) ===== */
 (function(){
   const vd=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
   let openDd=null;
@@ -3671,10 +3432,8 @@ $('#npDis').onclick=()=>cur&&toggleDislike(cur);
   scan(document);
 })();
 
-/* ===== Tải nhạc về máy (WAV) + danh sách tải xuống ===== */
 const blobB64=b=>new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b); });
 const DL_MIME={mp3:'audio/mpeg',webm:'audio/webm',m4a:'audio/mp4',mp4:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',flac:'audio/flac',aac:'audio/aac'};
-/* App Android (WebView) không tự lưu được file blob -> gửi từng đoạn sang native để ghi vào Music/BBeat */
 async function nativeSave(name,mime,blob){
   const N=window.MuseNative, bad=r=>{ if(r) throw new Error(String(r).replace(/^err:/,'')); };
   bad(N.saveBegin(name,mime));
@@ -3685,8 +3444,7 @@ async function dlSaveFile(name,blob,ext){
   if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); return; }
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
 }
-/* Giải mã AAC/Opus ngay trong trình duyệt rồi ghi ra WAV PCM 16-bit (không cần ffmpeg trên server) */
-const WAV_MAX=14e6; /* file gốc lớn hơn ~14 MB (≈ 14 phút) thì giữ định dạng gốc, vì WAV sẽ rất nặng RAM */
+const WAV_MAX=14e6;
 function wavFromBuffer(buf){
   const ch=Math.min(2,buf.numberOfChannels), n=buf.length, sr=buf.sampleRate, data=new Int16Array(n*ch), chs=[];
   for(let c=0;c<ch;c++) chs.push(buf.getChannelData(c));
@@ -3703,7 +3461,6 @@ async function dlToWav(blob){
   return wavFromBuffer(buf);
 }
 
-/* Danh sách tải xuống: hàng đợi (tối đa 2 bài cùng lúc) + lịch sử các bài đã tải (lưu theo tài khoản trong trình duyệt) */
 let dlFmt=LS.get('muse_dlfmt','wav')==='orig'?'orig':'wav';
 const dlKey=()=>'muse_dl_'+(me&&me.id);
 let dlItems=[], dlLoadedFor=null, dlRunning=0; const DL_PAR=2;
@@ -3712,7 +3469,6 @@ function dlLoad(){
   try{ const a=JSON.parse(LS.get(dlKey(),'[]')); dlItems=(Array.isArray(a)?a:[]).filter(x=>x&&x.track&&x.status==='done'); }catch{ dlItems=[]; }
   offSync();
 }
-/* Gộp các bài đang có trong kho offline vào danh sách (kể cả bài tải từ tài khoản/lần cài trước) và cập nhật dung lượng */
 async function offSync(){
   try{
     const ms=await offInit.then(()=>OFF.all('m')); offSet.clear();
@@ -3795,7 +3551,6 @@ async function dlRun(it){
         if(r.status!==206||pos>=total) break;
       }
       blob=new Blob(parts,{type:mime||'audio/mp4'}); ext=/webm/i.test(mime)?'webm':'m4a';
-      /* bản nghe offline trong app (giữ định dạng gốc cho nhẹ) */
       try{ offOk=await offSave(t,blob,mime||'audio/mp4',ext); it.osize=blob.size; }
       catch(e){ it.note='không lưu được bản offline trong app (hết bộ nhớ?)'; }
     }
@@ -3854,12 +3609,11 @@ async function downloadAll(list,name){
 $('#npDl').onclick=()=>cur&&downloadTrack(cur);
 $('#bClose').onclick=()=>{ if(cur){ setPlaying(false); if(ytReady){ try{yt.stopVideo()}catch{} } } audYt.pause(); cur=null; playing=false; lyrLines=null; sbSegs=[]; updateBar(); };
 let seekEndAt=0;
-$('#seek').onpointerdown=e=>{ seeking=true; try{ e.target.setPointerCapture(e.pointerId); }catch{} e.stopPropagation(); if(eng==='yt') ytHideNow(true,4500); };   /* giữ con trỏ trên thanh kể cả khi tay lệch lên/xuống */
+$('#seek').onpointerdown=e=>{ seeking=true; try{ e.target.setPointerCapture(e.pointerId); }catch{} e.stopPropagation(); if(eng==='yt') ytHideNow(true,4500); };
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('#seek').addEventListener(ev,()=>{ seekEndAt=Date.now(); }));
 $('#seek').addEventListener('click',e=>e.stopPropagation());
 $('#seek').oninput=e=>{ e.target.style.setProperty('--p',e.target.value/10+'%'); if(eng==='yt') ytHideNow(true,4500); };
 $('#seek').onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.target.value/1000); broadcastState(); } };
-/* Thanh điều hướng điện thoại: cuộn xuống thì thu thành vòng tròn, về đầu trang thì mở lại; chạm vòng tròn để mở */
 (function(){
   const m=$('#main'), mq=matchMedia('(max-width:700px)'); let pin=null;
   const apply=()=>{
@@ -3874,7 +3628,7 @@ $('#seek').onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.targ
   },true);
 })();
 let npKey=null;
-const MQ_GAP=56, MQ_SPEED=32;   /* px/giây: trượt chậm */
+const MQ_GAP=56, MQ_SPEED=32;
 function mqFit(el){
   const text=el.dataset.mq; if(text==null) return; const cw=el.clientWidth; if(!cw) return;
   const active=el.classList.contains('mq');
@@ -3891,7 +3645,6 @@ function setMarq(el,text){
   if(!el._mqo&&window.ResizeObserver){ el._mqo=new ResizeObserver(()=>mqFit(el)); el._mqo.observe(el); }
   requestAnimationFrame(()=>mqFit(el));
 }
-/* Tên nghệ sĩ / producer quá dài ở mọi danh sách (thẻ, hàng bài hát, tải xuống) cũng tự trượt ngang như tiêu đề */
 const MQ_SEL='.ca,.t2,.tr>.ar';
 function mqScan(root){
   if(!root||root.nodeType!==1) return;
@@ -3916,13 +3669,11 @@ function updateBar(){
 function infoHtml(t){ const v=t.src==='yt'&&votesCache[t.id]; const vt=v&&typeof v.likes==='number'?`Thích ${kfmt(v.likes)} · Không thích ${kfmt(v.dislikes)}<br>`:''; return `${vt}Nguồn: YouTube Music${t.dur?' · '+fmt(t.dur):''}`; }
 $('#npInfo').onclick=()=>$('#npInfoBox').classList.toggle('show');
 $('#npLyr').onclick=()=>setNp(true,'lyr');
-let vidOv=null;   /* ghi đè riêng cho bài đang phát (ba chấm / nút video): không đổi cài đặt "Phát video của nhạc" */
+let vidOv=null;
 const vidWant=()=>!!(cur&&vidOv&&vidOv.k===key(cur)?vidOv.on:showVideo);
 function setVideo(v){ showVideo=!!v; vidOv=null; LS.set('vid',v?'1':'0'); syncVid(); }
-/* Video riêng của app: server tải luồng hình (không tiếng) bằng yt-dlp, trình duyệt phát <video> tắt tiếng và bám theo giờ của âm thanh. */
 var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='';
 if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
-    /* không có video cho bài này: im lặng, giữ ảnh album. Chỉ admin (bật "Hiện thông báo lỗi") mới được báo lý do thật */
     if(me&&me.is_admin&&S.show_errors) fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ if(/yt-dlp/.test(tx)) adminNotify('Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album'); else adminNotify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ adminNotify('Không phát được video: không kết nối được server'); }catch{} }); }
   vidEl.classList.remove('on'); try{ syncVid(); }catch{} }; }
 function vidSync(){ try{ vidSync0(); }catch(e){} }
@@ -3935,7 +3686,6 @@ function vidSync0(){
   const t=getTime(), du=vidEl.duration||0; if(!(t>=0)) return;
   const tt=du?Math.min(t,du-0.05):t, d=tt-vidEl.currentTime, ad=Math.abs(d);
   if(playing){
-    /* lệch nhỏ: chỉnh nhẹ tốc độ cho tự khớp (không nhảy khung hình); lệch lớn mới tua */
     if(ad>0.8) { vidEl.currentTime=tt; vidEl.playbackRate=1; }
     else if(ad>0.15){ vidEl.playbackRate=d>0?1.08:0.92; }
     else if(vidEl.playbackRate!==1) vidEl.playbackRate=1;
@@ -3945,7 +3695,6 @@ function vidSync0(){
   if(ad<1.5) vidEl.classList.add('on');
 }
 function vidUrl(id){ return '/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token); }
-/* Báo server tải sẵn video bài kế tiếp (chỉ gửi 2 byte đầu): tới bài đó là phát gần như ngay */
 var vidWarm={};
 function vidPrefetchNext(){ try{
   if(shuf||!queue||qi<0) return; const n=queue[qi+1]; if(!n||n.src!=='yt'||vidWarm[n.id]||vidFail[n.id]) return;
@@ -3954,24 +3703,21 @@ function vidPrefetchNext(){ try{
 if(vidEl){ ['loadeddata','canplay','seeked'].forEach(ev=>vidEl.addEventListener(ev,vidSync)); }
 setInterval(vidSync,250);
 
-/* ===== Nút mắt hiện/ẩn mật khẩu: tự gắn cho mọi ô <input type=password> (kể cả ô được vẽ sau) ===== */
 function pwEnhance(root){
   (root||document).querySelectorAll('input[type=password]:not([data-pw])').forEach(inp=>{
     inp.dataset.pw='1'; const w=document.createElement('span'); w.className='pwW';
     inp.parentNode.insertBefore(w,inp); w.appendChild(inp);
     const b=document.createElement('button'); b.type='button'; b.className='pwEye'; b.tabIndex=-1;
     const paint=()=>{ const sh=inp.type==='text'; b.classList.toggle('on',sh); b.title=b.ariaLabel=sh?'Ẩn mật khẩu':'Hiện mật khẩu'; b.innerHTML=ic(sh?'eyeoff':'eye'); try{ if(window.BB_LANG==='en') b.title=b.ariaLabel=sh?'Hide password':'Show password'; }catch{} };
-    b.onmousedown=e=>e.preventDefault();   /* giữ con trỏ trong ô nhập */
+    b.onmousedown=e=>e.preventDefault();
     b.onclick=()=>{ const s=inp.selectionStart,e=inp.selectionEnd; inp.type=inp.type==='password'?'text':'password'; paint(); try{ inp.focus(); inp.setSelectionRange(s,e); }catch{} };
     paint(); w.appendChild(b);
   });
 }
 pwEnhance();
 new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).observe(document.body,{childList:true,subtree:true});
-/* về lại ẩn mật khẩu khi form đăng nhập bị đóng/đổi chế độ */
 ['#tLogin','#tReg'].forEach(q=>{ const el=document.querySelector(q); if(el) el.addEventListener('click',()=>{ const i=$('#aPass'); if(i&&i.type==='text'){ i.type='password'; const b=i.parentNode.querySelector('.pwEye'); if(b){ b.classList.remove('on'); b.innerHTML=ic('eye'); } } }); });
 
-/* ===== Giao diện điều khiển video riêng (lùi/tới 5 giây, toàn màn hình) ===== */
 (function(){
   const art=document.querySelector('#vPlay .art'), vc=document.getElementById('vctl'); if(!art||!vc) return;
   let hideTm=0;
@@ -3981,10 +3727,8 @@ new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).obs
   const skip=d=>{ const du=getDur(); seekTo(Math.max(0,Math.min(du?du-0.3:1e9,getTime()+d))); broadcastState(); };
   $('#vcBack').onclick=act(()=>skip(-5));
   $('#vcFwd').onclick=act(()=>skip(5));
-  /* chạm vào video: hiện/ẩn nút; chuột: rê vào là hiện */
   vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(vc.classList.contains('show')) hide(); else show(); });
   vc.addEventListener('mousemove',show); vc.addEventListener('mouseleave',hide);
-  /* toàn màn hình (iOS không hỗ trợ cho div → dùng chế độ phủ kín màn hình) */
   const isFs=()=>document.fullscreenElement===art||document.webkitFullscreenElement===art||art.classList.contains('pfs');
   const paintFs=()=>{ const f=isFs(); setIc($('#vcFull'),f?'fullx':'full'); $('#vcFull').title=$('#vcFull').ariaLabel=f?(window.BB_LANG==='en'?'Exit fullscreen':'Thoát toàn màn hình'):(window.BB_LANG==='en'?'Fullscreen':'Toàn màn hình'); };
   const enter=async()=>{ const rq=art.requestFullscreen||art.webkitRequestFullscreen; if(rq){ try{ await rq.call(art); try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch{} return; }catch{} } art.classList.add('pfs'); paintFs(); };
@@ -3992,17 +3736,15 @@ new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).obs
   $('#vcFull').onclick=act(()=>{ isFs()?leave():enter(); });
   document.addEventListener('fullscreenchange',paintFs); document.addEventListener('webkitfullscreenchange',paintFs);
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&art.classList.contains('pfs')) leave(); });
-  /* đổi bài / tắt video thì thoát toàn màn hình */
   new MutationObserver(()=>{ if(!document.body.classList.contains('vc')&&isFs()) leave(); }).observe(document.body,{attributes:true,attributeFilter:['class']});
 })();
-var ytAlb={};   /* id video -> true nếu là bài album tự tạo của YouTube (kênh '… - Topic'): video chỉ là ảnh bìa có viền đen hai bên */
+var ytAlb={};
 function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=document.getElementById('npCov'); if(!a||!im) return;
   const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
   a.style.setProperty('--bgi',w&&im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
 function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!d||!d.video_id) return; const a=/\s-\s*Topic\s*$/i.test(d.author||''); if(ytAlb[d.video_id]!==a){ ytAlb[d.video_id]=a; if(cur&&cur.id===d.video_id){ syncVid(); artFit(); } } }catch{} }
 function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',vidWant()&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',vidWant()); }
-$('#npVid').onclick=()=>{ if(!cur) return; vidOv={k:key(cur),on:!vidWant()}; syncVid(); };   /* chỉ áp cho bài này; công tắc tự hiện video ở Cài đặt giữ nguyên */
-/* ----- panel Đang phát bên phải: bấm vào thanh nhạc để mở/đóng ----- */
+$('#npVid').onclick=()=>{ if(!cur) return; vidOv={k:key(cur),on:!vidWant()}; syncVid(); };
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
 function setNp(open,tab){ npOpen=open; if(tab) npTab=tab; LS.set('npopen',open?'1':'0'); updateBar(); showTab(); }
 function showTab(){
@@ -4014,7 +3756,7 @@ function showTab(){
 document.querySelectorAll('.npTabs [data-nt]').forEach(b=>b.onclick=()=>{ npTab=b.dataset.nt; showTab(); });
 $('#npHide').onclick=()=>setNp(false);
 $('#bPip').onclick=()=>setNp(!npOpen);
-$('#bar').addEventListener('click',e=>{ if(e.target.closest('button,input,.vol')||seeking||Date.now()-seekEndAt<500) return; setNp(!npOpen); });   /* thả chuột sau khi kéo thanh tua không được tính là bấm mở/đóng Đang phát */
+$('#bar').addEventListener('click',e=>{ if(e.target.closest('button,input,.vol')||seeking||Date.now()-seekEndAt<500) return; setNp(!npOpen); });
 $('#bOpen').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setNp(!npOpen); } };
 $('#npQ').onclick=()=>setNp(true,'q');
 $('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
@@ -4026,14 +3768,13 @@ $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').for
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
 setInterval(()=>{
-  if(document.hidden) return; /* ẩn app/tắt màn hình: khỏi vẽ lại thanh tiến trình */
+  if(document.hidden) return;
   const d=getDur(),t=getTime();
   if(d&&!seeking){ const v=1000*t/d; $('#seek').value=v; $('#seek').style.setProperty('--p',v/10+'%'); $('#bOpen').style.setProperty('--rp',(v/10).toFixed(1)); }
   $('#tm').textContent=cur?fmt(t)+' / '+fmt(d):'0:00 / 0:00'; setIc($('#pp'),playing?'pause':'play',true);
   if(lyrLines){ const k=curLine(t); const s=k>=0?lyrLines[k].s:''; if(s!==lastNpLine){ lastNpLine=s; $('#npLine').textContent=s; } if(lyrActive()) hiLyric(k); }
 },400);
 
-/* ===== Màu theo ảnh bìa ===== */
 let colTok=0;
 function hsl2rgb(h,s,l){ const a=s*Math.min(l,1-l), f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))}; return [f(0)*255,f(8)*255,f(4)*255]; }
 function npColor(t){
@@ -4056,7 +3797,6 @@ function paintNp(rgb,t){
   st.setProperty('--npbg',`rgb(${R|0},${G|0},${B|0})`); st.setProperty('--npfg',lum>.58?'#101010':'#ffffff');
 }
 
-/* ===== Hàng đợi & lời bài hát ===== */
 function renderQueue(){
   const q=$('#vQ'); if(!q) return;
   q.innerHTML=`<div class="qh"><b>Tiếp theo · ${queue.length} bài</b><button id="qClr">Xoá</button></div>`+
@@ -4065,7 +3805,6 @@ function renderQueue(){
   $('#qClr').onclick=()=>{ queue=cur?[cur]:[]; qi=cur?0:-1; renderQueue(); };
   const act=q.querySelector('.act'); if(act) act.scrollIntoView({block:'center'});
 }
-/* ===== Lời bài hát: SimpMusic Lyrics (chính) → LRCLIB (dự phòng) ===== */
 const SIMP='https://api-lyrics.simpmusic.org/v1', LRC='https://lrclib.net/api';
 const cleanTitle=s=>String(s||'').replace(/\s*[\(\[][^\)\]]*(official|video|audio|lyrics?|mv|visuali[sz]er|remaster)[^\)\]]*[\)\]]/ig,'').replace(/\s*-\s*topic$/i,'').trim();
 const cleanArtist=s=>String(s||'').replace(/\s*-\s*topic$/i,'').replace(/VEVO$/i,'').trim();
@@ -4117,7 +3856,6 @@ function hiLyric(k){
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&innerWidth<1100&&npOpen) setNp(false); });
 
-/* ===== SponsorBlock: luôn bật, tự bỏ qua đoạn quảng cáo/intro/outro trong video YouTube ===== */
 const SB_CATS=['sponsor','selfpromo','interaction','intro','outro','music_offtopic'];
 let sbSegs=[];
 async function sha256Hex(s){ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
@@ -4126,9 +3864,9 @@ async function loadSponsorBlock(t){
   try{
     const q=new URLSearchParams({categories:JSON.stringify(SB_CATS),actionTypes:JSON.stringify(['skip'])});
     let url;
-    if(window.crypto&&crypto.subtle) url=`https://sponsor.ajay.app/api/skipSegments/${(await sha256Hex(t.id)).slice(0,4)}?${q}`; /* chỉ gửi 4 ký tự đầu của hash để giữ riêng tư */
+    if(window.crypto&&crypto.subtle) url=`https://sponsor.ajay.app/api/skipSegments/${(await sha256Hex(t.id)).slice(0,4)}?${q}`;
     else { q.set('videoID',t.id); url=`https://sponsor.ajay.app/api/skipSegments?${q}`; }
-    const r=await fetch(url); if(!r.ok||cur!==t) return; /* 404 = chưa có đoạn nào */
+    const r=await fetch(url); if(!r.ok||cur!==t) return;
     let j=await r.json(); if(!Array.isArray(j)) return;
     const e=j.find(x=>x.videoID===t.id)||(j.length&&!j[0].videoID?{segments:j}:null);
     if(cur!==t) return;
@@ -4141,7 +3879,6 @@ setInterval(()=>{
   for(const [a,b] of sbSegs){ if(t>=a&&t<b-0.5){ seekTo(b); break; } }
 },250);
 
-/* ===== Return YouTube Dislike: số like/dislike của video ===== */
 const votesCache={};
 const kfmt=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
 const votesText=t=>{ const v=t&&t.src==='yt'&&votesCache[t.id]; return v&&typeof v.likes==='number'&&typeof v.dislikes==='number'?` · Thích ${kfmt(v.likes)} · Không thích ${kfmt(v.dislikes)}`:''; };
@@ -4154,7 +3891,6 @@ async function loadVotes(t){
 }
 function trackExtras(t){ if(t.src==='yt'){ loadSponsorBlock(t); loadVotes(t); } else sbSegs=[]; }
 
-/* ===== Danh sách phát offline ===== */
 const plKey=()=>'muse_plc_'+(me&&me.id);
 const plTkKey=id=>'muse_plt_'+(me&&me.id)+'_'+id;
 function clearPlCache(){ try{ const pre='muse_pl'; Object.keys(localStorage).filter(k=>k.startsWith(pre)).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('muse_me'); }catch{} }
@@ -4167,12 +3903,10 @@ async function cachePlaylists(force){
 const cachedPlaylists=()=>{ try{ return JSON.parse(LS.get(plKey(),'null')); }catch{ return null; } };
 const cachedPlaylist=id=>{ try{ return JSON.parse(LS.get(plTkKey(id),'null')); }catch{ return null; } };
 
-/* ===== Discord Rich Presence (qua app desktop Tauri) ===== */
 const DESK=!!(window.__TAURI__&&window.__TAURI__.core)&&!/Android/i.test(navigator.userAgent);
 const dc={user:'',timer:0};
-let dl={linked:false,name:'',sdk:false};   /* tài khoản Discord đã liên kết (OAuth) */
+let dl={linked:false,name:'',sdk:false};
 const dInvoke=(c,a)=>DESK?window.__TAURI__.core.invoke(c,a):Promise.reject(new Error('Chỉ có trên app desktop'));
-/* Discord Social SDK: Rich Presence bằng token OAuth, không cần mở app Discord (app desktop + app Android bản mới) */
 const AND=!!window.MuseNative&&typeof window.MuseNative.sdkAvailable==='function';
 const sdkP={ok:false,last:0};
 async function sdkProbe(){
@@ -4180,7 +3914,7 @@ async function sdkProbe(){
 }
 const sdkOn=()=>!!(sdkP.ok&&dl.linked&&dl.sdk&&cfg.discord_app_id);
 async function sdkStatus(){
-  if(DESK) return await dInvoke('sdk_presence_status');      /* lỗi -> reject với chi tiết */
+  if(DESK) return await dInvoke('sdk_presence_status');
   const st=String(window.MuseNative.sdkStatus()); if(st.startsWith('err:')) throw new Error(st.slice(4)||'lỗi Discord'); return st;
 }
 async function sdkStart(){
@@ -4219,14 +3953,10 @@ function pushPresence(){
 setInterval(()=>{
   if(!(DESK||sdkP.ok)||!S.discord_rpc) return;
   if(dc.user){ if(playing) pushPresence(); }
-  else if(sdkOn()&&Date.now()-sdkP.last>60000){ sdkP.last=Date.now(); discordConnect().catch(()=>{}); }   /* mất kết nối -> thử lại mỗi phút */
+  else if(sdkOn()&&Date.now()-sdkP.last>60000){ sdkP.last=Date.now(); discordConnect().catch(()=>{}); }
 },15000);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-/* ===== Đồng bộ dữ liệu nghe theo TÀI KHOẢN =====
-   Trước đây lượt phát, nghe hết/bỏ qua, "không thích", nghệ sĩ theo dõi và "tiếp tục nghe" chỉ nằm trong localStorage của từng thiết bị.
-   Giờ chúng được đẩy lên server theo user_id (bảng user_sync) và gộp lại – MỌI tài khoản, kể cả admin, đều như nhau, không có ngoại lệ.
-   Server gộp: listen/plays theo từng bài; dislike/follow/jump theo bản mới hơn (lần đầu thì hợp nhất). */
 const SYNC={
   listen:{get:()=>listenGet(),set:v=>LS.set('muse_listen_dev',JSON.stringify(v))},
   plays:{get:()=>playsAll(),set:v=>{ LS.set(uKey('muse_plays'),JSON.stringify(v)); LS.set('muse_plays_dev',JSON.stringify(v)); }},
@@ -4254,12 +3984,11 @@ async function syncNow(){
         const nts=syncTsGet();
         for(const k in SYNC){ const e=r[k]; if(e&&e.v!==undefined&&e.v!==null){ SYNC[k].set(e.v); nts[k]=e.ts||nts[k]||0; } }
         LS.set(syncTsKey(),JSON.stringify(nts)); tasteCache=null;
-      }else{ clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },500); }   /* trong lúc chờ phản hồi bạn lại nghe/đổi thêm → gửi lại bản mới */
+      }else{ clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },500); }
     }
   }catch{}
   finally{ syncBusy=false; }
 }
-/* Lần đầu thiết bị này nối với tài khoản: hợp nhất danh sách theo dõi / không thích / tiếp tục nghe đang có ở máy với bản trên server (không bên nào bị mất) */
 function syncFirstMerge(remote){
   const nts=syncTsGet(), now=Date.now();
   const uniq=(a,f)=>{ const s=new Set(); return a.filter(x=>{ const k=f(x); if(!k||s.has(k)) return false; s.add(k); return true; }); };
@@ -4271,25 +4000,20 @@ function syncFirstMerge(remote){
 }
 async function syncInit(){
   if(guest||!me||!me.id) return;
-  /* máy này đã gắn với tài khoản KHÁC (dữ liệu đó đã nằm trên server của tài khoản kia) → bỏ bản trên máy để không trộn gu nghe giữa hai tài khoản.
-     Máy chưa gắn tài khoản nào (hoặc vừa dùng chế độ khách) thì giữ lại và gộp vào tài khoản này. */
   const lastU=LS.get('muse_sync_uid','');
   if(lastU&&lastU!==String(me.id)){ ['muse_listen_dev','muse_plays_dev','muse_dislike_dev','muse_taste3_dev'].forEach(k=>{ try{ localStorage.removeItem(k); }catch{} }); }
   LS.set('muse_sync_uid',String(me.id)); tasteCache=null;
   if(!syncWired){ syncWired=true;
     setInterval(()=>{ if(!document.hidden) syncNow(); },300000);
     document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncNow(); }); }
-  if(LS.get(syncTsKey(),null)===null){ try{ syncFirstMerge(await api('/api/sync')); }catch{ return; } }   /* không kết nối được thì chưa bật đồng bộ, lần mở sau thử lại */
+  if(LS.get(syncTsKey(),null)===null){ try{ syncFirstMerge(await api('/api/sync')); }catch{ return; } }
   syncOn=true;
   await syncNow();
 }
 
-/* ===== Khởi động ===== */
 async function start(u,offlineBoot){
   applyUser(u);
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
-  /* Nạp cài đặt đã lưu trên máy trước (để khi offline vẫn biết có bật "lưu playlist offline" không), rồi hỏi server SONG SONG
-     (trước đây 5 lượt gọi nối đuôi nhau mới hiện trang chủ và phát lại bài cũ). */
   try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{}
   const [c,s,f]=await Promise.all([
     offlineBoot?null:api('/api/config').catch(()=>null),
@@ -4308,20 +4032,19 @@ async function start(u,offlineBoot){
   if(cfg.discord_login&&!guest){ try{ dl=await api('/api/discord/status'); }catch{} }
   { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
   if(S.discord_rpc&&cfg.discord_app_id&&dl.linked&&(DESK||sdkOn())) discordConnect().catch(()=>{});
-  if(offline){   /* không có server: vào thẳng danh sách bài đã tải, không mở WebSocket */
+  if(offline){
     netDown=true; bootedOffline=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
-  if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);   /* kéo dữ liệu nghe của tài khoản về trước khi vẽ trang chủ (tối đa 1,5 giây, quá thì chạy nền) */
+  if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);
   applyVol(); restorePlayState(); go('home');
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
   if(guest){
-    /* khách: không có phòng nghe chung / bạn bè, nên không mở WebSocket và không đồng bộ đồng hồ */
     leader=true; setTimeout(autoUpdate,4000);
     const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users')+'<span>Phòng</span>';
     return;
   }
-  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);   /* đồng hồ chỉnh dần ở nền, không chặn việc vào phòng */
+  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
   try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
@@ -4331,7 +4054,6 @@ async function start(u,offlineBoot){
   if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
   try{ const u=await api('/api/me'); LS.set('muse_me',JSON.stringify(u)); start(u); }
   catch(e){
-    /* mất mạng: mở app bằng tài khoản đã nhớ và vào thẳng danh sách bài đã tải */
     let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
     if(e.net&&c) start(c,true); else if(e.message!=='401'&&c&&JSON.parse(LS.get('muse_s','{}')).offline_pl) start(c,true); else showAuth();
   }

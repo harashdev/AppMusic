@@ -14,7 +14,6 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import androidx.core.content.ContextCompat
 
-/** Cầu nối JS -> native. Trong web gọi: MuseNative.update(title, artist, art, playing, posMs, durMs, hasTrack). */
 class MuseBridge(private val ctx: Context) {
     @JavascriptInterface
     fun update(title: String, artist: String, art: String, playing: Boolean, posMs: Long, durMs: Long, hasTrack: Boolean) {
@@ -23,14 +22,11 @@ class MuseBridge(private val ctx: Context) {
         Playback.title = title; Playback.artist = artist; Playback.art = art
         Playback.playing = playing; Playback.posMs = posMs; Playback.durMs = durMs; Playback.hasTrack = hasTrack
         if (hasTrack && playing) {
-            // Chỉ khởi động service khi người dùng đang phát nhạc (app đang ở trước nền).
             runCatching { ContextCompat.startForegroundService(ctx, Intent(ctx, KeepAliveService::class.java)) }
         }
         if (trackChanged || playChanged || hasTrack) Playback.onChanged?.invoke()
     }
 
-    // ---- Lưu file nhạc tải về (WAV / m4a / webm...) vào Music/BBeat ----
-    // Web gọi lần lượt: saveBegin(tên, mime) -> saveChunk(base64) nhiều lần -> saveEnd(true|false). Trả "" nếu ổn, "err:..." nếu lỗi.
     private var saveOut: OutputStream? = null
     private var saveUri: Uri? = null
     private var saveFile: File? = null
@@ -38,7 +34,7 @@ class MuseBridge(private val ctx: Context) {
     @JavascriptInterface
     @Synchronized
     fun saveBegin(name: String, mime: String): String {
-        saveEnd(false) // dọn lần lưu dở trước đó (nếu có)
+        saveEnd(false)
         return try {
             val safe = name.filter { it >= ' ' }.replace(Regex("[\\/:*?\"<>|]"), "_").take(120).ifBlank { "bai-hat" }
             if (Build.VERSION.SDK_INT >= 29) {
@@ -53,7 +49,6 @@ class MuseBridge(private val ctx: Context) {
                 saveUri = uri
                 saveOut = ctx.contentResolver.openOutputStream(uri) ?: return "err:không mở được file để ghi"
             } else {
-                // Android 8-9: ghi vào thư mục riêng của app (không cần xin quyền): Android/data/vn.muse.app/files/Music/BBeat
                 val dir = File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "BBeat")
                 dir.mkdirs()
                 val f = File(dir, safe)
@@ -101,8 +96,6 @@ class MuseBridge(private val ctx: Context) {
         } catch (_: Exception) {}
     }
 
-    // ---- Discord Social SDK (Rich Presence không cần app Discord) ----
-    /** Chia sẻ bài hát: mở bảng chia sẻ của Android (Zalo, Messenger, Telegram...). Trả false nếu không mở được. */
     @JavascriptInterface
     fun share(text: String): Boolean = try {
         val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }
@@ -114,7 +107,6 @@ class MuseBridge(private val ctx: Context) {
     @JavascriptInterface
     fun sdkAvailable(): Boolean = MuseSdk.available
 
-    /** Trả "" nếu bắt đầu được, ngược lại là thông báo lỗi. */
     @JavascriptInterface
     fun sdkStart(appId: String, token: String): String = MuseSdk.start(appId, token)
 

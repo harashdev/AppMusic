@@ -1,4 +1,3 @@
-//! Gọi API của server Muse (Axum). Mọi hàm ở đây là blocking: UI chạy chúng trong thread riêng.
 
 use reqwest::blocking::{Client, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
@@ -15,7 +14,6 @@ fn id_to_string<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
     })
 }
 
-/// Bài hát. Khớp với JSON mà server lưu/trả: { src, id, title, artist, image, url, dur, explicit }.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Track {
@@ -31,7 +29,6 @@ pub struct Track {
 }
 
 impl Track {
-    /// Khoá bài hát giống `track_key` ở server ("src:id").
     pub fn key(&self) -> String {
         format!("{}:{}", self.src, self.id)
     }
@@ -125,7 +122,6 @@ impl Api {
             .map(|_| ())
     }
 
-    // ---------- Tài khoản ----------
     pub fn login(&self, username: &str, password: &str) -> Result<(String, User), String> {
         let v: Value = self.post_json(
             "/api/login",
@@ -150,7 +146,6 @@ impl Api {
         self.post_ok("/api/logout", &json!({}))
     }
 
-    // ---------- Nhạc ----------
     pub fn search(&self, q: &str) -> Result<Vec<Track>, String> {
         let r = self.send(self.http.get(self.url("/api/yt/search")).query(&[("q", q)]))?;
         r.json::<Vec<Track>>()
@@ -165,7 +160,6 @@ impl Api {
         self.get_json("/api/favorites")
     }
 
-    /// Bật/tắt yêu thích, trả về trạng thái mới.
     pub fn toggle_fav(&self, t: &Track) -> Result<bool, String> {
         let v: Value = self.post_json("/api/favorites", &track_json(t))?;
         Ok(v.get("fav").and_then(|x| x.as_bool()).unwrap_or(false))
@@ -219,13 +213,9 @@ impl Api {
         .map(|_| ())
     }
 
-    // ---------- Âm thanh ----------
-    /// Tải trọn một bài về RAM (khoảng 3-6 MB, định dạng AAC trong MP4).
-    /// Server trả từng đoạn theo header Range nên ta xin lần lượt đến khi đủ.
     pub fn download_audio(&self, t: &Track) -> Result<Vec<u8>, String> {
         const MAX: usize = 80 * 1024 * 1024;
         if t.src != "yt" {
-            // Nguồn cũ (jm/au): link trực tiếp nằm trong `url`.
             if t.url.is_empty() {
                 return Err("Bài này không có link phát".into());
             }
@@ -282,7 +272,6 @@ impl Api {
                 return Err("Máy chủ trả về đoạn âm thanh rỗng".into());
             }
             if status.as_u16() == 200 {
-                // Server bỏ qua Range và trả cả file.
                 if out.is_empty() {
                     return Ok(bytes.to_vec());
                 }
@@ -304,7 +293,6 @@ impl Api {
                 return Ok(out);
             }
             if total == 0 {
-                // Không biết tổng dung lượng: coi như đã đủ sau đoạn đầu.
                 return Ok(out);
             }
         }

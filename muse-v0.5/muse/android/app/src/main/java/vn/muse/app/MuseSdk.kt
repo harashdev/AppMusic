@@ -2,10 +2,6 @@ package vn.muse.app
 
 import android.app.Activity
 
-/**
- * Discord Social SDK: Rich Presence bằng token OAuth, không cần mở app Discord.
- * Thư viện chỉ có trong bản build có kèm SDK; thiếu thì [available] = false và app chạy bình thường.
- */
 object MuseSdk {
     @Volatile private var loaded = false
     @Volatile private var failure = ""
@@ -16,7 +12,7 @@ object MuseSdk {
     fun init(activity: Activity) {
         if (loaded) return
         try {
-            System.loadLibrary("discord_partner_sdk") // chạy JNI_OnLoad của SDK
+            System.loadLibrary("discord_partner_sdk")
             val c = Class.forName("com.discord.socialsdk.DiscordSocialSdkInit")
             c.getMethod("setEngineActivity", Activity::class.java).invoke(null, activity)
             System.loadLibrary("muse_presence")
@@ -32,7 +28,6 @@ object MuseSdk {
         return if (nStart(id, token) == 0) "" else "Không khởi động được Discord SDK"
     }
 
-    /** "ready" | "connecting" | "off" | "err:<chi tiết>" */
     fun status(): String {
         if (!loaded) return "off"
         val err = nError()

@@ -10,7 +10,6 @@ use std::{
 #[cfg(desktop)]
 use tauri::State;
 
-// Địa chỉ server Muse, cố định lúc build: MUSE_URL=https://muse.example.com cargo tauri build
 const SERVER_URL: &str = match option_env!("MUSE_URL") {
     Some(u) => u,
     None => "http://localhost:3000",
@@ -19,8 +18,6 @@ const SERVER_URL: &str = match option_env!("MUSE_URL") {
 #[cfg(desktop)]
 mod discord_rpc {
     use super::*;
-    // ===== Discord Rich Presence qua IPC cục bộ (không cần thư viện ngoài) =====
-    // Giao thức: mỗi khung = opcode (u32 LE) + độ dài (u32 LE) + JSON. Windows: named pipe, Linux/macOS: unix socket.
     trait Conn: Read + Write + Send {}
     impl<T: Read + Write + Send> Conn for T {}
 
@@ -181,7 +178,6 @@ mod discord_rpc {
     }
 }
 
-// ===== Discord Social SDK (tùy chọn, chỉ khi build có DISCORD_SDK_DIR -> cfg muse_sdk) =====
 #[cfg(all(desktop, muse_sdk))]
 mod sdk {
     use std::ffi::{c_char, c_int, CStr, CString};
@@ -242,7 +238,6 @@ mod sdk {
     }
 }
 
-// Không có SDK: các lệnh vẫn tồn tại để trang web không bị lỗi "command not found".
 #[cfg(all(desktop, not(muse_sdk)))]
 mod sdk {
     #[tauri::command]
@@ -267,7 +262,6 @@ mod sdk {
     }
 }
 
-// Mở liên kết ngoài bằng trình duyệt mặc định (chỉ http/https).
 #[cfg(desktop)]
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {

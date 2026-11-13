@@ -1,4 +1,3 @@
-//! Phát âm thanh native bằng rodio (giải mã AAC/MP4 qua symphonia). Không có WebView, không có player YouTube.
 
 use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink, Source};
 use std::io::Cursor;
@@ -9,9 +8,7 @@ pub struct Player {
     handle: Option<OutputStreamHandle>,
     sink: Option<Sink>,
     pub volume: f32,
-    /// Số giây đã phát tính đến lần bấm phát gần nhất.
     base: f64,
-    /// Some(..) khi đang phát, None khi tạm dừng/chưa có bài.
     resumed: Option<Instant>,
     pub duration: f64,
 }
@@ -33,7 +30,6 @@ impl Player {
         }
     }
 
-    /// Nạp bài mới từ bytes AAC/MP4 và phát ngay.
     pub fn load(&mut self, bytes: Vec<u8>, dur_hint: f64) -> Result<(), String> {
         let handle = self
             .handle
@@ -112,7 +108,6 @@ impl Player {
         }
     }
 
-    /// Bài đã phát hết (hàng đợi trong sink rỗng khi đang ở trạng thái phát).
     pub fn finished(&self) -> bool {
         self.resumed.is_some() && self.sink.as_ref().map(|s| s.empty()).unwrap_or(false)
     }
