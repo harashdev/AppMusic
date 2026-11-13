@@ -220,26 +220,19 @@ fn bootstrap_admin(db: &Connection) {
     }
     // Chống chiếm tên: nếu tên admin đã bị đăng ký thường (chưa phải admin) thì xóa tài khoản đó cùng toàn bộ dữ liệu, rồi tạo lại admin sạch.
     if std::env::var("ADMIN_PASS").map(|p| p.len() >= 8 && p.len() <= 128).unwrap_or(false) {
-        match db.execute("DELETE FROM users WHERE username=?1 AND is_admin=0", [&user]) {
-            Ok(n) if n > 0 => println!("Đã xóa tài khoản cũ {user} (không phải admin) và toàn bộ dữ liệu của nó"),
-            _ => {}
-        }
+        let _ = db.execute("DELETE FROM users WHERE username=?1 AND is_admin=0", [&user]);
     }
     let existing: Option<(i64, String)> = db
         .query_row("SELECT id, pass_hash FROM users WHERE username=?1", [&user], |r| Ok((r.get(0)?, r.get(1)?)))
         .ok();
     match existing {
-        Some((id, hash)) => {
+        Some((id, _)) => {
             // Còn lại chỉ có thể là tài khoản đã là admin: giữ nguyên mật khẩu hiện tại, chỉ cập nhật tên hiển thị.
             if let Ok(name) = std::env::var("ADMIN_NAME") {
                 let name: String = name.trim().chars().take(24).collect();
                 if !name.is_empty() {
                     let _ = db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, id]);
                 }
-            }
-            match std::env::var("ADMIN_PASS") {
-                Ok(pw) if !verify_pw(&pw, &hash) => println!("Tài khoản admin {user} đang dùng mật khẩu khác ADMIN_PASS (giữ nguyên)"),
-                _ => println!("Tài khoản {user} có quyền admin"),
             }
         }
         None => {
@@ -263,7 +256,7 @@ fn bootstrap_admin(db: &Connection) {
                 params![user, hash, display, code],
             );
             match res {
-                Ok(_) => println!("Đã tạo tài khoản admin: {user}"),
+                Ok(_) => {}
                 Err(e) => eprintln!("Không tạo được admin: {e}"),
             }
         }
