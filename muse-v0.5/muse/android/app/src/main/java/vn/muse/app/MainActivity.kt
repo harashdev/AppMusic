@@ -176,7 +176,9 @@ class MainActivity : ComponentActivity() {
         s.loadWithOverviewMode = true
         s.useWideViewPort = true
         s.userAgentString = s.userAgentString.replace("; wv", "") + " MuseAndroid" // YouTube coi như Chrome; web nhận ra app để dùng giao diện máy tính
-        s.setOffscreenPreRaster(true)           // vẽ sẵn phần ngoài màn hình -> cuộn mượt hơn
+        // Vẽ sẵn phần ngoài màn hình chỉ có lợi trên máy khoẻ; máy RAM thấp bật lên lại gây giật và tốn bộ nhớ.
+        val am = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+        s.setOffscreenPreRaster(!am.isLowRamDevice && am.memoryClass >= 256)
         s.cacheMode = WebSettings.LOAD_DEFAULT
         s.allowFileAccess = false
         s.setGeolocationEnabled(false)
@@ -191,7 +193,11 @@ class MainActivity : ComponentActivity() {
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         MuseSdk.init(this)
         web.addJavascriptInterface(MuseBridge(applicationContext), "MuseNative")
-        web.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        // Không ép LAYER_TYPE_HARDWARE cho cả WebView: nó bắt WebView vẽ qua thêm một texture lớn rồi mới ghép -> tốn GPU/RAM, cuộn giật.
+        // Để mặc định (Activity đã bật hardwareAccelerated trong manifest), Chromium tự ghép lớp hiệu quả hơn.
+        web.setLayerType(View.LAYER_TYPE_NONE, null)
+        // Giữ tiến trình vẽ ở mức ưu tiên cao khi app đang hiện (hệ thống ít "bỏ đói" renderer hơn).
+        web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         web.webChromeClient = chrome
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
