@@ -274,8 +274,10 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 #ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
 #ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
 body.vid #ytbox.live{opacity:0}
+body.vid.ytfb #ytbox.live{opacity:1}   /* video riêng lỗi → hiện thẳng video YouTube để bấm là chắc chắn có hình */
 /* video lỗi / không có video → không hiện player YouTube, cứ để ảnh album */
-body.ytfb #ytbox iframe{transform:scale(1.2)}   /* iframe YouTube chỉ phát tiếng, không bao giờ hiện giao diện của nó */
+body.ytfb #ytbox iframe{transform:scale(1.2)}
+body.vid.ytfb #ytbox iframe{transform:scale(1.35)}   /* iframe YouTube chỉ phát tiếng, không bao giờ hiện giao diện của nó */
 #vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .12s;transform:translateZ(0)}
 #vidEl.on{opacity:1}
 body:not(.vid) #vidEl{display:none}
@@ -1537,7 +1539,7 @@ function pushToast(t,key,ms){
   setTimeout(()=>t.remove(),ms);
 }
 /* Thông báo kỹ thuật (tìm video, yt-dlp, đổi luồng phát, nhạc bị đứng…): chỉ admin và chỉ khi bật "Hiện thông báo lỗi" trong Cài đặt */
-function adminNotify(msg){ try{ if(me&&me.is_admin&&S.show_errors) notify(msg); }catch{} }
+function adminNotify(msg){ if(/video/i.test(String(msg))) return; try{ if(me&&me.is_admin&&S.show_errors) notify(msg); }catch{} }
 function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
 /* Chặn người đã bấm "Bỏ qua" 10 phút + chống bấm mời liên tục từ phía mình */
 const muted={}, inviteAt={};
@@ -3844,7 +3846,7 @@ function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=docume
   const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
   a.style.setProperty('--bgi',w&&im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
 function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!d||!d.video_id) return; const a=/\s-\s*Topic\s*$/i.test(d.author||''); if(ytAlb[d.video_id]!==a){ ytAlb[d.video_id]=a; if(cur&&cur.id===d.video_id){ syncVid(); artFit(); } } }catch{} }
-function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',showVideo&&!!cur&&cur.src==='yt'&&!(ytAlb&&ytAlb[cur.id])); vidSync(); $('#npVid').classList.toggle('on',showVideo); }
+function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',showVideo&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',showVideo); }
 $('#npVid').onclick=()=>{ setVideo(!showVideo); const c=$('#vidOn'); if(c) c.checked=showVideo; };
 /* ----- panel Đang phát bên phải: bấm vào thanh nhạc để mở/đóng ----- */
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
