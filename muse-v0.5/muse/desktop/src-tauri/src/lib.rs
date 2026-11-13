@@ -315,7 +315,7 @@ pub fn run() {
         .setup(|app| {
             let url: tauri::Url = SERVER_URL.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
-                .title("Muse")
+                .title("BBeat")
                 .inner_size(1280.0, 820.0)
                 .min_inner_size(420.0, 600.0)
                 .build()?;
