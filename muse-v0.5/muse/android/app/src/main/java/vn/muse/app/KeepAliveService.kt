@@ -167,7 +167,7 @@ class KeepAliveService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return Notification.Builder(this, CH)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_stat_bbeat)
             .setContentTitle(p.title.ifBlank { "BBeat" })
             .setContentText(p.artist.ifBlank { "Sẵn sàng phát nhạc" })
             .setLargeIcon(artBmp)
