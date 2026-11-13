@@ -1894,7 +1894,15 @@ fn yt_track(item: &Value) -> Option<Value> {
         .get("badges")
         .map(|b| b.to_string().contains("MUSIC_EXPLICIT_BADGE"))
         .unwrap_or(false);
-    Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit }))
+    // Loại video do YouTube Music gắn: OMV = MV chính chủ của nghệ sĩ, ATV = bản âm thanh chính thức, UGC = video người dùng tự đăng (fan, remix, cover...).
+    let vt = {
+        let s = item.to_string();
+        let key = "\"musicVideoType\":\"MUSIC_VIDEO_TYPE_";
+        s.find(key)
+            .map(|i| s[i + key.len()..].chars().take_while(|c| c.is_ascii_uppercase() || *c == '_').collect::<String>())
+            .unwrap_or_default()
+    };
+    Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit, "vt": vt }))
 }
 
 // Mục không phải bài hát trong kết quả tìm kiếm: album, nghệ sĩ, danh sách phát, podcast.
