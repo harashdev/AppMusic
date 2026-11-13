@@ -116,6 +116,15 @@ Vào *Cài đặt → Nhập playlist từ YouTube*, dán link playlist (mỗi l
 - Link hợp lệ có dạng `https://www.youtube.com/playlist?list=PL...` hoặc `https://www.youtube.com/watch?v=...&list=PL...` (cũng nhận thẳng ID playlist). Mix tự tạo của YouTube (`list=RD...`) không nhập được.
 - API: `POST /api/yt-import/url` với body `{"urls":"link1\nlink2"}`.
 
+## Nhập playlist từ Spotify, Apple Music, SoundCloud
+Cùng ô *Cài đặt → Nhập playlist từ app khác*: dán link playlist công khai (mỗi lần một link). Muse chỉ phát nhạc từ YouTube, nên server đọc danh sách (tên bài, nghệ sĩ, thời lượng) từ app gốc rồi **tìm từng bài trên YouTube Music** và lưu thành playlist của bạn, giữ đúng thứ tự gốc. Bài không tìm được bản khớp (tên + nghệ sĩ + thời lượng) sẽ bị bỏ qua; giao diện báo số bài bỏ qua, rê chuột vào dòng thông báo để xem danh sách.
+- **Spotify**: `open.spotify.com/playlist/…` hoặc `/album/…` (cũng nhận `spotify:playlist:ID`). Đọc từ trang nhúng công khai nên chỉ lấy được tối đa khoảng 100 bài đầu mỗi playlist. Playlist riêng tư, "Liked Songs" và playlist do Spotify cá nhân hóa (Daily Mix…) không nhập được.
+- **Apple Music**: `music.apple.com/…/playlist/…` hoặc `/album/…`. Đọc dữ liệu có sẵn trong trang công khai.
+- **SoundCloud**: link bộ sưu tập dạng `soundcloud.com/<user>/sets/<tên>` (và link rút gọn `on.soundcloud.com/…`). Dùng **yt-dlp** (như phần phát nhạc: đặt `yt-dlp` cạnh server hoặc `YTDLP_PATH`). Remix/bootleg không có trên YouTube Music có thể bị bỏ qua.
+- Mỗi lần nhập tối đa 300 bài. Link YouTube trên cùng ô vẫn đi qua bộ nhập YouTube như cũ.
+- API: `POST /api/pl-import/url` với body `{"url":"https://open.spotify.com/playlist/…"}` → `{name, tracks, total, skipped, skipped_list, truncated, source}`. Code ở `server/src/pl_import.rs` (có test cho phần đọc link, đọc trang và chấm điểm khớp bài: `cargo test`).
+- Các trang Spotify/Apple đổi cấu trúc là chuyện thường; nếu một app bỗng báo "không đọc được trang", hàm `parse_spotify` / `parse_apple` là chỗ cần chỉnh.
+
 
 
 ## Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is"

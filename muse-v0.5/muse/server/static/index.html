@@ -1102,7 +1102,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.':'Crossfade between songs by fading out the current one while fading in the next.',
     'Phát video của nhạc':'Play music videos','Gợi ý cho bạn':'Recommended for you','Đã theo dõi':'Following','Phát nhiều nhất':'Most played','Theo dõi':'Follow','Nghệ sĩ bạn theo dõi':'Artists you follow',
     'Lịch sử nghe':'Listening history','Theo dõi lịch sử nghe':'Track listening history','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản':'Save your listening history to your account’s database',
-    'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube',
+    'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube','Nhập playlist từ app khác':'Import playlists from other apps','Hãy dán link playlist':'Paste a playlist link','Link Spotify, Apple Music, SoundCloud hoặc YouTube…':'Spotify, Apple Music, SoundCloud or YouTube link…','Không cần đăng nhập. Hỗ trợ playlist công khai từ Spotify, Apple Music, SoundCloud (dạng …/sets/…) và YouTube (công khai hoặc không công khai). Bài ngoài YouTube được tìm lại trên YouTube Music nên vài bài có thể không khớp.':'No sign-in needed. Supports public playlists from Spotify, Apple Music, SoundCloud (…/sets/… links) and YouTube (public or unlisted). Tracks from other apps are matched on YouTube Music, so a few may not be found.',
     'Đăng nhập Google':'Sign in with Google','Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Read access to your YouTube playlists is granted. Click to disconnect and revoke it.',
     'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.':'Only used to read your playlist list and import it into BBeat. BBeat doesn’t use Google to log in and doesn’t store passwords or tokens.',
     'Đã kết nối':'Connected','Chưa kết nối':'Not connected','Đăng nhập Google để nhập playlist từ YouTube':'Sign in with Google to import playlists from YouTube',
@@ -2440,8 +2440,8 @@ const pages={
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
-      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ app khác</div><div class="scard">
+      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Hỗ trợ playlist công khai từ Spotify, Apple Music, SoundCloud (dạng …/sets/…) và YouTube (công khai hoặc không công khai). Bài ngoài YouTube được tìm lại trên YouTube Music nên vài bài có thể không khớp.</small></div><div class="sinp"><input id="ytUrl" placeholder="Link Spotify, Apple Music, SoundCloud hoặc YouTube…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
     </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập</span>','dis')}
@@ -2528,16 +2528,23 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
-    /* ---- Nhập playlist YouTube bằng link (không cần đăng nhập) ---- */
+    /* ---- Nhập playlist bằng link: YouTube, Spotify, Apple Music, SoundCloud (không cần đăng nhập) ---- */
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
-        if(!url){ msg.textContent='Hãy dán link playlist YouTube'; return; }
-        const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
-        if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
-        if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
-        btn.disabled=true; msg.textContent='Đang kiểm tra link và yêu cầu YouTube…'; msg.dataset.kind='loading';
+        if(!url){ msg.textContent='Hãy dán link playlist'; return; }
+        const isYt=/(^|\/\/|\.)(youtube\.com|youtu\.be)(\/|$)/i.test(url)||/^[A-Za-z0-9_-]{13,}$/.test(url);
+        if(isYt){
+          const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
+          if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
+          if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
+        }
+        btn.disabled=true; msg.title=''; msg.textContent=isYt?'Đang kiểm tra link và yêu cầu YouTube…':'Đang đọc playlist và tìm từng bài trên YouTube Music… (có thể mất vài chục giây)'; msg.dataset.kind='loading';
         try{
-          const x=await api('/api/yt-import/url',{json:{url,urls:url}});
-          msg.dataset.kind='success'; msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
+          const x=await api('/api/pl-import/url',{json:{url,urls:url}});
+          let t=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
+          if(x.skipped) t+=` (${x.skipped}/${x.total} bài không tìm thấy trên YouTube Music, rê chuột vào đây để xem)`;
+          if(x.truncated) t+=` Chỉ nhập 300 bài đầu tiên.`;
+          msg.dataset.kind='success'; msg.textContent=t;
+          if(x.skipped_list&&x.skipped_list.length) msg.title='Không khớp:\n'+x.skipped_list.join('\n')+(x.skipped>x.skipped_list.length?`\n… và ${x.skipped-x.skipped_list.length} bài nữa`:'');
           inp.value=''; await loadPlaylists();
         }catch(e){
           if(e.message!=='401'){

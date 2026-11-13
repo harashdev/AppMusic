@@ -26,6 +26,8 @@ use std::{
 use tokio::sync::broadcast;
 use tower_http::services::ServeDir;
 
+mod pl_import; // nhập playlist từ Spotify / Apple Music / SoundCloud
+
 struct Room {
     tx: broadcast::Sender<String>,
     last_state: Option<String>,
@@ -322,6 +324,7 @@ async fn main() {
         .route("/api/discord/callback", get(discord_callback))
         .route("/api/discord/token", get(discord_token))
         .route("/api/yt-import/url", post(yt_import_url))
+        .route("/api/pl-import/url", post(pl_import::pl_import_url))
         .route("/api/backup", get(backup_export))
         .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
