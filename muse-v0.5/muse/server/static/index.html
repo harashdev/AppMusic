@@ -2429,6 +2429,9 @@ const pages={
       ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
       ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
     </div></div>
+    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ YouTube</div><div class="scard">
+      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.</small></div><div class="sinp"><input id="ytUrl" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
+    </div></div>
     <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
       ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập</span>','dis')}
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
@@ -2514,6 +2517,27 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
+    /* ---- Nhập playlist YouTube bằng link (không cần đăng nhập) ---- */
+    if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
+        if(!url){ msg.textContent='Hãy dán link playlist YouTube'; return; }
+        const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
+        if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
+        if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
+        btn.disabled=true; msg.textContent='Đang kiểm tra link và yêu cầu YouTube…'; msg.dataset.kind='loading';
+        try{
+          const x=await api('/api/yt-import/url',{json:{url,urls:url}});
+          msg.dataset.kind='success'; msg.textContent=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
+          inp.value=''; await loadPlaylists();
+        }catch(e){
+          if(e.message!=='401'){
+            msg.dataset.kind='error';
+            const detail=String(e&&e.message||e).trim();
+            msg.textContent='Nhập thất bại: '+(detail||'Máy chủ không trả về nội dung lỗi.')+' (Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)';
+            console.error('[YouTube playlist import]',{url, error:e, message:detail});
+          }
+        }finally{ btn.disabled=false; }
+      };
+      $('#ytUrlGo').onclick=go1; $('#ytUrl').onkeydown=e=>{ if(e.key==='Enter') go1(); }; }
     /* ---- Đăng nhập Discord (OAuth) ---- */
     if($('#dlBtn')) act('dlBtn',async()=>{ try{
       if(dl.linked){
