@@ -1576,7 +1576,7 @@ $('#aGo').onclick=async()=>{
 };
 $('#aGuest').onclick=()=>{ LS.set('muse_guest','1'); try{ localStorage.removeItem('token'); }catch{} location.reload(); };
 $('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
-async function logout(){ if(guest){ goLogin(); return; } try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
+async function logout(){ if(guest){ goLogin(); return; } try{ clearTimeout(syncTm); syncBusy=false; await syncNow(); }catch{} try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
 
 /* ===== Giao diện (skin) ===== */
 const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
@@ -1884,7 +1884,12 @@ function tasteTags(t){
 const dayIdx=()=>Math.floor(Date.now()/864e5);
 /* tên nghệ sĩ hợp lệ: phải có chữ cái, không phải thời lượng (3:38 / 4:26), lượt xem, số, nhãn Song/Video */
 const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^[\d\s:.,·•\-–]+$/.test(x)&&!/^\d{1,3}(:\d{2}){1,2}\b/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
-const splitArtists=s=>String(s||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x));
+/* Alias nghệ sĩ: YouTube hay ghi TÊN KÊNH ("Abuse") thay cho tên nghệ sĩ ("Abu-Se-Ken") → gộp về một tên chuẩn để lịch sử nghe, theo dõi và gợi ý tính chung.
+   Khóa = tên viết thường chỉ giữ chữ/số. Server gửi danh sách đầy đủ qua /api/config (cfg.artist_aliases), bản dưới đây là mặc định khi chưa có/offline. */
+const artNorm=s=>String(s||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');
+let ARTIST_ALIAS={abuse:'Abu-Se-Ken',abuseken:'Abu-Se-Ken','アブセケン':'Abu-Se-Ken'};
+const canonArtist=n=>{ n=String(n||'').trim(); return ARTIST_ALIAS[artNorm(n)]||n; };
+const splitArtists=s=>{ const seen=new Set(); return String(s||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x)).map(canonArtist).filter(x=>{ const k=x.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; }); };
 /* ===== Ghi nhận nghe hết / bỏ qua (skip) từng bài, có mốc thời gian ===== */
 /* Lịch sử trên server không có giờ nghe và không biết bài nào bị bỏ qua, nên app tự ghi lại ở máy: nghe >=70% bài = thích, bấm chuyển bài trong <30 giây = bỏ qua. */
 /* Dữ liệu nghe lưu theo THIẾT BỊ (không theo tài khoản): đăng xuất, đổi tài khoản hay dùng chế độ khách vẫn giữ gu nghe ở máy này */
@@ -1904,7 +1909,7 @@ function noteListen(t,sec,dur,auto){
     if(kind>0) e.ok++; else e.sk++;
     e.t=slim(t); e.last=Date.now(); o[k]=e;
     const ks=Object.keys(o); if(ks.length>600) ks.sort((x,y)=>o[x].last-o[y].last).slice(0,ks.length-600).forEach(x=>delete o[x]);
-    LS.set('muse_listen_dev',JSON.stringify(o)); tasteCache=null;
+    LS.set('muse_listen_dev',JSON.stringify(o)); tasteCache=null; syncDirty('listen');
   }catch{}
 }
 /* Giảm dần theo thời gian, nửa đời 30 ngày (ý tưởng từ Sonic Fingerprint của AudioMuse-AI): bài mới nghe nặng hơn bài nghe từ lâu */
@@ -1926,7 +1931,7 @@ async function tasteProfile(){
   if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
   const tk='muse_taste3_dev';
   /* bản lưu cũ (muse_taste) có thể chứa "nghệ sĩ" rác như 4:26 nên bỏ hẳn; bản mới được lọc lại khi đọc */
-  const saved=()=>{ try{ const o=JSON.parse(LS.get(tk,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ ac[a.n.toLowerCase()]={n:a.n,c:+a.c||0}; }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; };
+  const saved=()=>{ try{ const o=JSON.parse(LS.get(tk,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; };
   const empty=buildProfile({},{},new Set(),0);
   const got=await Promise.race([
     Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
@@ -1952,7 +1957,7 @@ async function tasteProfile(){
     splitArtists(t.artist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
   }
   /* nghệ sĩ đang theo dõi là tín hiệu rõ ràng nhất */
-  followGet().filter(goodArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
+  followGet().filter(goodArtist).map(canonArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
   Object.entries(L).forEach(([k,e])=>{ if(e&&(e.sk||0)>(e.ok||0)) skipKeys.add(k); });
   try{
     const al=Object.values(ac).sort((x,y)=>y.c-x.c), keep=al.slice(0,24).concat(al.slice(-6).filter(a=>a.c<0));
@@ -2050,7 +2055,7 @@ function planHome(tp,Y){
   return out;
 }
 /* Lọc kệ: bỏ bài từng bị bỏ qua, nghệ sĩ hay bị bỏ qua; kệ theo gu ưu tiên bài chưa nghe; tránh một bài xuất hiện ở nhiều kệ */
-const artistHit=(t,name)=>{ const la=String(name).toLowerCase(); return splitArtists(t.artist).some(x=>{ x=x.toLowerCase(); return x===la||x.includes(la)||(x.length>=3&&la.includes(x)); }); };
+const artistHit=(t,name)=>{ const la=canonArtist(name).toLowerCase(); return splitArtists(t.artist).some(x=>{ x=x.toLowerCase(); return x===la||x.includes(la)||(x.length>=3&&la.includes(x)); }); };
 function cleanShelf(r,tp,kind,shown,art){
   /* bài có TỰA trùng tên một nghệ sĩ bạn hay nghe nhưng do người khác hát (vd. nghệ sĩ "hanami" → hàng loạt bài tên "Hanami") thì bỏ */
   const an=new Set((tp.arts||[]).map(a=>a.n.toLowerCase()));
@@ -3353,10 +3358,10 @@ function reloadEngine(){
 }
 /* ===== Theo dõi nghệ sĩ + đếm lượt phát (lưu trên máy, theo từng tài khoản) ===== */
 const uKey=n=>n+'_'+((typeof me!=='undefined'&&me&&me.id)||0);
-const mainArtist=a=>String(a||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i)[0].trim();
+const mainArtist=a=>canonArtist(String(a||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i)[0].trim());
 const followGet=()=>{ try{ const a=JSON.parse(LS.get(uKey('muse_follow'),'[]')); return Array.isArray(a)?a:[]; }catch{ return []; } };
-const isFollow=n=>followGet().some(x=>x.toLowerCase()===String(n).toLowerCase());
-function toggleFollow(n){ n=String(n||'').trim(); if(!n) return false; const a=followGet(); const i=a.findIndex(x=>x.toLowerCase()===n.toLowerCase()); if(i>=0) a.splice(i,1); else a.unshift(n); LS.set(uKey('muse_follow'),JSON.stringify(a.slice(0,200))); return i<0; }
+const isFollow=n=>{ const c=canonArtist(n).toLowerCase(); return followGet().some(x=>canonArtist(x).toLowerCase()===c); };
+function toggleFollow(n){ n=canonArtist(n); if(!n) return false; const c=n.toLowerCase(); const a=followGet(); const i=a.findIndex(x=>canonArtist(x).toLowerCase()===c); if(i>=0) a.splice(i,1); else a.unshift(n); LS.set(uKey('muse_follow'),JSON.stringify(a.slice(0,200))); syncDirty('follow'); return i<0; }
 function updFollowBtn(){ const b=document.getElementById('npFollow'); if(!b) return; const n=cur?mainArtist(cur.artist):''; b.style.display=n?'':'none'; const on=!!n&&isFollow(n); b.classList.toggle('on',on); b.textContent=on?'Đã theo dõi':'Theo dõi'; }
 document.getElementById('npFollow').onclick=()=>{ const n=cur?mainArtist(cur.artist):''; if(!n) return; const on=toggleFollow(n); updFollowBtn(); notify(on?'Đã theo dõi '+n:'Đã bỏ theo dõi '+n); };
 const playsGet=()=>{ try{ const o=JSON.parse(LS.get(uKey('muse_plays'),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
@@ -3365,7 +3370,7 @@ function countPlay(t){ try{ if(!t||!t.id) return; const o=playsGet(), k=key(t); 
   LS.set(uKey('muse_plays'),JSON.stringify(o));
   const d=devPlaysGet(), de=d[k]||{t:slim(t),n:0}; de.n++; de.t=slim(t); de.last=Date.now(); d[k]=de;
   const dk=Object.keys(d); if(dk.length>400) dk.sort((a,b)=>d[a].n-d[b].n).slice(0,dk.length-400).forEach(x=>delete d[x]);
-  LS.set('muse_plays_dev',JSON.stringify(d)); }catch{} }
+  LS.set('muse_plays_dev',JSON.stringify(d)); syncDirty('plays'); }catch{} }
 const playsList=()=>Object.values(playsGet()).filter(e=>e&&e.t).sort((a,b)=>b.n-a.n).slice(0,50).map(e=>e.t);
 pages.top=async function(m){
   const l=playsList(); const cnt=playsGet();
@@ -3391,7 +3396,7 @@ function noteJump(){
   const from=Math.max(0,qi-4), tr=queue.slice(from,from+40).map(slim), i=qi-from;   /* chỉ giữ ~40 bài quanh bài đang phát cho nhẹ */
   const cov=queue.map(t=>t.image).filter(Boolean).slice(0,4);
   const a=jumpGet().filter(x=>x.n!==qname); a.unshift({n:qname,tr,i,cov,t:Date.now()});
-  LS.set(jumpKey(),JSON.stringify(a.slice(0,JUMP_MAX)));
+  LS.set(jumpKey(),JSON.stringify(a.slice(0,JUMP_MAX))); syncDirty('jump');
 }
 function userPlay0(t){ setTimeout(()=>{ try{ syncVid(); const n=queue&&queue[qi+1]; if(n&&n.src==='yt'&&!n.fromVid&&(n.alb||!isWide(n))) albFind(n).catch(()=>{}); }catch{} },0); const prev=cur, auto=autoAdv; autoAdv=false; tasteCache=null; try{ noteJump(); }catch{}
   if(prev&&prev.id&&t&&key(prev)!==key(t)){ try{ noteListen(prev,getTime(),getDur(),auto); }catch{} }   /* bài trước nghe được bao lâu → nghe hết hay bỏ qua */
@@ -3401,9 +3406,9 @@ const blocked=t=>!!t&&!!t.explicit&&!S.explicit;
 const disGet=()=>{ try{ const o=JSON.parse(LS.get('muse_dislike_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 const isDis=t=>!!t&&!!disGet()[key(t)];
 function toggleDislike(t){ if(!t||!t.id) return; const o=disGet(), k=key(t), L=listenGet();
-  if(o[k]){ delete o[k]; if(L[k]){ L[k].sk=Math.max(0,(L[k].sk||0)-3); LS.set('muse_listen_dev',JSON.stringify(L)); } LS.set('muse_dislike_dev',JSON.stringify(o)); tasteCache=null; notify('Đã bỏ "không thích"'); updateBar(); return; }
-  o[k]={t:slim(t),at:Date.now()}; LS.set('muse_dislike_dev',JSON.stringify(o));
-  const e=L[k]||{t:slim(t),ok:0,sk:0,last:0}; e.t=slim(t); e.ok=0; e.sk=(e.sk||0)+3; e.last=Date.now(); L[k]=e; LS.set('muse_listen_dev',JSON.stringify(L));
+  if(o[k]){ delete o[k]; if(L[k]){ L[k].sk=Math.max(0,(L[k].sk||0)-3); L[k].last=Date.now(); LS.set('muse_listen_dev',JSON.stringify(L)); syncDirty('listen'); } LS.set('muse_dislike_dev',JSON.stringify(o)); syncDirty('dislike'); tasteCache=null; notify('Đã bỏ "không thích"'); updateBar(); return; }
+  o[k]={t:slim(t),at:Date.now()}; LS.set('muse_dislike_dev',JSON.stringify(o)); syncDirty('dislike');
+  const e=L[k]||{t:slim(t),ok:0,sk:0,last:0}; e.t=slim(t); e.ok=0; e.sk=(e.sk||0)+3; e.last=Date.now(); L[k]=e; LS.set('muse_listen_dev',JSON.stringify(L)); syncDirty('listen');
   tasteCache=null; if(favs.has(k)) toggleFav(t);
   notify('Đã ghi nhận: không thích bài này – sẽ ít gợi ý bài tương tự'); updateBar();
   if(cur&&key(cur)===k&&queue.length>1) nextTrack(false); }
@@ -4117,6 +4122,67 @@ setInterval(()=>{
 },15000);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
+/* ===== Đồng bộ dữ liệu nghe theo TÀI KHOẢN =====
+   Trước đây lượt phát, nghe hết/bỏ qua, "không thích", nghệ sĩ theo dõi và "tiếp tục nghe" chỉ nằm trong localStorage của từng thiết bị.
+   Giờ chúng được đẩy lên server theo user_id (bảng user_sync) và gộp lại – MỌI tài khoản, kể cả admin, đều như nhau, không có ngoại lệ.
+   Server gộp: listen/plays theo từng bài; dislike/follow/jump theo bản mới hơn (lần đầu thì hợp nhất). */
+const SYNC={
+  listen:{get:()=>listenGet(),set:v=>LS.set('muse_listen_dev',JSON.stringify(v))},
+  plays:{get:()=>playsAll(),set:v=>{ LS.set(uKey('muse_plays'),JSON.stringify(v)); LS.set('muse_plays_dev',JSON.stringify(v)); }},
+  dislike:{get:()=>disGet(),set:v=>LS.set('muse_dislike_dev',JSON.stringify(v))},
+  follow:{get:()=>followGet(),set:v=>LS.set(uKey('muse_follow'),JSON.stringify(v))},
+  jump:{get:()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a:[]; }catch{ return []; } },set:v=>LS.set(jumpKey(),JSON.stringify(v))}
+};
+let syncOn=false, syncRev=0, syncTm=0, syncBusy=false, syncWired=false;
+const syncTsKey=()=>uKey('muse_sync_ts');
+const syncTsGet=()=>{ try{ const o=JSON.parse(LS.get(syncTsKey(),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
+function syncDirty(k){
+  if(!syncOn) return;
+  try{ const t=syncTsGet(); t[k]=Date.now(); LS.set(syncTsKey(),JSON.stringify(t)); }catch{}
+  syncRev++; clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },3000);
+}
+async function syncNow(){
+  if(!syncOn||syncBusy||guest) return;
+  syncBusy=true; const rev=syncRev;
+  try{
+    const ts=syncTsGet(), body={};
+    for(const k in SYNC) body[k]={v:SYNC[k].get(),ts:ts[k]||0};
+    const r=await api('/api/sync',{json:body});
+    if(r&&typeof r==='object'){
+      if(rev===syncRev){
+        const nts=syncTsGet();
+        for(const k in SYNC){ const e=r[k]; if(e&&e.v!==undefined&&e.v!==null){ SYNC[k].set(e.v); nts[k]=e.ts||nts[k]||0; } }
+        LS.set(syncTsKey(),JSON.stringify(nts)); tasteCache=null;
+      }else{ clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },500); }   /* trong lúc chờ phản hồi bạn lại nghe/đổi thêm → gửi lại bản mới */
+    }
+  }catch{}
+  finally{ syncBusy=false; }
+}
+/* Lần đầu thiết bị này nối với tài khoản: hợp nhất danh sách theo dõi / không thích / tiếp tục nghe đang có ở máy với bản trên server (không bên nào bị mất) */
+function syncFirstMerge(remote){
+  const nts=syncTsGet(), now=Date.now();
+  const uniq=(a,f)=>{ const s=new Set(); return a.filter(x=>{ const k=f(x); if(!k||s.has(k)) return false; s.add(k); return true; }); };
+  const rv=k=>remote&&remote[k]&&remote[k].v;
+  { const m=uniq([...SYNC.follow.get(),...(Array.isArray(rv('follow'))?rv('follow'):[])].map(canonArtist),x=>String(x).toLowerCase()); if(m.length){ SYNC.follow.set(m.slice(0,200)); nts.follow=now; } }
+  { const a=SYNC.dislike.get(), b=(rv('dislike')&&typeof rv('dislike')==='object')?rv('dislike'):{}, m={...b}; for(const k in a){ if(!m[k]||(a[k].at||0)>(m[k].at||0)) m[k]=a[k]; } if(Object.keys(m).length){ SYNC.dislike.set(m); nts.dislike=now; } }
+  { const m=uniq([...SYNC.jump.get(),...(Array.isArray(rv('jump'))?rv('jump'):[])],x=>x&&x.n).sort((x,y)=>(y.t||0)-(x.t||0)).slice(0,JUMP_MAX); if(m.length){ SYNC.jump.set(m); nts.jump=now; } }
+  LS.set(syncTsKey(),JSON.stringify(nts));
+}
+async function syncInit(){
+  if(guest||!me||!me.id) return;
+  /* máy này đã gắn với tài khoản KHÁC (dữ liệu đó đã nằm trên server của tài khoản kia) → bỏ bản trên máy để không trộn gu nghe giữa hai tài khoản.
+     Máy chưa gắn tài khoản nào (hoặc vừa dùng chế độ khách) thì giữ lại và gộp vào tài khoản này. */
+  const lastU=LS.get('muse_sync_uid','');
+  if(lastU&&lastU!==String(me.id)){ ['muse_listen_dev','muse_plays_dev','muse_dislike_dev','muse_taste3_dev'].forEach(k=>{ try{ localStorage.removeItem(k); }catch{} }); }
+  LS.set('muse_sync_uid',String(me.id)); tasteCache=null;
+  if(!syncWired){ syncWired=true;
+    setInterval(()=>{ if(!document.hidden) syncNow(); },300000);
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncNow(); }); }
+  if(LS.get(syncTsKey(),null)===null){ try{ syncFirstMerge(await api('/api/sync')); }catch{ return; } }   /* không kết nối được thì chưa bật đồng bộ, lần mở sau thử lại */
+  syncOn=true;
+  await syncNow();
+}
+
 /* ===== Khởi động ===== */
 async function start(u,offlineBoot){
   applyUser(u);
@@ -4134,6 +4200,7 @@ async function start(u,offlineBoot){
   ]);
   const offline=!!offlineBoot||(!c&&!s&&netDown);
   if(c) cfg=c;
+  if(c&&c.artist_aliases&&typeof c.artist_aliases==='object') ARTIST_ALIAS={...ARTIST_ALIAS,...c.artist_aliases};
   if(s) Object.assign(S,s);
   LS.set('muse_s',JSON.stringify(S));
   if(Array.isArray(f)){ favs=new Set(f.map(key)); libCounts(); }
@@ -4142,6 +4209,7 @@ async function start(u,offlineBoot){
   if(S.discord_rpc&&cfg.discord_app_id&&dl.linked&&(DESK||sdkOn())) discordConnect().catch(()=>{});
   if(offline){   /* không có server: vào thẳng danh sách bài đã tải, không mở WebSocket */
     netDown=true; bootedOffline=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
+  if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);   /* kéo dữ liệu nghe của tài khoản về trước khi vẽ trang chủ (tối đa 1,5 giây, quá thì chạy nền) */
   applyVol(); restorePlayState(); go('home');
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
