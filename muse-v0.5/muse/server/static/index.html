@@ -274,7 +274,7 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 #ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
 #ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
 body.vid #ytbox.live{opacity:0}
-body.vid.ytfb #ytbox.live{opacity:1}   /* server chưa có yt-dlp / video lỗi → hiện thẳng video của player YouTube */
+/* video lỗi / không có video → không hiện player YouTube, cứ để ảnh album */
 body.ytfb #ytbox iframe{transform:scale(1.2)}   /* iframe YouTube chỉ phát tiếng, không bao giờ hiện giao diện của nó */
 #vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .12s;transform:translateZ(0)}
 #vidEl.on{opacity:1}
@@ -1319,7 +1319,7 @@ function openExt(u){
 }
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
 let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=null, playing=false, regMode=false;
-let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30}, fadeMul=1, fadeInAt=0;
+let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30,show_errors:false}, fadeMul=1, fadeInAt=0;
 let leader=false, offset=0, pend=null, queue=[], qi=-1, shuf=false, rep=0, vol=+LS.get('vol',0.8), lastVol=.8, seeking=false, qname='';
 let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache={}, lyrLines=null, homeCi=0, lastQ='', showVideo=LS.get('vid','0')==='1', npOpen=LS.get('npopen','0')==='1', npTab='play';
 const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=n||'';return k};
@@ -1520,6 +1520,8 @@ function pushToast(t,key,ms){
   box.appendChild(t); while(box.children.length>3) box.firstElementChild.remove();
   setTimeout(()=>t.remove(),ms);
 }
+/* Thông báo kỹ thuật (tìm video, yt-dlp, đổi luồng phát, nhạc bị đứng…): chỉ admin và chỉ khi bật "Hiện thông báo lỗi" trong Cài đặt */
+function adminNotify(msg){ try{ if(me&&me.is_admin&&S.show_errors) notify(msg); }catch{} }
 function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
 /* Chặn người đã bấm "Bỏ qua" 10 phút + chống bấm mời liên tục từ phía mình */
 const muted={}, inviteAt={};
@@ -2437,6 +2439,7 @@ const pages={
       ${row('Hỗ trợ tôi','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).','','btn','supBtn')}
       ${row('Thư viện bên thứ ba','Các thư viện và dịch vụ mà BBeat sử dụng','','btn','libsBtn')}
     </div></div>
+    ${me&&me.is_admin?`<div class="sgrp"><div class="sgh">Quản trị</div><div class="scard">${row('Hiện thông báo lỗi','Hiện các thông báo kỹ thuật (tìm video, lỗi yt-dlp, đổi luồng phát, nhạc bị đứng…). Chỉ admin thấy mục này và các thông báo đó.',tog('tErr',S.show_errors))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${guest?row('Đăng nhập','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu','','btn','outBtn'):row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
     </div></div>
@@ -2445,6 +2448,7 @@ const pages={
     const setS=async(k,v)=>{ try{ Object.assign(S,await api('/api/settings',{json:{[k]:v}})); LS.set('muse_s',JSON.stringify(S)); }catch(e){ notify(e.message); } };
     $('#tSave').onchange=e=>{ setS('save_state',e.target.checked).then(savePlayState); };
     $('#tExp').onchange=e=>setS('explicit',e.target.checked);
+    if($('#tErr')) $('#tErr').onchange=e=>setS('show_errors',e.target.checked);
     $('#tOff').onchange=e=>setS('offline_pl',e.target.checked).then(()=>{ if(S.offline_pl){ cachePlaylists(true); notify('Đã lưu danh sách phát để xem khi offline'); } else clearPlCache(); });
     $('#tProxy').onchange=e=>setS('proxy',e.target.checked).then(reloadEngine);
     /* ---- Bộ chỉnh âm / Độ trễ / Độ vang ---- */
@@ -2654,12 +2658,15 @@ function albScore(t,c){
   if(/official|\bmv\b|music video|m\/v|公式|ミュージックビデオ/i.test(c.title||'')) s+=1;
   return s; }
 const albVidC=new Map();
-function albFind(t){ const k=key(t); if(albVidC.has(k)) return albVidC.get(k);
+/* bài đã tìm mà không có video: nhớ lại (kể cả lần sau mở app) để không tìm nữa, cứ hiện ảnh album */
+let noVid=new Set(); try{ noVid=new Set(JSON.parse(LS.get('muse_novid','[]'))); }catch{}
+function noVidAdd(k){ noVid.add(k); try{ LS.set('muse_novid',JSON.stringify([...noVid].slice(-800))); }catch{} }
+function albFind(t){ const k=key(t); if(albVidC.has(k)) return albVidC.get(k); if(noVid.has(k)){ albVidC.set(k,Promise.resolve(null)); return albVidC.get(k); }
   const qs=[(t.artist?t.artist+' ':'')+t.title, t.title+' '+(t.artist?String(t.artist).split(/,|&/)[0]+' ':'')+'official music video'];
   const p=(async()=>{ for(const q of qs){ let r; try{ r=await ytSearchF(q,'videos'); }catch{ continue; }
       let best=null, bs=3; for(const c of (r&&r.tracks)||[]){ const sc=albScore(t,c); if(sc>=bs){ bs=sc; best=c; } }
       if(best) return best; }
-    return null; })();
+    noVidAdd(k); return null; })();
   albVidC.set(k,p); return p; }
 let albSeq=0, albTok=0; const albToast={};
 function albSwap(t,v){
@@ -2670,16 +2677,16 @@ function albSwap(t,v){
   return nt; }
 function userPlay(t){
   if(!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }   /* bài có ảnh vuông (album / 'Topic') → cố tìm MV thật; ảnh 16:9 là video sẵn rồi */
-  const my=++albSeq; let shown=false; const tm=setTimeout(()=>{ if(my===albSeq){ shown=true; notify('Đang tìm video…'); } },700);
+  const my=++albSeq; let shown=false; const tm=setTimeout(()=>{ if(my===albSeq){ shown=true; adminNotify('Đang tìm video…'); } },700);
   Promise.race([albFind(t).catch(()=>null),new Promise(r=>setTimeout(()=>r(undefined),4000))]).then(v=>{ clearTimeout(tm); if(my!==albSeq) return;
-    if(v===null){ const ak=t.alb||t.album||'_'; if(!albToast[ak]){ albToast[ak]=1; notify(t.alb?'Album "'+t.alb+'" không có video – phát âm thanh':'Không tìm thấy video cho bài này – phát âm thanh'); } }
+    if(v===null){ const ak=t.alb||t.album||'_'; if(!albToast[ak]){ albToast[ak]=1; adminNotify(t.alb?'Album "'+t.alb+'" không có video – phát âm thanh':'Không tìm thấy video cho bài này – phát âm thanh'); } }
     userPlay0(v?albSwap(t,v):t); }); }
 function albPrefetch(tr,title){
   const tok=++albTok; let i=0, done=0, ok=0; const n=tr.length;
-  const upd=fin=>{ const el=$('#albVs'); if(!el||tok!==albTok) return; el.textContent=fin?(ok?`🎬 Có video cho ${ok}/${n} bài – bấm phát để xem video, bài nào không có video sẽ phát âm thanh`:'Album này không có video – sẽ phát âm thanh'):`🔎 Đang tìm video cho album… ${done}/${n}`; };
+  const upd=fin=>{ const el=$('#albVs'); if(!el||tok!==albTok) return; if(!(me&&me.is_admin&&S.show_errors)){ el.textContent=''; return; } el.textContent=fin?(ok?`🎬 Có video cho ${ok}/${n} bài – bấm phát để xem video, bài nào không có video sẽ phát âm thanh`:'Album này không có video – sẽ phát âm thanh'):`🔎 Đang tìm video cho album… ${done}/${n}`; };
   upd(false);
   const wk=async()=>{ while(i<n&&tok===albTok&&page==='ybrowse'){ const t=tr[i++]; const v=await albFind(t).catch(()=>null); done++; if(v) ok++; upd(false); } };
-  Promise.all([wk(),wk(),wk()]).then(()=>{ if(tok!==albTok||done<n) return; upd(true); if(!ok){ albToast[title]=1; notify('Album "'+title+'" không có video'); } }); }
+  Promise.all([wk(),wk(),wk()]).then(()=>{ if(tok!==albTok||done<n) return; upd(true); if(!ok){ albToast[title]=1; adminNotify('Album "'+title+'" không có video'); } }); }
 const ENT_LBL={album:'Album',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcast'};
 const ENT_HEAD={album:'Albums',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcasts'};
 function entCards(list){ const k=reg(list,'');
@@ -2971,8 +2978,8 @@ function onYouTubeIframeAPIReady(){
     onReady:()=>{ytReady=true;applyVol()},
     onError:()=>{ /* 2/5/100/101/150: bài bị chặn nhúng, bị gỡ hoặc player lỗi -> trước đây đứng im ở 0:00 */
       const t=cur; if(!t||eng!=='yt') return;
-      if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; notify('Player YouTube không phát được bài này – chuyển sang luồng của server'); loadTrack(t,0,true); return; }
-      notify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
+      if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube không phát được bài này – chuyển sang luồng của server'); loadTrack(t,0,true); return; }
+      adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
       if(queue.length>1) setTimeout(()=>{ if(cur===t) nextTrack(true); },800); else setPlaying(false);
     },
     onStateChange:e=>{
@@ -3097,7 +3104,7 @@ audYt.addEventListener('error',()=>{
   if(eng!=='fx'||!cur) return;
   const t=cur, pos=audYt.currentTime||0, was=playing, ec=audYt.error?audYt.error.code:0;
   if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){   /* bản lưu trong app bị hỏng: bỏ nó, phát lại bằng luồng server */
-    offBad[t.id]=true; offRevoke(t.id); notify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
+    offBad[t.id]=true; offRevoke(t.id); adminNotify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
   if(!fxTried[t.id]){ /* thử định dạng còn lại (webm/opus <-> mp4/aac) trước khi bỏ cuộc */
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
   fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000; /* nghỉ 5 phút để khỏi thử lại liên tục khi YouTube đang chặn */
@@ -3110,7 +3117,7 @@ audYt.addEventListener('error',()=>{
     return why+real;
   }).then(why=>{
     console.warn('Luồng âm thanh lỗi:',why);
-    notify('Không kết nối được');
+    adminNotify('Không kết nối được');
   });
   loadTrack(t,pos,was);
 });
@@ -3182,15 +3189,15 @@ function wdRecover(){
   const t=cur, pos=getTime(), was=playing; if(!t) return;
   const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
   if(eng==='fx'){
-    if(n===1){ notify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
-    fxFail[t.id]=true; notify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
+    if(n===1){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
+    fxFail[t.id]=true; adminNotify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
   }
   if(eng==='yt'){
-    if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; notify('Player YouTube bị đứng – chuyển sang luồng của server'); loadTrack(t,pos,was); return; }
-    if(n<=2){ notify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
+    if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube bị đứng – chuyển sang luồng của server'); loadTrack(t,pos,was); return; }
+    if(n<=2){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
   }
   if(eng==='aud'&&n<=1){ loadTrack(t,pos,was); return; }
-  wdTries[t.id]=0; notify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
+  wdTries[t.id]=0; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
   if(queue.length>1) nextTrack(true); else setPlaying(false);
 }
 setInterval(()=>{
@@ -3708,8 +3715,8 @@ function setVideo(v){ showVideo=!!v; LS.set('vid',v?'1':'0'); syncVid(); }
 /* Video riêng của app: server tải luồng hình (không tiếng) bằng yt-dlp, trình duyệt phát <video> tắt tiếng và bám theo giờ của âm thanh. */
 var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='';
 if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
-    /* hỏi lại server để biết lý do thật (chưa có endpoint video / thiếu yt-dlp / bị YouTube chặn) và báo cho người dùng */
-    fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ if(/yt-dlp/.test(tx)) notify('Server chưa cài yt-dlp – đang dùng video của YouTube'); else notify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ notify('Không phát được video: không kết nối được server'); }catch{} }); }
+    /* không có video cho bài này: im lặng, giữ ảnh album. Chỉ admin (bật "Hiện thông báo lỗi") mới được báo lý do thật */
+    if(me&&me.is_admin&&S.show_errors) fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ if(/yt-dlp/.test(tx)) adminNotify('Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album'); else adminNotify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ adminNotify('Không phát được video: không kết nối được server'); }catch{} }); }
   vidEl.classList.remove('on'); try{ syncVid(); }catch{} }; }
 function vidSync(){ try{ vidSync0(); }catch(e){} }
 function vidSync0(){
