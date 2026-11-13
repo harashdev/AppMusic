@@ -570,10 +570,10 @@ fn sniff_image(b: &[u8]) -> Option<&'static str> {
 // Lưu nguyên file gốc (không re-encode) để GIF giữ được chuyển động.
 async fn upload_avatar(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
     let user = require(&st, &headers)?;
-    if body.len() > 8 * 1024 * 1024 {
-        return Err(bad("Avatar tối đa 8MB"));
+    if body.len() > 10 * 1024 * 1024 {
+        return Err(bad("Avatar tối đa 10MB"));
     }
-    let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 8MB)"))?;
+    let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 10MB)"))?;
     let name = format!("{}.{}", uuid::Uuid::new_v4().simple(), ext);
     tokio::fs::write(st.avatar_dir.join(&name), &body).await.map_err(|_| e500())?;
     let url = format!("/avatars/{name}");
