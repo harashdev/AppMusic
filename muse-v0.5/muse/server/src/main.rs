@@ -227,6 +227,12 @@ fn bootstrap_admin(db: &Connection) {
             match std::env::var("ADMIN_PASS") {
                 Ok(pw) if verify_pw(&pw, &hash) => {
                     let _ = db.execute("UPDATE users SET is_admin=1 WHERE id=?1", [id]);
+                    if let Ok(name) = std::env::var("ADMIN_NAME") {
+                        let name: String = name.trim().chars().take(24).collect();
+                        if !name.is_empty() {
+                            let _ = db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, id]);
+                        }
+                    }
                     println!("Tài khoản {user} có quyền admin");
                 }
                 _ => eprintln!("Bỏ qua cấp admin cho {user}: cần ADMIN_PASS khớp mật khẩu hiện tại của tài khoản này"),
@@ -243,9 +249,14 @@ fn bootstrap_admin(db: &Connection) {
             }
             let Ok(hash) = hash_pw(&pw) else { return };
             let code = uuid::Uuid::new_v4().simple().to_string()[..8].to_uppercase();
+            let display: String = std::env::var("ADMIN_NAME")
+                .ok()
+                .map(|n| n.trim().chars().take(24).collect::<String>())
+                .filter(|n| !n.is_empty())
+                .unwrap_or_else(|| "Admin".to_string());
             let res = db.execute(
                 "INSERT INTO users(username,pass_hash,display_name,code,is_admin) VALUES(?1,?2,?3,?4,1)",
-                params![user, hash, "Admin", code],
+                params![user, hash, display, code],
             );
             match res {
                 Ok(_) => println!("Đã tạo tài khoản admin: {user}"),
@@ -974,8 +985,8 @@ async fn account_password(State(st): State<AppState>, headers: HeaderMap, Json(r
 }
 
 // ===== Cài đặt người dùng (lưu dạng JSON, chỉ nhận các khóa đã biết) =====
-const BOOL_SETTINGS: [&str; 10] = [
-    "track_history", "save_state", "crossfade", "explicit", "offline_pl", "proxy", "eq_on", "delay_on", "reverb_on", "discord_rpc",
+const BOOL_SETTINGS: [&str; 11] = [
+    "track_history", "save_state", "crossfade", "explicit", "offline_pl", "proxy", "eq_on", "delay_on", "reverb_on", "discord_rpc", "show_errors",
 ];
 // (khóa, nhỏ nhất, lớn nhất, mặc định)
 const NUM_SETTINGS: [(&str, i64, i64, i64); 6] = [
@@ -1059,6 +1070,9 @@ async fn settings_set(State(st): State<AppState>, headers: HeaderMap, Json(patch
                 if linked.is_empty() {
                     return Err(bad("Hãy đăng nhập Discord để liên kết tài khoản trước"));
                 }
+            }
+            if k == "show_errors" && b && !u.is_admin {
+                return Err((StatusCode::FORBIDDEN, "Chỉ admin mới bật được thông báo lỗi".into()));
             }
             cur.insert(k, json!(b));
         } else if let Some((_, lo, hi, _)) = NUM_SETTINGS.iter().find(|x| x.0 == k.as_str()) {
