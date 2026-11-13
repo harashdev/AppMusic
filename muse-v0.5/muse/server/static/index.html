@@ -930,8 +930,8 @@ button *,#gear *,#meAv *{pointer-events:none}
         <div class="tx"><div id="npTitle">Chưa phát</div><div id="npArtist"></div><button id="npFollow" style="display:none"></button></div>
         <button class="ico" id="npAdd" title="Thêm vào playlist"><i data-ic="plusc"></i></button>
         <button class="ico" id="npDl" title="Tải nhạc"><i data-ic="download"></i></button>
-        <button class="ico" id="npDis" title="Không thích bài này"><i data-ic="dislike"></i></button>
         <button class="ico" id="npFav" title="Yêu thích"><i data-ic="heart"></i></button>
+        <button class="ico" id="npDis" title="Không thích bài này"><i data-ic="dislike"></i></button>
       </div>
       <div id="npInfoBox"></div>
       <div class="npb">
@@ -3824,7 +3824,7 @@ $('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
 $('#npAdd').onclick=e=>cur&&addMenu(cur,e);
 $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').forEach(x=>x.remove());
   const pop=document.createElement('div'); pop.className='pop'; const r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.right-210)+'px'; pop.style.top=r.bottom+6+'px';
-  pop.innerHTML=`<div data-a="dis">${isDis(cur)?'Bỏ "không thích"':'Không thích bài này'}</div><div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
+  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
   pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='dis') toggleDislike(cur); else if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); else if(a==='code') copyRoomCode(); else if(a==='shr') shareTrack(cur); };
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
