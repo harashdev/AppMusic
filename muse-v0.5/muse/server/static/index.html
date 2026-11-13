@@ -2418,7 +2418,7 @@ const pages={
       ${row('Proxy','Sử dụng Proxy để vượt qua trình chặn nội dung'+(cfg.proxy_available?' (áp dụng cho tìm kiếm và luồng âm thanh qua server)':' – cần đặt biến môi trường YT_PROXY trên server'),(cfg.proxy_available?'':'<span class="sbadge">Server chưa cấu hình</span>')+tog('tProxy',S.proxy&&cfg.proxy_available,!cfg.proxy_available))}
     </div></div>
     <div class="sgrp"><div class="sgh">Phát lại</div><div class="scard">
-      ${row('Phát video của nhạc','Bật để hiện video YouTube của bài hát thay cho ảnh bìa, tắt để chỉ nghe âm thanh (video không hiện khi đang dùng Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy)',tog('vidOn',showVideo))}
+      ${row('Phát video của nhạc','Bật để tự động hiện video YouTube của mọi bài hát thay cho ảnh bìa. Tắt (mặc định) thì chỉ nghe âm thanh; muốn xem video của một bài thì bấm dấu ba chấm → Hiện video (video không hiện khi đang dùng Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy)',tog('vidOn',showVideo))}
       ${row('Bộ chỉnh âm','Tinh chỉnh âm thanh bằng đường cong mười dải tần',tog('tEq',S.eq_on))}
       <div class="fxp" id="eqP"><div class="fxr"><label>Mẫu thiết lập</label><select id="eqPre"><option value="">Tùy chỉnh</option>${Object.keys(EQ_PRESETS).map(k=>`<option>${esc(k)}</option>`).join('')}</select></div>
         <div class="fxr"><label>Tiền khuếch đại</label><input type="range" min="-12" max="12" step="1" id="eqPreamp" value="${S.eq_pre}"><span id="eqPreV"></span></div>
@@ -2725,10 +2725,9 @@ function albSwap(t,v){
   if(!v) return t;
   const nt={...t,id:String(v.id),image:v.image||t.image,dur:v.dur||t.dur,orig:key(t),fromVid:1};
   const qk=queue.findIndex(x=>x===t||key(x)===key(t)); if(qk>=0) queue[qk]=nt;
-  if(!showVideo){ setVideo(true); const c=$('#vidOn'); if(c) c.checked=true; }
   return nt; }
 function userPlay(t){
-  if(!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }   /* bài có ảnh vuông (album / 'Topic') → cố tìm MV thật; ảnh 16:9 là video sẵn rồi */
+  if(!showVideo||!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }   /* bài có ảnh vuông (album / 'Topic') → cố tìm MV thật; ảnh 16:9 là video sẵn rồi */
   const my=++albSeq; let shown=false; const tm=setTimeout(()=>{ if(my===albSeq){ shown=true; adminNotify('Đang tìm video…'); } },700);
   Promise.race([albFind(t).catch(()=>null),new Promise(r=>setTimeout(()=>r(undefined),4000))]).then(v=>{ clearTimeout(tm); if(my!==albSeq) return;
     if(v===null){ const ak=t.alb||t.album||'_'; if(!albToast[ak]){ albToast[ak]=1; adminNotify(t.alb?'Album "'+t.alb+'" không có video – phát âm thanh':'Không tìm thấy video cho bài này – phát âm thanh'); } }
@@ -3764,7 +3763,9 @@ function updateBar(){
 function infoHtml(t){ const v=t.src==='yt'&&votesCache[t.id]; const vt=v&&typeof v.likes==='number'?`Thích ${kfmt(v.likes)} · Không thích ${kfmt(v.dislikes)}<br>`:''; return `${vt}Nguồn: YouTube Music${t.dur?' · '+fmt(t.dur):''}`; }
 $('#npInfo').onclick=()=>$('#npInfoBox').classList.toggle('show');
 $('#npLyr').onclick=()=>setNp(true,'lyr');
-function setVideo(v){ showVideo=!!v; LS.set('vid',v?'1':'0'); syncVid(); }
+let vidOv=null;   /* ghi đè riêng cho bài đang phát (ba chấm / nút video): không đổi cài đặt "Phát video của nhạc" */
+const vidWant=()=>!!(cur&&vidOv&&vidOv.k===key(cur)?vidOv.on:showVideo);
+function setVideo(v){ showVideo=!!v; vidOv=null; LS.set('vid',v?'1':'0'); syncVid(); }
 /* Video riêng của app: server tải luồng hình (không tiếng) bằng yt-dlp, trình duyệt phát <video> tắt tiếng và bám theo giờ của âm thanh. */
 var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='';
 if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
@@ -3846,8 +3847,8 @@ function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=docume
   const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
   a.style.setProperty('--bgi',w&&im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
 function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!d||!d.video_id) return; const a=/\s-\s*Topic\s*$/i.test(d.author||''); if(ytAlb[d.video_id]!==a){ ytAlb[d.video_id]=a; if(cur&&cur.id===d.video_id){ syncVid(); artFit(); } } }catch{} }
-function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',showVideo&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',showVideo); }
-$('#npVid').onclick=()=>{ setVideo(!showVideo); const c=$('#vidOn'); if(c) c.checked=showVideo; };
+function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',vidWant()&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',vidWant()); }
+$('#npVid').onclick=()=>{ if(!cur) return; vidOv={k:key(cur),on:!vidWant()}; syncVid(); };   /* chỉ áp cho bài này; công tắc tự hiện video ở Cài đặt giữ nguyên */
 /* ----- panel Đang phát bên phải: bấm vào thanh nhạc để mở/đóng ----- */
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
 function setNp(open,tab){ npOpen=open; if(tab) npTab=tab; LS.set('npopen',open?'1':'0'); updateBar(); showTab(); }
@@ -3867,7 +3868,7 @@ $('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
 $('#npAdd').onclick=e=>cur&&addMenu(cur,e);
 $('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').forEach(x=>x.remove());
   const pop=document.createElement('div'); pop.className='pop'; const r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.right-210)+'px'; pop.style.top=r.bottom+6+'px';
-  pop.innerHTML=`<div data-a="vid">${showVideo?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
+  pop.innerHTML=`<div data-a="vid">${vidWant()?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
   pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='dis') toggleDislike(cur); else if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); else if(a==='code') copyRoomCode(); else if(a==='shr') shareTrack(cur); };
   document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
 let lastNpLine='';
