@@ -338,6 +338,7 @@ async fn main() {
         .route("/api/favorites", get(fav_list).post(fav_toggle))
         .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
         .route("/api/recommend", get(recommend))
+        .route("/api/blend/:fid", get(blend))
         .route("/api/playlists", get(pl_list).post(pl_create))
         .route("/api/playlists/:id", get(pl_get).delete(pl_delete))
         .route("/api/playlists/:id/tracks", post(pl_add))
@@ -1395,6 +1396,62 @@ async fn yt_radio(client: &reqwest::Client, id: &str) -> Vec<Value> {
 //   - hàng của từng tài khoản (yêu thích ×3, nghe ×1 – như độ tin cậy c = 1 + α·r của ALS) và từng playlist,
 //   - hàng "radio" của vài bài bạn yêu thích nhất (YouTube Music cho biết bài nào hay được nghe cùng bài đó).
 // Nhờ hàng radio, tài khoản chỉ có một người dùng vẫn có dữ liệu "bài nào đi với bài nào".
+// Hoà trộn gu: gộp yêu thích + lịch sử của mình và của một người bạn thành một danh sách (bài chung xếp đầu, rồi xen kẽ hai bên).
+async fn blend(State(st): State<AppState>, headers: HeaderMap, Path(fid): Path<i64>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let is_friend: i64 = db
+        .query_row("SELECT COUNT(*) FROM friends WHERE user_id=?1 AND friend_id=?2", params![u.id, fid], |r| r.get(0))
+        .unwrap_or(0);
+    if is_friend == 0 {
+        return Err((StatusCode::NOT_FOUND, "Người này chưa là bạn của bạn".to_string()));
+    }
+    let fname: String = db.query_row("SELECT display_name FROM users WHERE id=?1", [fid], |r| r.get(0)).map_err(|_| e500())?;
+    let load = |uid: i64| -> Vec<(String, Value)> {
+        let mut out: Vec<(String, Value)> = Vec::new();
+        let mut seen: HashSet<String> = HashSet::new();
+        for tbl in ["favorites", "history"] {
+            let sql = format!("SELECT track_key, track_json FROM {tbl} WHERE user_id=?1 ORDER BY rowid DESC LIMIT 200");
+            if let Ok(mut stmt) = db.prepare(&sql) {
+                if let Ok(it) = stmt.query_map([uid], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))) {
+                    for (k, js) in it.flatten() {
+                        if seen.insert(k.clone()) {
+                            if let Ok(v) = serde_json::from_str::<Value>(&js) {
+                                out.push((k, v));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        out
+    };
+    let mine = load(u.id);
+    let theirs = load(fid);
+    let tset: HashSet<&String> = theirs.iter().map(|x| &x.0).collect();
+    let mut shared: Vec<Value> = Vec::new();
+    let mut used: HashSet<String> = HashSet::new();
+    for (k, v) in &mine {
+        if tset.contains(k) {
+            shared.push(v.clone());
+            used.insert(k.clone());
+        }
+    }
+    let a: Vec<&Value> = mine.iter().filter(|x| !used.contains(&x.0)).map(|x| &x.1).collect();
+    let b: Vec<&Value> = theirs.iter().filter(|x| !used.contains(&x.0)).map(|x| &x.1).collect();
+    let mut tracks: Vec<Value> = shared.clone();
+    for i in 0..a.len().max(b.len()) {
+        if let Some(x) = a.get(i) {
+            tracks.push((*x).clone());
+        }
+        if let Some(x) = b.get(i) {
+            tracks.push((*x).clone());
+        }
+    }
+    tracks.truncate(100);
+    Ok(Json(json!({ "friend": { "id": fid, "display_name": fname }, "shared": shared.len(), "tracks": tracks })))
+}
+
 async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
     let u = require(&st, &headers)?;
     let (allow_explicit, use_proxy) = user_net_prefs(&st, u.id);
