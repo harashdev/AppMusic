@@ -293,6 +293,9 @@ body.vid #vctl,body.vc #vctl{display:block}
 /* Nút to, vùng chạm lớn, không blur/đổ bóng nặng để khỏi giật */
 #vctl button{background:#0007;color:#fff;padding:0;opacity:0;pointer-events:none;transition:opacity .15s;border-radius:50%;touch-action:manipulation}
 #vctl.show button{opacity:1;pointer-events:auto}
+/* khi đang phát video: nút lùi/tới 5 giây và toàn màn hình luôn hiện sẵn (không cần rê chuột), mờ nhẹ cho đỡ vướng hình */
+body.vid #vctl button{opacity:.8;pointer-events:auto}
+body.vid #vctl.show button{opacity:1}
 #vctl button:active{background:#000a}
 #vctl .vcMid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:clamp(40px,24%,120px);pointer-events:none}
 #vctl .vcMid button{width:60px;height:60px;position:relative}
