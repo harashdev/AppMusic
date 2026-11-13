@@ -200,6 +200,15 @@ fn init_db(path: &std::path::Path) -> Connection {
     ] {
         let _ = db.execute(ddl, []);
     }
+    // Dữ liệu nghe đồng bộ theo TÀI KHOẢN (lượt phát, nghe hết/bỏ qua, không thích, theo dõi nghệ sĩ, tiếp tục nghe).
+    // Mọi tài khoản (kể cả admin) dùng chung một cơ chế, khóa theo user_id.
+    let _ = db.execute(
+        "CREATE TABLE IF NOT EXISTS user_sync(
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           k TEXT NOT NULL, v TEXT NOT NULL, ts INTEGER NOT NULL DEFAULT 0,
+           PRIMARY KEY(user_id, k))",
+        [],
+    );
     // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Discord OAuth2.
     let _ = db.execute(
         "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
@@ -348,6 +357,7 @@ async fn main() {
         .route("/api/friends/:id", axum::routing::delete(remove_friend))
         .route("/api/favorites", get(fav_list).post(fav_toggle))
         .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
+        .route("/api/sync", get(sync_get).post(sync_post))
         .route("/api/recommend", get(recommend))
         .route("/api/blend/:fid", get(blend))
         .route("/api/playlists", get(pl_list).post(pl_create))
@@ -385,6 +395,7 @@ async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
         "proxy_available": st.http_proxy.is_some(),
         "discord_app_id": std::env::var("DISCORD_CLIENT_ID").unwrap_or_default(),
         "discord_login": discord_cfg().is_some(),
+        "artist_aliases": alias_map(),
     }))
 }
 
@@ -1130,9 +1141,11 @@ async fn backup_export(State(st): State<AppState>, headers: HeaderMap) -> R<Valu
         playlists.push(json!({ "name": name, "tracks": tracks }));
     }
     let settings = Value::Object(load_settings(&db, u.id));
+    let sync: serde_json::Map<String, Value> = sync_read(&db, u.id).into_iter().map(|(k, (v, _))| (k, v)).collect();
     Ok(Json(json!({
         "app": "muse",
         "version": 1,
+        "sync": sync,
         "exported_at": SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
         "favorites": favorites,
         "history": history,
@@ -1226,6 +1239,19 @@ async fn backup_restore(State(st): State<AppState>, headers: HeaderMap, Json(bod
         }
     }
     let (np, nt) = insert_playlists(&tx, u.id, &pls)?;
+    // Dữ liệu nghe đồng bộ (nếu file sao lưu có) cũng được khôi phục.
+    if let Some(sy) = body.get("sync").and_then(|x| x.as_object()) {
+        let now_ms = (SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0)) as i64;
+        tx.execute("DELETE FROM user_sync WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+        for key in SYNC_KEYS {
+            if let Some(v) = sy.get(key).and_then(|x| sync_clean(key, x)) {
+                let s = v.to_string();
+                if s.len() <= SYNC_MAX_BYTES {
+                    tx.execute("INSERT INTO user_sync(user_id,k,v,ts) VALUES(?1,?2,?3,?4)", params![u.id, key, s, now_ms]).map_err(|_| e500())?;
+                }
+            }
+        }
+    }
     tx.commit().map_err(|_| e500())?;
     Ok(Json(json!({ "favorites": nf, "playlists": np, "tracks": nt })))
 }
@@ -1272,6 +1298,254 @@ async fn hist_add(State(st): State<AppState>, headers: HeaderMap, Json(t): Json<
         params![u.id],
     );
     Ok(StatusCode::OK)
+}
+
+// ===== Chuẩn hóa tên nghệ sĩ (alias) =====
+// YouTube hay gắn TÊN KÊNH (vd. "Abuse") thay cho tên nghệ sĩ thật ("Abu-Se-Ken"). Các tên này phải được tính là MỘT nghệ sĩ,
+// nếu không lịch sử nghe bị chia đôi và gợi ý sai. Khóa so khớp = tên viết thường, chỉ giữ chữ/số ("Abu Se Ken" == "abu-se-ken").
+// Muốn gộp thêm nghệ sĩ khác: thêm một dòng vào đây.
+const ARTIST_ALIASES: &[(&str, &[&str])] = &[("Abu-Se-Ken", &["Abuse", "Abu Se Ken", "AbuSeKen", "アブセケン"])];
+
+fn art_norm(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+
+fn alias_map() -> &'static HashMap<String, String> {
+    static M: std::sync::OnceLock<HashMap<String, String>> = std::sync::OnceLock::new();
+    M.get_or_init(|| {
+        let mut m = HashMap::new();
+        for (canon, aliases) in ARTIST_ALIASES {
+            m.insert(art_norm(canon), canon.to_string());
+            for a in aliases.iter() {
+                m.insert(art_norm(a), canon.to_string());
+            }
+        }
+        m
+    })
+}
+
+// Tên nghệ sĩ chuẩn (alias → tên chính); tên lạ giữ nguyên.
+fn canon_artist(name: &str) -> String {
+    let n = name.trim();
+    alias_map().get(&art_norm(n)).cloned().unwrap_or_else(|| n.to_string())
+}
+
+// Tách chuỗi nhiều nghệ sĩ ("A & B", "A feat. B", "A, B"...) thành danh sách tên chuẩn, không trùng.
+fn split_artists(s: &str) -> Vec<String> {
+    const SEPS: [&str; 11] = [",", "&", ";", "/", "、", "・", " x ", " ft. ", " ft ", " feat. ", " feat "];
+    let lower = s.to_ascii_lowercase(); // giữ nguyên độ dài byte nên cắt trên `s` theo vị trí của `lower` là an toàn
+    let mut parts: Vec<&str> = Vec::new();
+    let (mut start, mut i) = (0usize, 0usize);
+    while i < lower.len() {
+        if !lower.is_char_boundary(i) {
+            i += 1;
+            continue;
+        }
+        if let Some(sp) = SEPS.iter().find(|p| lower[i..].starts_with(**p)) {
+            parts.push(&s[start..i]);
+            i += sp.len();
+            start = i;
+        } else {
+            i += 1;
+        }
+    }
+    parts.push(&s[start..]);
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut out = Vec::new();
+    for p in parts {
+        let p = p.trim();
+        let n = p.chars().count();
+        if !(2..40).contains(&n) || !p.chars().any(|c| c.is_alphabetic()) {
+            continue;
+        }
+        let c = canon_artist(p);
+        if seen.insert(c.to_lowercase()) {
+            out.push(c);
+        }
+    }
+    out
+}
+
+fn track_artists(t: &Value) -> Vec<String> {
+    split_artists(t.get("artist").and_then(|x| x.as_str()).unwrap_or(""))
+}
+
+// ===== Đồng bộ dữ liệu nghe theo tài khoản =====
+// Client giữ bản trên máy (localStorage) và đẩy lên đây; server gộp rồi trả bản đã gộp.
+//  - listen: {khóa bài: {t, ok, sk, last}}  → từng bài lấy bản mới hơn (cùng mốc thì lấy số lớn hơn)
+//  - plays : {khóa bài: {t, n, last}}       → số lượt phát chỉ tăng nên lấy lớn nhất
+//  - dislike / follow / jump                → bản có mốc `ts` mới hơn thắng; cùng mốc thì hợp nhất
+const SYNC_KEYS: [&str; 5] = ["listen", "plays", "dislike", "follow", "jump"];
+const SYNC_MAX_BYTES: usize = 1_500_000;
+
+fn jnum(v: &Value, k: &str) -> i64 {
+    v.get(k).and_then(|x| x.as_i64().or_else(|| x.as_f64().map(|f| f as i64))).unwrap_or(0)
+}
+
+fn entry_ok(e: &Value) -> bool {
+    e.is_object() && e.get("t").map(|t| valid_track(t).is_ok()).unwrap_or(false)
+}
+
+// Làm sạch một giá trị client gửi lên; None nếu sai dạng.
+fn sync_clean(key: &str, v: &Value) -> Option<Value> {
+    match key {
+        "listen" | "plays" | "dislike" => {
+            let o = v.as_object()?;
+            let m: serde_json::Map<String, Value> = o.iter().filter(|(_, e)| entry_ok(e)).take(1500).map(|(k, e)| (k.clone(), e.clone())).collect();
+            Some(Value::Object(m))
+        }
+        "follow" => {
+            let a = v.as_array()?;
+            let mut seen: HashSet<String> = HashSet::new();
+            let out: Vec<Value> = a
+                .iter()
+                .filter_map(|x| x.as_str())
+                .map(|s| canon_artist(s))
+                .filter(|s| !s.is_empty() && s.chars().count() <= 60 && seen.insert(s.to_lowercase()))
+                .take(200)
+                .map(Value::String)
+                .collect();
+            Some(Value::Array(out))
+        }
+        "jump" => {
+            let a = v.as_array()?;
+            let out: Vec<Value> = a.iter().filter(|x| x.get("n").map(|n| n.is_string()).unwrap_or(false) && x.get("tr").map(|t| t.is_array()).unwrap_or(false)).take(10).cloned().collect();
+            Some(Value::Array(out))
+        }
+        _ => None,
+    }
+}
+
+fn merge_entries(stored: &Value, pushed: &Value, counters: &[&str], take_max: bool, cap_by: &str, cap: usize) -> Value {
+    let mut out: serde_json::Map<String, Value> = stored.as_object().cloned().unwrap_or_default();
+    if let Some(b) = pushed.as_object() {
+        for (k, nv) in b {
+            match out.get(k).cloned() {
+                None => {
+                    out.insert(k.clone(), nv.clone());
+                }
+                Some(old) => {
+                    let (a, b2) = (jnum(nv, "last"), jnum(&old, "last"));
+                    let mut base = if a >= b2 { nv.clone() } else { old.clone() };
+                    if let Some(m) = base.as_object_mut() {
+                        for c in counters {
+                            if take_max || a == b2 {
+                                m.insert((*c).to_string(), json!(jnum(nv, c).max(jnum(&old, c))));
+                            }
+                        }
+                        m.insert("last".into(), json!(a.max(b2)));
+                    }
+                    out.insert(k.clone(), base);
+                }
+            }
+        }
+    }
+    if out.len() > cap {
+        let mut ks: Vec<(String, i64)> = out.iter().map(|(k, e)| (k.clone(), jnum(e, cap_by))).collect();
+        ks.sort_by(|x, y| y.1.cmp(&x.1));
+        for (k, _) in ks.into_iter().skip(cap) {
+            out.remove(&k);
+        }
+    }
+    Value::Object(out)
+}
+
+fn merge_union(key: &str, a: &Value, b: &Value) -> Value {
+    match key {
+        "dislike" => {
+            let mut out: serde_json::Map<String, Value> = a.as_object().cloned().unwrap_or_default();
+            for (k, e) in b.as_object().into_iter().flatten() {
+                if out.get(k).map(|o| jnum(o, "at") < jnum(e, "at")).unwrap_or(true) {
+                    out.insert(k.clone(), e.clone());
+                }
+            }
+            Value::Object(out)
+        }
+        "follow" => {
+            let mut seen: HashSet<String> = HashSet::new();
+            let v: Vec<Value> = a.as_array().into_iter().flatten().chain(b.as_array().into_iter().flatten()).filter(|x| x.as_str().map(|s| seen.insert(s.to_lowercase())).unwrap_or(false)).take(200).cloned().collect();
+            Value::Array(v)
+        }
+        _ => {
+            // jump: giữ danh sách đã có, thêm mục chưa có theo tên
+            let mut seen: HashSet<String> = HashSet::new();
+            let v: Vec<Value> = a.as_array().into_iter().flatten().chain(b.as_array().into_iter().flatten()).filter(|x| seen.insert(x.get("n").and_then(|n| n.as_str()).unwrap_or("").to_string())).take(10).cloned().collect();
+            Value::Array(v)
+        }
+    }
+}
+
+fn sync_merge(key: &str, stored: Option<(Value, i64)>, pushed: Value, pts: i64) -> (Value, i64) {
+    let Some((sv, sts)) = stored else { return (pushed, pts) };
+    match key {
+        "listen" => (merge_entries(&sv, &pushed, &["ok", "sk"], false, "last", 800), sts.max(pts)),
+        "plays" => (merge_entries(&sv, &pushed, &["n"], true, "n", 800), sts.max(pts)),
+        _ => {
+            if pts > sts {
+                (pushed, pts)
+            } else if pts < sts {
+                (sv, sts)
+            } else {
+                (merge_union(key, &sv, &pushed), sts)
+            }
+        }
+    }
+}
+
+fn sync_read(db: &Connection, uid: i64) -> HashMap<String, (Value, i64)> {
+    let mut out = HashMap::new();
+    if let Ok(mut stmt) = db.prepare("SELECT k, v, ts FROM user_sync WHERE user_id=?1") {
+        if let Ok(it) = stmt.query_map([uid], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, i64>(2)?))) {
+            for (k, v, ts) in it.flatten() {
+                if let Ok(j) = serde_json::from_str::<Value>(&v) {
+                    out.insert(k, (j, ts));
+                }
+            }
+        }
+    }
+    out
+}
+
+async fn sync_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let mut out = serde_json::Map::new();
+    for (k, (v, ts)) in sync_read(&db, u.id) {
+        out.insert(k, json!({ "v": v, "ts": ts }));
+    }
+    Ok(Json(Value::Object(out)))
+}
+
+// Nhận {khóa: {v, ts}} (có thể rỗng), gộp với bản trên server rồi trả về toàn bộ bản đã gộp.
+async fn sync_post(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Value::Object(body) = body else { return Err(bad("Dữ liệu không hợp lệ")) };
+    let db = st.db.lock().unwrap();
+    let mut cur = sync_read(&db, u.id);
+    let mut out = serde_json::Map::new();
+    for key in SYNC_KEYS {
+        let stored = cur.remove(key);
+        let mut merged = stored.clone();
+        if let Some(e) = body.get(key) {
+            if let Some(pv) = e.get("v").and_then(|x| sync_clean(key, x)) {
+                let m = sync_merge(key, stored.clone(), pv, jnum(e, "ts"));
+                if m.0.to_string().len() <= SYNC_MAX_BYTES {
+                    if stored.as_ref().map(|s| s.0 != m.0 || s.1 != m.1).unwrap_or(true) {
+                        db.execute(
+                            "INSERT INTO user_sync(user_id,k,v,ts) VALUES(?1,?2,?3,?4) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, ts=excluded.ts",
+                            params![u.id, key, m.0.to_string(), m.1],
+                        )
+                        .map_err(|_| e500())?;
+                    }
+                    merged = Some(m);
+                }
+            }
+        }
+        if let Some((v, ts)) = merged {
+            out.insert(key.to_string(), json!({ "v": v, "ts": ts }));
+        }
+    }
+    Ok(Json(Value::Object(out)))
 }
 
 // ===== Gợi ý nhạc: item-item KNN với trọng số BM25 (ý tưởng từ thư viện `implicit`) =====
@@ -1358,6 +1632,30 @@ fn yt_panel_track(r: &Value) -> Option<Value> {
 static RADIO_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
 fn radio_cache() -> &'static Mutex<HashMap<String, (u64, Vec<Value>)>> {
     RADIO_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Bài của một nghệ sĩ (tìm "Tên songs", chỉ giữ bài mà nghệ sĩ – sau khi gộp alias – đúng là người đó), nhớ 6 giờ.
+static ARTSONG_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
+async fn artist_songs(client: &reqwest::Client, name: &str) -> Vec<Value> {
+    let ck = art_norm(name);
+    let cache = ARTSONG_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Some((t, v)) = cache.lock().unwrap().get(&ck) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return v.clone();
+        }
+    }
+    let want = canon_artist(name).to_lowercase();
+    let mut list = yt_songs(client, &format!("{name} songs")).await;
+    list.retain(|t| track_artists(t).iter().any(|a| a.to_lowercase() == want));
+    list.truncate(30);
+    if !list.is_empty() {
+        let mut c = cache.lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ck, (now_secs(), list.clone()));
+    }
+    list
 }
 
 async fn yt_radio(client: &reqwest::Client, id: &str) -> Vec<Value> {
@@ -1494,6 +1792,24 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         return Ok(Json(Vec::new()));
     }
 
+    // Độ yêu thích từng NGHỆ SĨ (đã gộp alias: "Abuse" và "Abu-Se-Ken" là một) tính từ yêu thích + lịch sử + playlist của bạn.
+    let mut art_aff: HashMap<String, f64> = HashMap::new();
+    let mut art_name: HashMap<String, String> = HashMap::new();
+    let mut art_tracks: HashMap<String, Vec<String>> = HashMap::new();
+    for (k, w) in mine.iter() {
+        let Some(t) = meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()) else { continue };
+        for a in track_artists(&t) {
+            let lk = a.to_lowercase();
+            *art_aff.entry(lk.clone()).or_insert(0.0) += *w;
+            art_tracks.entry(lk.clone()).or_default().push(k.clone());
+            art_name.entry(lk).or_insert(a);
+        }
+    }
+    let mut top_arts: Vec<(String, f64)> = art_aff.iter().map(|(k, w)| (k.clone(), *w)).collect();
+    top_arts.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
+    top_arts.truncate(6);
+    let aff_max = top_arts.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
+
     // Chọn tối đa 6 bài "hạt giống" trong 16 bài độ tin cậy cao nhất, xoay theo giờ để gợi ý không đứng yên.
     let mut ranked_seeds: Vec<(String, f64)> = mine.iter().map(|(k, w)| (k.clone(), *w)).collect();
     ranked_seeds.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
@@ -1515,6 +1831,23 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
     for ((seed_key, id), list) in picked.iter().zip(radios.into_iter()) {
         let row = rows.entry(format!("r{}", id)).or_default();
         *row.entry(seed_key.clone()).or_insert(0.0) += 2.0;
+        for (rank, t) in list.iter().enumerate() {
+            let Some(k) = track_key(t) else { continue };
+            *row.entry(k.clone()).or_insert(0.0) += 1.0 / (1.0 + rank as f64 / 8.0);
+            meta.entry(k).or_insert_with(|| t.to_string());
+        }
+    }
+    // Hàng "nghệ sĩ": bài của vài nghệ sĩ bạn nghe nhiều nhất (xoay theo giờ) cùng các bài bạn đã nghe của họ,
+    // để bài khác của đúng nghệ sĩ đó (kể cả khi YouTube ghi tên kênh khác như "Abuse") được gợi ý.
+    let n_a = top_arts.len();
+    let art_pick: Vec<String> = (0..n_a.min(3)).map(|i| top_arts[(i + hour) % n_a].0.clone()).collect();
+    let art_names: Vec<String> = art_pick.iter().map(|lk| art_name.get(lk).cloned().unwrap_or_else(|| lk.clone())).collect();
+    let art_lists = futures_util::future::join_all(art_names.iter().map(|nm| artist_songs(&client, nm))).await;
+    for (lk, list) in art_pick.iter().zip(art_lists.into_iter()) {
+        let row = rows.entry(format!("a{}", lk)).or_default();
+        for k in art_tracks.get(lk).into_iter().flatten() {
+            *row.entry(k.clone()).or_insert(0.0) += 2.0;
+        }
         for (rank, t) in list.iter().enumerate() {
             let Some(k) = track_key(t) else { continue };
             *row.entry(k.clone()).or_insert(0.0) += 1.0 / (1.0 + rank as f64 / 8.0);
@@ -1581,7 +1914,23 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
     let mut ranked: Vec<(&str, f64)> = score.into_iter().collect();
     ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
 
-    // Lọc: bỏ nội dung không phải nhạc (truyện, podcast, bản dài), tôn trọng cài đặt explicit, mỗi nghệ sĩ tối đa 3 bài.
+    // Cộng điểm theo độ quen thuộc của nghệ sĩ: bài của nghệ sĩ bạn hay nghe (theo tên đã gộp alias) được đẩy lên.
+    let top_score = ranked.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
+    let mut ranked: Vec<(&str, f64)> = ranked
+        .into_iter()
+        .map(|(k, s)| {
+            let aff = meta
+                .get(k)
+                .and_then(|js| serde_json::from_str::<Value>(js).ok())
+                .map(|t| track_artists(&t).iter().map(|a| art_aff.get(&a.to_lowercase()).copied().unwrap_or(0.0)).fold(0.0, f64::max) / aff_max)
+                .unwrap_or(0.0);
+            (k, s / top_score + 0.6 * aff.min(1.0))
+        })
+        .collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
+
+    // Lọc: bỏ nội dung không phải nhạc (truyện, podcast, bản dài), tôn trọng cài đặt explicit,
+    // mỗi nghệ sĩ (tên đã gộp alias) tối đa 3 bài; 3 nghệ sĩ bạn nghe nhiều nhất được tối đa 5.
     let mut per_artist: HashMap<String, u32> = HashMap::new();
     let mut out: Vec<Value> = Vec::new();
     for (k, _) in ranked {
@@ -1594,9 +1943,12 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
             continue;
         }
-        let art = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_lowercase();
+        let arts: Vec<String> = track_artists(&t).iter().map(|a| a.to_lowercase()).collect();
+        let art = arts.first().cloned().unwrap_or_default();
+        let fav = top_arts.iter().take(3).any(|(k, _)| arts.contains(k));
+        let cap: u32 = if fav { 5 } else { 3 };
         let cnt = per_artist.entry(art).or_insert(0);
-        if *cnt >= 3 {
+        if *cnt >= cap {
             continue;
         }
         *cnt += 1;
