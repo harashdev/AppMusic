@@ -3,8 +3,17 @@
 ```
 muse/
 ├─ server/   Axum + SQLite: đăng nhập, avatar GIF, bạn bè, playlist, yêu thích, lịch sử, phòng nghe chung + giao diện web
-└─ desktop/  Tauri v2: app desktop kết nối tới server
+├─ desktop/  Tauri v2: app desktop kết nối tới server
+└─ client/   (mới, thử nghiệm) Rust thuần + egui: app desktop không dùng WebView2, tiết kiệm RAM
 ```
+
+## Client Rust thuần (`client/`) – branch `rewrite/egui-native`
+Bản viết lại giao diện desktop bằng **egui**, phát nhạc **native** (rodio/symphonia) qua endpoint có sẵn `/api/yt/audio/:id` của server, không còn WebView2 hay player YouTube nhúng.
+
+- Đã có: đăng nhập/đăng ký (nhớ phiên), trang chủ (gợi ý), tìm kiếm, yêu thích, lịch sử, hàng đợi, playlist (tạo/xóa/thêm/bớt), thanh phát nhạc (tua, âm lượng, lặp, phím cách).
+- Chưa có so với bản web: phòng nghe chung, bạn bè, hồ sơ/banner/GIF động, lời karaoke, Discord presence, cài đặt, tâm trạng/khám phá.
+- Bài hát được tải trọn về RAM (vài MB) rồi mới phát nên có độ trễ ngắn trước khi nghe. Chỉ giải mã AAC/MP4 (không dùng WebM/Opus).
+- Build: `cd muse-v0.5/muse/client && MUSE_URL=https://muse.example.com cargo build --release`, hoặc chạy workflow "Build native (Muse, egui)" trên GitHub Actions rồi tải file `.exe` ở mục Artifacts.
 
 ## Chạy server
 ```bash
