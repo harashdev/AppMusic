@@ -2467,6 +2467,8 @@ const pages={
       <div class="srow col"><div class="sx"><b>Tên hiển thị</b><small>Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.</small></div><div class="sinp"><input id="sName" value="${esc(me.display_name)}" maxlength="24" placeholder="Tên hiển thị"><button class="pri" id="sNameSave">Lưu</button></div><small id="sNameMsg" class="smsg"></small></div>
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
         <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
+      <div class="srow col"><div class="sx"><b>Xóa tài khoản</b><small>Xóa vĩnh viễn tài khoản cùng bạn bè, yêu thích, lịch sử, playlist và dữ liệu nghe. Không thể khôi phục – hãy sao lưu trước nếu cần.</small></div>
+        <div class="sinp v"><input type="password" id="delPw" placeholder="Nhập mật khẩu để xác nhận" autocomplete="current-password"><div><button id="delAcc" style="color:#ff6b6b;border-color:#ff6b6b">Xóa tài khoản</button></div></div><small id="delMsg" class="smsg"></small></div>
     </div></div>
     ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
@@ -2635,6 +2637,11 @@ const pages={
     $('#pwSave').onclick=async()=>{ const msg=$('#pwMsg'), a=$('#pwCur').value, b=$('#pwNew').value;
       if(b!==$('#pwNew2').value){ msg.textContent='Mật khẩu nhập lại không khớp'; return; }
       try{ await api('/api/account/password',{json:{current:a,new:b}}); msg.textContent='Đã đổi mật khẩu ✔'; ['#pwCur','#pwNew','#pwNew2'].forEach(x=>$(x).value=''); }catch(e){ msg.textContent=e.message; } };
+    $('#delAcc').onclick=async()=>{ const msg=$('#delMsg'), pw=$('#delPw').value; if(!pw){ msg.textContent='Hãy nhập mật khẩu'; return; }
+      if(!(await askConfirm('Xóa vĩnh viễn tài khoản "'+me.username+'"? Toàn bộ dữ liệu sẽ mất và không khôi phục được.','Xóa'))) return;
+      try{ await api('/api/account',{method:'DELETE',json:{password:pw}});
+        try{ Object.keys(localStorage).filter(k=>/^muse_|^bb_|^token$/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
+        token=''; location.reload(); }catch(e){ msg.textContent=e.message; } };
     act('bkUp',async()=>{ try{ const j=await api('/api/backup'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,1)],{type:'application/json'})); a.download='muse-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); notify('Đã tạo file sao lưu'); }catch(e){ notify(e.message); } });
     const readJson=async f=>{ if(!f) return null; try{ return JSON.parse(await f.text()); }catch{ notify('File không phải JSON hợp lệ'); return null; } };
     const refreshLib=async()=>{ try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); await loadPlaylists(); }catch{} };
