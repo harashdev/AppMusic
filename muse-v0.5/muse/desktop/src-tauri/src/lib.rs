@@ -271,11 +271,20 @@ mod sdk {
 #[cfg(desktop)]
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
+    let url = url.trim().to_string();
     if !(url.starts_with("http://") || url.starts_with("https://")) {
         return Err("URL không hợp lệ".into());
     }
     #[cfg(windows)]
-    let r = std::process::Command::new("rundll32").args(["url.dll,FileProtocolHandler", &url]).spawn();
+    let r = {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        std::process::Command::new("rundll32")
+            .args(["url.dll,FileProtocolHandler", &url])
+            .creation_flags(CREATE_NO_WINDOW)
+            .spawn()
+            .or_else(|_| std::process::Command::new("explorer.exe").arg(&url).spawn())
+    };
     #[cfg(target_os = "macos")]
     let r = std::process::Command::new("open").arg(&url).spawn();
     #[cfg(all(unix, not(target_os = "macos")))]
