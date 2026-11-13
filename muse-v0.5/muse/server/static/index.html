@@ -238,7 +238,9 @@ body.has-cur #main{padding-bottom:116px}
 .tabs{display:flex;gap:8px;margin:2px 0 16px;flex-wrap:wrap}
 .tabs button{border-radius:12px;padding:8px 16px}.tabs button.on{background:var(--accent);color:var(--on);font-weight:600}
 #chat{height:220px;overflow:auto;margin-bottom:8px}#chat div{margin-bottom:4px}.sys{color:var(--sub);font-style:italic}
-.item{display:flex;gap:10px;align-items:center;padding:6px 0}
+.item{display:flex;gap:10px;align-items:center;padding:6px 0;flex-wrap:wrap}
+.item>span:first-child{flex:1 1 150px!important;min-width:0}
+.item>button{flex:none;white-space:nowrap}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-left:4px}.dot.on{background:#3ddc84}
 .skins{display:flex;gap:10px;flex-wrap:wrap}.skins .sk{width:90px;height:56px;border-radius:12px;cursor:pointer;display:flex;align-items:flex-end;padding:4px 8px;font-size:11px;color:#fff;border:2px solid transparent}.skins .sk.sel{border-color:var(--accent)}
 /* tìm kiếm & mix */
