@@ -604,17 +604,20 @@ async fn optimize_gif_files(
     src: &std::path::Path,
     opt: &std::path::Path,
     web: &std::path::Path,
+    max_px: u32,
 ) -> Option<(Vec<u8>, &'static str)> {
     tokio::fs::write(src, body).await.ok()?;
     let (s, o, w) = (src.to_str()?, opt.to_str()?, web.to_str()?);
     let gifsicle = tool_path("GIFSICLE_PATH", "gifsicle");
     let gif2webp = tool_path("GIF2WEBP_PATH", "gif2webp");
 
-    // 1) gifsicle: nén nhẹ (lossy=40, gần như không thấy artifact); không hỗ trợ lossy thì nén không mất dữ liệu
+    // 1) gifsicle: thu nhỏ nếu ảnh to hơn max_px (chỉ thu nhỏ, không phóng to) rồi nén nhẹ (lossy=40, gần như không thấy artifact).
+    //    Số điểm ảnh mỗi khung là thứ làm điện thoại lag nhất, nên đây là bước quan trọng nhất. Không hỗ trợ lossy thì nén không mất dữ liệu.
+    let fit = format!("{max_px}x{max_px}");
     let mut best_gif: Vec<u8> = body.to_vec();
     let mut webp_input = s;
-    let packed = run_tool(&gifsicle, &["-w", "-O3", "--lossy=40", s, "-o", o]).await
-        || run_tool(&gifsicle, &["-w", "-O3", s, "-o", o]).await;
+    let packed = run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O3", "--lossy=40", s, "-o", o]).await
+        || run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O3", s, "-o", o]).await;
     if packed {
         if let Ok(b) = tokio::fs::read(opt).await {
             if matches!(sniff_image(&b), Some("gif")) && b.len() < best_gif.len() {
@@ -644,7 +647,8 @@ async fn optimize_gif_files(
     None
 }
 
-async fn optimize_upload(body: Bytes, ext: &'static str) -> (Vec<u8>, &'static str) {
+// max_px: cạnh dài tối đa (điểm ảnh) cho GIF; PNG/JPG/WEBP giữ nguyên.
+async fn optimize_upload(body: Bytes, ext: &'static str, max_px: u32) -> (Vec<u8>, &'static str) {
     if ext != "gif" {
         return (body.to_vec(), ext);
     }
@@ -653,7 +657,7 @@ async fn optimize_upload(body: Bytes, ext: &'static str) -> (Vec<u8>, &'static s
     let src = dir.join(format!("muse-{id}-in.gif"));
     let opt = dir.join(format!("muse-{id}-opt.gif"));
     let web = dir.join(format!("muse-{id}-out.webp"));
-    let result = optimize_gif_files(&body, &src, &opt, &web).await;
+    let result = optimize_gif_files(&body, &src, &opt, &web, max_px).await;
     for p in [&src, &opt, &web] {
         let _ = tokio::fs::remove_file(p).await;
     }
@@ -667,7 +671,7 @@ async fn upload_avatar(State(st): State<AppState>, headers: HeaderMap, body: Byt
         return Err(bad("Avatar tối đa 10MB"));
     }
     let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 10MB)"))?;
-    let (body, ext) = optimize_upload(body, ext).await;
+    let (body, ext) = optimize_upload(body, ext, 512).await;
     let name = format!("{}.{}", uuid::Uuid::new_v4().simple(), ext);
     tokio::fs::write(st.avatar_dir.join(&name), &body).await.map_err(|_| e500())?;
     let url = format!("/avatars/{name}");
@@ -2184,7 +2188,7 @@ async fn upload_bg(State(st): State<AppState>, headers: HeaderMap, body: Bytes) 
         return Err(bad("Ảnh nền tối đa 10MB"));
     }
     let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP"))?;
-    let (body, ext) = optimize_upload(body, ext).await;
+    let (body, ext) = optimize_upload(body, ext, 960).await;
     let name = format!("{}.{}", uuid::Uuid::new_v4().simple(), ext);
     tokio::fs::write(st.bg_dir.join(&name), &body).await.map_err(|_| e500())?;
     let url = format!("/backgrounds/{name}");
@@ -2218,7 +2222,7 @@ async fn upload_banner(State(st): State<AppState>, headers: HeaderMap, body: Byt
         return Err(bad("Banner tối đa 10MB"));
     }
     let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP"))?;
-    let (body, ext) = optimize_upload(body, ext).await;
+    let (body, ext) = optimize_upload(body, ext, 720).await;
     let name = format!("{}.{}", uuid::Uuid::new_v4().simple(), ext);
     tokio::fs::write(st.banner_dir.join(&name), &body).await.map_err(|_| e500())?;
     let url = format!("/banners/{name}");
