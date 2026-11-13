@@ -23,5 +23,11 @@ if not exist deno.exe powershell -NoProfile -Command "Invoke-WebRequest https://
 rem Tu tai yt-dlp neu chua co, roi tu cap nhat moi lan bat server
 if not exist yt-dlp.exe powershell -NoProfile -Command "Invoke-WebRequest https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -OutFile yt-dlp.exe"
 if exist yt-dlp.exe yt-dlp.exe -U >nul 2>&1
+rem GIF: server nen bang gifsicle roi doi sang WebP dong bang gif2webp (goi libwebp). Dat gifsicle.exe va gif2webp.exe canh muse-server.exe (hoac trong PATH).
+rem Thieu thi van chay binh thuong, chi giu nguyen GIF goc. Co the chi duong dan bang GIFSICLE_PATH / GIF2WEBP_PATH.
+set GIFSICLE_PATH=
+set GIF2WEBP_PATH=
+where gifsicle >nul 2>&1 || echo [Luu y] Chua co gifsicle - GIF se khong duoc nen
+where gif2webp >nul 2>&1 || echo [Luu y] Chua co gif2webp - GIF se khong duoc doi sang WebP dong
 muse-server.exe
 pause
