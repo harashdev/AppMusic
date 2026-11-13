@@ -1153,7 +1153,7 @@ button *,#gear *,#meAv *{pointer-events:none}
     'Mật khẩu từ 8 đến 128 ký tự':'Password must be 8–128 characters','Tên đăng nhập đã tồn tại':'That username is already taken','Sai tên đăng nhập hoặc mật khẩu':'Wrong username or password',
     'Tên hiển thị không được trống':'Display name can’t be empty','Màu không hợp lệ':'Invalid color','Nền không hợp lệ':'Invalid background',
     'Link ảnh nền phải là https:// (hoặc ảnh đã tải lên) và không chứa ký tự đặc biệt':'The background link must be https:// (or an uploaded image) with no special characters','Màu banner không hợp lệ':'Invalid banner color',
-    'Avatar tối đa 3MB':'Avatar must be 3MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 3MB)':'Only PNG, JPG, GIF or WEBP images (max 3MB)','Hãy nhập mã bạn bè hoặc tên đăng nhập':'Enter a friend code or username',
+    'Avatar tối đa 8MB':'Avatar must be 8MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 8MB)':'Only PNG, JPG, GIF or WEBP images (max 8MB)','Hãy nhập mã bạn bè hoặc tên đăng nhập':'Enter a friend code or username',
     'Không tìm thấy người dùng này':'User not found','Không thể tự kết bạn với chính mình':'You can’t friend yourself','Hai bạn đã là bạn bè rồi':'You’re already friends','Bạn đã gửi lời mời cho người này rồi':'You already sent this person an invite',
     'Lời mời không còn tồn tại':'This invite no longer exists','Thao tác không hợp lệ':'Invalid action','Mã phòng không hợp lệ':'Invalid room code','Người này chưa là bạn của bạn':'This person isn’t your friend',
     'Bạn ấy đang offline':'They’re offline','Bài hát không hợp lệ':'Invalid song','Dữ liệu bài hát quá lớn':'Song data is too large','Mật khẩu mới từ 8 đến 128 ký tự':'The new password must be 8–128 characters',
@@ -2381,7 +2381,10 @@ const pages={
       const bd=$('#banDel'); if(bd) bd.style.display='none';
     }
     $('#avBtn').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#avFile').click(); } };
-    $('#avFile').onchange=async e=>{ const f=pickFile(e.target.files[0],3*1048576,$('#profMsg')); e.target.value=''; if(!f) return;
+    const shrinkImg=f=>new Promise(res=>{ if(!f||f.type==='image/gif'||f.size<=900*1024) return res(f); const im=new Image(), u=URL.createObjectURL(f);
+      im.onload=()=>{ const k=Math.min(1,1024/Math.max(im.naturalWidth,im.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); c.toBlob(b=>res(b&&b.size<f.size?b:f),'image/jpeg',.88); };
+      im.onerror=()=>{ URL.revokeObjectURL(u); res(f); }; im.src=u; });
+    $('#avFile').onchange=async e=>{ let f=pickFile(e.target.files[0],30*1048576,$('#profMsg')); e.target.value=''; if(!f) return; f=await shrinkImg(f); if(f.size>8*1048576){ $('#profMsg').textContent='Ảnh quá lớn (tối đa 8MB)'; return; }
       const url=URL.createObjectURL(f);
       const r=await openCrop({title:'Chỉnh sửa avatar',kind:'a',src:url,crop:{x:50,y:50,z:1},color:'#2a2733'});
       if(!r){ URL.revokeObjectURL(url); return; }
@@ -2607,7 +2610,7 @@ const offlineCard=()=>`<div class="offc"><div class="offi">${ic('cloudoff')}</di
 let offWatchTm=0;
 function offBar(on){
   let b=$('#offBar'); if(!b){ b=document.createElement('button'); b.id='offBar'; b.onclick=()=>retryNet(page,undefined,false,null); document.body.appendChild(b); }
-  b.hidden=!on; if(on){ b.className=''; b.innerHTML=ic('cloudoff','sm')+' Đang offline – chỉ nghe được bài đã tải'; }
+  b.hidden=true; /* đã gỡ thông báo offline (spam) */
 }
 let bootedOffline=false;
 /* Dò thử server có với tới được không (tối đa 6 giây) – không dựa vào navigator.onLine vì cờ này hay sai trên điện thoại */
@@ -3195,7 +3198,7 @@ function seekTo(t){ if(!cur) return; if(eng==='yt'){ if(ytReady){ ytHideNow(true
 function setPlaying(p){
   playing=p; if(!cur) return;
   if(eng==='yt'){ if(ytReady) p?yt.playVideo():yt.pauseVideo(); }
-  else { if(fx.ctx&&fx.ctx.state==='suspended'&&p) fx.ctx.resume().catch(()=>{}); p?A().play().catch(()=>sysLine('Trình duyệt chặn tự phát – bấm ▶ để nghe')):A().pause(); }
+  else { if(fx.ctx&&fx.ctx.state==='suspended'&&p) fx.ctx.resume().catch(()=>{}); p?A().play().catch(()=>{}):A().pause(); }
   pushPresence(); msUpdate();
 }
 let startGuard=0;

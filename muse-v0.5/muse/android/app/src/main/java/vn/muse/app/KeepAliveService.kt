@@ -168,7 +168,7 @@ class KeepAliveService : Service() {
         )
         return Notification.Builder(this, CH)
             .setSmallIcon(android.R.drawable.ic_media_play)
-            .setContentTitle(p.title.ifBlank { "Muse" })
+            .setContentTitle(p.title.ifBlank { "BBeat" })
             .setContentText(p.artist.ifBlank { "Sẵn sàng phát nhạc" })
             .setLargeIcon(artBmp)
             .setContentIntent(open)

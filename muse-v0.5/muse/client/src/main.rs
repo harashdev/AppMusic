@@ -11,7 +11,7 @@ fn main() -> eframe::Result<()> {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1100.0, 720.0])
             .with_min_inner_size([780.0, 520.0])
-            .with_title("Muse"),
+            .with_title("BBeat"),
         ..Default::default()
     };
     eframe::run_native(
