@@ -1308,14 +1308,24 @@ const bbPad=n=>String(n).padStart(2,'0');
 const bbFmt=ms=>{ const d=new Date(+ms); return d.getFullYear()+'-'+bbPad(d.getMonth()+1)+'-'+bbPad(d.getDate())+' '+bbPad(d.getHours())+':'+bbPad(d.getMinutes())+':'+bbPad(d.getSeconds()); };
 const bbCmp=(a,b)=>{ const x=String(a).split('.').map(n=>parseInt(n)||0), y=String(b).split('.').map(n=>parseInt(n)||0); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0?1:-1; } return 0; };
 function openExt(u){
-  if(!u) return;
+  u=String(u||'').trim(); if(!u) return;
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u='https://'+u.replace(/^\/+/,'');   /* thiếu https:// thì tự thêm */
   if(window.ANDROID_APP){ location.href=u; return; }
   const T=window.__TAURI__;
-  if(T&&T.core){ /* app desktop (Tauri): window.open không mở được trình duyệt, phải nhờ lệnh phía Rust */
-    T.core.invoke('open_url',{url:u}).catch(()=>T.core.invoke('plugin:opener|open_url',{url:u}).catch(()=>{ try{ window.open(u,'_blank','noopener'); }catch{} }));
+  if(T&&T.core&&T.core.invoke){ /* app desktop (Tauri): window.open không mở được trình duyệt, phải nhờ lệnh phía Rust */
+    (async()=>{
+      for(const [c,a] of [['open_url',{url:u}],['plugin:opener|open_url',{url:u}],['plugin:shell|open',{path:u}]]){ try{ await T.core.invoke(c,a); return; }catch{} }
+      try{ await navigator.clipboard.writeText(u); notify('Không mở được trình duyệt – đã chép link: '+u); }catch{ notify('Không mở được trình duyệt, link: '+u); }
+    })();
     return;
   }
   window.open(u,'_blank','noopener');
+}
+/* app desktop: mọi link/cửa sổ mới ra ngoài (target=_blank, window.open) đều mở bằng trình duyệt mặc định */
+if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP){
+  const wo=window.open.bind(window);
+  window.open=function(u,...r){ if(/^https?:\/\//i.test(String(u||''))&&!String(u).startsWith(location.origin)){ openExt(String(u)); return null; } return wo(u,...r); };
+  document.addEventListener('click',e=>{ const a=e.target.closest&&e.target.closest('a[href]'); if(a&&/^https?:\/\//i.test(a.href)&&a.origin!==location.origin&&(a.target==='_blank'||!a.href.startsWith(location.origin))){ e.preventDefault(); openExt(a.href); } },true);
 }
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
 let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=null, playing=false, regMode=false;
