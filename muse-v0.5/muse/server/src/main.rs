@@ -330,6 +330,7 @@ async fn main() {
         .route("/api/yt/best-artists", get(yt_best_artists))
         .route("/api/yt/this-is", get(yt_this_is))
         .route("/api/yt/audio/:id", get(yt_audio))
+        .route("/api/yt/video/:id", get(yt_video))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
         .route("/api/friends/respond", post(respond_request))
@@ -3932,6 +3933,110 @@ async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_r
         .header(header::CACHE_CONTROL, "private, max-age=600")
         .body(Body::from(buf))
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()))
+}
+
+// ===== Video phát bằng thẻ <video> của app (không dùng khung YouTube) =====
+// yt-dlp tải luồng video (không âm thanh, tối đa YT_VIDEO_HEIGHT, mặc định 480p) về thư mục tạm rồi phát lại theo Range.
+// Âm thanh vẫn do engine âm thanh hiện có phát, phía trình duyệt chỉ đồng bộ hình theo thời gian của âm thanh.
+static YTDLP_VID_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+
+fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
+    let prefix = format!("{vid}_v.");
+    for e in std::fs::read_dir(audio_cache_dir()).ok()?.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) {
+            continue;
+        }
+        let ext = name[prefix.len()..].to_lowercase();
+        if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
+            continue; // file đang tải dở
+        }
+        let Ok(md) = e.metadata() else { continue };
+        if md.len() == 0 {
+            continue;
+        }
+        let mime = if ext == "webm" { "video/webm" } else { "video/mp4" };
+        return Some((e.path(), md.len(), mime.to_string()));
+    }
+    None
+}
+
+async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String), String> {
+    if let Some(x) = find_local_video(vid) {
+        return Ok(x);
+    }
+    let lock = YTDLP_VID_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
+    let _guard = lock.lock().await;
+    if let Some(x) = find_local_video(vid) {
+        return Ok(x);
+    }
+    let dir = audio_cache_dir();
+    let _ = tokio::fs::create_dir_all(&dir).await;
+    // Dọn file cũ hơn 6 giờ.
+    if let Ok(rd) = std::fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let old = e
+                .metadata()
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.elapsed().ok())
+                .map(|d| d.as_secs() > 6 * 3600)
+                .unwrap_or(false);
+            if old {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
+    }
+    let h: u32 = std::env::var("YT_VIDEO_HEIGHT")
+        .ok()
+        .and_then(|x| x.trim().parse::<u32>().ok())
+        .filter(|n| *n >= 144 && *n <= 2160)
+        .unwrap_or(480);
+    let fmt = format!("bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
+    let template = dir.join(format!("{vid}_v.%(ext)s"));
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-f").arg(fmt).arg("--no-mtime").arg("--no-progress").arg("-o").arg(&template);
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    let out = tokio::time::timeout(Duration::from_secs(120), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: tải video quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp (tải video): {line}"));
+    }
+    find_local_video(vid).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file video".to_string())
+}
+
+// GET /api/yt/video/:id?t=token  -> video (không có âm thanh), hỗ trợ Range
+async fn yt_video(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<AudQ>) -> Response {
+    let tok = q.t.clone().or_else(|| bearer(&headers));
+    let uid = {
+        let db = st.db.lock().unwrap();
+        tok.and_then(|t| user_from_token(&db, &t)).map(|u| u.id)
+    };
+    if id.len() != 11 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let use_proxy = match uid {
+        Some(uid) => user_net_prefs(&st, uid).1,
+        None => false,
+    };
+    let (start, end_req) = parse_range(&headers);
+    match ytdlp_video(&id, use_proxy).await {
+        Ok((path, total, mime)) => match serve_local(&path, total, mime, start, end_req).await {
+            Ok(r) => r,
+            Err(e) => {
+                eprintln!("[video] {id}: {e}");
+                StatusCode::BAD_GATEWAY.into_response()
+            }
+        },
+        Err(e) => {
+            eprintln!("[video] {id}: {e}");
+            (StatusCode::BAD_GATEWAY, e).into_response()
+        }
+    }
 }
 
 fn ua_for(ci: usize) -> &'static str {
