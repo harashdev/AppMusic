@@ -2656,15 +2656,16 @@ const ytSearchF=(q,f)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=ap
   .catch(e=>{ delete ytCache[k]; throw e; })); };
 /* ===== Album: cố gắng tìm video (MV) cho từng bài; không có thì báo "album không có video" ===== */
 const nz=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[\(\[（][^\)\]）]*[\)\]）]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-const ALB_BAD=['lyric','lyrics','cover','live','reaction','karaoke','instrumental','remix','sped up','slowed','nightcore','8d','tutorial','歌ってみた','カバー','piano ver','acoustic ver'];
+const ALB_BAD=['lyric','lyrics','cover','live','reaction','karaoke','instrumental','remix','sped up','slowed','nightcore','8d','tutorial','歌ってみた','カバー','piano ver','acoustic ver','ver','version','edit','mix','short','tv size','dance practice','performance','teaser','trailer','concert','fan made','fanmade','amv','mad','bootleg','mashup','reverb','bass boosted','loop','1 hour','10 hours'];
 function albScore(t,c){
   const tt=nz(t.title), ct=nz(c.title); if(!tt||!ct||c.id===t.id||/-\s*topic\s*$/i.test(c.artist||'')) return -1;
-  for(const w of ALB_BAD) if(ct.includes(w)&&!tt.includes(w)) return -1;
+  if(c.vt!=='OMV') return -1;   /* CHỈ nhận MV chính chủ do nghệ sĩ/hãng đăng (YouTube Music gắn OMV); video người dùng tự đăng (UGC) hay bản âm thanh thì bỏ */
+  for(const w0 of ALB_BAD){ const w=nz(w0); if(!w) continue; const hit=/^[\x00-\x7f]+$/.test(w)?(' '+ct+' ').includes(' '+w+' '):ct.includes(w), inT=/^[\x00-\x7f]+$/.test(w)?(' '+tt+' ').includes(' '+w+' '):tt.includes(w); if(hit&&!inT) return -1; }   /* từ ASCII khớp nguyên từ (tránh "made" dính "mad") */
   const ta=nz(String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?|\bx\b/i)[0]), ca=nz(c.artist), hasA=!!ta&&(ca.includes(ta)||ta.includes(ca)&&ca.length>1||ct.includes(ta));
   let s=0;
-  if(ct.includes(tt)) s+=3; else { const w=tt.split(' ').filter(Boolean); if(!w.length) return -1; const r=w.filter(x=>(' '+ct+' ').includes(' '+x+' ')).length/w.length; if(r<.7) return -1; s+=2*r; }
-  if(hasA) s+=2; else if(tt.length<14) return -1;
-  if(t.dur&&c.dur){ const d=Math.abs(c.dur-t.dur); if(d>Math.max(60,t.dur*.5)) return -1; s+=1-Math.min(1,d/Math.max(60,t.dur*.5)); }
+  if(ct.includes(tt)) s+=3; else { const w=tt.split(' ').filter(Boolean); if(!w.length) return -1; const r=w.filter(x=>(' '+ct+' ').includes(' '+x+' ')).length/w.length; if(r<.85) return -1; s+=2*r; }
+  if(!hasA) return -1; s+=2;   /* kênh/nghệ sĩ của video phải trùng nghệ sĩ của bài */
+  if(t.dur&&c.dur){ const d=Math.abs(c.dur-t.dur), tol=Math.max(20,t.dur*.15); if(d>tol) return -1; s+=1-Math.min(1,d/tol); }   /* lệch quá ~15% thời lượng = khác bản (remix, bản rút gọn…) */
   if(/official|\bmv\b|music video|m\/v|公式|ミュージックビデオ/i.test(c.title||'')) s+=1;
   return s; }
 const albVidC=new Map();
@@ -2673,10 +2674,12 @@ let noVid=new Set(); try{ noVid=new Set(JSON.parse(LS.get('muse_novid','[]'))); 
 function noVidAdd(k){ noVid.add(k); try{ LS.set('muse_novid',JSON.stringify([...noVid].slice(-800))); }catch{} }
 function albFind(t){ const k=key(t); if(albVidC.has(k)) return albVidC.get(k); if(noVid.has(k)){ albVidC.set(k,Promise.resolve(null)); return albVidC.get(k); }
   const qs=[(t.artist?t.artist+' ':'')+t.title, t.title+' '+(t.artist?String(t.artist).split(/,|&/)[0]+' ':'')+'official music video'];
+  let sawVt=false;
   const p=(async()=>{ for(const q of qs){ let r; try{ r=await ytSearchF(q,'videos'); }catch{ continue; }
+      if(((r&&r.tracks)||[]).some(c=>c&&'vt' in c)) sawVt=true;   /* server cũ chưa gắn loại video thì không ghi nhớ "không có video" */
       let best=null, bs=3; for(const c of (r&&r.tracks)||[]){ const sc=albScore(t,c); if(sc>=bs){ bs=sc; best=c; } }
       if(best) return best; }
-    noVidAdd(k); return null; })();
+    if(sawVt) noVidAdd(k); return null; })();
   albVidC.set(k,p); return p; }
 let albSeq=0, albTok=0; const albToast={};
 function albSwap(t,v){
