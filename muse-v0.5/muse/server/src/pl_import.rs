@@ -217,7 +217,7 @@ fn apple_collect(v: &Value, out: &mut Vec<(u8, SrcTrack)>) {
             let dur = m.get("duration").and_then(|x| x.as_f64());
             if let (Some(title), Some(artist), Some(dur)) = (title, artist, dur) {
                 let id = m.get("id").and_then(|x| x.as_str()).unwrap_or("");
-                let kind = m.pointer("/contentDescriptor/kind").and_then(|x| x.as_str()).unwrap_or("");
+                let kind = m.get("contentDescriptor").and_then(|c| c.get("kind")).and_then(|x| x.as_str()).unwrap_or("");
                 let rank = if id.starts_with("track-lockup") {
                     3
                 } else if kind == "song" {
