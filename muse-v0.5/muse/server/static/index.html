@@ -56,7 +56,7 @@ button,input,select{font:inherit;border:0;color:var(--text)}
 button{background:var(--hover2);border-radius:999px;padding:8px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s}
 button:hover{background:#ffffff2c}button:active{transform:scale(.97)}
 button:focus-visible,.ni:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card:focus,.card:focus-visible,.qk:focus,.qk:focus-visible,.tr:focus,.tr:focus-visible,.coll:focus,.nmc:focus,.nmc:focus-visible,.tl:focus,.tl:focus-visible,.li:focus,.li:focus-visible,.blb:focus,.blb:focus-visible{outline:0}
+.card:focus,.card:focus-visible,#bOpen:focus,#bOpen:focus-visible,.bm:focus,.bm:focus-visible,.qk:focus,.qk:focus-visible,.tr:focus,.tr:focus-visible,.coll:focus,.nmc:focus,.nmc:focus-visible,.tl:focus,.tl:focus-visible,.li:focus,.li:focus-visible,.blb:focus,.blb:focus-visible{outline:0}
 button.pri{background:var(--accent);color:var(--on);font-weight:600}button.pri:hover{filter:brightness(1.08)}
 button.out{background:transparent;box-shadow:inset 0 0 0 1px #ffffff40}button.out:hover{background:var(--hover)}
 button.ico{background:none;padding:8px;border-radius:50%;width:40px;height:40px}
@@ -2242,7 +2242,7 @@ const pages={
       const bd=$('#prBadge'); bd.textContent=D.status.trim(); bd.style.display=D.status.trim()?'block':'none';
       appPrev=true; paintTheme(D.accent,D.bg,bgImg());
     };
-    const pickFile=(f,max,msgEl)=>{ if(!f) return null; if(f.size>max){ msgEl.textContent='Ảnh quá lớn (tối đa '+(max/1048576)+'MB)'; return null; } msgEl.textContent=''; return f; };
+    const pickFile=(f,max,msgEl)=>{ msgEl=msgEl||$('#profMsg'); if(!f) return null; if(f.size>max){ if(msgEl) msgEl.textContent='Ảnh quá lớn (tối đa '+(max/1048576)+'MB)'; return null; } if(msgEl) msgEl.textContent=''; return f; };
     m.querySelectorAll('.sk').forEach(el=>el.onclick=()=>{ D.bg=el.dataset.v; m.querySelectorAll('.sk').forEach(x=>x.classList.toggle('sel',x===el)); $('#bgCustom').style.display=D.bg==='custom'?'block':'none'; refresh(); });
     $('#status').oninput=e=>{ D.status=e.target.value; refresh(); };
     $('#accent').oninput=e=>{ D.accent=e.target.value; refresh(); };
@@ -2252,7 +2252,7 @@ const pages={
     const editBanner=async(src)=>{ const r=await openCrop({title:'Chỉnh sửa banner',kind:'b',src,crop:cropFor('b'),color:bannerColor()}); if(!r) return false; D.bx=r.x; D.by=r.y; D.bz=r.z; D.ba=r.ar; return true; };
     $('#banBtn').onclick=()=>$('#banFile').click();
     $('#banBtn').onkeydown=e=>{ if(e.target.id==='banBtn'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); $('#banFile').click(); } };
-    $('#banFile').onchange=async e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#banMsg')); e.target.value=''; if(!f) return;
+    $('#banFile').onchange=async e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); e.target.value=''; if(!f) return;
       const url=URL.createObjectURL(f), old={bx:D.bx,by:D.by,bz:D.bz,ba:D.ba}; D.bx=50; D.by=50; D.bz=1;
       if(!(await editBanner(url))){ URL.revokeObjectURL(url); Object.assign(D,old); return; }
       if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=f; D.bannerPrev=url; D.bannerClear=false; refresh(); };
