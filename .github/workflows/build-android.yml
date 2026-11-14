@@ -6,6 +6,7 @@ on:
     paths:
       - "muse-v0.5/muse/android/**"
       - "muse-v0.5/muse/native/**"
+      - "muse-v0.5/muse/server/**"
       - ".github/workflows/build-android.yml"
 
 jobs:
@@ -52,6 +53,27 @@ jobs:
           else
             echo "Không có release discord-sdk, build không kèm SDK"
           fi
+
+      # Nhạc YouTube lấy ngay trên điện thoại: build muse-server (chế độ AUDIO_ONLY) cho Android arm64 và nhét vào APK
+      # dưới tên libmuse_audio.so. Bước này lỗi thì APK vẫn build được, chỉ là nhạc đi qua server như trước.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: muse-v0.5/muse/server
+
+      - name: Build muse-server cho Android (audio cục bộ)
+        continue-on-error: true
+        working-directory: muse-v0.5/muse/server
+        run: |
+          cargo install cargo-ndk --locked
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.3.11579264"
+          cargo ndk -t arm64-v8a --platform 26 build --release
+          mkdir -p ../android/app/src/main/jniLibs/arm64-v8a
+          cp target/aarch64-linux-android/release/muse-server ../android/app/src/main/jniLibs/arm64-v8a/libmuse_audio.so
+          ls -l ../android/app/src/main/jniLibs/arm64-v8a/
 
       - name: Build APK (debug-signed, cài thẳng được)
         run: gradle --no-daemon --stacktrace assembleDebug

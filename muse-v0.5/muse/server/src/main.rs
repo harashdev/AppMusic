@@ -392,8 +392,41 @@ fn bootstrap_admin(db: &Connection) {
     }
 }
 
+// Chế độ AUDIO_ONLY=1 (dùng trong app Android): chỉ phục vụ /api/yt/audio/:id trên máy này (127.0.0.1) để điện thoại
+// tự lấy nhạc từ YouTube bằng IP nhà. Không có tài khoản / playlist / phòng nghe chung (những thứ đó vẫn do server chính lo).
+// DB là SQLite trong bộ nhớ (trống) nên mọi yêu cầu được coi là khách, đúng với cách yt_audio đã xử lý khách.
+async fn run_audio_only() {
+    let st = AppState {
+        db: Arc::new(Mutex::new(init_db(std::path::Path::new(":memory:")))),
+        rooms: Arc::new(Mutex::new(HashMap::new())),
+        notify: Arc::new(Mutex::new(HashMap::new())),
+        avatar_dir: PathBuf::new(),
+        bg_dir: PathBuf::new(),
+        banner_dir: PathBuf::new(),
+        app_dir: PathBuf::new(),
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .user_agent("Muse/0.3")
+            .build()
+            .expect("không tạo được HTTP client"),
+        http_proxy: None,
+        audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
+    };
+    let router = Router::new().route("/api/yt/audio/:id", get(yt_audio)).with_state(st);
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
+    // Chỉ nhận kết nối từ chính máy này, không bao giờ mở ra mạng.
+    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{port}")).await.unwrap();
+    println!("Muse audio-only: http://127.0.0.1:{port}");
+    axum::serve(listener, router.into_make_service()).await.unwrap();
+}
+
 #[tokio::main]
 async fn main() {
+    if std::env::var("AUDIO_ONLY").map(|v| v.trim() == "1").unwrap_or(false) {
+        run_audio_only().await;
+        return;
+    }
     let data_dir = PathBuf::from(std::env::var("DATA_DIR").unwrap_or_else(|_| "data".into()));
     let avatar_dir = data_dir.join("avatars");
     let bg_dir = data_dir.join("backgrounds");

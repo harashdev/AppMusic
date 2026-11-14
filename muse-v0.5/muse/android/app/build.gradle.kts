@@ -54,6 +54,8 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { buildConfig = true }
+    // libmuse_audio.so là chương trình chạy được (không phải thư viện JNI): phải giải nén ra thư mục native thì mới chạy được.
+    packaging { jniLibs { useLegacyPackaging = true } }
 }
 
 dependencies {

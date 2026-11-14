@@ -108,6 +108,7 @@ class MainActivity : ComponentActivity() {
         root.addView(errorBox)
         setContentView(root)
 
+        LocalAudio.start(this) // nhạc YouTube lấy ngay trên máy (nếu APK có kèm libmuse_audio.so), không thì vẫn qua server
         setupWebView()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -187,6 +188,10 @@ class MainActivity : ComponentActivity() {
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         web.webChromeClient = chrome
         web.webViewClient = object : WebViewClient() {
+            // Chỉ /api/yt/audio/* được chuyển sang tiến trình cục bộ; null = WebView gọi server như cũ.
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): android.webkit.WebResourceResponse? =
+                LocalAudio.handle(request) ?: super.shouldInterceptRequest(view, request)
+
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!request.isForMainFrame) return false
                 val u = request.url
@@ -296,6 +301,7 @@ class MainActivity : ComponentActivity() {
         Playback.sendToWeb = null
         if (isFinishing) {
             stopService(Intent(this, KeepAliveService::class.java))
+            LocalAudio.stop()
             web.destroy()
         }
         super.onDestroy()
