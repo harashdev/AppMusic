@@ -52,6 +52,8 @@ struct AppState {
     audio: Arc<Mutex<HashMap<String, (String, u64, String, u64, usize)>>>,
     // Giới hạn đăng nhập/đăng ký: khoá -> (số lần, thời điểm bắt đầu cửa sổ - giây). Chống dò mật khẩu.
     auth_limit: Arc<Mutex<HashMap<String, (u32, u64)>>>,
+    // Vé WebSocket dùng một lần, sống 30 giây: vé -> (người dùng, hạn - giây). Tránh để token phiên nằm trong URL (log proxy).
+    ws_tickets: Arc<Mutex<HashMap<String, (User, u64)>>>,
 }
 
 // ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
@@ -433,6 +435,7 @@ async fn main() {
             }),
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
     };
 
     let router = Router::new()
@@ -440,6 +443,7 @@ async fn main() {
         .route("/api/register", post(register))
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
+        .route("/api/ws-ticket", post(ws_ticket))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
         .route("/api/account/name", post(account_name))
@@ -1053,16 +1057,34 @@ async fn remove_friend(State(st): State<AppState>, headers: HeaderMap, Path(fid)
 
 #[derive(Deserialize)]
 struct WsQ {
-    token: String,
+    ticket: String,
+}
+
+fn now_secs() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+// POST /api/ws-ticket (Authorization: Bearer ...) -> { ticket }: vé dùng một lần cho /ws/:room và /ws-user.
+async fn ws_ticket(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let ticket = new_token();
+    let now = now_secs();
+    let mut g = st.ws_tickets.lock().unwrap();
+    g.retain(|_, (_, exp)| *exp > now);
+    if g.len() > 5000 {
+        return Err((StatusCode::TOO_MANY_REQUESTS, "Quá nhiều yêu cầu".into()));
+    }
+    g.insert(ticket.clone(), (user, now + 30));
+    Ok(Json(json!({ "ticket": ticket })))
+}
+
+fn take_ws_ticket(st: &AppState, ticket: &str) -> Option<User> {
+    let (u, exp) = st.ws_tickets.lock().unwrap().remove(ticket)?;
+    if exp > now_secs() { Some(u) } else { None }
 }
 
 async fn ws_handler(ws: WebSocketUpgrade, Path(room): Path<String>, Query(q): Query<WsQ>, State(st): State<AppState>) -> Response {
-    let user = {
-        let db = st.db.lock().unwrap();
-        let u = user_from_token(&db, &q.token);
-        u
-    };
-    let Some(user) = user else { return StatusCode::UNAUTHORIZED.into_response() };
+    let Some(user) = take_ws_ticket(&st, &q.ticket) else { return StatusCode::UNAUTHORIZED.into_response() };
     if room.is_empty() || room.len() > 40 {
         return StatusCode::BAD_REQUEST.into_response();
     }
@@ -1156,12 +1178,7 @@ async fn invite(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<In
 }
 
 async fn ws_user(ws: WebSocketUpgrade, Query(q): Query<WsQ>, State(st): State<AppState>) -> Response {
-    let user = {
-        let db = st.db.lock().unwrap();
-        let u = user_from_token(&db, &q.token);
-        u
-    };
-    let Some(user) = user else { return StatusCode::UNAUTHORIZED.into_response() };
+    let Some(user) = take_ws_ticket(&st, &q.ticket) else { return StatusCode::UNAUTHORIZED.into_response() };
     ws.on_upgrade(move |s| handle_user_socket(s, user.id, st))
 }
 
