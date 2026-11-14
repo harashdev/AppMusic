@@ -24,7 +24,7 @@ MUSE_URL=https://muse.example.com cargo tauri build
 ```
 
 ## Ra file .exe (Windows)
-Xem hướng dẫn trong cuộc trò chuyện, hoặc dùng GitHub Actions: đẩy thư mục này lên GitHub,
+Dùng GitHub Actions: đẩy thư mục này lên GitHub,
 đặt biến `MUSE_URL` (Settings → Secrets and variables → Actions → Variables), rồi chạy workflow
 "Build desktop (Muse)" và tải file .exe ở mục Artifacts.
 

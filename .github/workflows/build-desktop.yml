@@ -23,7 +23,6 @@ jobs:
       - name: Install tauri-cli
         run: cargo install tauri-cli --version "^2" --locked
 
-      # Discord Social SDK (tùy chọn): tải từ Release "discord-sdk" của repo (private).
       - name: Tải Discord Social SDK
         id: sdk
         shell: bash

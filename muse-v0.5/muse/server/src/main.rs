@@ -28,7 +28,7 @@ use std::{
 use tokio::sync::broadcast;
 use tower_http::services::ServeDir;
 
-mod pl_import; // nhập playlist từ Spotify / Apple Music / SoundCloud
+mod pl_import;
 
 struct Room {
     tx: broadcast::Sender<String>,
@@ -39,26 +39,18 @@ struct Room {
 struct AppState {
     db: Arc<Mutex<Connection>>,
     rooms: Arc<Mutex<HashMap<String, Room>>>,
-    // Kênh thông báo riêng cho từng người dùng đang online (lời mời nghe chung).
     notify: Arc<Mutex<HashMap<i64, broadcast::Sender<String>>>>,
     avatar_dir: PathBuf,
     bg_dir: PathBuf,
     banner_dir: PathBuf,
     app_dir: PathBuf,
     http: reqwest::Client,
-    // Client đi qua proxy (biến môi trường YT_PROXY), dùng khi người dùng bật "Proxy" trong Cài đặt.
     http_proxy: Option<reqwest::Client>,
-    // Cache địa chỉ luồng âm thanh YouTube: khoá -> (url, kích thước, mime, thời điểm tạo - giây)
     audio: Arc<Mutex<HashMap<String, (String, u64, String, u64, usize)>>>,
-    // Giới hạn đăng nhập/đăng ký: khoá -> (số lần, thời điểm bắt đầu cửa sổ - giây). Chống dò mật khẩu.
     auth_limit: Arc<Mutex<HashMap<String, (u32, u64)>>>,
-    // Vé WebSocket dùng một lần, sống 30 giây: vé -> (người dùng, hạn - giây). Tránh để token phiên nằm trong URL (log proxy).
     ws_tickets: Arc<Mutex<HashMap<String, (User, u64)>>>,
 }
 
-// ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
-// Chính sách nội dung (CSP): chỉ cho tải script/khung từ chính server và YouTube, chặn nhúng trang vào khung khác.
-// Muốn tắt tạm khi gỡ lỗi: đặt biến môi trường CSP_OFF=1.
 const CSP: &str = "default-src 'self'; \
 script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; \
 style-src 'self' 'unsafe-inline'; \
@@ -94,7 +86,6 @@ async fn security_headers(req: Request<Body>, next: Next) -> Response {
     res
 }
 
-// Địa chỉ người gọi: ưu tiên X-Forwarded-For (khi đứng sau Caddy/Tailscale), không có thì dùng địa chỉ kết nối.
 fn client_key(headers: &HeaderMap, addr: &std::net::SocketAddr) -> String {
     headers
         .get("x-forwarded-for")
@@ -105,7 +96,6 @@ fn client_key(headers: &HeaderMap, addr: &std::net::SocketAddr) -> String {
         .unwrap_or_else(|| addr.ip().to_string())
 }
 
-// true = đang bị khoá (đã vượt `max` lần trong `window` giây).
 fn rl_blocked(st: &AppState, key: &str, max: u32, window: u64) -> bool {
     let mut g = st.auth_limit.lock().unwrap();
     let now = now_secs();
@@ -211,8 +201,6 @@ fn new_token() -> String {
     format!("{}{}", uuid::Uuid::new_v4().simple(), uuid::Uuid::new_v4().simple())
 }
 
-// Token phiên chỉ được lưu dưới dạng băm SHA-256 ("h1:" + hex): lộ file muse.db cũng không dùng lại được phiên đăng nhập.
-// Người dùng giữ token gốc; mỗi lần gọi API server băm lại rồi so khớp.
 fn tok_hash(t: &str) -> String {
     let d = Sha256::digest(t.as_bytes());
     let mut s = String::with_capacity(3 + d.len() * 2);
@@ -223,7 +211,6 @@ fn tok_hash(t: &str) -> String {
     s
 }
 
-// Băm giả để mất thời gian như khi kiểm tra mật khẩu thật: tên đăng nhập không tồn tại không trả lời nhanh hơn tên có thật.
 static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
 fn user_from_token(db: &Connection, token: &str) -> Option<User> {
@@ -288,9 +275,7 @@ fn init_db(path: &std::path::Path) -> Connection {
            PRIMARY KEY(playlist_id, track_key));",
     )
     .expect("không tạo được bảng");
-    // Nâng cấp DB cũ: thêm cột is_admin (lỗi "đã tồn tại" được bỏ qua).
     let _ = db.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0", []);
-    // Banner kiểu Discord: ảnh/GIF + màu dự phòng + dòng trạng thái.
     for ddl in [
         "ALTER TABLE users ADD COLUMN banner TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN banner_color TEXT NOT NULL DEFAULT ''",
@@ -306,8 +291,6 @@ fn init_db(path: &std::path::Path) -> Connection {
     ] {
         let _ = db.execute(ddl, []);
     }
-    // Dữ liệu nghe đồng bộ theo TÀI KHOẢN (lượt phát, nghe hết/bỏ qua, không thích, theo dõi nghệ sĩ, tiếp tục nghe).
-    // Mọi tài khoản (kể cả admin) dùng chung một cơ chế, khóa theo user_id.
     let _ = db.execute(
         "CREATE TABLE IF NOT EXISTS user_sync(
            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -315,12 +298,10 @@ fn init_db(path: &std::path::Path) -> Connection {
            PRIMARY KEY(user_id, k))",
         [],
     );
-    // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Discord OAuth2.
     let _ = db.execute(
         "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
         [],
     );
-    // Nâng cấp bảo mật: token phiên cũ (lưu thô) -> băm SHA-256, người dùng không bị đăng xuất.
     let mut olds: Vec<String> = Vec::new();
     if let Ok(mut stmt) = db.prepare("SELECT token FROM sessions WHERE token NOT LIKE 'h1:%'") {
         if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
@@ -332,14 +313,12 @@ fn init_db(path: &std::path::Path) -> Connection {
     for t in olds {
         let _ = db.execute("UPDATE sessions SET token=?1 WHERE token=?2", params![tok_hash(&t), t]);
     }
-    // Dọn dữ liệu SoundCloud cũ (nguồn "sc" đã bị gỡ).
     for t in ["favorites", "history", "playlist_tracks"] {
         let _ = db.execute(&format!("DELETE FROM {t} WHERE track_key LIKE 'sc:%'"), []);
     }
     db
 }
 
-// Tạo/cấp quyền admin từ biến môi trường ADMIN_USER (+ ADMIN_PASS nếu tài khoản chưa tồn tại).
 fn bootstrap_admin(db: &Connection) {
     let Ok(user) = std::env::var("ADMIN_USER") else { return };
     let user = user.trim().to_lowercase();
@@ -347,7 +326,6 @@ fn bootstrap_admin(db: &Connection) {
         eprintln!("ADMIN_USER không hợp lệ (3-24 ký tự: chữ, số, _)");
         return;
     }
-    // Chống chiếm tên: nếu tên admin đã bị đăng ký thường (chưa phải admin) thì xóa tài khoản đó cùng toàn bộ dữ liệu, rồi tạo lại admin sạch.
     if std::env::var("ADMIN_PASS").map(|p| p.len() >= 8 && p.len() <= 128).unwrap_or(false) {
         let _ = db.execute("DELETE FROM users WHERE username=?1 AND is_admin=0", [&user]);
     }
@@ -356,7 +334,6 @@ fn bootstrap_admin(db: &Connection) {
         .ok();
     match existing {
         Some((id, _)) => {
-            // Còn lại chỉ có thể là tài khoản đã là admin: giữ nguyên mật khẩu hiện tại, chỉ cập nhật tên hiển thị.
             if let Ok(name) = std::env::var("ADMIN_NAME") {
                 let name: String = name.trim().chars().take(24).collect();
                 if !name.is_empty() {
@@ -499,8 +476,6 @@ async fn main() {
         .with_state(st);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
-    // BIND=127.0.0.1 -> chỉ nhận kết nối từ chính máy này (dùng khi đã có Caddy / Tailscale Serve / Funnel phía trước),
-    // nên IP mạng LAN và cổng không bị lộ ra ngoài. Mặc định 0.0.0.0 để không phá cách chạy hiện có (Docker, điện thoại cùng Wi-Fi).
     let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "0.0.0.0".into());
     let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
     println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
@@ -538,7 +513,6 @@ struct AuthResp {
 }
 
 async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
-    // Tối đa 10 lần đăng ký / giờ / địa chỉ, tránh tạo tài khoản hàng loạt.
     let rkey = format!("reg:{}", client_key(&headers, &addr));
     if rl_blocked(&st, &rkey, 10, 3600) {
         return Err(too_many());
@@ -586,7 +560,6 @@ async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std
 
 async fn login(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
     let username = r.username.trim().to_lowercase();
-    // Chống dò mật khẩu: 5 lần sai / 10 phút cho mỗi tên đăng nhập, 30 lần sai / 10 phút cho mỗi địa chỉ.
     let ukey = format!("u:{}", username.chars().take(40).collect::<String>());
     let ikey = format!("ip:{}", client_key(&headers, &addr));
     if rl_blocked(&st, &ukey, 5, 600) || rl_blocked(&st, &ikey, 30, 600) {
@@ -687,7 +660,6 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
         }
         db.execute("UPDATE users SET banner_color=?1 WHERE id=?2", params![c, user.id]).map_err(|_| e500())?;
     }
-    // Tâm ảnh (x, y: 0-100 % khung), zoom (0.1-4, 1 = phủ kín khung) và tỉ lệ ảnh (rộng/cao) của avatar (a*) và banner (b*).
     if let Some(c) = r.crop.as_ref() {
         let mut out = serde_json::Map::new();
         for (k, lo, hi, d) in [
@@ -726,9 +698,6 @@ fn sniff_image(b: &[u8]) -> Option<&'static str> {
     else { None }
 }
 
-// ---------- Tối ưu GIF khi tải lên: gifsicle (nén) → gif2webp (WebP động, giải mã nhẹ hơn GIF) ----------
-// Thiếu công cụ hoặc có lỗi → giữ nguyên file gốc, việc tải ảnh lên không bao giờ bị hỏng.
-// Đường dẫn tuỳ chọn: biến môi trường GIFSICLE_PATH / GIF2WEBP_PATH (mặc định tìm trong PATH).
 async fn run_tool(prog: &str, args: &[&str]) -> bool {
     let mut cmd = tokio::process::Command::new(prog);
     cmd.args(args)
@@ -761,8 +730,6 @@ async fn optimize_gif_files(
     let gif2webp = tool_path("GIF2WEBP_PATH", "gif2webp");
     let ffmpeg = tool_path("FFMPEG_PATH", "ffmpeg");
 
-    // 1) gifsicle: thu nhỏ nếu ảnh to hơn max_px (chỉ thu nhỏ, không phóng to) rồi nén nhẹ (lossy=40, gần như không thấy artifact).
-    //    Số điểm ảnh mỗi khung là thứ làm điện thoại lag nhiều nhất, nên đây là bước quan trọng nhất. Không hỗ trợ lossy thì nén không mất dữ liệu.
     let fit = format!("{max_px}x{max_px}");
     let mut best_gif: Vec<u8> = body.to_vec();
     let mut webp_input = s;
@@ -777,8 +744,6 @@ async fn optimize_gif_files(
         }
     }
 
-    // 2) ffmpeg: video MP4 (H.264) tắt tiếng, tối đa 25 khung/giây. Điện thoại giải mã video bằng phần cứng nên nhẹ hơn ảnh động nhiều.
-    //    Nền trong suốt của GIF sẽ thành màu đen. Thiếu ffmpeg thì bỏ qua bước này.
     let mut video: Option<Vec<u8>> = None;
     if want_video {
         let made = run_tool(
@@ -799,8 +764,6 @@ async fn optimize_gif_files(
         }
     }
 
-    // 3) gif2webp: WebP động (mỗi khung chọn lossy/lossless), khung gốc dày hơn để giải mã nhanh trên điện thoại.
-    //    Đây là ảnh dự phòng khi video không phát được, và là ảnh dùng ở các chỗ không dùng video (danh sách, nền).
     let mut image: Option<(Vec<u8>, &'static str)> = None;
     let converted = run_tool(
         &gif2webp,
@@ -809,7 +772,6 @@ async fn optimize_gif_files(
     .await;
     if converted {
         if let Ok(b) = tokio::fs::read(web).await {
-            // Chỉ dùng WebP khi hợp lệ và không to hơn GIF đã nén quá 1,5 lần
             if matches!(sniff_image(&b), Some("webp")) && b.len() <= best_gif.len() + best_gif.len() / 2 {
                 image = Some((b, "webp"));
             }
@@ -825,7 +787,6 @@ async fn optimize_gif_files(
     }
 }
 
-// max_px: cạnh dài tối đa (điểm ảnh) cho GIF; want_video: có tạo thêm video MP4 hay không. PNG/JPG/WEBP giữ nguyên.
 async fn optimize_upload(body: Bytes, ext: &'static str, max_px: u32, want_video: bool) -> (Vec<u8>, &'static str, Option<Vec<u8>>) {
     if ext != "gif" {
         return (body.to_vec(), ext, None);
@@ -843,8 +804,6 @@ async fn optimize_upload(body: Bytes, ext: &'static str, max_px: u32, want_video
     result.unwrap_or_else(|| (body.to_vec(), ext, None))
 }
 
-// Lưu ảnh tải lên. Có video đi kèm thì ảnh đặt tên {stem}.v.{ext} và video là {stem}.mp4
-// (giao diện dựa vào đuôi ".v." để biết có video; video lỗi thì tự quay về ảnh).
 async fn save_upload(dir: &std::path::Path, img: &[u8], ext: &str, video: Option<Vec<u8>>) -> std::io::Result<String> {
     let stem = uuid::Uuid::new_v4().simple().to_string();
     let name = if video.is_some() { format!("{stem}.v.{ext}") } else { format!("{stem}.{ext}") };
@@ -855,7 +814,6 @@ async fn save_upload(dir: &std::path::Path, img: &[u8], ext: &str, video: Option
     Ok(name)
 }
 
-// Xoá file ảnh tải lên, kèm video MP4 đi cùng nếu có.
 async fn remove_upload_file(dir: &std::path::Path, f: &str) {
     let _ = tokio::fs::remove_file(dir.join(f)).await;
     if let Some((stem, _)) = f.split_once(".v.") {
@@ -863,7 +821,6 @@ async fn remove_upload_file(dir: &std::path::Path, f: &str) {
     }
 }
 
-// PNG/JPG/WEBP lưu nguyên file gốc; GIF được tối ưu (gifsicle → WebP động) qua optimize_upload, vẫn giữ chuyển động.
 async fn upload_avatar(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
     let user = require(&st, &headers)?;
     if body.len() > 10 * 1024 * 1024 {
@@ -916,7 +873,6 @@ fn friend_from_row(r: &rusqlite::Row, online: &HashSet<i64>) -> rusqlite::Result
 
 const FRIEND_COLS: &str = "u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop";
 
-// Gửi lời mời kết bạn bằng mã bạn bè (hoặc tên đăng nhập). Nếu người kia đã mời mình trước thì tự chấp nhận.
 async fn add_friend(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<FriendReq>) -> Result<Json<serde_json::Value>, ApiErr> {
     let user = require(&st, &headers)?;
     let key = r.code.trim().to_string();
@@ -983,7 +939,6 @@ async fn list_friends(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<F
     Ok(Json(list))
 }
 
-// Lời mời đang chờ: incoming = người khác mời mình, outgoing = mình đã mời.
 async fn list_requests(State(st): State<AppState>, headers: HeaderMap) -> Result<Json<serde_json::Value>, ApiErr> {
     let user = require(&st, &headers)?;
     let online: HashSet<i64> = st.notify.lock().unwrap().keys().cloned().collect();
@@ -1002,7 +957,7 @@ async fn list_requests(State(st): State<AppState>, headers: HeaderMap) -> Result
 #[derive(Deserialize)]
 struct RespondReq {
     user_id: i64,
-    action: String, // accept | decline | cancel
+    action: String,
 }
 
 async fn respond_request(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<RespondReq>) -> Result<StatusCode, ApiErr> {
@@ -1064,7 +1019,6 @@ fn now_secs() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
 
-// POST /api/ws-ticket (Authorization: Bearer ...) -> { ticket }: vé dùng một lần cho /ws/:room và /ws-user.
 async fn ws_ticket(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
     let user = require(&st, &headers)?;
     let ticket = new_token();
@@ -1119,7 +1073,6 @@ async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState
             if !["hello", "chat", "state"].contains(&ty.as_str()) {
                 continue;
             }
-            // Server tự gắn danh tính để không ai giả mạo người khác.
             v["from"] = json!(user.display_name);
             v["avatar"] = json!(user.avatar);
             let out = v.to_string();
@@ -1138,7 +1091,6 @@ async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState
     }
 }
 
-// Giờ của server (ms) – client dùng để căn đồng hồ, tránh lệch giờ giữa các máy.
 async fn time_now() -> Json<serde_json::Value> {
     let ms = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     Json(json!({ "t": ms }))
@@ -1210,7 +1162,6 @@ async fn handle_user_socket(socket: WebSocket, uid: i64, st: AppState) {
     }
 }
 
-// ---------- Yêu thích, lịch sử, playlist ----------
 fn track_key(v: &Value) -> Option<String> {
     let src = v.get("src")?.as_str()?;
     if src != "jm" && src != "yt" && src != "au" {
@@ -1243,7 +1194,6 @@ fn owns(db: &Connection, pid: i64, uid: i64) -> bool {
     db.query_row("SELECT 1 FROM playlists WHERE id=?1 AND user_id=?2", params![pid, uid], |_| Ok(())).is_ok()
 }
 
-// ===== Tài khoản: đổi tên hiển thị, đổi mật khẩu =====
 #[derive(Deserialize)]
 struct NameChange {
     display_name: String,
@@ -1288,7 +1238,6 @@ async fn account_password(State(st): State<AppState>, headers: HeaderMap, Json(r
     let hash = tokio::task::spawn_blocking(move || hash_pw(&newpw)).await.map_err(|_| e500())?.map_err(|_| e500())?;
     let db = st.db.lock().unwrap();
     db.execute("UPDATE users SET pass_hash=?1 WHERE id=?2", params![hash, user.id]).map_err(|_| e500())?;
-    // Đăng xuất mọi thiết bị khác, giữ phiên hiện tại.
     let _ = db.execute("DELETE FROM sessions WHERE user_id=?1 AND token<>?2", params![user.id, tok_hash(&token)]);
     Ok(StatusCode::OK)
 }
@@ -1298,7 +1247,6 @@ struct AccDel {
     password: String,
 }
 
-// Xóa tài khoản vĩnh viễn: cần nhập đúng mật khẩu. Xóa luôn bạn bè, yêu thích, lịch sử, playlist, dữ liệu đồng bộ (ON DELETE CASCADE) và ảnh đại diện/nền/banner.
 async fn account_delete(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<AccDel>) -> Result<StatusCode, ApiErr> {
     let user = require(&st, &headers)?;
     let (hash, av, bg, bn): (String, String, String, String) = {
@@ -1327,11 +1275,9 @@ async fn account_delete(State(st): State<AppState>, headers: HeaderMap, Json(r):
     Ok(StatusCode::NO_CONTENT)
 }
 
-// ===== Cài đặt người dùng (lưu dạng JSON, chỉ nhận các khóa đã biết) =====
 const BOOL_SETTINGS: [&str; 11] = [
     "track_history", "save_state", "crossfade", "explicit", "offline_pl", "proxy", "eq_on", "delay_on", "reverb_on", "discord_rpc", "show_errors",
 ];
-// (khóa, nhỏ nhất, lớn nhất, mặc định)
 const NUM_SETTINGS: [(&str, i64, i64, i64); 6] = [
     ("crossfade_secs", 1, 12, 5),
     ("delay_ms", 50, 1000, 300),
@@ -1434,7 +1380,6 @@ async fn settings_set(State(st): State<AppState>, headers: HeaderMap, Json(patch
     Ok(Json(Value::Object(cur)))
 }
 
-// ===== Lịch sử =====
 async fn hist_clear(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
     let u = require(&st, &headers)?;
     let db = st.db.lock().unwrap();
@@ -1442,7 +1387,6 @@ async fn hist_clear(State(st): State<AppState>, headers: HeaderMap) -> Result<St
     Ok(StatusCode::OK)
 }
 
-// ===== Sao lưu / khôi phục / nhập playlist =====
 const MAX_FAVS: usize = 5000;
 const MAX_PLAYLISTS: usize = 50;
 const MAX_PL_TRACKS: usize = 5000;
@@ -1486,7 +1430,6 @@ async fn backup_export(State(st): State<AppState>, headers: HeaderMap) -> R<Valu
     })))
 }
 
-// Chèn danh sách playlist (mỗi phần tử {name, tracks:[...]}) cho người dùng; trả về (số playlist, số bài).
 fn insert_playlists(db: &Connection, uid: i64, list: &[Value]) -> Result<(usize, usize), ApiErr> {
     let mut have: usize = db.query_row("SELECT COUNT(*) FROM playlists WHERE user_id=?1", [uid], |r| r.get::<_, i64>(0)).unwrap_or(0) as usize;
     let (mut np, mut nt) = (0usize, 0usize);
@@ -1527,7 +1470,6 @@ fn insert_playlists(db: &Connection, uid: i64, list: &[Value]) -> Result<(usize,
     Ok((np, nt))
 }
 
-// Nhập thêm playlist (không xóa dữ liệu hiện có). Nhận {"playlists":[...]} hoặc một mảng playlist.
 async fn import_playlists(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
     let list: Vec<Value> = match &body {
@@ -1543,7 +1485,6 @@ async fn import_playlists(State(st): State<AppState>, headers: HeaderMap, Json(b
     Ok(Json(json!({ "playlists": np, "tracks": nt })))
 }
 
-// Khôi phục từ file sao lưu: thay thế yêu thích, lịch sử và playlist hiện có.
 async fn backup_restore(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
     if body.get("app").and_then(|x| x.as_str()) != Some("muse") {
@@ -1571,7 +1512,6 @@ async fn backup_restore(State(st): State<AppState>, headers: HeaderMap, Json(bod
         }
     }
     let (np, nt) = insert_playlists(&tx, u.id, &pls)?;
-    // Dữ liệu nghe đồng bộ (nếu file sao lưu có) cũng được khôi phục.
     if let Some(sy) = body.get("sync").and_then(|x| x.as_object()) {
         let now_ms = (SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0)) as i64;
         tx.execute("DELETE FROM user_sync WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
@@ -1632,10 +1572,6 @@ async fn hist_add(State(st): State<AppState>, headers: HeaderMap, Json(t): Json<
     Ok(StatusCode::OK)
 }
 
-// ===== Chuẩn hóa tên nghệ sĩ (alias) =====
-// YouTube hay gắn TÊN KÊNH (vd. "Abuse") thay cho tên nghệ sĩ thật ("Abu-Se-Ken"). Các tên này phải được tính là MỘT nghệ sĩ,
-// nếu không lịch sử nghe bị chia đôi và gợi ý sai. Khóa so khớp = tên viết thường, chỉ giữ chữ/số ("Abu Se Ken" == "abu-se-ken").
-// Muốn gộp thêm nghệ sĩ khác: thêm một dòng vào đây.
 const ARTIST_ALIASES: &[(&str, &[&str])] = &[("Abu-Se-Ken", &["Abuse", "Abu Se Ken", "AbuSeKen", "アブセケン"])];
 
 fn art_norm(s: &str) -> String {
@@ -1656,16 +1592,14 @@ fn alias_map() -> &'static HashMap<String, String> {
     })
 }
 
-// Tên nghệ sĩ chuẩn (alias → tên chính); tên lạ giữ nguyên.
 fn canon_artist(name: &str) -> String {
     let n = name.trim();
     alias_map().get(&art_norm(n)).cloned().unwrap_or_else(|| n.to_string())
 }
 
-// Tách chuỗi nhiều nghệ sĩ ("A & B", "A feat. B", "A, B"...) thành danh sách tên chuẩn, không trùng.
 fn split_artists(s: &str) -> Vec<String> {
     const SEPS: [&str; 11] = [",", "&", ";", "/", "、", "・", " x ", " ft. ", " ft ", " feat. ", " feat "];
-    let lower = s.to_ascii_lowercase(); // giữ nguyên độ dài byte nên cắt trên `s` theo vị trí của `lower` là an toàn
+    let lower = s.to_ascii_lowercase();
     let mut parts: Vec<&str> = Vec::new();
     let (mut start, mut i) = (0usize, 0usize);
     while i < lower.len() {
@@ -1702,11 +1636,6 @@ fn track_artists(t: &Value) -> Vec<String> {
     split_artists(t.get("artist").and_then(|x| x.as_str()).unwrap_or(""))
 }
 
-// ===== Đồng bộ dữ liệu nghe theo tài khoản =====
-// Client giữ bản trên máy (localStorage) và đẩy lên đây; server gộp rồi trả bản đã gộp.
-//  - listen: {khóa bài: {t, ok, sk, last}}  → từng bài lấy bản mới hơn (cùng mốc thì lấy số lớn hơn)
-//  - plays : {khóa bài: {t, n, last}}       → số lượt phát chỉ tăng nên lấy lớn nhất
-//  - dislike / follow / jump                → bản có mốc `ts` mới hơn thắng; cùng mốc thì hợp nhất
 const SYNC_KEYS: [&str; 5] = ["listen", "plays", "dislike", "follow", "jump"];
 const SYNC_MAX_BYTES: usize = 1_500_000;
 
@@ -1718,7 +1647,6 @@ fn entry_ok(e: &Value) -> bool {
     e.is_object() && e.get("t").map(|t| valid_track(t).is_ok()).unwrap_or(false)
 }
 
-// Làm sạch một giá trị client gửi lên; None nếu sai dạng.
 fn sync_clean(key: &str, v: &Value) -> Option<Value> {
     match key {
         "listen" | "plays" | "dislike" => {
@@ -1799,7 +1727,6 @@ fn merge_union(key: &str, a: &Value, b: &Value) -> Value {
             Value::Array(v)
         }
         _ => {
-            // jump: giữ danh sách đã có, thêm mục chưa có theo tên
             let mut seen: HashSet<String> = HashSet::new();
             let v: Vec<Value> = a.as_array().into_iter().flatten().chain(b.as_array().into_iter().flatten()).filter(|x| seen.insert(x.get("n").and_then(|n| n.as_str()).unwrap_or("").to_string())).take(10).cloned().collect();
             Value::Array(v)
@@ -1848,7 +1775,6 @@ async fn sync_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
     Ok(Json(Value::Object(out)))
 }
 
-// Nhận {khóa: {v, ts}} (có thể rỗng), gộp với bản trên server rồi trả về toàn bộ bản đã gộp.
 async fn sync_post(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
     let Value::Object(body) = body else { return Err(bad("Dữ liệu không hợp lệ")) };
@@ -1880,10 +1806,6 @@ async fn sync_post(State(st): State<AppState>, headers: HeaderMap, Json(body): J
     Ok(Json(Value::Object(out)))
 }
 
-// ===== Gợi ý nhạc: item-item KNN với trọng số BM25 (ý tưởng từ thư viện `implicit`) =====
-// "Hàng" = mỗi tài khoản (yêu thích + lịch sử, yêu thích nặng hơn như độ tin cậy của ALS) và mỗi playlist.
-// Hai bài hay xuất hiện cùng nhau trong nhiều hàng thì giống nhau; bài chưa có trong thư viện của bạn
-// nhưng giống những bài bạn thích sẽ được xếp lên đầu.
 const BM25_K1: f64 = 100.0;
 const BM25_B: f64 = 0.8;
 
@@ -1916,7 +1838,6 @@ fn rec_load(
     Ok(())
 }
 
-// ----- "Radio" của YouTube Music cho một bài (danh sách bài liên quan do YouTube tính từ hành vi nghe của hàng triệu người) -----
 fn yt_panel_items<'a>(v: &'a Value, out: &mut Vec<&'a Value>) {
     match v {
         Value::Object(m) => {
@@ -1966,7 +1887,6 @@ fn radio_cache() -> &'static Mutex<HashMap<String, (u64, Vec<Value>)>> {
     RADIO_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// Bài của một nghệ sĩ (tìm "Tên songs", chỉ giữ bài mà nghệ sĩ – sau khi gộp alias – đúng là người đó), nhớ 6 giờ.
 static ARTSONG_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
 async fn artist_songs(client: &reqwest::Client, name: &str) -> Vec<Value> {
     let ck = art_norm(name);
@@ -2036,11 +1956,6 @@ async fn yt_radio(client: &reqwest::Client, id: &str) -> Vec<Value> {
     tracks
 }
 
-// Gợi ý cho bạn = item-item KNN kiểu `implicit` (BM25 + cosine) trên các "hàng" dữ liệu:
-//   - hàng của từng tài khoản (yêu thích ×3, nghe ×1 – như độ tin cậy c = 1 + α·r của ALS) và từng playlist,
-//   - hàng "radio" của vài bài bạn yêu thích nhất (YouTube Music cho biết bài nào hay được nghe cùng bài đó).
-// Nhờ hàng radio, tài khoản chỉ có một người dùng vẫn có dữ liệu "bài nào đi với bài nào".
-// Hoà trộn gu: gộp yêu thích + lịch sử của mình và của một người bạn thành một danh sách (bài chung xếp đầu, rồi xen kẽ hai bên).
 async fn blend(State(st): State<AppState>, headers: HeaderMap, Path(fid): Path<i64>) -> R<Value> {
     let u = require(&st, &headers)?;
     let db = st.db.lock().unwrap();
@@ -2124,7 +2039,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         return Ok(Json(Vec::new()));
     }
 
-    // Độ yêu thích từng NGHỆ SĨ (đã gộp alias: "Abuse" và "Abu-Se-Ken" là một) tính từ yêu thích + lịch sử + playlist của bạn.
     let mut art_aff: HashMap<String, f64> = HashMap::new();
     let mut art_name: HashMap<String, String> = HashMap::new();
     let mut art_tracks: HashMap<String, Vec<String>> = HashMap::new();
@@ -2142,7 +2056,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
     top_arts.truncate(6);
     let aff_max = top_arts.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
 
-    // Chọn tối đa 6 bài "hạt giống" trong 16 bài độ tin cậy cao nhất, xoay theo giờ để gợi ý không đứng yên.
     let mut ranked_seeds: Vec<(String, f64)> = mine.iter().map(|(k, w)| (k.clone(), *w)).collect();
     ranked_seeds.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
     ranked_seeds.truncate(16);
@@ -2169,8 +2082,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
             meta.entry(k).or_insert_with(|| t.to_string());
         }
     }
-    // Hàng "nghệ sĩ": bài của vài nghệ sĩ bạn nghe nhiều nhất (xoay theo giờ) cùng các bài bạn đã nghe của họ,
-    // để bài khác của đúng nghệ sĩ đó (kể cả khi YouTube ghi tên kênh khác như "Abuse") được gợi ý.
     let n_a = top_arts.len();
     let art_pick: Vec<String> = (0..n_a.min(3)).map(|i| top_arts[(i + hour) % n_a].0.clone()).collect();
     let art_names: Vec<String> = art_pick.iter().map(|lk| art_name.get(lk).cloned().unwrap_or_else(|| lk.clone())).collect();
@@ -2190,7 +2101,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         return Ok(Json(Vec::new()));
     }
 
-    // BM25: giảm trọng số bài quá phổ biến (idf) và chuẩn hóa theo độ dài hàng
     let n = rows.len() as f64;
     let mut df: HashMap<&str, f64> = HashMap::new();
     for r in rows.values() {
@@ -2219,7 +2129,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         wrows.push(v);
     }
 
-    // điểm của bài j = Σ trọng số(bài i của bạn) × độ giống cosine(i, j)
     let mut score: HashMap<&str, f64> = HashMap::new();
     for (seed, sw) in mine.iter() {
         let Some(rs) = inv.get(seed.as_str()) else { continue };
@@ -2246,7 +2155,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
     let mut ranked: Vec<(&str, f64)> = score.into_iter().collect();
     ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
 
-    // Cộng điểm theo độ quen thuộc của nghệ sĩ: bài của nghệ sĩ bạn hay nghe (theo tên đã gộp alias) được đẩy lên.
     let top_score = ranked.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
     let mut ranked: Vec<(&str, f64)> = ranked
         .into_iter()
@@ -2261,8 +2169,6 @@ async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Valu
         .collect();
     ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
 
-    // Lọc: bỏ nội dung không phải nhạc (truyện, podcast, bản dài), tôn trọng cài đặt explicit,
-    // mỗi nghệ sĩ (tên đã gộp alias) tối đa 3 bài; 3 nghệ sĩ bạn nghe nhiều nhất được tối đa 5.
     let mut per_artist: HashMap<String, u32> = HashMap::new();
     let mut out: Vec<Value> = Vec::new();
     for (k, _) in ranked {
@@ -2304,7 +2210,6 @@ async fn pl_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>
         })
         .map_err(|_| e500())?;
     let mut v: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
-    // Ảnh bìa playlist: lấy ảnh của 4 bài đầu có ảnh (giống ảnh ghép ở trang playlist)
     for p in v.iter_mut() {
         let pid = p.get("id").and_then(|x| x.as_i64()).unwrap_or(0);
         let mut covers: Vec<String> = Vec::new();
@@ -2391,8 +2296,6 @@ async fn pl_remove(State(st): State<AppState>, headers: HeaderMap, Path((pid, ke
     Ok(StatusCode::OK)
 }
 
-
-// ---------- Ảnh nền (hỗ trợ GIF), icon app (admin) ----------
 async fn upload_bg(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
     let user = require(&st, &headers)?;
     if body.len() > 10 * 1024 * 1024 {
@@ -2425,7 +2328,6 @@ async fn upload_bg(State(st): State<AppState>, headers: HeaderMap, body: Bytes) 
     Ok(Json(out))
 }
 
-// Banner hồ sơ (PNG/JPG/GIF/WEBP ≤ 10MB). Lưu nguyên file gốc để GIF giữ chuyển động.
 async fn upload_banner(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
     let user = require(&st, &headers)?;
     if body.len() > 10 * 1024 * 1024 {
@@ -2491,8 +2393,6 @@ async fn serve_icon(State(st): State<AppState>) -> Response {
     }
 }
 
-// ---------- Tìm kiếm YouTube Music (InnerTube – cùng API mà InnerTune/SmartTube dùng) ----------
-// Chỉ lấy danh sách bài; phát nhạc vẫn qua player chính thức của YouTube ở giao diện web.
 #[derive(Deserialize)]
 struct YtQ {
     q: Option<String>,
@@ -2518,7 +2418,6 @@ fn yt_dur(s: &str) -> Option<u64> {
     Some(sec)
 }
 
-// Phần không phải tên nghệ sĩ: thời lượng (3:38), lượt xem/nghe, năm, nhãn Song/Video.
 fn yt_junk_part(p: &str) -> bool {
     let l = p.trim().to_lowercase();
     l.is_empty()
@@ -2553,13 +2452,11 @@ fn yt_track(item: &Value) -> Option<Value> {
     if title.is_empty() {
         return None;
     }
-    // Cột 2 dạng "Nghệ sĩ • Album • 3:45" (có thể có nhãn "Song"/"Video" ở đầu).
     let parts: Vec<String> = col(1)
         .split(" \u{2022} ")
         .map(|x| x.trim().to_string())
         .filter(|x| !x.is_empty())
         .collect();
-    // Tên nghệ sĩ là cột đầu tiên KHÔNG phải nhãn/thời lượng/lượt xem (trước đây video chỉ có "3:38" bị lấy nhầm làm nghệ sĩ).
     let artist = parts.iter().find(|p| !yt_junk_part(p)).cloned().unwrap_or_default();
     let dur: u64 = parts.iter().rev().find_map(|p| yt_dur(p)).unwrap_or(0);
     let image = item
@@ -2574,7 +2471,6 @@ fn yt_track(item: &Value) -> Option<Value> {
         .get("badges")
         .map(|b| b.to_string().contains("MUSIC_EXPLICIT_BADGE"))
         .unwrap_or(false);
-    // Loại video do YouTube Music gắn: OMV = MV chính chủ của nghệ sĩ, ATV = bản âm thanh chính thức, UGC = video người dùng tự đăng (fan, remix, cover...).
     let vt = {
         let s = item.to_string();
         let key = "\"musicVideoType\":\"MUSIC_VIDEO_TYPE_";
@@ -2585,7 +2481,6 @@ fn yt_track(item: &Value) -> Option<Value> {
     Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit, "vt": vt }))
 }
 
-// Mục không phải bài hát trong kết quả tìm kiếm: album, nghệ sĩ, danh sách phát, podcast.
 fn yt_entity(item: &Value) -> Option<Value> {
     let be = item.pointer("/navigationEndpoint/browseEndpoint")?;
     let id = be.get("browseId")?.as_str()?;
@@ -2622,7 +2517,6 @@ fn yt_entity(item: &Value) -> Option<Value> {
     Some(json!({ "kind": kind, "id": id, "title": title, "sub": col(1), "image": image }))
 }
 
-// Tập cả bài hát lẫn mục khác từ một kết quả tìm kiếm (giữ nguyên thứ tự YouTube Music trả về).
 fn yt_collect_all(v: &Value, tracks: &mut Vec<Value>, ents: &mut Vec<Value>) {
     match v {
         Value::Object(m) => {
@@ -2647,7 +2541,6 @@ fn yt_collect_all(v: &Value, tracks: &mut Vec<Value>, ents: &mut Vec<Value>) {
     }
 }
 
-// Tập tập podcast (dạng musicMultiRowListItemRenderer) ở trang chương trình podcast.
 fn yt_collect_episodes(v: &Value, out: &mut Vec<Value>) {
     match v {
         Value::Object(m) => {
@@ -2681,7 +2574,6 @@ fn yt_collect_episodes(v: &Value, out: &mut Vec<Value>) {
     }
 }
 
-// Tham số bộ lọc của YouTube Music (giống ytmusicapi). "all" = không lọc.
 fn yt_filter_params(f: &str) -> Option<&'static str> {
     match f {
         "songs" => Some("EgWKAQIIAWoMEA4QChADEAQQCRAF"),
@@ -2717,7 +2609,6 @@ fn yt_collect(v: &Value, out: &mut Vec<Value>) {
     }
 }
 
-// Trả về (cho phép nội dung nhạy cảm, dùng proxy) theo cài đặt của người dùng.
 fn user_net_prefs(st: &AppState, uid: i64) -> (bool, bool) {
     let db = st.db.lock().unwrap();
     let s = load_settings(&db, uid);
@@ -2734,7 +2625,6 @@ fn pick_client(st: &AppState, use_proxy: bool) -> reqwest::Client {
 }
 
 async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtQ>) -> R<Value> {
-    // Không bắt buộc đăng nhập: khách (không có token) vẫn tìm nhạc được với cài đặt mặc định.
     let (allow_explicit, use_proxy) = match require(&st, &headers) {
         Ok(user) => user_net_prefs(&st, user.id),
         Err(_) => (false, false),
@@ -2745,8 +2635,6 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
         return Err(bad("Thiếu từ khoá tìm kiếm"));
     }
     let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
-    // Cache 10 phút: trang chủ mở lại là có ngay, không phải chờ YouTube Music.
-    // Có tham số f (all/songs/videos/albums/artists/playlists/featured/podcasts) thì trả {tracks, entities}; không có thì trả mảng bài hát như cũ.
     let filt: Option<String> = q.f.as_deref().map(|x| x.trim().to_lowercase()).filter(|x| !x.is_empty());
     let ckey = format!("{}|{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8, filt.clone().unwrap_or_default());
     if let Some((t, v)) = search_cache().lock().unwrap().get(&ckey) {
@@ -2759,7 +2647,6 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
         "query": text,
     });
     match filt.as_deref() {
-        // Không có f: bộ lọc "Songs" như trước đây
         None => body["params"] = json!("EgWKAQIIAWoKEAkQBRAKEAMQBA=="),
         Some(f) => {
             if let Some(p) = yt_filter_params(f) {
@@ -2816,9 +2703,6 @@ fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     SEARCH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// ---------- Nghệ sĩ liên quan (mục "Fans might also like" trên trang nghệ sĩ của YouTube Music) ----------
-// Dùng cho kệ "Giống X" ở trang chủ: thay vì tìm chữ "nhạc giống X", lấy đúng danh sách nghệ sĩ mà YouTube Music cho là gần với X,
-// rồi lấy vài bài của từng người và xen kẽ lại để một kệ có nhiều giọng khác nhau. Ý tưởng: get_artist(...)["related"] của thư viện ytmusicapi.
 #[derive(Deserialize)]
 struct YtSimQ {
     artist: Option<String>,
@@ -2830,7 +2714,6 @@ fn similar_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     SIMILAR_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// Thể loại cho kệ "Giống X": (từ khoá để tìm kiếm, dấu hiệu trong tên bài/nghệ sĩ để ưu tiên). Chỉ liệt kê vài thể loại hay gặp.
 fn genre_spec(g: &str) -> Option<(&'static str, &'static [&'static str])> {
     match g.trim().to_lowercase().as_str() {
         "edm" | "edm / remix" | "electronic" | "electro" => Some((
@@ -2852,16 +2735,13 @@ fn genre_match(t: &Value, words: &[&str]) -> bool {
     words.iter().any(|w| txt.contains(w))
 }
 
-// Chuẩn hoá tên để so khớp: bỏ dấu cách / ký tự đặc biệt, chữ thường ("Hatsuboshi Gakuen" == "hatsuboshi-gakuen").
 fn norm_name(s: &str) -> String {
     s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
 }
-// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên đã chuẩn hoá.
 fn credit_names(s: &str) -> Vec<String> {
     let t = s.to_lowercase().replace(" feat. ", ",").replace(" feat ", ",").replace(" ft. ", ",").replace(" ft ", ",").replace(" x ", ",");
     t.split(|c: char| matches!(c, ',' | '&' | ';' | '/' | '、' | '・')).map(norm_name).filter(|x| !x.is_empty()).collect()
 }
-// Bài này có phải của nghệ sĩ gốc (hoặc người cùng nhóm/franchise với họ) không?
 fn is_blocked_track(t: &Value, block: &HashSet<String>) -> bool {
     let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
     credit_names(a).iter().any(|n| block.contains(n) || block.iter().any(|b| b.chars().count() >= 4 && n.contains(b.as_str())))
@@ -2871,7 +2751,6 @@ fn yt_ctx() -> Value {
     json!({ "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } })
 }
 
-// POST tới một endpoint InnerTube (search / browse ...), trả None nếu lỗi mạng hoặc YouTube báo lỗi.
 async fn yt_post(client: &reqwest::Client, ep: &str, body: Value) -> Option<Value> {
     let resp = client
         .post(format!("https://music.youtube.com/youtubei/v1/{ep}?prettyPrint=false"))
@@ -2888,7 +2767,6 @@ async fn yt_post(client: &reqwest::Client, ep: &str, body: Value) -> Option<Valu
     resp.json::<Value>().await.ok()
 }
 
-// Tìm bài hát (bộ lọc "Songs") theo từ khoá.
 async fn yt_songs(client: &reqwest::Client, query: &str) -> Vec<Value> {
     let body = json!({ "context": yt_ctx(), "query": query, "params": "EgWKAQIIAWoKEAkQBRAKEAMQBA==" });
     let mut out: Vec<Value> = Vec::new();
@@ -2898,7 +2776,6 @@ async fn yt_songs(client: &reqwest::Client, query: &str) -> Vec<Value> {
     out
 }
 
-// Các thẻ nghệ sĩ (musicTwoRowItemRenderer có pageType = ARTIST) trên trang nghệ sĩ: chỉ mục "Fans might also like" có loại thẻ này.
 fn yt_related_artists(v: &Value, out: &mut Vec<(String, String)>) {
     match v {
         Value::Object(m) => {
@@ -2929,7 +2806,6 @@ fn yt_related_artists(v: &Value, out: &mut Vec<(String, String)>) {
     }
 }
 
-// GET /api/yt/similar?artist=Tên → { artist, related: [{name,id}], tracks: [...] }  (tracks xen kẽ giữa các nghệ sĩ liên quan)
 async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtSimQ>) -> R<Value> {
     let (allow_explicit, use_proxy) = match require(&st, &headers) {
         Ok(user) => user_net_prefs(&st, user.id),
@@ -2950,7 +2826,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     }
     let empty = json!({ "artist": name, "related": [], "tracks": [] });
 
-    // 1) Tìm nghệ sĩ: ưu tiên tên trùng khớp, không có thì lấy kết quả nghệ sĩ đầu tiên.
     let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
         return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
     };
@@ -2962,8 +2837,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         .iter()
         .filter(is_artist)
         .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
-    // Chỉ nhận trang nghệ sĩ có tên thật sự khớp (trùng hoặc chứa nhau). Trước đây lấy kết quả đầu tiên nên "Ume Hanami" (không có trang riêng)
-    // bị nhận nhầm thành một nghệ sĩ lạ rồi gợi ý lung tung.
     let nname = norm_name(&name);
     let near = ents.iter().filter(is_artist).find(|e| {
         let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
@@ -2973,7 +2846,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     let aid: String = match seed_ent.and_then(|e| e.get("id")).and_then(|x| x.as_str()) {
         Some(s) => s.to_string(),
         None => {
-            // Không có trang nghệ sĩ riêng (vd. chỉ là một giọng trong franchise). Có thể loại thì vẫn cho kệ đúng thể loại đó; không thì ẩn kệ.
             if let Some((kw, _)) = genre_spec(&genre_in) {
                 let mut extra = yt_songs(&client, &format!("{kw} hits")).await;
                 extra.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
@@ -2988,9 +2860,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     };
     let seed_title: String = seed_ent.and_then(|e| e.get("title")).and_then(|x| x.as_str()).unwrap_or("").to_string();
 
-    // "Nhóm loại trừ": nghệ sĩ gốc + tất cả người từng đứng chung tên với họ trên bài hát của họ.
-    // Vd. Hatsuboshi Gakuen là một franchise (Gakuen Idolmaster) do nhiều nhân vật / ca sĩ hát: Saki Hanami, Ume Hanami...
-    // đều là "người nhà", không phải "giống" → bỏ hết khỏi kệ.
     let mut block: HashSet<String> = HashSet::new();
     block.insert(norm_name(&name));
     if !seed_title.is_empty() {
@@ -2998,7 +2867,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     }
     block.retain(|x| !x.is_empty());
 
-    // 2) Trang nghệ sĩ → danh sách nghệ sĩ liên quan (song song với việc lấy bài của chính nghệ sĩ gốc để dò "người nhà").
     let (bv_opt, seed_songs) = futures_util::future::join(
         yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })),
         yt_songs(&client, &name),
@@ -3007,7 +2875,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     let Some(bv) = bv_opt else {
         return Ok(Json(empty));
     };
-    // Thể loại: ưu tiên tham số genre do app gửi; không có thì tự đoán từ chính các bài của nghệ sĩ gốc (đa số mang dấu hiệu EDM → EDM).
     let own: Vec<&Value> = seed_songs.iter().filter(|t| is_blocked_track(t, &block)).collect();
     let mut spec = genre_spec(&genre_in);
     if spec.is_none() && own.len() >= 3 {
@@ -3034,7 +2901,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         return Ok(Json(empty));
     }
 
-    // 3) Vài bài của từng nghệ sĩ liên quan (tìm song song), rồi xen kẽ.
     let lists = futures_util::future::join_all(rel.iter().map(|(n, _)| {
         let qs = match spec {
             Some((kw, _)) => format!("{n} {kw}"),
@@ -3044,7 +2910,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         async move { yt_songs(&c, &qs).await }
     }))
     .await;
-    // Một tên cùng đứng trong bài của nhiều nghệ sĩ liên quan khác nhau = nhãn / franchise (vd. Hatsuboshi Gakuen) chứ không phải một giọng riêng → coi là "người nhà", bỏ hết.
     {
         let mut cnt: HashMap<String, usize> = HashMap::new();
         for ((n, _), l) in rel.iter().zip(lists.iter()) {
@@ -3072,7 +2937,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     let mut per: Vec<Vec<Value>> = Vec::new();
     for ((n, _), l) in rel.iter().zip(lists.into_iter()) {
         let ln = n.to_lowercase();
-        // Nghệ sĩ "liên quan" mà phần lớn bài tìm được lại ghi tên nghệ sĩ gốc / người nhà → cũng là người nhà, bỏ cả người đó.
         let hits = l.iter().filter(|t| is_blocked_track(t, &block)).count();
         if !l.is_empty() && hits * 2 >= l.len() {
             per.push(Vec::new());
@@ -3092,7 +2956,7 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
             mine.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
         }
         if let Some((_, words)) = spec {
-            mine.sort_by_key(|t| !genre_match(t, words));   // sort ổn định: bài đúng thể loại lên trước
+            mine.sort_by_key(|t| !genre_match(t, words));
         }
         mine.truncate(5);
         per.push(mine);
@@ -3109,7 +2973,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
             }
         }
     }
-    // Có thể loại mà vẫn thiếu bài (vì nghệ sĩ liên quan phần lớn là "người nhà" đã bị loại) → bổ sung bằng bài hot của đúng thể loại đó.
     if tracks.len() < 6 {
         if let Some((kw, _)) = spec {
             let extra = yt_songs(&client, &format!("{kw} hits")).await;
@@ -3139,9 +3002,6 @@ async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     Ok(Json(val))
 }
 
-// ---------- Bài MỚI của một nghệ sĩ (kệ "X · bài mới" ở trang chủ) ----------
-// Tìm theo tên chỉ ra bài cũ nổi tiếng nên không dùng được. Ở đây: mở trang nghệ sĩ → các single/album của năm nay (và năm ngoái) →
-// lấy bài trong đó → hỏi YouTube ngày đăng thật của từng bài (microformat.publishDate). App chỉ coi là "mới" khi bài ra trong vài ngày gần đây.
 #[derive(Deserialize)]
 struct YtFreshQ {
     artist: Option<String>,
@@ -3151,13 +3011,11 @@ static FRESH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = 
 fn fresh_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     FRESH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
-// ngày đăng của từng video (số ngày từ 1970-01-01); ngày đăng không đổi nên nhớ luôn
 static PUBDAY_CACHE: std::sync::OnceLock<Mutex<HashMap<String, i64>>> = std::sync::OnceLock::new();
 fn pubday_cache() -> &'static Mutex<HashMap<String, i64>> {
     PUBDAY_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// (năm, tháng, ngày) → số ngày kể từ 1970-01-01
 fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     let y = if m <= 2 { y - 1 } else { y };
     let era = (if y >= 0 { y } else { y - 399 }) / 400;
@@ -3167,7 +3025,6 @@ fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     era * 146097 + doe - 719468
 }
-// "2026-11-08T00:00:00-07:00" hoặc "2026-11-08" → số ngày
 fn parse_ymd_days(s: &str) -> Option<i64> {
     let d = s.get(0..10)?;
     let mut it = d.split('-');
@@ -3184,7 +3041,6 @@ async fn yt_pubday(client: &reqwest::Client, vid: &str) -> Option<i64> {
     if let Some(d) = pubday_cache().lock().unwrap().get(vid) {
         return Some(*d);
     }
-    // thử lần lượt: client của YouTube Music rồi client web thường
     let tries: [(&str, &str, Value); 2] = [
         ("https://music.youtube.com", "https://music.youtube.com/youtubei/v1/player?prettyPrint=false", yt_ctx()),
         (
@@ -3225,7 +3081,6 @@ async fn yt_pubday(client: &reqwest::Client, vid: &str) -> Option<i64> {
     None
 }
 
-// Các thẻ album/single (musicTwoRowItemRenderer có pageType = ALBUM) trên trang nghệ sĩ: (browseId, năm, tên, ảnh).
 fn yt_album_cards(v: &Value, out: &mut Vec<(String, i64, String, String)>) {
     match v {
         Value::Object(m) => {
@@ -3271,7 +3126,6 @@ fn yt_album_cards(v: &Value, out: &mut Vec<(String, i64, String, String)>) {
     }
 }
 
-// GET /api/yt/fresh?artist=Tên → { artist, tracks: [{..., age: số ngày kể từ ngày phát hành}] }  (mới nhất trước, chỉ giữ bài ≤ 60 ngày)
 async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtFreshQ>) -> R<Value> {
     let (allow_explicit, use_proxy) = match require(&st, &headers) {
         Ok(user) => user_net_prefs(&st, user.id),
@@ -3293,7 +3147,6 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     let today = (now_secs() / 86400) as i64;
     let cur_year = 1970 + (today as f64 / 365.2425) as i64;
 
-    // 1) tìm nghệ sĩ
     let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
         return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
     };
@@ -3314,7 +3167,6 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
         return Ok(Json(empty));
     };
 
-    // 2) trang nghệ sĩ → single/album của năm nay và năm ngoái
     let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await else {
         return Ok(Json(empty));
     };
@@ -3322,13 +3174,12 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     yt_album_cards(&bv, &mut cards);
     let mut seen_a: HashSet<String> = HashSet::new();
     cards.retain(|c| c.1 >= cur_year - 1 && seen_a.insert(c.0.clone()));
-    cards.sort_by_key(|c| std::cmp::Reverse(c.1));   // năm mới trước (sắp xếp ổn định giữ thứ tự trên trang)
+    cards.sort_by_key(|c| std::cmp::Reverse(c.1));
     cards.truncate(10);
     if cards.is_empty() {
         return Ok(Json(empty));
     }
 
-    // 3) bài trong từng album/single
     let pages = futures_util::future::join_all(cards.iter().map(|c| {
         let cl = client.clone();
         let id = c.0.clone();
@@ -3360,7 +3211,6 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     }
     cand.truncate(30);
 
-    // 4) ngày đăng thật của từng bài
     let days = futures_util::future::join_all(cand.iter().map(|t| {
         let cl = client.clone();
         let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
@@ -3369,7 +3219,7 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     .await;
     let mut out: Vec<(i64, Value)> = Vec::new();
     for (mut t, d) in cand.into_iter().zip(days.into_iter()) {
-        let Some(d) = d else { continue };   // không biết ngày thì không coi là mới
+        let Some(d) = d else { continue };
         let age = today - d;
         if (-1..=60).contains(&age) {
             t["age"] = json!(age.max(0));
@@ -3389,13 +3239,6 @@ async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Quer
     Ok(Json(val))
 }
 
-// ---------- Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is …" ----------
-// Không có danh sách nghệ sĩ viết sẵn: server đọc bảng xếp hạng YouTube Music (toàn cầu + khu vực của người dùng; nếu bảng lỗi thì
-// dùng kết quả tìm video "đang thịnh hành"), lấy vị trí xếp hạng, LƯỢT XEM của từng bài, rồi hỏi thêm LƯỢT THÍCH (Return YouTube Dislike)
-// cho các bài đứng đầu. Từ đó chấm điểm "độ hot" của từng nghệ sĩ (nhiều bài hot + bài hot nhiều lượt xem/thích + đứng cao trên
-// bảng nghệ sĩ + đang tăng hạng + lượng khán giả). Kết quả giữ 30 phút trong cache.
-
-// "1.2M views" / "523K" / "1,234,567 plays" -> số. None nếu không đọc được.
 fn parse_count(s: &str) -> Option<f64> {
     let tok = s.trim().split_whitespace().next()?;
     let mut num = String::new();
@@ -3421,7 +3264,6 @@ fn parse_count(s: &str) -> Option<f64> {
     num.parse::<f64>().ok().map(|n| n * mult)
 }
 
-// Lượt xem / lượt nghe trong các phần của dòng phụ ("Artist • 12M views • 3:45").
 fn parse_views(parts: &[String]) -> f64 {
     for p in parts {
         let l = p.trim().to_lowercase();
@@ -3434,7 +3276,6 @@ fn parse_views(parts: &[String]) -> f64 {
     0.0
 }
 
-// Số người theo dõi / khán giả hằng tháng trong dòng phụ của một nghệ sĩ ("Artist • 12M monthly audience", "1.2M subscribers").
 fn parse_audience(sub: &str) -> f64 {
     for p in sub.split('\u{2022}') {
         let l = p.trim().to_lowercase();
@@ -3447,7 +3288,6 @@ fn parse_audience(sub: &str) -> f64 {
     0.0
 }
 
-// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên (giữ nguyên chữ hoa/thường để hiển thị).
 fn split_credits(s: &str) -> Vec<String> {
     let mut t = s.to_string();
     for sep in [" feat. ", " feat ", " ft. ", " ft ", " x ", " X ", " × "] {
@@ -3461,7 +3301,6 @@ fn split_credits(s: &str) -> Vec<String> {
     v
 }
 
-// log10(x) quy về 0..1 giữa hai mốc (lo, hi là số mũ của 10).
 fn norm_log(x: f64, lo: f64, hi: f64) -> f64 {
     if x <= 0.0 {
         return 0.0;
@@ -3469,23 +3308,20 @@ fn norm_log(x: f64, lo: f64, hi: f64) -> f64 {
     ((x.log10() - lo) / (hi - lo)).clamp(0.0, 1.0)
 }
 
-// Độ hot của MỘT bài: vị trí trên bảng (0..1) + lượt xem + lượt thích. Thiếu thành phần nào thì chia lại trọng số cho phần còn lại.
 fn track_heat(rank: f64, views: f64, likes: f64) -> f64 {
     let mut w = 0.45;
     let mut s = 0.45 * rank;
     if views > 0.0 {
-        s += 0.35 * norm_log(views, 4.0, 9.0); // 10 nghìn -> 0, 1 tỷ -> 1
+        s += 0.35 * norm_log(views, 4.0, 9.0);
         w += 0.35;
     }
     if likes > 0.0 {
-        s += 0.20 * norm_log(likes, 2.5, 7.0); // 300 -> 0, 10 triệu -> 1
+        s += 0.20 * norm_log(likes, 2.5, 7.0);
         w += 0.20;
     }
     s / w
 }
 
-// Độ hot của một nghệ sĩ: các bài hot nhất cộng dồn (bài thứ hai, ba… tính nhẹ dần), thêm điểm đứng trên bảng nghệ sĩ,
-// đang tăng/giảm hạng và quy mô khán giả.
 fn artist_heat(mut heats: Vec<f64>, chart_rank: f64, trend: i32, audience: f64) -> f64 {
     heats.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
     let mut s = 0.0;
@@ -3564,7 +3400,6 @@ fn yt_thumb_last(v: Option<&Value>) -> String {
         .to_string()
 }
 
-// Các phần ("Artist", "Album", "3:45"…) của cột chữ thứ i trong một dòng danh sách của YouTube Music.
 fn yt_flex_parts(item: &Value, i: usize) -> Vec<String> {
     let txt: String = item
         .get("flexColumns")
@@ -3577,7 +3412,6 @@ fn yt_flex_parts(item: &Value, i: usize) -> Vec<String> {
     v
 }
 
-// Duyệt một trang (bảng xếp hạng hoặc kết quả tìm kiếm), gom bài hát và nghệ sĩ kèm số "kệ" (shelf) để sau này suy ra thứ hạng trong kệ.
 fn yt_chart_walk(v: &Value, acc: &mut ChartAcc) {
     match v {
         Value::Object(m) => {
@@ -3637,7 +3471,6 @@ fn yt_chart_walk(v: &Value, acc: &mut ChartAcc) {
     }
 }
 
-// Đổi vị trí trong kệ thành điểm 0..1 (đứng đầu = 1) rồi gộp vào danh sách chung.
 fn chart_finish(acc: ChartAcc, tr: &mut Vec<HotTrack>, ar: &mut Vec<HotArtist>) {
     let ChartAcc { tracks, artists, .. } = acc;
     let mut tcount: HashMap<usize, usize> = HashMap::new();
@@ -3679,7 +3512,6 @@ fn ryd_cache() -> &'static Mutex<HashMap<String, (u64, f64, f64)>> {
     RYD_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// Lượt thích + lượt xem của một video từ Return YouTube Dislike (không cần khoá API). Lỗi thì None, bài đó chỉ mất phần điểm "thích".
 async fn ryd_votes(client: &reqwest::Client, id: &str) -> Option<(f64, f64)> {
     if let Some((t, l, v)) = ryd_cache().lock().unwrap().get(id) {
         if now_secs().saturating_sub(*t) < 6 * 3600 {
@@ -3721,7 +3553,6 @@ fn thisis_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
     THISIS_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-// Tìm trang nghệ sĩ theo tên (ưu tiên trùng khớp, rồi tên chứa nhau). Trả {kind,id,title,sub,image}.
 async fn yt_find_artist(client: &reqwest::Client, name: &str) -> Option<Value> {
     let sv = yt_post(client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await?;
     let mut tr0: Vec<Value> = Vec::new();
@@ -3741,7 +3572,6 @@ async fn yt_find_artist(client: &reqwest::Client, name: &str) -> Option<Value> {
     found
 }
 
-// Như trên nhưng nhớ 24 giờ (chỉ nhớ khi tìm thấy; lỗi mạng hay không thấy thì lần sau thử lại).
 async fn yt_find_artist_cached(client: &reqwest::Client, name: &str) -> Option<Value> {
     let k = norm_name(name);
     if k.is_empty() {
@@ -3763,7 +3593,6 @@ async fn yt_find_artist_cached(client: &reqwest::Client, name: &str) -> Option<V
     r
 }
 
-// GET /api/yt/artists?names=A|B|C → [{kind:"artist",id,title,sub,image}]  (ảnh + trang nghệ sĩ cho kệ "Nghệ sĩ yêu thích")
 #[derive(Deserialize)]
 struct YtArtistsQ {
     names: Option<String>,
@@ -3800,7 +3629,6 @@ async fn yt_artists(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     Ok(Json(Value::Array(out)))
 }
 
-// GET /api/yt/best-artists?region=VN → { artists: [{kind,id,title,sub,image,heat}], region, source }   (đã xếp theo độ hot, giảm dần)
 #[derive(Deserialize)]
 struct YtBestQ {
     region: Option<String>,
@@ -3820,7 +3648,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
         }
     }
 
-    // 1) bảng xếp hạng YouTube Music: toàn cầu + khu vực của người dùng
     let mut regions: Vec<String> = vec!["ZZ".to_string()];
     if region.len() == 2 && region != "ZZ" {
         regions.push(region.clone());
@@ -3839,7 +3666,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
         yt_chart_walk(&pg, &mut acc);
         chart_finish(acc, &mut tracks, &mut charted);
     }
-    // 2) bảng không đọc được (YouTube đổi cấu trúc / bị chặn): dùng video đang thịnh hành từ tìm kiếm
     if charted.len() < 6 && tracks.len() < 10 {
         source = "search";
         let qs = ["top songs this week", "trending music videos"];
@@ -3859,7 +3685,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
         return Ok(Json(json!({ "artists": [], "region": region, "source": "none" })));
     }
 
-    // 3) gộp bài trùng (một bài có thể nằm ở nhiều bảng): lấy thứ hạng/lượt xem cao nhất
     let mut tmap: HashMap<String, HotTrack> = HashMap::new();
     for t in tracks {
         if t.id.len() != 11 {
@@ -3882,7 +3707,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
     let mut tv: Vec<HotTrack> = tmap.into_values().collect();
     tv.sort_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap_or(std::cmp::Ordering::Equal));
 
-    // 4) lượt thích (và lượt xem nếu bảng không ghi) cho các bài đứng đầu
     let top_n = tv.len().min(30);
     let votes = futures_util::future::join_all(tv.iter().take(top_n).map(|t| {
         let cl = client.clone();
@@ -3899,7 +3723,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
         }
     }
 
-    // 5) chấm điểm từng nghệ sĩ
     let mut agg: HashMap<String, ArtistAgg> = HashMap::new();
     let skip_name = |k: &str| k.is_empty() || k == "variousartists" || k == "youtubemusic" || k == "unknown" || k == "various";
     for a in charted {
@@ -3961,7 +3784,6 @@ async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q
     ranked.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     ranked.truncate(24);
 
-    // 6) lấy ảnh + trang nghệ sĩ cho người chưa có (bảng nghệ sĩ đã kèm sẵn thì khỏi tìm)
     let resolved = futures_util::future::join_all(ranked.iter().map(|(_, a)| {
         let cl = client.clone();
         let name = a.name.clone();
@@ -4009,7 +3831,6 @@ fn out_len_ok(v: &Value) -> bool {
     v.get("artists").and_then(|a| a.as_array()).map(|a| a.len() >= 3).unwrap_or(false)
 }
 
-// Thêm lượt xem / album / thời lượng (cột cố định của trang playlist) vào bài hát lấy từ một trang YouTube Music.
 fn yt_collect_meta(v: &Value, out: &mut Vec<Value>) {
     match v {
         Value::Object(m) => {
@@ -4052,8 +3873,6 @@ fn yt_collect_meta(v: &Value, out: &mut Vec<Value>) {
     }
 }
 
-// GET /api/yt/this-is?name=Tên&id=browseId → { title:"This Is …", name, id, image, tracks:[…tối đa 50 bài tiêu biểu…] }
-// Bài lấy từ mục "Songs" của trang nghệ sĩ (YouTube Music xếp theo độ phổ biến, nút "See all" cho cả danh sách), thiếu thì bổ sung bằng tìm kiếm.
 #[derive(Deserialize)]
 struct YtThisQ {
     name: Option<String>,
@@ -4093,7 +3912,6 @@ async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         }
     }
 
-    // 1) trang nghệ sĩ: mục Songs (5 bài đầu) + danh sách đầy đủ ở nút "See all"
     let mut cand: Vec<Value> = Vec::new();
     if !aid.is_empty() {
         if let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await {
@@ -4123,7 +3941,6 @@ async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         }
     }
 
-    // 2) chưa đủ bài: bổ sung từ tìm kiếm, chỉ giữ bài thật sự có tên nghệ sĩ này
     if cand.len() < 15 {
         let qs = [name.clone(), format!("{name} best songs")];
         let found = futures_util::future::join_all(qs.iter().map(|text| {
@@ -4143,7 +3960,6 @@ async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
         }
     }
 
-    // 3) lọc trùng (cùng id hoặc cùng tên bài), bỏ bản dài bất thường và nội dung nhạy cảm nếu người dùng tắt
     let mut seen_id: HashSet<String> = HashSet::new();
     let mut seen_title: HashSet<String> = HashSet::new();
     let mut tracks: Vec<Value> = Vec::new();
@@ -4184,7 +4000,6 @@ async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Qu
     Ok(Json(val))
 }
 
-// Mở một album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm: trả {title, sub, image, tracks}.
 #[derive(Deserialize)]
 struct YtBrowseQ {
     id: Option<String>,
@@ -4203,7 +4018,6 @@ async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q
     }
     let kind = q.kind.unwrap_or_default();
     let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
-    // Danh sách phát thường: đọc bằng đường InnerTube sẵn có của phần nhập playlist.
     if kind == "playlist" {
         let pid = id.strip_prefix("VL").unwrap_or(&id).to_string();
         let (title, mut tracks) = innertube_playlist(&client, &pid).await?;
@@ -4254,7 +4068,6 @@ async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q
     let artist_hdr = if kind == "artist" { title.clone() } else { strap.split(" \u{2022} ").next().unwrap_or("").trim().to_string() };
     for t in tracks.iter_mut() {
         let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
-        // Trang album: cột 2 thường là lượt nghe ("1.2M plays"), không phải tên nghệ sĩ.
         if a.is_empty() || a.to_lowercase().contains("plays") {
             t["artist"] = json!(artist_hdr);
         }
@@ -4273,9 +4086,6 @@ async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q
     Ok(Json(json!({ "title": title, "sub": strap, "image": image, "tracks": tracks })))
 }
 
-// ===== Luồng âm thanh YouTube (để áp dụng Bộ chỉnh âm / Độ trễ / Độ vang bằng Web Audio) =====
-// Server lấy địa chỉ luồng âm thanh qua InnerTube rồi chuyển tiếp từng đoạn (Range) cho trình duyệt,
-// nhờ đó <audio> cùng nguồn gốc và Web Audio xử lý được (player iframe của YouTube thì không).
 #[derive(Deserialize)]
 struct AudQ {
     t: Option<String>,
@@ -4284,11 +4094,9 @@ struct AudQ {
 }
 
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
-// Đoạn đầu (bắt đầu bài / sau khi tua) nhỏ hơn để nhạc lên tiếng nhanh, không phải đợi tải đủ 2 MB.
 const AUDIO_FIRST_CHUNK: u64 = 256 * 1024;
 const AUDIO_TTL: u64 = 3 * 60 * 60;
 
-// (clientName, header id, clientVersion, user-agent, phần context thêm)
 fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static str, Value)> {
     vec![
         (
@@ -4367,7 +4175,6 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
             eprintln!("[audio] {vid} {last}");
             continue;
         };
-        // Ưu tiên AAC/MP4 (itag 140): chạy được trên mọi trình duyệt; sau đó là bitrate cao nhất.
         let mut best: Option<(i64, &Value)> = None;
         for f in fmts {
             let mime = f.get("mimeType").and_then(|x| x.as_str()).unwrap_or("");
@@ -4421,8 +4228,6 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
     Err(last)
 }
 
-// Thứ tự thử các nguồn: client YouTube -> yt-dlp (90) -> Piped (99).
-// Có YT_COOKIES thì yt-dlp (đăng nhập bằng cookies) được thử đầu tiên vì tránh được "Sign in to confirm you're not a bot".
 fn audio_order() -> Vec<usize> {
     let mut v: Vec<usize> = (0..audio_clients().len()).collect();
     let has = |k: &str| std::env::var(k).map(|x| !x.trim().is_empty()).unwrap_or(false);
@@ -4437,7 +4242,6 @@ fn audio_order() -> Vec<usize> {
 
 async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: usize, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
     match src {
-        // Link yt-dlp -g hay bị 403 khi server tự tải, nên bỏ bước lấy link: cho yt-dlp tải thẳng file (chỉ chạy yt-dlp 1 lần).
         90 => {
             let _ = client;
             let (_p, total, mime) = ytdlp_local(vid, webm, use_proxy).await?;
@@ -4448,7 +4252,6 @@ async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: us
     }
 }
 
-// Nhớ 10 phút nguồn nào đã bị chặn cho video này để khỏi thử lại ở mỗi yêu cầu đoạn.
 static AUDIO_BAD: std::sync::OnceLock<Mutex<HashMap<(String, usize), u64>>> = std::sync::OnceLock::new();
 fn bad_map() -> &'static Mutex<HashMap<(String, usize), u64>> {
     AUDIO_BAD.get_or_init(|| Mutex::new(HashMap::new()))
@@ -4465,8 +4268,6 @@ fn audio_mark_bad(id: &str, src: usize) {
     m.insert((id.to_string(), src), now_secs());
 }
 
-// Hỏi cùng lúc các client YouTube (ANDROID_VR / IOS / TV), cái nào trả về trước thì dùng.
-// Trước đây thử lần lượt: client đầu bị lỗi là mất thêm 1-2 lượt gọi mạng trước khi nhạc lên tiếng.
 async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[usize]) -> Result<(String, u64, String, usize), String> {
     let mut set = tokio::task::JoinSet::new();
     for &ci in cands {
@@ -4492,8 +4293,6 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
     Err(last)
 }
 
-// Mỗi bài chỉ cho một yêu cầu đi lấy luồng tại một thời điểm: trình duyệt hay gửi nhiều yêu cầu Range cùng lúc
-// (kèm yêu cầu "làm nóng" trước đó), các yêu cầu sau chờ rồi dùng kết quả đã có trong cache thay vì lặp lại việc lấy luồng.
 static AUDIO_GATES: std::sync::OnceLock<Mutex<HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
 fn audio_gate(key: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {
     let mut m = AUDIO_GATES.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
@@ -4503,7 +4302,6 @@ fn audio_gate(key: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {
     m.entry(key.to_string()).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
 }
 
-// yt-dlp (cài riêng, đặt trong PATH hoặc biến YTDLP_PATH). YT_COOKIES = đường dẫn file cookies.txt (định dạng Netscape).
 fn ytdlp_fmt(webm: bool) -> &'static str {
     if webm {
         "251/bestaudio[ext=webm]/bestaudio"
@@ -4512,12 +4310,10 @@ fn ytdlp_fmt(webm: bool) -> &'static str {
     }
 }
 
-// Lệnh yt-dlp dùng chung (đường dẫn, Deno, cookies, proxy) cho cả lấy link lẫn tải file.
 fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
     let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
     let mut cmd = tokio::process::Command::new(&bin);
     cmd.arg("--no-playlist").arg("--no-warnings");
-    // yt-dlp cần JS runtime (Deno) để giải mã YouTube: nếu deno.exe nằm cạnh server thì chỉ thẳng đường dẫn, khỏi phụ thuộc PATH.
     {
         let mut cands: Vec<std::path::PathBuf> = vec![std::path::PathBuf::from("deno.exe"), std::path::PathBuf::from("deno")];
         if let Ok(e) = std::env::current_exe() {
@@ -4539,7 +4335,6 @@ fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
         }
     }
     if let Ok(b) = std::env::var("YT_BROWSER") {
-        // lấy cookies trực tiếp từ trình duyệt trên máy (firefox, edge, chrome, brave...), khỏi phải xuất file
         let b = b.trim().to_string();
         if !b.is_empty() {
             cmd.arg("--cookies-from-browser").arg(b);
@@ -4555,7 +4350,7 @@ fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
     }
     cmd.kill_on_drop(true);
     #[cfg(windows)]
-    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    cmd.creation_flags(0x0800_0000);
     cmd
 }
 
@@ -4595,8 +4390,6 @@ async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_prox
     Ok((url, size, mime, 90))
 }
 
-// Link yt-dlp trả về (-g) gắn với client / header / PO token của chính yt-dlp, nên khi server tự tải bằng reqwest
-// thì googlevideo hay trả 403. Cách chắc nhất: cho yt-dlp tải file âm thanh về thư mục tạm rồi phát từ file đó.
 static YTDLP_DL_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
 
 fn audio_cache_dir() -> PathBuf {
@@ -4612,7 +4405,7 @@ fn find_local_audio(vid: &str, webm: bool) -> Option<(PathBuf, u64, String)> {
         }
         let ext = name[prefix.len()..].to_lowercase();
         if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
-            continue; // file đang tải dở
+            continue;
         }
         let Ok(md) = e.metadata() else { continue };
         if md.len() == 0 {
@@ -4632,7 +4425,6 @@ async fn ytdlp_local(vid: &str, webm: bool, use_proxy: bool) -> Result<(PathBuf,
     if let Some(x) = find_local_audio(vid, webm) {
         return Ok(x);
     }
-    // Chỉ cho 1 lượt tải tại một thời điểm (trình duyệt gửi nhiều yêu cầu Range cùng lúc cho một bài).
     let lock = YTDLP_DL_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
     let _guard = lock.lock().await;
     if let Some(x) = find_local_audio(vid, webm) {
@@ -4640,7 +4432,6 @@ async fn ytdlp_local(vid: &str, webm: bool, use_proxy: bool) -> Result<(PathBuf,
     }
     let dir = audio_cache_dir();
     let _ = tokio::fs::create_dir_all(&dir).await;
-    // Dọn file cũ hơn 6 giờ.
     if let Ok(rd) = std::fs::read_dir(&dir) {
         for e in rd.flatten() {
             let old = e
@@ -4671,7 +4462,6 @@ async fn ytdlp_local(vid: &str, webm: bool, use_proxy: bool) -> Result<(PathBuf,
     find_local_audio(vid, webm).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file".to_string())
 }
 
-// Trả đoạn Range từ file cục bộ.
 async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_req: Option<u64>) -> Result<Response, String> {
     use tokio::io::{AsyncReadExt, AsyncSeekExt};
     if start >= total {
@@ -4694,10 +4484,6 @@ async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_r
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()))
 }
 
-// ===== Video phát bằng thẻ <video> của app (không dùng khung YouTube) =====
-// yt-dlp tải luồng video (không âm thanh, tối đa YT_VIDEO_HEIGHT, mặc định 480p) về thư mục tạm rồi phát lại theo Range.
-// Âm thanh vẫn do engine âm thanh hiện có phát, phía trình duyệt chỉ đồng bộ hình theo thời gian của âm thanh.
-// Mỗi video một khóa riêng: tải sẵn bài kế tiếp không chặn bài đang phát (trước đây dùng 1 khóa chung nên phải chờ nhau).
 static YTDLP_VID_LOCKS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
 
 fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
@@ -4709,7 +4495,7 @@ fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
         }
         let ext = name[prefix.len()..].to_lowercase();
         if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
-            continue; // file đang tải dở
+            continue;
         }
         let Ok(md) = e.metadata() else { continue };
         if md.len() == 0 {
@@ -4736,7 +4522,6 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
     }
     let dir = audio_cache_dir();
     let _ = tokio::fs::create_dir_all(&dir).await;
-    // Dọn file cũ hơn 6 giờ.
     if let Ok(rd) = std::fs::read_dir(&dir) {
         for e in rd.flatten() {
             let old = e
@@ -4755,7 +4540,7 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
         .ok()
         .and_then(|x| x.trim().parse::<u32>().ok())
         .filter(|n| *n >= 144 && *n <= 2160)
-        .unwrap_or(360); // 360p đủ nét cho khung video nhỏ và nhẹ hơn 480p ~40% nên tải nhanh hơn (đặt YT_VIDEO_HEIGHT để đổi)
+        .unwrap_or(360);
     let fmt = format!("bv[height<={h}][ext=mp4][vcodec^=avc1]/bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
     let template = dir.join(format!("{vid}_v.%(ext)s"));
     let mut cmd = ytdlp_base(use_proxy);
@@ -4773,7 +4558,6 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
     find_local_video(vid).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file video".to_string())
 }
 
-// GET /api/yt/video/:id?t=token  -> video (không có âm thanh), hỗ trợ Range
 async fn yt_video(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<AudQ>) -> Response {
     let tok = q.t.clone().or_else(|| bearer(&headers));
     let uid = {
@@ -4807,8 +4591,6 @@ fn ua_for(ci: usize) -> &'static str {
     audio_clients().get(ci).map(|c| c.3).unwrap_or("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 }
 
-// Máy chủ Piped (mã nguồn mở) trả về link luồng âm thanh đã được proxy, không bị khoá theo IP của bạn.
-// Đặt PIPED_API="https://a,https://b" để dùng máy chủ riêng; mặc định thử vài máy chủ công cộng.
 async fn resolve_piped(client: &reqwest::Client, vid: &str, webm: bool) -> Result<(String, u64, String, usize), String> {
     let bases: Vec<String> = std::env::var("PIPED_API")
         .ok()
@@ -4863,7 +4645,6 @@ async fn resolve_piped(client: &reqwest::Client, vid: &str, webm: bool) -> Resul
         let mime = f.get("mimeType").and_then(|x| x.as_str()).unwrap_or("audio/mp4").split(';').next().unwrap_or("audio/mp4").to_string();
         let mut size: u64 = f.get("contentLength").and_then(|x| x.as_i64()).filter(|n| *n > 0).map(|n| n as u64).unwrap_or(0);
         if size == 0 {
-            // Piped không báo kích thước: hỏi 1 byte đầu để đọc tổng từ Content-Range
             if let Ok(r) = client.get(&url).header("range", "bytes=0-0").send().await {
                 size = r
                     .headers()
@@ -4894,13 +4675,11 @@ fn parse_range(h: &HeaderMap) -> (u64, Option<u64>) {
 }
 
 async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<AudQ>) -> Response {
-    // <audio> không gửi được header Authorization nên nhận token qua ?t=
     let tok = q.t.clone().or_else(|| bearer(&headers));
     let uid = {
         let db = st.db.lock().unwrap();
         tok.and_then(|t| user_from_token(&db, &t)).map(|u| u.id)
     };
-    // Không bắt buộc đăng nhập: khách (không có token / token hết hạn) vẫn nghe được, dùng cài đặt mặc định.
     if id.len() != 11 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
         return StatusCode::BAD_REQUEST.into_response();
     }
@@ -4914,10 +4693,8 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     let (start, end_req) = parse_range(&headers);
     let mut notes = String::new();
 
-    // Thử lần lượt các nguồn (client YouTube -> yt-dlp -> Piped); nguồn nào bị chặn thì bỏ qua và thử nguồn kế tiếp.
     let order = audio_order();
     let mut pos = 0usize;
-    // Mỗi nguồn được thử lại 1 lần (lấy link mới) trước khi bị coi là hỏng: link googlevideo hay hết hạn / lỗi thoáng qua.
     let mut retried: HashSet<usize> = HashSet::new();
     for _round in 0..=order.len() * 2 {
         let cached = {
@@ -4927,14 +4704,12 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         let (url, size, mime, ci) = match cached {
             Some((u, s, m, _, ci)) => (u, s, m, ci),
             None => {
-                // Chỉ một yêu cầu cho mỗi bài đi lấy luồng; yêu cầu đến sau chờ rồi dùng luôn kết quả trong cache.
                 let gate = audio_gate(&ckey);
                 let _gate_guard = gate.lock().await;
                 let mut res = {
                     let c = st.audio.lock().unwrap();
                     c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).map(|(u, s, m, _, ci)| (u.clone(), *s, m.clone(), *ci))
                 };
-                // Hỏi song song các client YouTube thay vì lần lượt: nhạc lên tiếng nhanh hơn khi client đầu bị chặn/chậm.
                 if res.is_none() && pos == 0 {
                     let cands: Vec<usize> = order.iter().copied().filter(|s| *s < 90 && !audio_bad(&id, *s)).collect();
                     if cands.len() > 1 {
@@ -4987,7 +4762,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         pos = order.iter().position(|x| *x == ci).map(|p| p + 1).unwrap_or(order.len());
         let ua = ua_for(ci);
         if q.debug.is_some() {
-            // Chẩn đoán: tải thử 64 byte đầu và báo trạng thái/định dạng
             let up = client.get(&url).header("user-agent", ua).header("range", "bytes=0-63").send().await;
             let info = match up {
                 Ok(r) => {
@@ -5011,7 +4785,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
             eprintln!("[audio] debug {id}: {info}");
             return (StatusCode::OK, info).into_response();
         }
-        // Bài này đã được yt-dlp tải về file tạm (do link trực tiếp bị 403) thì phát thẳng từ file.
         if ci == 90 {
             if let Some((p, total, lm)) = find_local_audio(&id, webm) {
                 if let Ok(r) = serve_local(&p, total, lm, start, end_req).await {
@@ -5026,13 +4799,11 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         let chunk = if start == 0 { AUDIO_FIRST_CHUNK } else { AUDIO_CHUNK };
         let end = end_req.unwrap_or(last).min(last).min(start + chunk - 1);
 
-        // Thử 2 cách xin đoạn: header Range, rồi tham số ?range= (một số link chỉ nhận cách này)
         let mut got: Option<Bytes> = None;
         for variant in 0..3 {
             let req = if variant == 0 {
                 client.get(&url).header("range", format!("bytes={start}-{end}"))
             } else if variant == 2 {
-                // googlevideo đôi khi chỉ chặn đoạn lớn: thử lại với đoạn 256KB
                 let e2 = end.min(start + 256 * 1024 - 1);
                 client.get(&url).header("range", format!("bytes={start}-{e2}"))
             } else {
@@ -5044,7 +4815,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                     let partial = r.status().as_u16() == 206 || variant == 1;
                     match r.bytes().await {
                         Ok(b) if !b.is_empty() => {
-                            // Nếu YouTube bỏ qua Range và trả cả file (HTTP 200) thì tự cắt đúng đoạn cần
                             got = Some(if partial {
                                 b
                             } else {
@@ -5061,7 +4831,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 Err(e) => notes.push_str(&format!("[client {ci} v{variant}: {e}] ")),
             }
         }
-        // Link do yt-dlp trả về bị googlevideo từ chối (403): cho yt-dlp tự tải file về rồi phát từ file.
         if got.is_none() && ci == 90 {
             eprintln!("[audio] {id} link yt-dlp bị từ chối, chuyển sang để yt-dlp tải file về...");
             match ytdlp_local(&id, webm, use_proxy).await {
@@ -5093,7 +4862,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         eprintln!("[audio] {id} googlevideo từ chối đoạn {start}-{end}: {notes}");
         st.audio.lock().unwrap().remove(&ckey);
         if ci < 90 && retried.insert(ci) {
-            // thử lại cùng nguồn với link mới trước khi loại nó (và tránh nhảy sang nguồn khác giữa chừng bài)
             pos = order.iter().position(|x| *x == ci).unwrap_or(0);
             continue;
         }
@@ -5102,9 +4870,6 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     (StatusCode::BAD_GATEWAY, format!("googlevideo từ chối: {notes}")).into_response()
 }
 
-
-// ===== Nhập playlist YouTube công khai bằng link (không cần đăng nhập) =====
-// Dùng InnerTube (giống lúc tìm nhạc). Chỉ đọc được playlist công khai / không công khai (có link); playlist riêng tư thì không.
 fn yt_playlist_id(input: &str) -> Option<String> {
     let s = input.trim();
     let ok = |x: &str| !x.is_empty() && x.len() <= 64 && x.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
@@ -5113,7 +4878,6 @@ fn yt_playlist_id(input: &str) -> Option<String> {
         let id: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
         return if ok(&id) { Some(id) } else { None };
     }
-    // Dán thẳng ID playlist (PL..., OLAK5uy_..., UU...)
     if !s.contains('/') && !s.contains('.') && ok(s) && s.len() >= 12 {
         return Some(s.to_string());
     }
@@ -5178,7 +4942,6 @@ async fn yt_browse(client: &reqwest::Client, body: Value) -> Result<Value, ApiEr
     r.json().await.map_err(|_| fail("YouTube trả dữ liệu lạ"))
 }
 
-// Đổi "3:45" / "1:02:03" thành số giây (0 nếu không đọc được).
 fn yt_clock_secs(s: &str) -> u64 {
     let mut sec = 0u64;
     for x in s.trim().split(':') {
@@ -5190,7 +4953,6 @@ fn yt_clock_secs(s: &str) -> u64 {
     sec
 }
 
-// Thêm 1 bài vào danh sách nhập (bỏ qua bài trùng, video đã xóa/riêng tư không có thời lượng).
 fn yt_push_track(tracks: &mut Vec<Value>, seen: &mut HashSet<String>, vid: &str, name: &str, artist: &str, secs: u64, allow_zero: bool, image: String) {
     if tracks.len() >= MAX_PL_TRACKS || vid.len() != 11 || name.is_empty() || (secs == 0 && !allow_zero) {
         return;
@@ -5202,7 +4964,6 @@ fn yt_push_track(tracks: &mut Vec<Value>, seen: &mut HashSet<String>, vid: &str,
     tracks.push(json!({ "src": "yt", "id": vid, "title": name, "artist": artist, "image": image, "url": "", "dur": secs, "explicit": false }));
 }
 
-// Dạng cũ của YouTube: playlistVideoRenderer.
 fn yt_push_pl_renderer(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
     let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
     let name = yt_rtext(r.get("title"));
@@ -5219,7 +4980,6 @@ fn yt_push_pl_renderer(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<St
     yt_push_track(tracks, seen, vid, &name, &artist, secs, false, image);
 }
 
-// Dạng mới của YouTube: lockupViewModel (contentId = ID video).
 fn yt_push_lockup(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
     let vid = r.get("contentId").and_then(|x| x.as_str()).unwrap_or("");
     let name = r.pointer("/metadata/lockupMetadataViewModel/title/content").and_then(|x| x.as_str()).unwrap_or("");
@@ -5259,7 +5019,6 @@ fn yt_collect_playlist_tracks(v: &Value, tracks: &mut Vec<Value>, seen: &mut Has
     }
 }
 
-// Cách 1: đọc qua InnerTube. Err(400) = YouTube báo rõ lý do (riêng tư / không tồn tại); lỗi khác thì để đi cách 2.
 async fn innertube_playlist(client: &reqwest::Client, pid: &str) -> Result<(String, Vec<Value>), ApiErr> {
     let ctx = json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "vi", "gl": "VN" } });
     let first = yt_browse(client, json!({ "context": ctx, "browseId": format!("VL{pid}") })).await?;
@@ -5303,7 +5062,6 @@ async fn innertube_playlist(client: &reqwest::Client, pid: &str) -> Result<(Stri
     Ok((title, tracks))
 }
 
-// Cách 2 (dự phòng): dùng yt-dlp (đã có sẵn cho phần phát nhạc) để liệt kê playlist, không cần đăng nhập/cookies.
 async fn ytdlp_playlist(pid: &str, use_proxy: bool) -> Result<(String, Vec<Value>), String> {
     let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
     let mut cmd = tokio::process::Command::new(&bin);
@@ -5319,7 +5077,7 @@ async fn ytdlp_playlist(pid: &str, use_proxy: bool) -> Result<(String, Vec<Value
     cmd.arg(format!("https://www.youtube.com/playlist?list={pid}"));
     cmd.kill_on_drop(true);
     #[cfg(windows)]
-    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    cmd.creation_flags(0x0800_0000);
     let out = tokio::time::timeout(Duration::from_secs(90), cmd.output())
         .await
         .map_err(|_| "yt-dlp: quá thời gian".to_string())?
@@ -5347,7 +5105,6 @@ async fn ytdlp_playlist(pid: &str, use_proxy: bool) -> Result<(String, Vec<Value
     Ok((title, tracks))
 }
 
-// Nhập 1 playlist: body {"url":"https://www.youtube.com/playlist?list=PL...","title":"(tùy chọn)"} (hoặc "urls": lấy link đầu tiên)
 async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
     let u = require(&st, &headers)?;
     let raw = body
@@ -5409,9 +5166,6 @@ async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body
     Ok(Json(json!({ "playlists": np, "tracks": nt, "name": title })))
 }
 
-// ===== Liên kết tài khoản Discord (OAuth2, scope "identify") =====
-// Cần 3 biến môi trường: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, PUBLIC_URL (vd. https://muse.example.com).
-// Trong discord.com/developers → OAuth2 → Redirects phải thêm đúng: {PUBLIC_URL}/api/discord/callback
 fn discord_cfg() -> Option<(String, String, String)> {
     let id = std::env::var("DISCORD_CLIENT_ID").ok()?.trim().to_string();
     let secret = std::env::var("DISCORD_CLIENT_SECRET").ok()?.trim().to_string();
@@ -5442,11 +5196,9 @@ async fn discord_status(State(st): State<AppState>, headers: HeaderMap) -> R<Val
             Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
         })
         .map_err(|_| e500())?;
-    // sdk=true: đã có token OAuth để dùng Discord Social SDK (Rich Presence không cần mở app Discord)
     Ok(Json(json!({ "linked": !id.is_empty(), "name": name, "avatar": avatar, "sdk": !refresh.is_empty() })))
 }
 
-// Trả về URL đăng nhập Discord; client điều hướng tới đó. `state` dùng 1 lần, gắn với tài khoản đang đăng nhập.
 async fn discord_link(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
     let u = require(&st, &headers)?;
     let Some((cid, _, redirect)) = discord_cfg() else {
@@ -5473,7 +5225,6 @@ async fn discord_unlink(State(st): State<AppState>, headers: HeaderMap) -> Resul
     let db = st.db.lock().unwrap();
     db.execute("UPDATE users SET discord_id='', discord_name='', discord_avatar='', discord_access='', discord_refresh='', discord_expires=0 WHERE id=?1", [u.id])
         .map_err(|_| e500())?;
-    // Hủy liên kết thì tắt luôn Rich Presence.
     let mut cur = load_settings(&db, u.id);
     cur.insert("discord_rpc".into(), json!(false));
     let _ = db.execute(
@@ -5573,7 +5324,6 @@ async fn discord_callback(State(st): State<AppState>, Query(q): Query<DiscordCb>
     back(true)
 }
 
-// Trả access token Discord còn hạn (tự làm mới bằng refresh token) cho client dùng với Discord Social SDK.
 async fn discord_token(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
     let u = require(&st, &headers)?;
     let Some((cid, secret, _)) = discord_cfg() else {

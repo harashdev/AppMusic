@@ -11,20 +11,19 @@
 #include <thread>
 
 namespace {
-std::mutex g_mu;  // mọi lời gọi SDK (kể cả RunCallbacks) đều qua khóa này
+std::mutex g_mu;
 std::shared_ptr<discordpp::Client> g_client;
 std::thread g_thread;
 std::atomic<bool> g_run{false};
 std::atomic<int> g_status{0};
 std::string g_error;
 
-bool g_has_pending = false;  // hoạt động chờ gửi khi client sẵn sàng
+bool g_has_pending = false;
 bool g_pending_clear = false;
 discordpp::Activity g_pending;
 
 std::string cut(const char* s, size_t n) {
     std::string r = s ? s : "";
-    // cắt theo ký tự UTF-8 để không làm hỏng chuỗi
     size_t chars = 0, i = 0;
     while (i < r.size()) {
         unsigned char c = (unsigned char)r[i];
@@ -37,7 +36,6 @@ std::string cut(const char* s, size_t n) {
 
 void set_error(const std::string& e) { g_error = e; g_status = 3; }
 
-// Gọi khi đã giữ g_mu
 void flush_pending_locked() {
     if (!g_client || g_status != 2) return;
     if (g_pending_clear) {
@@ -54,7 +52,7 @@ void flush_pending_locked() {
         g_has_pending = false;
     }
 }
-}  // namespace
+}
 
 extern "C" {
 
@@ -67,7 +65,6 @@ int muse_pres_start(uint64_t app_id, const char* token) {
     g_client = std::make_shared<discordpp::Client>();
     g_client->SetApplicationId(app_id);
     g_client->SetStatusChangedCallback([](discordpp::Client::Status s, discordpp::Client::Error e, int32_t detail) {
-        // callback chạy trong RunCallbacks (đã giữ g_mu) -> không khóa lại
         if (s == discordpp::Client::Status::Ready) {
             g_status = 2;
             flush_pending_locked();
@@ -152,4 +149,4 @@ const char* muse_pres_error(void) {
     return copy.c_str();
 }
 
-}  // extern "C"
+}

@@ -37,10 +37,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 
-/**
- * Muse cho Android = đúng giao diện web của server (giống app máy tính), đặt trong WebView.
- * Địa chỉ server gắn sẵn lúc build (MUSE_URL) nên không phải nhập IP.
- */
 class MainActivity : ComponentActivity() {
     private val bg = Color.parseColor("#07070B")
     private lateinit var root: FrameLayout
@@ -59,8 +55,6 @@ class MainActivity : ComponentActivity() {
         fileCb = null
     }
 
-    // Bản sao giao diện web (HTML) lưu trong máy: khi không kết nối được server, vẫn mở app được để nghe các bài đã tải.
-    // Nạp bằng loadDataWithBaseURL với địa chỉ server nên dùng chung localStorage / IndexedDB với bản online.
     private val shellFile by lazy { File(filesDir, "shell.html") }
     private var lastShellFetch = 0L
 
@@ -84,7 +78,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** true nếu đã nạp được bản lưu sẵn. */
     private fun loadCachedShell(): Boolean {
         if (!shellFile.exists()) return false
         return try {
@@ -121,7 +114,7 @@ class MainActivity : ComponentActivity() {
                 when {
                     customView != null -> chrome.onHideCustomView()
                     web.canGoBack() -> web.goBack()
-                    else -> moveTaskToBack(true) // thoát ra nhưng nhạc vẫn chạy nền
+                    else -> moveTaskToBack(true)
                 }
             }
         })
@@ -129,10 +122,8 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
-        // Dịch vụ nền được MuseBridge bật khi bắt đầu phát nhạc, không bật ngay lúc mở app.
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
 
-        // Giữ cache WebView (LOAD_DEFAULT vẫn tự kiểm tra bản mới qua ETag) -> mở app và tải ảnh bìa nhanh hơn nhiều.
         loadServer()
     }
 
@@ -175,8 +166,7 @@ class MainActivity : ComponentActivity() {
         s.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         s.loadWithOverviewMode = true
         s.useWideViewPort = true
-        s.userAgentString = s.userAgentString.replace("; wv", "") + " MuseAndroid" // YouTube coi như Chrome; web nhận ra app để dùng giao diện máy tính
-        // Vẽ sẵn phần ngoài màn hình chỉ có lợi trên máy khoẻ; máy RAM thấp bật lên lại gây giật và tốn bộ nhớ.
+        s.userAgentString = s.userAgentString.replace("; wv", "") + " MuseAndroid"
         val am = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
         s.setOffscreenPreRaster(!am.isLowRamDevice && am.memoryClass >= 256)
         s.cacheMode = WebSettings.LOAD_DEFAULT
@@ -193,10 +183,7 @@ class MainActivity : ComponentActivity() {
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         MuseSdk.init(this)
         web.addJavascriptInterface(MuseBridge(applicationContext), "MuseNative")
-        // Không ép LAYER_TYPE_HARDWARE cho cả WebView: nó bắt WebView vẽ qua thêm một texture lớn rồi mới ghép -> tốn GPU/RAM, cuộn giật.
-        // Để mặc định (Activity đã bật hardwareAccelerated trong manifest), Chromium tự ghép lớp hiệu quả hơn.
         web.setLayerType(View.LAYER_TYPE_NONE, null)
-        // Giữ tiến trình vẽ ở mức ưu tiên cao khi app đang hiện (hệ thống ít "bỏ đói" renderer hơn).
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         web.webChromeClient = chrome
         web.webViewClient = object : WebViewClient() {
@@ -204,17 +191,15 @@ class MainActivity : ComponentActivity() {
                 if (!request.isForMainFrame) return false
                 val u = request.url
                 if (u.host != null && u.host == Uri.parse(serverUrl()).host) return false
-                // Đăng nhập Discord (OAuth) chạy ngay trong app: xong Discord chuyển về server (cùng địa chỉ với app) nên không phải sang trình duyệt rồi quay lại.
                 val h = u.host?.lowercase().orEmpty()
                 if (h == "discord.com" || h.endsWith(".discord.com") || h == "discordapp.com" || h.endsWith(".discordapp.com")) return false
-                // Các link ra ngoài khác mở bằng trình duyệt.
                 try { startActivity(Intent(Intent.ACTION_VIEW, u)) } catch (e: ActivityNotFoundException) { /* không có app mở link */ }
                 return true
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
-                    if (loadCachedShell()) return   // offline: mở giao diện đã lưu, web tự chuyển sang danh sách bài đã tải
+                    if (loadCachedShell()) return
                     showError("Không kết nối được tới\n${serverUrl()}\n\n(${error.description})")
                 }
             }
@@ -275,11 +260,10 @@ class MainActivity : ComponentActivity() {
         web.loadUrl(url)
     }
 
-    /** Chỉ hỏi khi build không gắn sẵn địa chỉ, hoặc khi bấm "Đổi địa chỉ server". */
     private fun askServer() {
         val input = EditText(this).apply {
             inputType = InputType.TYPE_TEXT_VARIATION_URI
-            hint = "https://ten-may.xxxx.ts.net"
+            hint = "https://appmusic-ur3z.onrender.com"
             setText(serverUrl())
         }
         AlertDialog.Builder(this)
@@ -303,7 +287,6 @@ class MainActivity : ComponentActivity() {
         web.onResume(); web.resumeTimers()
     }
 
-    /** Tắt màn hình / ra màn hình chính: giữ WebView và bộ đếm giờ chạy tiếp để nhạc không bị dừng. */
     override fun onStop() {
         super.onStop()
         if (Playback.playing) { web.onResume(); web.resumeTimers() }

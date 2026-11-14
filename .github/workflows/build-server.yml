@@ -26,7 +26,6 @@ jobs:
       - name: Build (release)
         run: cargo build --release
 
-      # Gói sẵn đầy đủ: muse-server.exe + static/ + start-muse.bat + deno.exe + yt-dlp.exe + data/
       - name: Đóng gói
         shell: bash
         run: |
@@ -34,10 +33,8 @@ jobs:
           cp target/release/muse-server.exe dist/
           cp -r static dist/static
           cp start-muse.bat dist/
-          # artifact không giữ thư mục rỗng nên thêm một file ghi chú vào data/
           echo "Thư mục lưu dữ liệu Muse (tài khoản, playlist, ảnh). Đừng xoá khi cập nhật server." > dist/data/README.txt
 
-      # Tải sẵn yt-dlp và deno để chạy ngay, không phải tải lúc mở start-muse.bat lần đầu.
       - name: Tải sẵn yt-dlp và deno
         shell: pwsh
         run: |
