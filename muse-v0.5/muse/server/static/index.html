@@ -1165,6 +1165,7 @@ img[src*="ytimg.com"],img[src*="googleusercontent.com"],img[src*="ggpht.com"],im
     [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
     [/^Phòng (.+)$/,(m)=>'Room '+m[1]],
     [/^(.+) đã vào phòng$/,(m)=>m[1]+' joined the room'],
+    [/^(.+) đã thoát phòng$/,(m)=>m[1]+' left the room'],
     [/^(.+) gửi lời mời kết bạn$/,(m)=>m[1]+' sent you a friend request'],
     [/^(.+) đã chấp nhận lời mời kết bạn$/,(m)=>m[1]+' accepted your friend request'],
     [/^(.+) mời bạn nghe nhạc chung$/,(m)=>m[1]+' invited you to listen together'],
@@ -1614,12 +1615,15 @@ if(!GIF_LIVE){
   const scan=n=>{ if(n.nodeType!==1) return; if(n.tagName==='IMG') freezeImg(n); else if(n.querySelectorAll) n.querySelectorAll('img').forEach(freezeImg); };
   new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='attributes') scan(m.target); else m.addedNodes.forEach(scan); } }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
 }
+const vidBlob=new Map();
+const vidSrc=v=>vidBlob.get(v)||v;
 function vidOf(u){ const m=/^(\/(?:avatars|banners)\/[\w-]+)\.v\.(?:webp|gif)$/i.exec(u||''); return m?m[1]+'.mp4':''; }
 function gvHtml(src,style){ const v=GIF_LIVE?vidOf(src):'';
-  return v?`<video class="gv" data-gv="1" data-img="${esc(src)}" src="${esc(v)}" muted loop autoplay playsinline disablepictureinpicture preload="auto" style="${style}" onerror="gvFail(this)"></video>`
+  return v?`<video class="gv" data-gv="1" data-img="${esc(src)}" src="${esc(vidSrc(v))}" poster="${esc(src)}" muted loop autoplay playsinline disablepictureinpicture preload="auto" style="${style}" onerror="gvFail(this)"></video>`
           :`<img src="${esc(src)}" alt="" decoding="async" style="${style}">`; }
 function gvFail(v){ const i=document.createElement('img'); i.src=v.dataset.img||''; i.alt=''; i.decoding='async'; i.setAttribute('style',v.getAttribute('style')||''); v.replaceWith(i); }
 function gvKick(v){ try{ v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!document.body.classList.contains('imgv-open')) document.querySelectorAll('video[data-gv]').forEach(gvKick); });
 new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return;
   if(n.matches&&n.matches('video[data-gv]')) gvKick(n); else if(n.querySelectorAll) n.querySelectorAll('video[data-gv]').forEach(gvKick); }); }).observe(document.documentElement,{childList:true,subtree:true});
 const okImgUrl=u=>/^(\/(banners|backgrounds|avatars)\/[\w.-]+|https:\/\/[^\s"'()\\]+|blob:[^\s"'()\\]+)$/.test(u||'');
@@ -1634,7 +1638,8 @@ function warmBanners(users){
         if(!s||!/^\/(banners|avatars)\/[\w.-]+$/.test(s)||upSeen.has(s)) continue;
         upSeen.add(s);
         const i=new Image(); i.decoding='async'; i.src=s; if(i.decode) i.decode().catch(()=>{}); // giải mã sẵn luôn
-        const v=GIF_LIVE?vidOf(s):''; if(v) fetch(v,{cache:'force-cache'}).catch(()=>{}); // bản video của GIF
+        const v=GIF_LIVE?vidOf(s):''; if(v&&!vidBlob.has(v)){ vidBlob.set(v,''); vidBlob.delete(v); // bản video của GIF: tải về RAM, lúc bấm vào phát ngay từ blob (không chờ mạng)
+          fetch(v,{cache:'force-cache'}).then(r=>r.ok?r.blob():null).then(b=>{ if(b) vidBlob.set(v,URL.createObjectURL(b)); }).catch(()=>{}); }
       }
     }
     if(upSeen.size>400) upSeen.clear();
@@ -1652,12 +1657,18 @@ function openImgView(src,name){
   const o=document.createElement('div'); o.className='imgv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',name||'');
   o.innerHTML=`<img alt="" decoding="async"><button class="imgv-x" aria-label="Đóng" title="Đóng">${ic('x')}</button>`;
   const vs=GIF_LIVE?vidOf(src):'';
-  if(vs){ const v=document.createElement('video'); v.src=vs; v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true; v.setAttribute('playsinline',''); v.dataset.gvv='1';
+  if(vs){ const v=document.createElement('video'); v.src=vidSrc(vs); v.poster=src; v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true; v.setAttribute('playsinline',''); v.dataset.gvv='1';
     v.onerror=()=>{ const i=document.createElement('img'); i.alt=''; i.src=src; v.replaceWith(i); }; o.querySelector('img').replaceWith(v); gvKick(v); }
   else o.querySelector('img').src=/\.gif(\?|$)/i.test(src)&&!/^(blob:|data:)/.test(src)?src+(src.includes('?')?'&':'?')+'_v='+Date.now():src;
   document.querySelectorAll('video[data-gv]').forEach(v=>v.pause());
   document.body.classList.add('imgv-open');
-  const close=()=>{ o.remove(); document.body.classList.remove('imgv-open'); document.removeEventListener('keydown',onKey,true); };
+  let closing=false;
+  const close=()=>{ if(closing) return; closing=true; document.removeEventListener('keydown',onKey,true);
+    document.body.classList.remove('imgv-open');
+    /* Video avatar/banner bị ẩn (display:none) khi xem ảnh nên trình duyệt đã dừng chúng: phải cho chạy lại, sau khi đã hiện lại. */
+    requestAnimationFrame(()=>document.querySelectorAll('video[data-gv]').forEach(gvKick));
+    setTimeout(()=>document.querySelectorAll('video[data-gv]').forEach(gvKick),250);
+    o.remove(); };
   const onKey=e=>{ if(e.key==='Escape'){ e.stopPropagation(); close(); } };
   o.onclick=e=>{ e.stopPropagation(); if(e.target.tagName!=='IMG'&&e.target.tagName!=='VIDEO') close(); };
   document.addEventListener('keydown',onKey,true);
@@ -2438,10 +2449,13 @@ const pages={
       D.avatarFile=f; D.avatarPrev=url; D.ax=r.x; D.ay=r.y; D.az=r.z; D.aa=r.ar; refresh(); };
     $('#saveProfile').onclick=async()=>{ try{
       $('#profMsg').textContent='Đang lưu…';
-      if(D.bg==='custom'&&D.bgFile){ const u=await api('/api/background',{body:D.bgFile}); D.bgUrl=u.bg_url; D.bgFile=null; $('#bgUrl').value=D.bgUrl; }
-      if(D.avatarFile){ await api('/api/avatar',{body:D.avatarFile}); D.avatarFile=null; }
-      if(D.bannerFile){ await api('/api/banner',{body:D.bannerFile}); D.bannerFile=null; }
-      else if(D.bannerClear&&me.banner){ await api('/api/banner',{method:'DELETE'}); }
+      /* Các lần tải ảnh độc lập nhau nên chạy song song thay vì chờ từng cái. */
+      const jobs=[];
+      if(D.bg==='custom'&&D.bgFile){ jobs.push(api('/api/background',{body:D.bgFile}).then(u=>{ D.bgUrl=u.bg_url; D.bgFile=null; $('#bgUrl').value=D.bgUrl; })); }
+      if(D.avatarFile){ jobs.push(api('/api/avatar',{body:D.avatarFile}).then(()=>{ D.avatarFile=null; })); }
+      if(D.bannerFile){ jobs.push(api('/api/banner',{body:D.bannerFile}).then(()=>{ D.bannerFile=null; })); }
+      else if(D.bannerClear&&me.banner){ jobs.push(api('/api/banner',{method:'DELETE'})); }
+      if(jobs.length) await Promise.all(jobs);
       const u=await api('/api/profile',{json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa}}});
       applyUser(u); appPrev=false;
       if(D.bannerPrev){ URL.revokeObjectURL(D.bannerPrev); D.bannerPrev=''; } D.bannerClear=false; if(D.avatarPrev){ URL.revokeObjectURL(D.avatarPrev); D.avatarPrev=''; } if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; }
@@ -2940,21 +2954,31 @@ function addMenu(t,e){
 async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${encodeURIComponent(key(t))}`,{method:'DELETE'}); loadPlaylists(); go('playlist',curPl,true); }
 
 async function wsTicket(){ const r=await api('/api/ws-ticket',{method:'POST'}); return r.ticket; }
+let wsTimer=0, wsBusy=false;
 async function connect(){
-  if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
-    if(!p.get('room')) history.replaceState(null,'','?room='+room);
-    setRoomUi(room); }
-  let tk; try{ tk=await wsTicket(); }catch{ if(token) setTimeout(connect,3000); return; }
-  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?ticket='+encodeURIComponent(tk));
-  ws.onopen=()=>send({type:'hello'});
-  ws.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
-  ws.onclose=()=>{ if(token) setTimeout(connect,2000); };
+  if(wsBusy||(ws&&(ws.readyState===0||ws.readyState===1))) return;
+  clearTimeout(wsTimer); wsBusy=true;
+  try{
+    if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
+      if(!p.get('room')) history.replaceState(null,'','?room='+room);
+      setRoomUi(room); }
+    let tk; try{ tk=await wsTicket(); }catch{ if(token) wsTimer=setTimeout(connect,3000); return; }
+    const sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?ticket='+encodeURIComponent(tk));
+    ws=sock;
+    sock.onopen=()=>send({type:'hello'});
+    sock.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
+    sock.onclose=()=>{ if(ws===sock&&token){ clearTimeout(wsTimer); wsTimer=setTimeout(connect,2000); } };
+  } finally { wsBusy=false; }
 }
 function send(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }
 function pushChat(html){ chatLog.push(html); if(chatLog.length>200) chatLog.shift(); const c=$('#chat'); if(c){ c.insertAdjacentHTML('beforeend',html); c.scrollTop=1e9; } }
 const sysLine=t=>pushChat(`<div class="sys">${esc(t)}</div>`);
+/* Báo vào/thoát phòng: mỗi người, mỗi loại thông báo tối đa 1 lần / 20 giây (chống lặp khi mạng chập chờn hoặc server cũ). */
+const presSeen=new Map();
+function presLine(name,what){ const k=name+'|'+what, t=Date.now(); if(t-(presSeen.get(k)||0)<20000) return; presSeen.set(k,t); sysLine(name+' '+what); }
 function onMsg(m){
-  if(m.type==='hello'){ sysLine(m.from+' đã vào phòng'); if(cur&&leader) broadcastState(); }
+  if(m.type==='hello'){ presLine(m.from,'đã vào phòng'); if(cur&&leader) broadcastState(); }
+  else if(m.type==='leave') presLine(m.from,'đã thoát phòng');
   else if(m.type==='chat') pushChat(`<div><b>${esc(m.from)}:</b> ${esc(m.text)}</div>`);
   else if(m.type==='state'&&m.track){
     if(m.cid===CID) return;
@@ -2994,7 +3018,7 @@ function parseRoom(v){
 function switchRoom(r){
   if(r===room){ notify('Bạn đang ở phòng này rồi'); return; }
   if(ws){ ws.onclose=null; ws.onmessage=null; try{ ws.close(); }catch{} }
-  room=r; leader=false; chatLog.length=0;
+  room=r; leader=false; chatLog.length=0; presSeen.clear(); wsBusy=false;
   history.replaceState(null,'','?room='+encodeURIComponent(r));
   setRoomUi(r);
   connect();

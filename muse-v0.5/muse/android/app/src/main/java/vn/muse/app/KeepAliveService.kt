@@ -121,7 +121,7 @@ class KeepAliveService : Service() {
                 .putString(MediaMetadata.METADATA_KEY_TITLE, p.title)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, p.artist)
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, if (p.durMs > 0) p.durMs else -1)
-                .apply { artBmp?.let { putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, it) } }
+                .apply { artBmp?.let { putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, it); putBitmap(MediaMetadata.METADATA_KEY_ART, it); putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON, it) } }
                 .build()
         )
         session.setPlaybackState(
@@ -194,7 +194,7 @@ class KeepAliveService : Service() {
         // Bản nhỏ (vài chục KB) tải trước để thông báo có ảnh gần như ngay; bản lớn tải song song rồi thay vào.
         val lo = lowResArt(url)
         thread(isDaemon = true, name = "muse-art-lo") { deliverArt(raw, fetchArtBitmap(lo, true), false) }
-        if (lo != url) thread(isDaemon = true, name = "muse-art-hi") {
+        if (hiCandidates(url).let { it.size > 1 || it[0] != url } || lo != url) thread(isDaemon = true, name = "muse-art-hi") {
             // Ảnh lớn là thứ hiện ở màn hình khoá: nếu chỉ thử 1 lần mà lỗi thì ảnh nhỏ bị giữ lại và bị kéo giãn → mờ.
             // Nên thử lại tới 3 lần, có dự phòng độ phân giải (hq720 hay 404) và có proxy ảnh.
             val cands = hiCandidates(url)
@@ -212,9 +212,20 @@ class KeepAliveService : Service() {
 
     // Thumbnail YouTube: hq720 không phải video nào cũng có → hạ dần nhưng vẫn giữ độ phân giải cao nhất có thể.
     private fun hiCandidates(u: String): List<String> {
-        val m = Regex("^(https://[^/]+/vi(?:_webp)?/[\\w-]{11}/)hq720(\\.(?:jpg|webp))(.*)$").find(u) ?: return listOf(u)
-        val (b, ext, rest) = m.destructured
-        return listOf("hq720", "maxresdefault", "sddefault", "hqdefault").map { b + it + ext + rest }
+        // Mọi dạng thumbnail YouTube (default/mqdefault/hqdefault/sddefault/hq720...) đều thử lại từ bản lớn nhất xuống,
+        // thay vì giữ nguyên bản nhỏ được gửi sang (bản nhỏ bị kéo giãn ở màn hình khoá nên mờ).
+        val m = Regex("^(https://[^/]+/vi(?:_webp)?/[\\w-]{11}/)(?:hq720|maxresdefault|sddefault|hqdefault|mqdefault|default)(\\.(?:jpg|webp))(.*)$").find(u)
+        if (m != null) {
+            val (b, ext, rest) = m.destructured
+            return listOf("hq720", "maxresdefault", "sddefault", "hqdefault").map { b + it + ext + rest }
+        }
+        // Ảnh Google (YouTube Music): xin bản vuông lớn theo màn hình.
+        if (u.contains("googleusercontent.com") || u.contains("ggpht.com")) {
+            val side = artCap().coerceIn(600, 1200)
+            val big = u.replace(Regex("=w\\d+-h\\d+[^?#]*$"), "=w$side-h$side-l90-rj").replace(Regex("=s\\d+[^?#]*$"), "=s$side")
+            return if (big != u) listOf(big, u) else listOf(u)
+        }
+        return listOf(u)
     }
 
     private fun deliverArt(raw: String, bmp: Bitmap?, hi: Boolean) {

@@ -33,6 +33,9 @@ mod pl_import; // nhập playlist từ Spotify / Apple Music / SoundCloud
 struct Room {
     tx: broadcast::Sender<String>,
     last_state: Option<String>,
+    // Số kết nối đang mở của từng người trong phòng. Dùng để báo "vào phòng"/"thoát phòng" đúng 1 lần,
+    // dù mạng chập chờn khiến app tự kết nối lại nhiều lần.
+    members: HashMap<i64, usize>,
 }
 
 #[derive(Clone)]
@@ -275,7 +278,7 @@ fn require(st: &AppState, h: &HeaderMap) -> Result<User, ApiErr> {
 fn init_db(path: &std::path::Path) -> Connection {
     let db = Connection::open(path).expect("không mở được SQLite");
     db.execute_batch(
-        "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
+        "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA foreign_keys=ON;
          CREATE TABLE IF NOT EXISTS users(
            id INTEGER PRIMARY KEY AUTOINCREMENT,
            username TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -1249,7 +1252,10 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
         return Err(bad("Link ảnh nền phải là https:// (hoặc ảnh đã tải lên) và không chứa ký tự đặc biệt"));
     }
     let db = st.db.lock().unwrap();
-    db.execute(
+    // Gộp mọi lệnh ghi vào một giao dịch: chỉ 1 lần commit/fsync thay vì mỗi trường một lần (nhanh hơn rõ rệt trên ổ đĩa mạng),
+    // và lỗi giữa chừng sẽ hoàn tác toàn bộ thay vì lưu dở.
+    let tx = db.unchecked_transaction().map_err(|_| e500())?;
+    tx.execute(
         "UPDATE users SET display_name=?1, accent=?2, bg=?3, bg_url=?4 WHERE id=?5",
         params![name, r.accent, r.bg, r.bg_url, user.id],
     )
@@ -1258,7 +1264,7 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
         if !(c.is_empty() || (c.len() == 7 && c.starts_with('#') && c[1..].chars().all(|x| x.is_ascii_hexdigit()))) {
             return Err(bad("Màu banner không hợp lệ"));
         }
-        db.execute("UPDATE users SET banner_color=?1 WHERE id=?2", params![c, user.id]).map_err(|_| e500())?;
+        tx.execute("UPDATE users SET banner_color=?1 WHERE id=?2", params![c, user.id]).map_err(|_| e500())?;
     }
     // Tâm ảnh (x, y: 0-100 % khung), zoom (0.1-4, 1 = phủ kín khung) và tỉ lệ ảnh (rộng/cao) của avatar (a*) và banner (b*).
     if let Some(c) = r.crop.as_ref() {
@@ -1276,18 +1282,19 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
             let v: f64 = c.get(k).and_then(|x| x.as_f64()).filter(|x| x.is_finite()).unwrap_or(d).clamp(lo, hi);
             out.insert(k.to_string(), json!((v * 100.0).round() / 100.0));
         }
-        db.execute("UPDATE users SET crop=?1 WHERE id=?2", params![Value::Object(out).to_string(), user.id]).map_err(|_| e500())?;
+        tx.execute("UPDATE users SET crop=?1 WHERE id=?2", params![Value::Object(out).to_string(), user.id]).map_err(|_| e500())?;
     }
     if let Some(stt) = r.status.as_ref() {
         let clean: String = stt.chars().filter(|c| !c.is_control()).collect::<String>().trim().chars().take(60).collect();
-        db.execute("UPDATE users SET status=?1 WHERE id=?2", params![clean, user.id]).map_err(|_| e500())?;
+        tx.execute("UPDATE users SET status=?1 WHERE id=?2", params![clean, user.id]).map_err(|_| e500())?;
     }
     if let Some(em) = r.avatar_emoji.filter(|e| !e.trim().is_empty() && e.chars().count() <= 4) {
-        db.execute("UPDATE users SET avatar=?1 WHERE id=?2", params![em.trim(), user.id]).map_err(|_| e500())?;
+        tx.execute("UPDATE users SET avatar=?1 WHERE id=?2", params![em.trim(), user.id]).map_err(|_| e500())?;
     }
-    let out = db
+    let out = tx
         .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [user.id], row_to_user)
         .map_err(|_| e500())?;
+    tx.commit().map_err(|_| e500())?;
     Ok(Json(out))
 }
 
@@ -1666,10 +1673,15 @@ async fn ws_handler(ws: WebSocketUpgrade, Path(room): Path<String>, Query(q): Qu
 
 async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState) {
     let (mut sender, mut receiver) = socket.split();
-    let (tx, mut rx, last) = {
+    // Vào phòng: đăng ký kết nối. `first` = đây là kết nối đầu tiên của người này (không phải kết nối lại sau khi chập chờn mạng).
+    let (tx, mut rx, last, first) = {
         let mut g = st.rooms.lock().unwrap();
-        let r = g.entry(room.clone()).or_insert_with(|| Room { tx: broadcast::channel(64).0, last_state: None });
-        (r.tx.clone(), r.tx.subscribe(), r.last_state.clone())
+        let r = g
+            .entry(room.clone())
+            .or_insert_with(|| Room { tx: broadcast::channel(64).0, last_state: None, members: HashMap::new() });
+        let first = !r.members.contains_key(&user.id);
+        *r.members.entry(user.id).or_insert(0) += 1;
+        (r.tx.clone(), r.tx.subscribe(), r.last_state.clone(), first)
     };
     if let Some(s) = last {
         let _ = sender.send(Message::Text(s)).await;
@@ -1681,7 +1693,14 @@ async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState
             }
         }
     });
+    let recv_room = room.clone();
+    let recv_st = st.clone();
+    let recv_user = user.clone();
+    let recv_tx = tx.clone();
     let mut recv_task = tokio::spawn(async move {
+        let (st, room, user, tx) = (recv_st, recv_room, recv_user, recv_tx);
+        // Mỗi kết nối chỉ được báo "vào phòng" tối đa 1 lần, và chỉ khi là kết nối đầu tiên của người đó.
+        let mut announce = first;
         while let Some(Ok(msg)) = receiver.next().await {
             let Message::Text(t) = msg else { continue };
             if t.len() > 4096 {
@@ -1691,6 +1710,12 @@ async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState
             let ty = v.get("type").and_then(|x| x.as_str()).unwrap_or("").to_string();
             if !["hello", "chat", "state"].contains(&ty.as_str()) {
                 continue;
+            }
+            if ty == "hello" {
+                if !announce {
+                    continue;
+                }
+                announce = false;
             }
             // Server tự gắn danh tính để không ai giả mạo người khác.
             v["from"] = json!(user.display_name);
@@ -1708,6 +1733,32 @@ async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState
     tokio::select! {
         _ = &mut send_task => recv_task.abort(),
         _ = &mut recv_task => send_task.abort(),
+    }
+    // Rời phòng: hết kết nối nào của người này thì chờ vài giây (để app kịp nối lại khi mạng chập chờn) rồi mới báo "thoát phòng".
+    let left_to_zero = {
+        let mut g = st.rooms.lock().unwrap();
+        match g.get_mut(&room).and_then(|r| r.members.get_mut(&user.id)) {
+            Some(c) => {
+                *c = c.saturating_sub(1);
+                *c == 0
+            }
+            None => false,
+        }
+    };
+    if left_to_zero {
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_secs(6)).await;
+            let mut g = st.rooms.lock().unwrap();
+            let Some(r) = g.get_mut(&room) else { return };
+            if r.members.get(&user.id) == Some(&0) {
+                r.members.remove(&user.id);
+                let _ = r.tx.send(json!({ "type": "leave", "from": user.display_name, "avatar": user.avatar }).to_string());
+                // Phòng trống hẳn thì dọn luôn để không rò bộ nhớ.
+                if r.members.is_empty() && r.tx.receiver_count() == 0 {
+                    g.remove(&room);
+                }
+            }
+        });
     }
 }
 
