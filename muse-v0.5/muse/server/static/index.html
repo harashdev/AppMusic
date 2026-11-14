@@ -1377,8 +1377,13 @@ function imgChain(o){ o=imgClean(o); const c=[o]; const m=o.match(/^https?:\/\/(
 function imgUnproxy(s){ try{ const u=new URL(s,location.href), h=u.hostname;
   if(h==='wsrv.nl'||h==='images.weserv.nl') return u.searchParams.get('url')||'';
   if(h==='external-content.duckduckgo.com'||(h===location.hostname&&u.pathname==='/api/img')) return u.searchParams.get('u')||''; }catch{} return ''; }
-let imgOk=0, imgBad=0, imgBest=''; try{ const [v,t]=String(LS.get('muse_imgvia','')).split('@'); if(v&&Date.now()-(+t||0)<6*3600e3) imgBest=v; }catch{}
+let imgOk=0, imgBad=0, imgBest=''; try{ const [v,t]=String(LS.get('muse_imgvia','')).split('@'); if(v&&Date.now()-(+t||0)<15*60e3) imgBest=v; }catch{}
 const thumb=(u,s)=>{ const r=thumb0(u,s); return imgBest&&IMG_NET.test(r)?imgVia(imgClean(r),imgBest):r; };
+/* imgBest = "mạng không tải thẳng được ảnh YouTube nên đi vòng qua proxy ảnh bên thứ ba" (chậm hơn hẳn). Trước đây chỉ cần mạng chưa sẵn sàng
+   lúc mở app là lựa chọn này bị nhớ 6 giờ, mọi cover sau đó đều đi vòng. Giờ: nhớ tối đa 15 phút và cứ 2 phút (hoặc khi có mạng lại)
+   thử tải thẳng một ảnh nhỏ; tải được thì bỏ proxy ngay. */
+function imgProbe(){ if(!imgBest) return; const p=new Image(); p.onload=()=>{ imgBest=''; try{ LS.set('muse_imgvia',''); }catch{} }; p.src='https://i.ytimg.com/vi/jNQXAC9IVRw/default.jpg?_p='+Date.now(); }
+setInterval(imgProbe,120000); setTimeout(imgProbe,3000); addEventListener('online',()=>setTimeout(imgProbe,500));
 /* Nhận ảnh vào hệ thống dự phòng: trả về URL gốc (hoặc '' nếu không phải ảnh bìa). */
 function imgAdopt(i){ if(i.dataset.o0) return i.dataset.o0; const src=i.src||''; if(!src||/^data:/.test(src)) return '';
   let o=IMG_NET.test(src)?imgClean(src):imgUnproxy(src); if(!o) return '';
