@@ -829,6 +829,12 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
 img[src*="ytimg.com"],img[src*="googleusercontent.com"],img[src*="ggpht.com"],img[src*="/api/img"],img[src*="wsrv.nl"],img[src*="duckduckgo.com/iu"],img[src*="weserv.nl"],#bCov,#npCov{
   background-color:#222326;background-repeat:no-repeat;background-position:center;background-size:42% 42%;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='translate(5 2)'%3E%3Cpath fill='%233c3d42' d='M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z'/%3E%3C/g%3E%3C/svg%3E")!important}
+
+/* ===== Mượt hơn: chỉ THÊM, không đổi hiệu ứng nào ===== */
+/* Danh sách dài: hàng nằm ngoài màn hình không bị tính layout/vẽ (đã có cho .sec/.card, thêm cho các hàng bài) */
+html.android .tr,html.android .dlr,html.android .li{content-visibility:auto;contain-intrinsic-size:auto 60px}
+/* Tab/app ở nền: tạm dừng mọi animation CSS cho đỡ tốn pin & CPU (không đổi gì khi đang xem) */
+html.hid *,html.hid *::before,html.hid *::after{animation-play-state:paused!important}
 </style>
 </head>
 <body class="skin-default">
@@ -4267,6 +4273,36 @@ async function start(u,offlineBoot,resume){
     // Chỉ khi server trả đúng 401 (phiên hết hạn/không còn) mới bắt đăng nhập lại.
     // Mạng lỗi, server chậm/đang khởi động, 5xx... → KHÔNG đăng xuất: vào bằng hồ sơ đã lưu, tự tải lại khi server sống lại (offWatch).
     if(e.message==='401'||!c) showAuth(); else start(c,true);
+  }
+})();
+</script>
+<script>
+/* ===== Mượt hơn: lớp bọc thêm vào, không sửa code cũ, không đổi hiệu ứng ===== */
+(function(){
+  'use strict';
+  var root=document.documentElement;
+  var sync=function(){ root.classList.toggle('hid',document.hidden); };
+  document.addEventListener('visibilitychange',sync); sync();
+
+  /* 1) Đang cuộn/chạm thì hoãn quét ảnh (imgSweep đo layout từng ảnh mỗi 0.8s → giật khi cuộn). Dừng cuộn là quét tiếp. */
+  var scrollAt=0, mark=function(){ scrollAt=performance.now(); };
+  addEventListener('scroll',mark,{capture:true,passive:true});
+  addEventListener('touchmove',mark,{capture:true,passive:true});
+  addEventListener('wheel',mark,{capture:true,passive:true});
+  if(typeof imgSweep==='function'){
+    var origSweep=imgSweep;
+    imgSweep=function(force){ if(!force&&performance.now()-scrollAt<250) return; return origSweep.apply(this,arguments); };
+  }
+
+  /* 2) Trang Tải xuống: mỗi khúc tải xong lại vẽ lại cả danh sách (kể cả ảnh bìa) → gộp, tối đa ~6 lần/giây. Bấm lúc rảnh vẫn phản hồi ngay. */
+  if(typeof dlRender==='function'){
+    var origRender=dlRender, last=0, tm=0, GAP=160;
+    dlRender=function(){
+      var now=performance.now();
+      if(now-last>=GAP){ last=now; if(tm){ clearTimeout(tm); tm=0; } return origRender(); }
+      if(tm) return;
+      tm=setTimeout(function(){ tm=0; last=performance.now(); origRender(); },GAP-(now-last));
+    };
   }
 })();
 </script>
