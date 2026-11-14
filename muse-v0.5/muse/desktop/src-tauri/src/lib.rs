@@ -262,6 +262,77 @@ mod sdk {
     }
 }
 
+// Cổng nhà: app tự chạy `muse-server` (đi kèm ngay cạnh file .exe) ở chế độ GATEWAY_REMOTE=<MUSE_URL> trên 127.0.0.1.
+// Nhạc/album/tìm kiếm YouTube được lấy bằng IP nhà của máy này; tài khoản, bạn bè, avatar, phòng nghe chung vẫn nằm trên server chính.
+// Cửa sổ mở http://127.0.0.1:PORT (cùng một nguồn gốc) nên giao diện, API và WebSocket đều đi qua cổng nhà.
+// Không chạy được (thiếu file, cổng bận...) thì app mở thẳng server chính như trước. Đặt MUSE_DIRECT=1 để cố ý bỏ qua cổng nhà.
+#[cfg(desktop)]
+mod gateway {
+    use std::{
+        net::{SocketAddr, TcpStream},
+        process::{Child, Command, Stdio},
+        sync::Mutex,
+        time::{Duration, Instant},
+    };
+
+    pub const PORT: u16 = 38417;
+    pub struct GatewayChild(pub Mutex<Option<Child>>);
+
+    fn up() -> bool {
+        TcpStream::connect_timeout(&SocketAddr::from(([127, 0, 0, 1], PORT)), Duration::from_millis(250)).is_ok()
+    }
+
+    /// Trả về (địa chỉ cổng nhà nếu dùng được, tiến trình do app tự bật để tắt khi thoát).
+    pub fn start(remote: &str) -> (Option<String>, Option<Child>) {
+        let url = format!("http://127.0.0.1:{PORT}");
+        if up() {
+            // Đã có cổng nhà chạy sẵn (app mở lần 2, hoặc bạn tự chạy start-gateway.bat): dùng luôn.
+            return (Some(url), None);
+        }
+        let Some(dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.to_path_buf())) else {
+            return (None, None);
+        };
+        let exe = dir.join(if cfg!(windows) { "muse-server.exe" } else { "muse-server" });
+        if !exe.exists() {
+            eprintln!("Không thấy {} - mở thẳng server chính", exe.display());
+            return (None, None);
+        }
+        let mut cmd = Command::new(&exe);
+        cmd.current_dir(&dir)
+            .env("GATEWAY_REMOTE", remote)
+            .env("PORT", PORT.to_string())
+            .env("BIND", "127.0.0.1")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+        let mut child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("Không chạy được cổng nhà: {e}");
+                return (None, None);
+            }
+        };
+        let t0 = Instant::now();
+        while t0.elapsed() < Duration::from_secs(8) {
+            if up() {
+                return (Some(url), Some(child));
+            }
+            if matches!(child.try_wait(), Ok(Some(_))) {
+                return (None, None);
+            }
+            std::thread::sleep(Duration::from_millis(100));
+        }
+        let _ = child.kill();
+        (None, None)
+    }
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
@@ -307,7 +378,20 @@ pub fn run() {
 
     builder
         .setup(|app| {
-            let url: tauri::Url = SERVER_URL.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
+            #[allow(unused_mut)]
+            let mut start_url: String = SERVER_URL.to_string();
+            #[cfg(desktop)]
+            {
+                use tauri::Manager;
+                if std::env::var("MUSE_DIRECT").is_err() {
+                    let (gw_url, child) = gateway::start(SERVER_URL.trim_end_matches('/'));
+                    if let Some(u) = gw_url {
+                        start_url = u;
+                    }
+                    app.manage(gateway::GatewayChild(Mutex::new(child)));
+                }
+            }
+            let url: tauri::Url = start_url.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
                 .title("BBeat")
                 .inner_size(1280.0, 820.0)
@@ -315,6 +399,20 @@ pub fn run() {
                 .build()?;
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("lỗi khi chạy Muse");
+        .build(tauri::generate_context!())
+        .expect("lỗi khi chạy Muse")
+        .run(|_app, _event| {
+            // Thoát app thì tắt luôn cổng nhà do app đã tự bật.
+            #[cfg(desktop)]
+            if let tauri::RunEvent::Exit = _event {
+                use tauri::Manager;
+                if let Some(g) = _app.try_state::<gateway::GatewayChild>() {
+                    if let Ok(mut c) = g.0.lock() {
+                        if let Some(mut ch) = c.take() {
+                            let _ = ch.kill();
+                        }
+                    }
+                }
+            }
+        });
 }
