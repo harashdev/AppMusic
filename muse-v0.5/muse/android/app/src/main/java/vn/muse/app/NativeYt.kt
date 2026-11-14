@@ -39,6 +39,7 @@ object NativeYt {
     private class Info(val url: String, val size: Long, val mime: String, val ua: String, val at: Long)
 
     private val cache = ConcurrentHashMap<String, Info>()
+    @Volatile var lastErr = ""
     private val idRe = Regex("[A-Za-z0-9_-]{11}")
     private val rangeRe = Regex("bytes=(\\d*)-(\\d*)")
 
@@ -48,14 +49,16 @@ object NativeYt {
         val hit = cache[key]
         if (hit != null && System.currentTimeMillis() - hit.at < TTL_MS) return hit
         if (cache.size > 200) cache.clear()
+        val errs = ArrayList<String>()
         for (c in clients) {
-            val info = try { query(c, id, webm) } catch (e: Exception) { null }
+            val info = try { query(c, id, webm, errs) } catch (e: Exception) { errs.add(c.name + ": " + e.javaClass.simpleName + " " + (e.message ?: "")); null }
             if (info != null) { cache[key] = info; return info }
         }
+        lastErr = "bản Kotlin: " + errs.joinToString("; ")
         return null
     }
 
-    private fun query(c: YtClient, id: String, webm: Boolean): Info? {
+    private fun query(c: YtClient, id: String, webm: Boolean, errs: MutableList<String>): Info? {
         val client = JSONObject(c.extra)
             .put("clientName", c.name).put("clientVersion", c.ver).put("hl", "en").put("gl", "VN")
         val body = JSONObject()
@@ -72,11 +75,13 @@ object NativeYt {
             conn.setRequestProperty("X-YouTube-Client-Name", c.hid)
             conn.setRequestProperty("X-YouTube-Client-Version", c.ver)
             conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-            if (conn.responseCode != 200) return null
+            if (conn.responseCode != 200) { errs.add(c.name + " HTTP " + conn.responseCode); return null }
             val txt = conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             val root = JSONObject(txt)
-            if (root.optJSONObject("playabilityStatus")?.optString("status") != "OK") return null
-            val fmts = root.optJSONObject("streamingData")?.optJSONArray("adaptiveFormats") ?: return null
+            val ps = root.optJSONObject("playabilityStatus")
+            if (ps?.optString("status") != "OK") { errs.add(c.name + " " + ps?.optString("status") + ": " + ps?.optString("reason")); return null }
+            val fmts = root.optJSONObject("streamingData")?.optJSONArray("adaptiveFormats")
+            if (fmts == null) { errs.add(c.name + ": không có danh sách luồng"); return null }
             var best: JSONObject? = null
             var bestScore = Long.MIN_VALUE
             for (i in 0 until fmts.length()) {
@@ -94,10 +99,11 @@ object NativeYt {
                 }
                 if (score > bestScore) { bestScore = score; best = f }
             }
-            val f = best ?: return null
+            val f = best
+            if (f == null) { errs.add(c.name + ": không có luồng âm thanh kèm link (có thể cần PO token)"); return null }
             val url = f.optString("url")
             val size = f.optString("contentLength", "0").toLongOrNull() ?: 0L
-            if (url.isEmpty() || size <= 0L) return null
+            if (url.isEmpty() || size <= 0L) { errs.add(c.name + ": luồng thiếu link/độ dài"); return null }
             val mime = f.optString("mimeType").substringBefore(';').trim().ifEmpty { "audio/mp4" }
             return Info(url, size, mime, c.ua, System.currentTimeMillis())
         } finally {
@@ -107,6 +113,7 @@ object NativeYt {
 
     /** Mở một đoạn [start, end] của luồng. Thử header Range trước, rồi tham số &range= (cách yt-dlp/NewPipe dùng). */
     private fun openRange(info: Info, start: Long, end: Long): HttpURLConnection? {
+        val codes = ArrayList<String>()
         for (viaParam in booleanArrayOf(false, true)) {
             try {
                 val u = if (viaParam) info.url + "&range=" + start + "-" + end else info.url
@@ -118,9 +125,11 @@ object NativeYt {
                 val code = c.responseCode
                 // Với header Range phải là 206; 200 nghĩa là máy chủ bỏ qua Range và sẽ gửi cả file.
                 if (code == 206 || (viaParam && code == 200)) return c
+                codes.add((if (viaParam) "range=" else "Range:") + code)
                 c.disconnect()
-            } catch (e: Exception) { /* thử cách kế tiếp */ }
+            } catch (e: Exception) { codes.add(e.javaClass.simpleName + " " + (e.message ?: "")) }
         }
+        lastErr = "bản Kotlin: googlevideo từ chối tải đoạn (" + codes.joinToString(", ") + ")"
         return null
     }
 

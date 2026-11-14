@@ -38,6 +38,7 @@ object LocalAudio {
         "/api/yt/fresh", "/api/yt/artists", "/api/yt/best-artists", "/api/yt/this-is",
     )
     @Volatile private var serverBase = ""
+    @Volatile private var lastErr = ""
 
     @Volatile private var proc: Process? = null
     @Volatile private var port = 0
@@ -99,15 +100,28 @@ object LocalAudio {
     }
 
     /** Dùng trong WebViewClient.shouldInterceptRequest (chạy ở luồng nền). Trả null = để WebView gọi server như bình thường. */
-    fun handle(req: WebResourceRequest): WebResourceResponse? =
-        handleLocal(req) ?: NativeYt.handle(req) // tiến trình cục bộ trước, rồi bản Kotlin thuần (chỉ phần nhạc); cả hai lỗi mới nhờ server
+    fun handle(req: WebResourceRequest): WebResourceResponse? {
+        handleLocal(req)?.let { return it }
+        NativeYt.handle(req)?.let { return it }
+        // Nhạc KHÔNG đi qua server: IP server (datacenter) luôn bị YouTube chặn nên quay về đó chỉ che mất lý do lỗi thật.
+        // Trả lỗi 502 kèm lý do để giao diện hiện đúng nguyên nhân (tìm kiếm/trang chủ vẫn được phép nhờ server).
+        if (req.method.equals("GET", true) && (req.url.encodedPath ?: "").startsWith("/api/yt/audio/")) {
+            val msg = "Không lấy được nhạc trên điện thoại. Tiến trình trên máy: " + lastErr.ifEmpty { "(không có thông tin)" } +
+                " | " + NativeYt.lastErr.ifEmpty { "bản Kotlin: (không chạy)" }
+            val h = HashMap<String, String>()
+            h["X-Muse-Src"] = "none"
+            h["Cache-Control"] = "no-store"
+            return WebResourceResponse("text/plain", "utf-8", 502, "Bad Gateway", h, ByteArrayInputStream(msg.toByteArray(Charsets.UTF_8)))
+        }
+        return null
+    }
 
     private fun handleLocal(req: WebResourceRequest): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null
         val path = req.url.encodedPath ?: return null
         if (PREFIXES.none { path.startsWith(it) }) return null
         val ctx = appCtx ?: return null
-        if (!ensureRunning(ctx)) return null
+        if (!ensureRunning(ctx)) { lastErr = "không khởi động được (thiếu libmuse_audio.so hoặc hệ thống chặn chạy)"; return null }
         val q = req.url.encodedQuery?.let { "?$it" } ?: ""
         return try {
             val c = URL("http://127.0.0.1:$port$path$q").openConnection() as HttpURLConnection
@@ -117,7 +131,11 @@ object LocalAudio {
             req.requestHeaders["Authorization"]?.let { c.setRequestProperty("Authorization", it) }
             val code = c.responseCode
             // Cục bộ không lấy được (YouTube chặn, không có mạng...): để server thử, đừng báo lỗi cho trình phát.
-            if (code != 200 && code != 206) { c.disconnect(); return null }
+            if (code != 200 && code != 206) {
+                val msg = try { (c.errorStream?.bufferedReader()?.use { it.readText() } ?: "").take(400) } catch (e: Exception) { "" }
+                lastErr = "HTTP $code $msg".trim()
+                c.disconnect(); return null
+            }
             val mime = c.contentType?.substringBefore(';')?.trim().takeUnless { it.isNullOrEmpty() } ?: "audio/mp4"
             val headers = HashMap<String, String>()
             headers["X-Muse-Src"] = "local"
@@ -127,6 +145,7 @@ object LocalAudio {
             val reason = if (code == 206) "Partial Content" else "OK"
             WebResourceResponse(mime, null, code, reason, headers, c.inputStream)
         } catch (e: Exception) {
+            lastErr = e.javaClass.simpleName + " " + (e.message ?: "")
             null
         }
     }
