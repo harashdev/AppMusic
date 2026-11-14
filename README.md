@@ -133,4 +133,6 @@ App/trình duyệt ──► cổng nhà (127.0.0.1:38417, chạy ở nhà)
 - `yt-dlp` / `deno` (tuỳ chọn, giúp khi YouTube hỏi "not a bot"): đặt cạnh `muse-server.exe`; biến `YT_BROWSER`, `YT_COOKIES`, `YTDLP_PATH` đặt như ở phần trên.
 - Server chính không cần đổi gì: nhớ đẩy `static/index.html` mới lên (cho phép service worker chạy ở 127.0.0.1) và build lại như bình thường.
 
+**Server chính chỉ lưu database:** mặc định server chính **không còn** phục vụ nguồn nhạc. Các đường `/api/yt/*` (tìm kiếm, album, nghệ sĩ, luồng nhạc, video) và `/api/img` (ảnh bìa qua server) trả về HTTP 410 kèm lời giải thích. Tài khoản, bạn bè, playlist, yêu thích, lịch sử, đồng bộ, avatar/banner, phòng nghe chung vẫn chạy như cũ. Nhạc do app tự lấy: app desktop qua cổng nhà, app Android qua `AUDIO_ONLY` (cả hai vẫn dùng đủ các route YouTube trên máy người dùng). Muốn bật lại nguồn nhạc trên server chính (ví dụ chạy ở nhà, dùng trình duyệt trực tiếp) thì đặt `SERVE_MUSIC=1`. Lưu ý: nếu cổng nhà không bật được và app tự mở thẳng server chính thì sẽ không có nhạc. Các tính năng *nhập playlist từ link* (`/api/yt-import/url`, `/api/pl-import/url`) vẫn chạy ở server chính.
+
 **Đóng gói desktop tại máy:** build server trước, chép vào `desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe` rồi mới `cargo tauri build` (GitHub Actions "Build desktop (Muse)" đã tự làm bước này).

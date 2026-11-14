@@ -458,6 +458,19 @@ fn yt_routes() -> Router<AppState> {
         .route("/api/yt/video/:id", get(yt_video))
 }
 
+// Server chính chỉ lưu dữ liệu người dùng (database): các route lấy nhạc / tìm kiếm / ảnh bìa từ YouTube bị tắt và báo rõ lý do.
+// Nhạc do chính app tự lấy: app desktop qua cổng nhà (GATEWAY_REMOTE), app Android qua AUDIO_ONLY – hai chế độ đó vẫn dùng yt_routes().
+// Đặt SERVE_MUSIC=1 trên server chính để bật lại như trước.
+fn music_off_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/*rest", axum::routing::any(music_off))
+        .route("/api/img", axum::routing::any(music_off))
+}
+
+async fn music_off() -> Response {
+    (StatusCode::GONE, "Server này chỉ lưu dữ liệu người dùng; nhạc do app tự lấy (đặt SERVE_MUSIC=1 nếu muốn bật lại nguồn nhạc trên server)").into_response()
+}
+
 fn gateway_client() -> reqwest::Client {
     reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -707,6 +720,7 @@ async fn main() {
         gateway: None,
     };
 
+    let serve_music = std::env::var("SERVE_MUSIC").map(|v| v.trim() == "1").unwrap_or(false);
     let router = Router::new()
         .route("/api/config", get(config))
         .route("/api/register", post(register))
@@ -733,7 +747,7 @@ async fn main() {
         .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
-        .merge(yt_routes())
+        .merge(if serve_music { yt_routes() } else { music_off_routes() })
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
         .route("/api/friends/respond", post(respond_request))
@@ -765,6 +779,9 @@ async fn main() {
     let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "0.0.0.0".into());
     let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
     println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
+    if !serve_music {
+        println!("Nguồn nhạc (YouTube) đã tắt trên server này: chỉ lưu dữ liệu người dùng. Đặt SERVE_MUSIC=1 để bật lại.");
+    }
     axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
 
