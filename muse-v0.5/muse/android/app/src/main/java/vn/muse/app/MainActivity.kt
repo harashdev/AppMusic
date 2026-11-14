@@ -131,25 +131,6 @@ class MainActivity : ComponentActivity() {
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
 
         loadServer()
-        root.postDelayed(battCheck, 8000)
-    }
-
-    // Nhạc nền hay bị hệ thống (Doze / tiết kiệm pin của hãng) cắt khi tắt màn hình: lần đầu phát nhạc thì xin miễn tối ưu pin một lần.
-    private val battCheck = object : Runnable {
-        override fun run() {
-            if (prefs.getBoolean("batt_asked", false)) return
-            if (Playback.playing) { askBatteryOptOnce(); return }
-            root.postDelayed(this, 5000)
-        }
-    }
-
-    private fun askBatteryOptOnce() {
-        prefs.edit().putBoolean("batt_asked", true).apply()
-        try {
-            val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
-            if (pm.isIgnoringBatteryOptimizations(packageName)) return
-            startActivity(Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
-        } catch (e: Exception) { /* máy không có màn hình này */ }
     }
 
     private val chrome = object : WebChromeClient() {
@@ -274,10 +255,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Hiện lỗi kết nối nhưng tự thử lại mỗi 4 giây; hết lỗi là tự vào app, không cần thoát ra mở lại.
+    private val autoRetry = object : Runnable {
+        override fun run() {
+            if (errorBox.visibility != View.VISIBLE) return
+            loadServer()
+            root.postDelayed(this, 4000)
+        }
+    }
+
     private fun showError(msg: String) {
         errorText.text = msg
         errorBox.visibility = View.VISIBLE
         web.visibility = View.INVISIBLE
+        root.removeCallbacks(autoRetry)
+        root.postDelayed(autoRetry, 4000)
     }
 
     // Giao diện nằm sẵn trong APK: mở app là hiện ngay, không cần chờ server. Gọi API vẫn đi tới server vì baseURL là địa chỉ server.
@@ -324,6 +316,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         web.onResume(); web.resumeTimers()
+        if (errorBox.visibility == View.VISIBLE) loadServer()
     }
 
     // Không để WebView tự dừng audio khi activity vào background / màn hình tắt.
@@ -345,7 +338,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        root.removeCallbacks(battCheck)
+        root.removeCallbacks(autoRetry)
         Playback.sendToWeb = null
         if (isFinishing) {
             stopService(Intent(this, KeepAliveService::class.java))
