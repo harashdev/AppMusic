@@ -485,6 +485,10 @@ object NativeYt {
                 try { c.responseCode } finally { c.disconnect() }
             }
         }
+        // Chạy thử MỘT lần lấy luồng thật (video đầu tiên của YouTube, luôn còn và không bị giới hạn) để làm nóng toàn bộ đường đi:
+        // NewPipe tải + giải mã player JS, các client InnerTube, tải thử vài byte từ googlevideo. Lúc bạn bấm phát bài đầu tiên
+        // thì mọi thứ đã ấm nên nhạc lên ngay thay vì chờ vài chục giây. Chạy nền, không chặn giao diện.
+        runCatching { resolve("jNQXAC9IVRw", false) }
     }
 
     /** Địa chỉ để thẻ <audio> phát thẳng; rỗng nếu không mở được máy chủ cục bộ. */
