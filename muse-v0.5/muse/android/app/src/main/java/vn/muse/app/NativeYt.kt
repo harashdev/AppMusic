@@ -471,6 +471,22 @@ object NativeYt {
         synchronized(proxyLock) { runCatching { proxySock?.close() }; proxySock = null }
     }
 
+    /**
+     * Làm nóng khi mở app (chạy nền): khởi tạo NewPipe và mở sẵn kết nối DNS/TLS tới YouTube,
+     * để bài đầu tiên không phải chờ lúc "khởi động nguội" (trước đây dễ vượt thời gian chờ của trình phát rồi nhảy bài).
+     */
+    fun warmUp() {
+        runCatching { npInit() }
+        for (u in listOf("https://www.youtube.com/generate_204", "https://youtubei.googleapis.com/generate_204", "https://i.ytimg.com/generate_204")) {
+            runCatching {
+                val c = URL(u).openConnection() as HttpURLConnection
+                c.connectTimeout = 5000
+                c.readTimeout = 5000
+                try { c.responseCode } finally { c.disconnect() }
+            }
+        }
+    }
+
     /** Địa chỉ để thẻ <audio> phát thẳng; rỗng nếu không mở được máy chủ cục bộ. */
     fun audioUrl(id: String, webm: Boolean): String {
         if (!idRe.matches(id)) return ""
