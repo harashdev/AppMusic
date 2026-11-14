@@ -20,7 +20,7 @@ const COMMANDS: &[&str] = &[
 fn main() {
     let url = env::var("MUSE_URL").unwrap_or_default();
     let url = if url.trim().is_empty() {
-        "http://localhost:3000".to_string()
+        "https://appmusic-ur3z.onrender.com".to_string()
     } else {
         url.trim().trim_end_matches('/').to_string()
     };
