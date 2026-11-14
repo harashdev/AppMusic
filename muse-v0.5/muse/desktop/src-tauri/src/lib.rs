@@ -10,9 +10,10 @@ use std::{
 #[cfg(desktop)]
 use tauri::State;
 
+// Biến MUSE_URL để trống (vd. GitHub Actions chưa đặt vars.MUSE_URL) vẫn là Some("") → phải coi như chưa đặt.
 const SERVER_URL: &str = match option_env!("MUSE_URL") {
-    Some(u) => u,
-    None => "https://appmusic-ur3z.onrender.com",
+    Some(u) if !u.is_empty() => u,
+    _ => "https://appmusic-ur3z.onrender.com",
 };
 
 #[cfg(desktop)]
