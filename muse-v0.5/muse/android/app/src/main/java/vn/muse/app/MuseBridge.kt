@@ -121,13 +121,20 @@ class MuseBridge(private val ctx: Context) {
         return try {
             val safe = name.filter { it >= ' ' }.replace(Regex("[\\/:*?\"<>|]"), "_").take(120).ifBlank { "bai-hat" }
             if (Build.VERSION.SDK_INT >= 29) {
-                val v = ContentValues().apply {
-                    put(MediaStore.Audio.Media.DISPLAY_NAME, safe)
-                    put(MediaStore.Audio.Media.MIME_TYPE, mime.ifBlank { "audio/mp4" })
-                    put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/BBeat")
-                    put(MediaStore.Audio.Media.IS_PENDING, 1)
+                val m = mime.ifBlank { "audio/mp4" }
+                fun values(path: String) = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, safe)
+                    put(MediaStore.MediaColumns.MIME_TYPE, m)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, path)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
-                val uri = ctx.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, v)
+                // MediaStore.Audio từ chối vài MIME (vd audio/webm → "Unsupported MIME type audio/webm").
+                // Với các định dạng đó (hoặc khi insert báo lỗi MIME) lưu vào Download/BBeat, nơi nhận mọi MIME.
+                val audioOk = !m.equals("audio/webm", ignoreCase = true)
+                val uri = (if (audioOk) runCatching {
+                    ctx.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values("Music/BBeat"))
+                }.getOrNull() else null)
+                    ?: ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values("Download/BBeat"))
                     ?: return "err:không tạo được file trong Music/BBeat"
                 saveUri = uri
                 saveOut = ctx.contentResolver.openOutputStream(uri) ?: return "err:không mở được file để ghi"
