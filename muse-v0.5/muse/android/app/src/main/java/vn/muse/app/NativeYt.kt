@@ -42,7 +42,7 @@ import kotlin.concurrent.thread
 object NativeYt {
     private const val TAG = "MuseYt"
     private const val PREFIX = "/api/yt/audio/"
-    private const val FIRST_CHUNK = 256L * 1024      // đoạn đầu nhỏ để nhạc lên tiếng nhanh
+    private const val FIRST_CHUNK = 512L * 1024      // đoạn đầu 512 KB: đủ buffer cho kết nối chậm/server free-tier
     private const val CHUNK = 2L * 1024 * 1024
     private const val TTL_MS = 3L * 3600 * 1000      // trần thời gian giữ link nếu link không có expire
     private const val STAGGER_MS = 350L              // so le giữa các client để không bắn cùng lúc
