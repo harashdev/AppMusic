@@ -408,6 +408,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-body{padding:12px 16px}.pc-body:empty{display:none}
 .pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
+.pcwarm{position:fixed;left:0;top:0;width:340px;opacity:.01;pointer-events:none;z-index:1;contain:layout}
 .set{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,390px);gap:20px;align-items:start}
 .setR{position:sticky;top:0}
 .setR h4{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -1560,6 +1561,7 @@ function applyUser(u){
   paintTheme(acc,u.bg,u.bg_url);
   $('#meAv').innerHTML=avU(u);
   paintLibTitle();
+  warmProfile({...u,online:true},true);
 }
 
 function openCrop(o){ return new Promise(resolve=>{
@@ -1622,7 +1624,7 @@ function gvHtml(src,style){ const v=GIF_LIVE?vidOf(src):'';
   return v?`<video class="gv" data-gv="1" data-img="${esc(src)}" src="${esc(vidSrc(v))}" poster="${esc(src)}" muted loop autoplay playsinline disablepictureinpicture preload="auto" style="${style}" onerror="gvFail(this)"></video>`
           :`<img src="${esc(src)}" alt="" decoding="async" style="${style}">`; }
 function gvFail(v){ const i=document.createElement('img'); i.src=v.dataset.img||''; i.alt=''; i.decoding='async'; i.setAttribute('style',v.getAttribute('style')||''); v.replaceWith(i); }
-function gvKick(v){ try{ v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
+function gvKick(v){ try{ if(v.closest&&v.closest('.pcwarm')) return; v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!document.body.classList.contains('imgv-open')) document.querySelectorAll('video[data-gv]').forEach(gvKick); });
 new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return;
   if(n.matches&&n.matches('video[data-gv]')) gvKick(n); else if(n.querySelectorAll) n.querySelectorAll('video[data-gv]').forEach(gvKick); }); }).observe(document.documentElement,{childList:true,subtree:true});
@@ -1674,10 +1676,34 @@ function openImgView(src,name){
   document.addEventListener('keydown',onKey,true);
   document.body.appendChild(o);
 }
+/* THẺ HỒ SƠ DỰNG SẴN: dựng trước thẻ của mình và của bạn bè trong một khung ẩn (vẫn được vẽ nên ảnh/video đã giải mã sẵn),
+   lúc bấm vào chỉ việc chuyển thẻ đó sang popup → banner + avatar hiện ngay, không còn khoảng chớp icon. Video trong khung ẩn
+   đứng ở khung hình đầu (không tốn pin), chuyển sang popup mới chạy. */
+const pcPool=new Map(); let pcHost=null;
+const pcKey=(u,mine)=>JSON.stringify([!!mine,u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.online===false]);
+const pcExtra=mine=>mine?`<div class="pc-act"><button class="pri" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out" data-x="out">Đăng xuất</button></div>`:'';
+function warmProfile(u,mine){
+  try{
+    if(!u||guest&&!mine) return;
+    const k=pcKey(u,mine); if(pcPool.has(k)) return;
+    if(!pcHost){ pcHost=document.createElement('div'); pcHost.className='pcwarm'; pcHost.setAttribute('aria-hidden','true'); document.body.appendChild(pcHost); }
+    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine)});
+    const pc=t.firstElementChild; if(!pc) return;
+    pc.querySelectorAll('video').forEach(v=>{ v.removeAttribute('autoplay'); v.autoplay=false; });
+    for(const [ok,o] of [...pcPool]){ if(pcSame(ok,u,mine)){ pcPool.delete(ok); o.remove(); } }   // bản cũ của chính người này (đổi avatar/banner...) bỏ đi
+    pc.dataset.mine=mine?'1':''; pc.dataset.uid=String(u.id);
+    pcHost.appendChild(pc); pcPool.set(k,pc);
+    pc.querySelectorAll('video').forEach(v=>{ try{ v.load(); }catch{} });
+    while(pcPool.size>16){ const [ok,o]=pcPool.entries().next().value; pcPool.delete(ok); o.remove(); }
+  }catch{}
+}
+function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[1]===u.id&&a[0]===!!mine; }catch{ return false; } }
 function showProfilePop(u,anchor,mine){
   document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='pcpop';
-  d.innerHTML=profileCard(u,{extra:mine?`<div class="pc-act"><button class="pri" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out" data-x="out">Đăng xuất</button></div>`:''});
+  const wk=pcKey(u,mine), warm=pcPool.get(wk);
+  if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
+  else d.innerHTML=profileCard(u,{extra:pcExtra(mine)});
   const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-330))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
@@ -3053,7 +3079,7 @@ function showFriendReq(m){
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
   const list=await api('/api/friends');
-  warmBanners(list);
+  warmBanners(list); list.forEach(f=>warmProfile(f,false));
   const sig=JSON.stringify(list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]));
   if(box.dataset.sig===sig&&box.childElementCount) return;
   box.dataset.sig=sig; box.innerHTML='';
