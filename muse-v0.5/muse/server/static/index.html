@@ -829,12 +829,6 @@ body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body
 img[src*="ytimg.com"],img[src*="googleusercontent.com"],img[src*="ggpht.com"],img[src*="/api/img"],img[src*="wsrv.nl"],img[src*="duckduckgo.com/iu"],img[src*="weserv.nl"],#bCov,#npCov{
   background-color:#222326;background-repeat:no-repeat;background-position:center;background-size:42% 42%;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='translate(5 2)'%3E%3Cpath fill='%233c3d42' d='M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z'/%3E%3C/g%3E%3C/svg%3E")!important}
-
-/* ===== Mượt hơn: chỉ THÊM, không đổi hiệu ứng nào ===== */
-/* Danh sách dài: hàng nằm ngoài màn hình không bị tính layout/vẽ (đã có cho .sec/.card, thêm cho các hàng bài) */
-html.android .tr,html.android .dlr,html.android .li{content-visibility:auto;contain-intrinsic-size:auto 60px}
-/* Tab/app ở nền: tạm dừng mọi animation CSS cho đỡ tốn pin & CPU (không đổi gì khi đang xem) */
-html.hid *,html.hid *::before,html.hid *::after{animation-play-state:paused!important}
 </style>
 </head>
 <body class="skin-default">
@@ -2471,6 +2465,7 @@ const pages={
         <div class="sinp v"><input type="password" id="delPw" placeholder="Nhập mật khẩu để xác nhận" autocomplete="current-password"><div><button id="delAcc" style="color:#ff6b6b;border-color:#ff6b6b">Xóa tài khoản</button></div></div><small id="delMsg" class="smsg"></small></div>
     </div></div>
     <div class="sgrp"><div class="sgh">Hiệu năng</div><div class="scard">${row('Ảnh động (GIF)','Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định bật; máy yếu bị giật thì tắt ở đây.',tog('tGif',GIF_LIVE))}</div></div>
+    ${HOMEGW?`<div class="sgrp"><div class="sgh">Nguồn nhạc</div><div class="scard"><div class="srow"><div class="sx"><b>Đang dùng IP riêng của máy này</b><small>Tìm kiếm, album và luồng nhạc YouTube đi thẳng từ máy bạn (cổng nhà 127.0.0.1:38417); server chính chỉ lưu tài khoản, bạn bè, avatar và banner.</small></div><span class="sbadge">IP nhà</span></div>${row('Phát bằng luồng IP riêng','Giống app Android: phát qua luồng âm thanh của máy thay vì player YouTube. Luồng lỗi thì tự quay về player YouTube. Tắt nếu muốn luôn dùng player YouTube.',tog('tHomeIp',homeIpOn()))}</div></div>`:''}
     ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
     <div class="sgrp"><div class="scard">
       ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
@@ -2584,6 +2579,7 @@ const pages={
     $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
     showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
     if($('#tGif')) $('#tGif').onchange=e=>{ LS.set('gif_live',e.target.checked?'1':'0'); location.reload(); };
+    if($('#tHomeIp')) $('#tHomeIp').onchange=e=>{ LS.set('homeip',e.target.checked?'1':'0'); notify(e.target.checked?'Bài kế tiếp sẽ phát bằng luồng IP riêng':'Bài kế tiếp sẽ phát bằng player YouTube'); };
     if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
     if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
         if(!url){ msg.textContent='Hãy dán link playlist'; return; }
@@ -3128,7 +3124,11 @@ const ytFail={}, wdTries={};
 // App Android: player YouTube (iframe) bị tạm dừng khi tắt màn hình → luôn phát bằng luồng âm thanh, kể cả khi bài/luồng từng lỗi
 // (trước đây lỗi 1 lần là bị "cấm luồng" 5 phút và rơi về iframe → nhạc nền im lặng, lúc được lúc không).
 const BGONLY=!!window.ANDROID_APP;
-const wantStream=t=>t&&t.src==='yt'&&(BGONLY||(!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available))));
+// App desktop / cổng nhà (127.0.0.1:38417): giống Android, nhạc lấy bằng IP riêng của máy qua luồng âm thanh <audio>.
+// Khác Android: luồng lỗi (fxFail) thì tự rơi về player YouTube (iframe) chứ không im lặng. Tắt ở Cài đặt → Nguồn nhạc.
+const HOMEGW=(()=>{ try{ return !window.ANDROID_APP&&location.hostname==='127.0.0.1'&&location.port==='38417'; }catch{ return false; } })();
+const homeIpOn=()=>HOMEGW&&LS.get('homeip','1')==='1';
+const wantStream=t=>t&&t.src==='yt'&&(BGONLY||(!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||homeIpOn()||fxNeeded()||(S.proxy&&cfg.proxy_available))));
 const OFF=(()=>{
   let dbp=null;
   const open=()=>dbp||(dbp=new Promise((res,rej)=>{
@@ -3769,8 +3769,12 @@ async function dlRun(it){
           catch(e){ it.note='không đổi được sang WAV, đã lưu bản gốc'; }
         }
       }
-      try{ await dlSaveFile(safe+'.'+ext,blob,ext); it.name=safe+'.'+ext; }
-      catch(e){ if(!offOk) throw e; } // không ghi được file ra máy nhưng đã có bản offline trong app: bỏ qua, không báo lỗi
+      try{
+        try{ await dlSaveFile(safe+'.'+ext,blob,ext); }
+        catch(e1){ await new Promise(z=>setTimeout(z,600)); await dlSaveFile(safe+'.'+ext,blob,ext); } // thử lại 1 lần
+        it.name=safe+'.'+ext;
+      }
+      catch(e){ if(!offOk) throw e; try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app, không báo lỗi
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
@@ -4273,36 +4277,6 @@ async function start(u,offlineBoot,resume){
     // Chỉ khi server trả đúng 401 (phiên hết hạn/không còn) mới bắt đăng nhập lại.
     // Mạng lỗi, server chậm/đang khởi động, 5xx... → KHÔNG đăng xuất: vào bằng hồ sơ đã lưu, tự tải lại khi server sống lại (offWatch).
     if(e.message==='401'||!c) showAuth(); else start(c,true);
-  }
-})();
-</script>
-<script>
-/* ===== Mượt hơn: lớp bọc thêm vào, không sửa code cũ, không đổi hiệu ứng ===== */
-(function(){
-  'use strict';
-  var root=document.documentElement;
-  var sync=function(){ root.classList.toggle('hid',document.hidden); };
-  document.addEventListener('visibilitychange',sync); sync();
-
-  /* 1) Đang cuộn/chạm thì hoãn quét ảnh (imgSweep đo layout từng ảnh mỗi 0.8s → giật khi cuộn). Dừng cuộn là quét tiếp. */
-  var scrollAt=0, mark=function(){ scrollAt=performance.now(); };
-  addEventListener('scroll',mark,{capture:true,passive:true});
-  addEventListener('touchmove',mark,{capture:true,passive:true});
-  addEventListener('wheel',mark,{capture:true,passive:true});
-  if(typeof imgSweep==='function'){
-    var origSweep=imgSweep;
-    imgSweep=function(force){ if(!force&&performance.now()-scrollAt<250) return; return origSweep.apply(this,arguments); };
-  }
-
-  /* 2) Trang Tải xuống: mỗi khúc tải xong lại vẽ lại cả danh sách (kể cả ảnh bìa) → gộp, tối đa ~6 lần/giây. Bấm lúc rảnh vẫn phản hồi ngay. */
-  if(typeof dlRender==='function'){
-    var origRender=dlRender, last=0, tm=0, GAP=160;
-    dlRender=function(){
-      var now=performance.now();
-      if(now-last>=GAP){ last=now; if(tm){ clearTimeout(tm); tm=0; } return origRender(); }
-      if(tm) return;
-      tm=setTimeout(function(){ tm=0; last=performance.now(); origRender(); },GAP-(now-last));
-    };
   }
 })();
 </script>
