@@ -1351,9 +1351,9 @@ const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
 document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,e.dataset.f?'fill':'')});
 function setIc(el,name,fill){ const s=name+(fill?'f':''); if(el.dataset.s===s) return; el.dataset.s=s; el.innerHTML=ic(name,fill?'fill':''); }
 
-const thumb0=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
+const thumb0=(u,s=300)=>{ u=String(u||''); const s0=s; s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
   if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
-  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s>400?'hq720':'mqdefault'}.jpg`;
+  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s0>400?'hq720':'mqdefault'}.jpg`;
   return u; };
 const IMG_NET=/^https?:\/\/(i\.ytimg\.com|[\w-]+\.(googleusercontent|ggpht)\.com)\//;
 /* ẢNH BÌA – luôn phải hiện. Mọi bước đều chạy ngay trên máy người dùng (không phụ thuộc server):
@@ -1400,8 +1400,8 @@ function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[s
   const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
   const r=i.getBoundingClientRect(); if(!r.width||r.bottom<-600||r.top>innerHeight+600||r.right<-300||r.left>innerWidth+300) return;   /* ảnh lazy ngoài màn hình thì chưa tính */
   if(!i.dataset.t) i.dataset.t=now;
-  if(force||(bad&&now-(+i.dataset.t)>1000)||(!bad&&now-(+i.dataset.t)>2500)) imgNext(i); }); }
-setInterval(()=>{ if(!document.hidden) imgSweep(false); },2000);
+  if(force||(bad&&now-(+i.dataset.t)>300)||(!bad&&now-(+i.dataset.t)>2000)) imgNext(i); }); }
+setInterval(()=>{ if(!document.hidden) imgSweep(false); },800);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
 const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
@@ -2649,9 +2649,10 @@ function netBack(){
   netDown=false; clearInterval(offWatchTm); offWatchTm=0;
   if(bootedOffline){
     if(!playing){ location.reload(); return; }
+    // Đang phát nhạc nên không reload (sẽ ngắt bài): khởi động lại phần còn lại của app ngay tại chỗ.
     bootedOffline=false;
-    api('/api/config').then(c=>{ if(c) cfg=c; }).catch(()=>{});
-    api('/api/settings').then(x=>{ if(x) Object.assign(S,x); }).catch(()=>{});
+    api('/api/me').then(u=>{ LS.set('muse_me',JSON.stringify(u)); start(u,false,true); }).catch(e=>{ if(e&&e.net){ bootedOffline=true; netDown=true; if(!offWatchTm) offWatch(); } });
+    return;
   }
   offBar(false);
   const m=$('#main'); if(m&&(m.querySelector('.offc')||page==='downloads')) go(page,undefined,false);
@@ -4176,7 +4177,7 @@ async function syncInit(){
   await syncNow();
 }
 
-async function start(u,offlineBoot){
+async function start(u,offlineBoot,resume){
   applyUser(u);
   if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
   try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{}
@@ -4200,7 +4201,8 @@ async function start(u,offlineBoot){
   if(offline){
     netDown=true; bootedOffline=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
   if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);
-  applyVol(); restorePlayState(); go('home');
+  if(!resume){ applyVol(); restorePlayState(); }
+  go('home');
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
@@ -4210,7 +4212,6 @@ async function start(u,offlineBoot){
     return;
   }
   syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
-  try{ if('Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch{}
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
   setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
