@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
         buildErrorBox()
         root.addView(errorBox)
         setContentView(root)
+        requestHighRefreshRate()
 
         // Service worker của web (lưu ảnh bìa) tự gọi mạng, không đi qua WebViewClient: cho nó đi qua LocalAudio.handleImage luôn.
         android.webkit.ServiceWorkerController.getInstance().setServiceWorkerClient(object : android.webkit.ServiceWorkerClient() {
@@ -313,8 +314,28 @@ class MainActivity : ComponentActivity() {
             .show()
     }
 
+    // Xin Android chạy app ở tần số quét cao nhất của màn hình (90/120/144Hz). Mặc định nhiều máy chỉ cho app WebView chạy 60Hz,
+    // nên vuốt trông "khựng" dù màn hình hỗ trợ 120Hz. Máy chỉ có 60Hz thì hàm này không làm gì.
+    private fun requestHighRefreshRate() {
+        try {
+            @Suppress("DEPRECATION")
+            val d = windowManager.defaultDisplay
+            val cur = d.mode
+            val best = d.supportedModes
+                .filter { it.physicalWidth == cur.physicalWidth && it.physicalHeight == cur.physicalHeight }
+                .maxByOrNull { it.refreshRate } ?: return
+            if (best.refreshRate > cur.refreshRate + 1f || window.attributes.preferredDisplayModeId != best.modeId) {
+                val lp = window.attributes
+                lp.preferredDisplayModeId = best.modeId
+                lp.preferredRefreshRate = best.refreshRate
+                window.attributes = lp
+            }
+        } catch (_: Throwable) {}
+    }
+
     override fun onResume() {
         super.onResume()
+        requestHighRefreshRate()
         web.onResume(); web.resumeTimers()
         if (errorBox.visibility == View.VISIBLE) loadServer()
     }
