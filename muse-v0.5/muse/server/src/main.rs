@@ -412,6 +412,7 @@ async fn run_audio_only() {
         http_proxy: None,
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
     };
     let router = Router::new().route("/api/yt/audio/:id", get(yt_audio)).with_state(st);
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
