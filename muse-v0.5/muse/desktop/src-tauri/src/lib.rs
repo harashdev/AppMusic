@@ -302,6 +302,7 @@ mod gateway {
             .env("GATEWAY_REMOTE", remote)
             .env("PORT", PORT.to_string())
             .env("BIND", "127.0.0.1")
+            .env("GATEWAY_LOCAL_UI", "1")
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
