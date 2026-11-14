@@ -23,6 +23,15 @@ jobs:
       - name: Install tauri-cli
         run: cargo install tauri-cli --version "^2" --locked
 
+      # Cổng nhà: build muse-server rồi chép vào binaries/ để Tauri nhét cạnh file .exe (xem desktop/src-tauri/src/lib.rs).
+      - name: Build muse-server (cổng nhà)
+        shell: bash
+        working-directory: muse-v0.5/muse/server
+        run: |
+          cargo build --release
+          mkdir -p ../desktop/src-tauri/binaries
+          cp target/release/muse-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
+
       - name: Tải Discord Social SDK
         id: sdk
         shell: bash
@@ -80,6 +89,7 @@ jobs:
           cp target/release/muse-server.exe ../dist/muse-server/
           cp -r static ../dist/muse-server/static
           cp start-muse.bat ../dist/muse-server/
+          cp start-gateway.bat ../dist/muse-server/
       - uses: actions/upload-artifact@v4
         with:
           name: muse-server-windows
