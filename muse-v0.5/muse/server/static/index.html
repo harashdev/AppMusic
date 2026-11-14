@@ -2615,7 +2615,12 @@ const pages={
         dl={linked:false,name:'',sdk:false}; S.discord_rpc=false; dc.user=''; discordClear();
         notify('Đã hủy liên kết Discord'); go('settings');
       }else{
-        const r=await api('/api/discord/link',{method:'POST'}); location.href=r.url;
+        const r=await api('/api/discord/link',{method:'POST'});
+        if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP){
+          // App desktop: mở Discord bằng trình duyệt hệ thống để cửa sổ app không bị đẩy khỏi cổng nhà (127.0.0.1:38417), rồi chờ liên kết xong.
+          openExt(r.url); notify('Đã mở trình duyệt – đăng nhập Discord xong thì quay lại app');
+          for(let i=0;i<60;i++){ await new Promise(z=>setTimeout(z,3000)); try{ const s=await api('/api/discord/status'); if(s&&s.linked){ dl=s; notify('Đã liên kết Discord'); go('settings'); return; } }catch{} }
+        }else location.href=r.url;
       }
     }catch(e){ if(e.message!=='401') notify(e.message); } });
     if($('#dcBtn')) act('dcBtn',async()=>{ try{ const u=await discordConnect(); $('#dcSt').textContent='Đã kết nối: '+u; notify('Đã kết nối Discord'); }catch(e){ notify(String(e&&e.message||e)); } });
@@ -2941,22 +2946,15 @@ async function connect(){
     setRoomUi(room); }
   let tk; try{ tk=await wsTicket(); }catch{ if(token) setTimeout(connect,3000); return; }
   ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?ticket='+encodeURIComponent(tk));
-  ws.onopen=()=>send({type:'hello',cid:CID});
+  ws.onopen=()=>send({type:'hello'});
   ws.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
   ws.onclose=()=>{ if(token) setTimeout(connect,2000); };
 }
 function send(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }
 function pushChat(html){ chatLog.push(html); if(chatLog.length>200) chatLog.shift(); const c=$('#chat'); if(c){ c.insertAdjacentHTML('beforeend',html); c.scrollTop=1e9; } }
-const helloAt={};
 const sysLine=t=>pushChat(`<div class="sys">${esc(t)}</div>`);
 function onMsg(m){
-  if(m.type==='hello'){
-    // Mỗi lần mạng chập chờn app tự nối lại và gửi lại hello → trước đây spam "đã vào phòng". Bỏ qua hello của chính mình
-    // và chỉ báo một lần cho mỗi người trong 10 phút (vẫn đồng bộ trạng thái cho người vừa nối lại).
-    const now=Date.now(); helloAt[m.from]=helloAt[m.from]||0;
-    if(m.cid!==CID&&now-helloAt[m.from]>600000) sysLine(m.from+' đã vào phòng');
-    if(m.cid!==CID) helloAt[m.from]=now;
-    if(cur&&leader) broadcastState(); }
+  if(m.type==='hello'){ sysLine(m.from+' đã vào phòng'); if(cur&&leader) broadcastState(); }
   else if(m.type==='chat') pushChat(`<div><b>${esc(m.from)}:</b> ${esc(m.text)}</div>`);
   else if(m.type==='state'&&m.track){
     if(m.cid===CID) return;
