@@ -24,6 +24,10 @@ class MuseBridge(private val ctx: Context) {
     // Bài nào đang tải dở bằng nguồn nào ("local" = tiến trình cục bộ, "native" = NativeYt). Hai nguồn có thể chọn định dạng/bitrate
     // khác nhau, nên các đoạn của MỘT file phải đến từ cùng một nguồn, nếu không file ghép ra sẽ hỏng.
     private val dlSrc = java.util.concurrent.ConcurrentHashMap<String, String>()
+    // Tổng dung lượng file của lần tải dở: các đoạn sau phải khớp, không thì link mới là file khác (định dạng/bitrate khác) → không ghép.
+    private val dlTotal = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    // Nguồn cục bộ đã làm đứt tải bài này: lần tải lại từ đầu bỏ qua nguồn đó.
+    private val dlLocalBad = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     /**
      * Tải một đoạn nhạc YouTube ngay trong app (IP điện thoại), không qua WebView fetch. Chạy nền, xong gọi lại
@@ -35,24 +39,40 @@ class MuseBridge(private val ctx: Context) {
         thread(isDaemon = true, name = "muse-dl") {
             val webm = fmt == "webm"
             var ch: AudioChunk? = null
+            var localNote = ""
             if (start <= 0L) {
-                dlSrc.remove(id)
-                ch = runCatching { LocalAudio.fetchChunk(id, fmt, 0L) }.getOrNull()
-                if (ch != null) dlSrc[id] = "local"
-                else {
-                    ch = runCatching { NativeYt.fetchChunk(id, webm, 0L) }.getOrNull()
-                    if (ch != null) dlSrc[id] = "native"
+                dlSrc.remove(id); dlTotal.remove(id)
+                // Bản Kotlin (NativeYt) trước: mỗi link đều được thử tải ở sâu trong file nên loại được link chết sau ~1MB.
+                // Tiến trình cục bộ chỉ là dự phòng (và bị bỏ qua nếu lần trước nó làm đứt tải bài này).
+                ch = runCatching { NativeYt.fetchChunk(id, webm, 0L) }.getOrNull()
+                if (ch != null) dlSrc[id] = "native"
+                else if (id !in dlLocalBad) {
+                    ch = runCatching { LocalAudio.fetchChunk(id, fmt, 0L) }.getOrNull()
+                    if (ch != null) dlSrc[id] = "local" else localNote = "tiến trình cục bộ: không lấy được"
                 }
+                if (ch != null) dlTotal[id] = ch.total
             } else {
-                ch = when (dlSrc[id]) {
+                val src = dlSrc[id]
+                ch = when (src) {
                     "local" -> runCatching { LocalAudio.fetchChunk(id, fmt, start) }.getOrNull()
                     "native" -> runCatching { NativeYt.fetchChunk(id, webm, start) }.getOrNull()
                     else -> null
                 }
+                val want = dlTotal[id]
+                if (ch != null && want != null && ch.total != want) {
+                    NativeYt.setError(id, "link mới có dung lượng khác (${ch.total} ≠ $want), không ghép được")
+                    ch = null
+                }
+                if (ch == null) {
+                    if (src == "local") dlLocalBad.add(id) // lần tải lại sau sẽ bỏ qua nguồn cục bộ
+                    localNote = "nguồn \"${src ?: "?"}\" đứt ở byte $start"
+                    dlSrc.remove(id)
+                }
             }
             val rid = reqId.filter { it.isLetterOrDigit() }
             val js = if (ch == null) {
-                val err = NativeYt.lastError(id).ifEmpty { "không lấy được luồng âm thanh trên máy" }
+                val err = listOf(NativeYt.lastError(id), localNote).filter { it.isNotEmpty() }.joinToString(" • ")
+                    .ifEmpty { "không lấy được luồng âm thanh trên máy" }
                 "window.museChunk&&museChunk('$rid',null,0,'',${JSONObject.quote(err)})"
             } else {
                 "window.museChunk&&museChunk('$rid','${ch.mime.filter { it.isLetterOrDigit() || it == '/' || it == '-' || it == '.' || it == '+' }}',${ch.total},'${Base64.encodeToString(ch.bytes, Base64.NO_WRAP)}')"

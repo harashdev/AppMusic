@@ -1618,6 +1618,23 @@ function gvKick(v){ try{ v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(
 new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return;
   if(n.matches&&n.matches('video[data-gv]')) gvKick(n); else if(n.querySelectorAll) n.querySelectorAll('video[data-gv]').forEach(gvKick); }); }).observe(document.documentElement,{childList:true,subtree:true});
 const okImgUrl=u=>/^(\/(banners|backgrounds|avatars)\/[\w.-]+|https:\/\/[^\s"'()\\]+|blob:[^\s"'()\\]+)$/.test(u||'');
+/* Tải trước banner + avatar (của mình và bạn bè) ngay khi mở app, để lúc bấm vào thẻ hồ sơ ảnh đã nằm sẵn trong bộ nhớ đệm
+   thay vì mới bắt đầu tải (5–10 giây). File upload có tên UUID và server gửi Cache-Control immutable nên chỉ tải đúng 1 lần. */
+const upSeen=new Set();
+function warmBanners(users){
+  try{
+    for(const u of (users||[])){
+      if(!u) continue;
+      for(const s of [u.banner,u.avatar]){
+        if(!s||!/^\/(banners|avatars)\/[\w.-]+$/.test(s)||upSeen.has(s)) continue;
+        upSeen.add(s);
+        const i=new Image(); i.decoding='async'; i.src=s; if(i.decode) i.decode().catch(()=>{}); // giải mã sẵn luôn
+        const v=GIF_LIVE?vidOf(s):''; if(v) fetch(v,{cache:'force-cache'}).catch(()=>{}); // bản video của GIF
+      }
+    }
+    if(upSeen.size>400) upSeen.clear();
+  }catch{}
+}
 function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
   const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
@@ -2972,6 +2989,7 @@ function showFriendReq(m){
 async function loadFriends(){
   const box=$('#friends'); if(!box) return;
   const list=await api('/api/friends');
+  warmBanners(list);
   const sig=JSON.stringify(list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]));
   if(box.dataset.sig===sig&&box.childElementCount) return;
   box.dataset.sig=sig; box.innerHTML='';
@@ -3627,14 +3645,18 @@ async function dlRun(it){
       const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
       const parts=[]; let pos=0,total=0,mime='';
       let nat=!!(window.MuseNative&&typeof window.MuseNative.audioChunkAsync==='function');
-      let natErr='';
+      let natErr='', restarts=0;
       for(;;){
         let b=null, partial=true;
         if(nat){
-          let c=null; for(let tr=0;tr<2&&!c;tr++) c=await nativeChunk(t.id,fxFmt,pos);
+          // Trong app Android: chỉ tải bằng IP điện thoại, KHÔNG rơi về server.
+          let c=null; for(let tr=0;tr<(pos===0?2:1)&&!c;tr++) c=await nativeChunk(t.id,fxFmt,pos);
           if(c&&c.blob.size){ b=c.blob; mime=c.mime||mime; total=c.total; }
-          else if(pos===0){ natErr=nativeChunk.err||natWhy(t.id)||'không rõ nguyên nhân'; nat=false; } // không lấy được trong app → thử server, nhưng nhớ lý do thật
-          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB)'+(nativeChunk.err?': '+nativeChunk.err:''));
+          else if(pos===0) throw new Error('Không lấy được nhạc bằng IP điện thoại: '+(nativeChunk.err||natWhy(t.id)||'không rõ nguyên nhân'));
+          else if(restarts<2){ // đứt giữa chừng (link chết sau ~1MB…): bỏ phần đã tải, lấy link/nguồn khác và tải lại từ đầu
+            restarts++; parts.length=0; pos=0; total=0; it.pct=0; dlRender(); continue;
+          }
+          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB, đã thử lại '+restarts+' lần)'+(nativeChunk.err?': '+nativeChunk.err:''));
         }
         if(!b){
           let r=null;
@@ -4157,13 +4179,14 @@ async function start(u,offlineBoot){
 (async()=>{
   if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
   let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
+  if(c) warmBanners([c]); // hồ sơ đã lưu: bắt đầu tải banner/avatar NGAY, không chờ /api/me
   try{
     const req=api('/api/me');
     // Đã có hồ sơ lưu sẵn: chỉ chờ server tối đa 6 giây (server Render ngủ có thể mất cả phút mới dậy), quá thì vào app luôn.
     let u;
     if(c){ req.catch(()=>{}); u=await Promise.race([req,new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{net:true})),6000))]); }
     else u=await req;
-    LS.set('muse_me',JSON.stringify(u)); start(u);
+    LS.set('muse_me',JSON.stringify(u)); warmBanners([u]); start(u);
   }catch(e){
     // Chỉ khi server trả đúng 401 (phiên hết hạn/không còn) mới bắt đăng nhập lại.
     // Mạng lỗi, server chậm/đang khởi động, 5xx... → KHÔNG đăng xuất: vào bằng hồ sơ đã lưu, tự tải lại khi server sống lại (offWatch).

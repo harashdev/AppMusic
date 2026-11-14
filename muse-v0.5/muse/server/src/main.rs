@@ -82,7 +82,14 @@ object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
 async fn security_headers(req: Request<Body>, next: Next) -> Response {
     let is_api = req.uri().path().starts_with("/api/");
+    // Banner / avatar / nền tải lên có tên là UUID mới cho mỗi lần upload (không bao giờ đổi nội dung) → cho trình duyệt/WebView
+    // giữ cả năm, lần mở sau hiện ngay không cần hỏi mạng.
+    let is_upload = {
+        let p = req.uri().path();
+        p.starts_with("/banners/") || p.starts_with("/avatars/") || p.starts_with("/backgrounds/")
+    };
     let mut res = next.run(req).await;
+    let ok_status = res.status().is_success();
     let h = res.headers_mut();
     fn set(h: &mut HeaderMap, k: &'static str, v: &'static str) {
         h.insert(header::HeaderName::from_static(k), HeaderValue::from_static(v));
@@ -100,6 +107,8 @@ async fn security_headers(req: Request<Body>, next: Next) -> Response {
     }
     if is_api && !h.contains_key(header::CACHE_CONTROL) {
         set(h, "cache-control", "no-store");
+    } else if is_upload && ok_status && !h.contains_key(header::CACHE_CONTROL) {
+        set(h, "cache-control", "public, max-age=31536000, immutable");
     }
     res
 }

@@ -36,14 +36,18 @@ object NativeYt {
     private const val CHUNK = 2L * 1024 * 1024
     private const val TTL_MS = 3L * 3600 * 1000      // trần thời gian giữ link nếu link không có expire
     private const val STAGGER_MS = 350L              // so le giữa các client để không bắn cùng lúc
-    private const val PIPED_DELAY_MS = 1800L         // Piped chỉ là đường cuối
+    private const val PIPED_DELAY_MS = 4500L         // Piped chỉ là đường cuối
+    private const val LATE_DELAY_MS = 2500L          // thêm cho client cần PO token (iOS, TV_SIMPLY)
     private const val RACE_TIMEOUT_MS = 30_000L
+    // YouTube cho tải ~1MB đầu của link thiếu PO token rồi trả 403. Thử tải ở sâu trong file để loại link đó ngay từ đầu.
+    private const val DEEP_PROBE = 1536L * 1024
 
     private const val WEB_UA = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
 
     private class YtClient(
         val label: String, val name: String, val hid: String, val ver: String,
-        val ua: String, val extra: String, val embed: Boolean = false
+        val ua: String, val extra: String, val embed: Boolean = false,
+        val late: Boolean = false // client cần PO token (iOS, TV_SIMPLY): chỉ để dự phòng, bắt đầu muộn hơn
     )
 
     private const val VR_EXTRA = """{"deviceMake":"Oculus","deviceModel":"Quest 3","androidSdkVersion":32,"osName":"Android","osVersion":"12L"}"""
@@ -58,11 +62,11 @@ object NativeYt {
         YtClient("TV_EMBEDDED 2.0", "TVHTML5_SIMPLY_EMBEDDED_PLAYER", "85", "2.0",
             "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", "{}", embed = true),
         YtClient("IOS 21.26.4", "IOS", "5", "21.26.4",
-            "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)", IOS_EXTRA),
+            "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)", IOS_EXTRA, late = true),
         YtClient("IOS 20.10.4", "IOS", "5", "20.10.4",
-            "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)", IOS_EXTRA),
+            "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)", IOS_EXTRA, late = true),
         YtClient("TV_SIMPLY 1.0", "TVHTML5_SIMPLY", "75", "1.0",
-            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", "{}")
+            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", "{}", late = true)
     )
 
     private val pipedBases = listOf(
@@ -72,7 +76,7 @@ object NativeYt {
         "https://pipedapi.ducks.party"
     )
 
-    private data class Info(val url: String, val size: Long, val mime: String, val ua: String, val expAt: Long)
+    private data class Info(val url: String, val size: Long, val mime: String, val ua: String, val expAt: Long, val src: String = "")
     private class Res(val info: Info?)
 
     private val cache = ConcurrentHashMap<String, Info>()
@@ -82,8 +86,29 @@ object NativeYt {
     private val expireRe = Regex("[?&]expire=(\\d+)")
     private val totalRe = Regex("/(\\d+)\\s*$")
 
+    // Nguồn (nhãn client / "Piped") đã làm đứt tải bài này: lần lấy link kế tiếp bỏ qua nguồn đó.
+    // Mỗi mục tự hết hạn sau BAD_TTL_MS để một lỗi thoáng qua không loại nguồn đó mãi mãi.
+    private val badSrc = ConcurrentHashMap<String, ConcurrentHashMap<String, Long>>()
+    private const val BAD_TTL_MS = 10 * 60_000L
+
+    private fun badSet(id: String): Set<String> {
+        val m = badSrc[id] ?: return emptySet()
+        val now = System.currentTimeMillis()
+        m.entries.removeAll { now - it.value > BAD_TTL_MS }
+        return m.keys.toSet()
+    }
+
     /** Lý do lần lấy nhạc gần nhất của bài [id] thất bại (để hiện cho người dùng). Rỗng nếu chưa có lỗi. */
     fun lastError(id: String): String = lastErr[id] ?: ""
+
+    /** Cho nơi khác (MuseBridge) ghi lại lý do lỗi thật, thay vì câu chung chung. */
+    fun setError(id: String, msg: String) { lastErr[id] = msg }
+
+    private fun markBad(id: String, src: String) {
+        if (src.isEmpty()) return
+        badSrc.getOrPut(id) { ConcurrentHashMap<String, Long>() }[src] = System.currentTimeMillis()
+        cache.keys.removeAll { it.startsWith("$id|") }
+    }
 
     private fun keyOf(id: String, webm: Boolean) = id + "|" + (if (webm) "1" else "0")
 
@@ -122,12 +147,17 @@ object NativeYt {
         val total = clients.size + 1 // +1 là Piped
         val q = LinkedBlockingQueue<Res>()
         val stop = AtomicBoolean(false)
+        // Nếu mọi nguồn đều từng làm đứt tải bài này thì cho thử lại tất cả từ đầu.
+        val bad: Set<String> = badSet(id).let { if (it.size >= total) { badSrc.remove(id); emptySet() } else it }
 
         clients.forEachIndexed { i, c ->
             thread(isDaemon = true, name = "muse-yt-$i") {
                 var r: Info? = null
                 try {
-                    if (i > 0) Thread.sleep(i * STAGGER_MS)
+                    if (c.label in bad) throw Exception("bỏ qua (link lần trước bị đứt giữa chừng)")
+                    // Client cần PO token chỉ là dự phòng: chờ thêm để client không cần token (ANDROID_VR, TV) kịp trả lời trước.
+                    val wait = i * STAGGER_MS + (if (c.late) LATE_DELAY_MS else 0L)
+                    if (wait > 0) Thread.sleep(wait)
                     if (!stop.get()) r = verified(viaClient(c, id, webm))
                 } catch (e: Exception) {
                     val m = c.label + ": " + (e.message ?: e.javaClass.simpleName)
@@ -140,6 +170,7 @@ object NativeYt {
         thread(isDaemon = true, name = "muse-yt-piped") {
             var r: Info? = null
             try {
+                if ("Piped" in bad) throw Exception("bỏ qua (link lần trước bị đứt giữa chừng)")
                 Thread.sleep(PIPED_DELAY_MS)
                 if (!stop.get()) r = viaPiped(id, webm)
             } catch (e: Exception) {
@@ -225,7 +256,7 @@ object NativeYt {
             val url = f.optString("url")
             val size = f.optString("contentLength", "0").toLongOrNull() ?: 0L
             val mime = f.optString("mimeType").substringBefore(';').trim().ifEmpty { "audio/mp4" }
-            return Info(url, size, mime, c.ua, expiryOf(url))
+            return Info(url, size, mime, c.ua, expiryOf(url), c.label)
         } finally {
             conn.disconnect()
         }
@@ -254,7 +285,7 @@ object NativeYt {
                 val url = f.optString("url")
                 val size = f.optLong("contentLength", 0L)
                 val mime = f.optString("mimeType").substringBefore(';').trim().ifEmpty { "audio/mp4" }
-                val info = Info(url, size, mime, WEB_UA, minOf(System.currentTimeMillis() + 30 * 60_000L, expiryOf(url)))
+                val info = Info(url, size, mime, WEB_UA, minOf(System.currentTimeMillis() + 30 * 60_000L, expiryOf(url)), "Piped")
                 return verified(info)
             } catch (e: Exception) {
                 last = "$base: ${e.message ?: e.javaClass.simpleName}"
@@ -294,7 +325,19 @@ object NativeYt {
                 size = conn.getHeaderField("Content-Range")?.let { totalRe.find(it)?.groupValues?.get(1)?.toLongOrNull() } ?: 0L
             }
             if (size <= 0L) throw Exception("không biết dung lượng luồng")
-            return if (size == info.size) info else info.copy(size = size)
+            val ok = if (size == info.size) info else info.copy(size = size)
+            // Link thiếu PO token qua được 1KB đầu nhưng chết ở sâu hơn: thử thêm một đoạn ở ~1.5MB và một đoạn gần cuối file.
+            for (at in listOf(DEEP_PROBE, size - 64 * 1024).distinct()) {
+                if (at <= 1024L || at + 16 >= size) continue
+                val c2 = openRange(ok, at, at + 15)
+                    ?: throw Exception("link chỉ tải được phần đầu, bị chặn từ byte $at (thiếu PO token)")
+                try {
+                    if (c2.inputStream.read(ByteArray(16)) <= 0) throw Exception("link trả dữ liệu rỗng ở byte $at")
+                } finally {
+                    c2.disconnect()
+                }
+            }
+            return ok
         } finally {
             conn.disconnect()
         }
@@ -310,15 +353,16 @@ object NativeYt {
             val conn = openRange(info, start, end)
             if (conn == null) {
                 cache.remove(keyOf(id, webm))
-                lastErr[id] = "link hết hạn hoặc đổi mạng giữa chừng (tải đoạn $start thất bại)"
+                markBad(id, info.src) // lần lấy link kế tiếp dùng client khác
+                lastErr[id] = "${info.src.ifEmpty { "link" }} bị YouTube từ chối ở byte $start (hết hạn, đổi mạng hoặc thiếu PO token)"
                 continue
             }
             return try {
                 val b = conn.inputStream.use { it.readBytes() }
-                if (b.isEmpty()) { lastErr[id] = "nhận đoạn dữ liệu rỗng"; null } else AudioChunk(b, info.size, info.mime)
+                if (b.isEmpty()) { lastErr[id] = "nhận đoạn dữ liệu rỗng"; markBad(id, info.src); null } else AudioChunk(b, info.size, info.mime)
             } catch (e: Exception) {
                 lastErr[id] = "đứt kết nối khi tải đoạn $start: ${e.message ?: e.javaClass.simpleName}"
-                cache.remove(keyOf(id, webm))
+                markBad(id, info.src)
                 null
             } finally { conn.disconnect() }
         }
