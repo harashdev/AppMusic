@@ -42,6 +42,15 @@ android {
     if (hasSdk) {
         externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt") } }
     }
+    // Chìa khoá ký cố định (đặt trong repo) để mọi bản build từ GitHub Actions cài đè được lên nhau. Chỉ dùng cho app cá nhân.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("muse-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
