@@ -580,12 +580,32 @@ fn gw_hop(name: &str) -> bool {
     )
 }
 
+// Trang chờ: khi server chính chưa sẵn sàng (Render đang ngủ/khởi động, mất mạng...) thì cửa sổ app không kẹt ở trang lỗi,
+// mà tự nạp lại mỗi 3 giây cho tới khi vào được.
+const GW_RETRY_HTML: &str = r#"<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>BBeat</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{height:100%;margin:0;background:#07070b;color:#ededf2;font-family:system-ui,sans-serif}body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}.s{width:34px;height:34px;border:3px solid #333;border-top-color:#8ecbff;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}p{margin:0;color:#a6a6b4;font-size:14px}</style></head><body><div class="s"></div><b>Đang kết nối tới máy chủ…</b><p>Máy chủ có thể đang khởi động, app sẽ tự vào khi sẵn sàng.</p><script>setTimeout(function(){location.reload()},3000)</script></body></html>"#;
+
+fn gw_retry_page() -> Response {
+    (
+        StatusCode::SERVICE_UNAVAILABLE,
+        [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-store")],
+        GW_RETRY_HTML,
+    )
+        .into_response()
+}
+
 // Chuyển tiếp nguyên một yêu cầu HTTP lên server chính rồi trả lại phản hồi (không giải nén, không tự theo chuyển hướng).
 async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
     let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
     let (parts, body) = req.into_parts();
     let pq = parts.uri.path_and_query().map(|p| p.as_str()).unwrap_or("/");
     let url = format!("{}{}", g.remote, pq);
+    let is_nav = parts.method == axum::http::Method::GET
+        && parts
+            .headers
+            .get("accept")
+            .and_then(|v| v.to_str().ok())
+            .map(|a| a.contains("text/html"))
+            .unwrap_or(false);
     let bytes = match axum::body::to_bytes(body, 16 * 1024 * 1024).await {
         Ok(b) => b,
         Err(_) => return StatusCode::PAYLOAD_TOO_LARGE.into_response(),
@@ -604,6 +624,9 @@ async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
     match rb.send().await {
         Ok(r) => {
             let status = r.status();
+            if is_nav && matches!(status.as_u16(), 502 | 503 | 504) {
+                return gw_retry_page();
+            }
             let headers = r.headers().clone();
             match r.bytes().await {
                 Ok(b) => {
@@ -617,10 +640,20 @@ async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
                     }
                     out
                 }
-                Err(e) => (StatusCode::BAD_GATEWAY, format!("Cổng nhà: lỗi đọc phản hồi từ server chính ({e})")).into_response(),
+                Err(e) => {
+                    if is_nav {
+                        return gw_retry_page();
+                    }
+                    (StatusCode::BAD_GATEWAY, format!("Cổng nhà: lỗi đọc phản hồi từ server chính ({e})")).into_response()
+                }
             }
         }
-        Err(e) => (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} ({e})", g.remote)).into_response(),
+        Err(e) => {
+            if is_nav {
+                return gw_retry_page();
+            }
+            (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} ({e})", g.remote)).into_response()
+        }
     }
 }
 
