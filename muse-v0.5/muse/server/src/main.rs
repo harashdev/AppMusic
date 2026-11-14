@@ -18,6 +18,7 @@ use futures_util::{SinkExt, StreamExt};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
@@ -208,11 +209,26 @@ fn new_token() -> String {
     format!("{}{}", uuid::Uuid::new_v4().simple(), uuid::Uuid::new_v4().simple())
 }
 
+// Token phiên chỉ được lưu dưới dạng băm SHA-256 ("h1:" + hex): lộ file muse.db cũng không dùng lại được phiên đăng nhập.
+// Người dùng giữ token gốc; mỗi lần gọi API server băm lại rồi so khớp.
+fn tok_hash(t: &str) -> String {
+    let d = Sha256::digest(t.as_bytes());
+    let mut s = String::with_capacity(3 + d.len() * 2);
+    s.push_str("h1:");
+    for b in d.iter() {
+        s.push_str(&format!("{:02x}", b));
+    }
+    s
+}
+
+// Băm giả để mất thời gian như khi kiểm tra mật khẩu thật: tên đăng nhập không tồn tại không trả lời nhanh hơn tên có thật.
+static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
 fn user_from_token(db: &Connection, token: &str) -> Option<User> {
     let sql = "SELECT u.id,u.username,u.display_name,u.avatar,u.accent,u.bg,u.bg_url,u.code,u.is_admin,u.banner,u.banner_color,u.status,u.crop \
                FROM users u JOIN sessions s ON s.user_id=u.id \
                WHERE s.token=?1 AND s.created_at > datetime('now','-30 days')";
-    db.query_row(sql, [token], row_to_user).ok()
+    db.query_row(sql, [tok_hash(token)], row_to_user).ok()
 }
 fn bearer(h: &HeaderMap) -> Option<String> {
     h.get("authorization")?.to_str().ok()?.strip_prefix("Bearer ").map(|s| s.to_string())
@@ -302,6 +318,18 @@ fn init_db(path: &std::path::Path) -> Connection {
         "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
         [],
     );
+    // Nâng cấp bảo mật: token phiên cũ (lưu thô) -> băm SHA-256, người dùng không bị đăng xuất.
+    let mut olds: Vec<String> = Vec::new();
+    if let Ok(mut stmt) = db.prepare("SELECT token FROM sessions WHERE token NOT LIKE 'h1:%'") {
+        if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+            for t in rows.flatten() {
+                olds.push(t);
+            }
+        };
+    }
+    for t in olds {
+        let _ = db.execute("UPDATE sessions SET token=?1 WHERE token=?2", params![tok_hash(&t), t]);
+    }
     // Dọn dữ liệu SoundCloud cũ (nguồn "sc" đã bị gỡ).
     for t in ["favorites", "history", "playlist_tracks"] {
         let _ = db.execute(&format!("DELETE FROM {t} WHERE track_key LIKE 'sc:%'"), []);
@@ -545,7 +573,7 @@ async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std
     }
     let id = db.last_insert_rowid();
     let token = new_token();
-    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![token, id]).map_err(|_| e500())?;
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), id]).map_err(|_| e500())?;
     let user = db
         .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [id], row_to_user)
         .map_err(|_| e500())?;
@@ -570,6 +598,9 @@ async fn login(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::n
         x
     };
     let Some((id, hash)) = row else {
+        let dummy = DUMMY_HASH.get_or_init(|| hash_pw("dummy-password-for-timing").unwrap_or_default()).clone();
+        let pw = r.password.clone();
+        let _ = tokio::task::spawn_blocking(move || verify_pw(&pw, &dummy)).await;
         rl_hit(&st, &ukey, 600);
         rl_hit(&st, &ikey, 600);
         return Err(unauth_login());
@@ -585,7 +616,7 @@ async fn login(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::n
     let db = st.db.lock().unwrap();
     let _ = db.execute("DELETE FROM sessions WHERE created_at < datetime('now','-30 days')", []);
     let token = new_token();
-    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![token, id]).map_err(|_| e500())?;
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), id]).map_err(|_| e500())?;
     let user = db
         .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [id], row_to_user)
         .map_err(|_| e500())?;
@@ -596,7 +627,7 @@ fn unauth_login() -> ApiErr { (StatusCode::UNAUTHORIZED, "Sai tên đăng nhập
 async fn logout(State(st): State<AppState>, headers: HeaderMap) -> StatusCode {
     if let Some(t) = bearer(&headers) {
         let db = st.db.lock().unwrap();
-        let _ = db.execute("DELETE FROM sessions WHERE token=?1", [t]);
+        let _ = db.execute("DELETE FROM sessions WHERE token=?1", [tok_hash(&t)]);
     }
     StatusCode::OK
 }
@@ -1241,7 +1272,7 @@ async fn account_password(State(st): State<AppState>, headers: HeaderMap, Json(r
     let db = st.db.lock().unwrap();
     db.execute("UPDATE users SET pass_hash=?1 WHERE id=?2", params![hash, user.id]).map_err(|_| e500())?;
     // Đăng xuất mọi thiết bị khác, giữ phiên hiện tại.
-    let _ = db.execute("DELETE FROM sessions WHERE user_id=?1 AND token<>?2", params![user.id, token]);
+    let _ = db.execute("DELETE FROM sessions WHERE user_id=?1 AND token<>?2", params![user.id, tok_hash(&token)]);
     Ok(StatusCode::OK)
 }
 
