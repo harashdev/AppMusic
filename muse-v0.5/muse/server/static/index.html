@@ -1292,7 +1292,7 @@ let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=
 let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30,show_errors:false}, fadeMul=1, fadeInAt=0;
 let leader=false, offset=0, pend=null, queue=[], qi=-1, shuf=false, rep=0, vol=+LS.get('vol',0.8), lastVol=.8, seeking=false, qname='';
 let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache={}, lyrLines=null, homeCi=0, lastQ='', showVideo=LS.get('vid','0')==='1', npOpen=LS.get('npopen','0')==='1', npTab='play';
-const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=String(n||'').replace(/^Kết quả: /,'');return k};
+const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=String(n||'').replace(/^Kết quả: /,'');try{ warmList(l); }catch{} return k};
 const now=()=>Date.now()+offset;
 const aud=$('#aud');
 const offSet=new Set(), offUrl={}, offBad={}; let offOrder=[], netDown=false;
@@ -1780,9 +1780,24 @@ function warmTrack(t){
     fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
   }catch{}
 }
+/* Làm sẵn cho các bài đang hiện trên màn hình (như SimpMusic): lấy trước luồng nhạc + cover cỡ lớn (màn hình Đang phát) để
+   bấm vào là có cover và nhạc ngay. Xếp hàng, mỗi 450ms làm 1 bài – không bắn cả chục cuộc lấy luồng cùng lúc làm chậm bài đang bấm. */
+const warmQ=[]; let warmQTm=0;
+function warmTrackFull(t){ warmTrack(t); warmImgs([t],800,1); warmImgs([t],96,1); }
+function warmPump(){
+  warmQTm=0; const now=Date.now();
+  while(warmQ.length){ const x=warmQ.shift(); if(now-x.at>10000) continue; try{ warmTrackFull(x.t); }catch{} break; }
+  if(warmQ.length) warmQTm=setTimeout(warmPump,450);
+}
+function warmList(list,n=3){
+  const now=Date.now();
+  for(let i=warmQ.length-1;i>=0;i--) if(now-warmQ[i].at>10000) warmQ.splice(i,1);
+  for(const t of (list||[]).slice(0,n)){ if(!t||warmQ.length>=12||warmQ.some(x=>x.t.id===t.id)) continue; warmQ.push({t,at:now}); }
+  if(warmQ.length&&!warmQTm) warmQTm=setTimeout(warmPump,0);
+}
 $('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
-  const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrack(t); },{passive:true});
-function warmFirst(list,n=4){ (list||[]).slice(0,n).forEach(warmTrack); }
+  const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrackFull(t); },{passive:true});
+function warmFirst(list,n=4){ warmList(list,n); }
 let warmNextTm=0;
 function warmNext(){
   clearTimeout(warmNextTm);
