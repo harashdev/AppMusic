@@ -1919,7 +1919,7 @@ async function tasteProfile(){
   const empty=buildProfile({},{},new Set(),0);
   const got=await Promise.race([
     Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
-    new Promise(r=>setTimeout(()=>r(null),1500))
+    new Promise(r=>setTimeout(()=>r(null),saved()?1500:12000)) // chưa có hồ sơ lưu (mới cài app / server đang khởi động): chờ lâu hơn thay vì bỏ trống mục gợi ý
   ]);
   if(!got) return saved()||empty;
   const hist=Array.isArray(got[0])?got[0].slice(0,300):[], fav=Array.isArray(got[1])?got[1]:[];
@@ -2101,7 +2101,11 @@ const dayNum=()=>{ const d=new Date(); return d.getFullYear()*10000+(d.getMonth(
 async function loadDaily(tp){
   const ck=uKey('muse_daily'), today=dayNum();
   try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&Array.isArray(o.r)&&o.r.length>=8) return o.r.filter(t=>!tp.skipKeys.has(key(t))); }catch{}
-  const pool=(tp.artsAll||[]).slice(0,10); if(!pool.length) return [];
+  const pool=(tp.artsAll||[]).slice(0,10);
+  if(!pool.length){ // chưa có lịch sử nghe: vẫn có gợi ý hằng ngày theo chủ đề thịnh hành, đổi mỗi ngày
+    const qs=['nhạc việt hot','top global hits','nhạc trẻ mới nhất','kpop hits','lofi chill beats'];
+    try{ return (await ytSearch(qs[today%qs.length],true)).filter(t=>t&&t.id&&!(tp.skipKeys&&tp.skipKeys.has(key(t)))).slice(0,24); }catch{ return []; }
+  }
   const rnd=rngMake(strHash(today+':'+((typeof me!=='undefined'&&me&&me.id)||0)));
   const picks=pickW(pool,a=>Math.sqrt(Math.max(a.c,.05)),rnd,Math.min(4,pool.length));
   const fetched=await Promise.all(picks.map(a=>ytSearch('sim:'+a.n,true).then(r=>r.filter(t=>!artistHit(t,a.n))).catch(()=>[])));
@@ -2137,7 +2141,11 @@ async function loadNewDaily(tp){
   const seen=ndSeenGet(), nowD=dayOf(today);
   Object.keys(seen).forEach(k=>{ if(nowD-dayOf(seen[k])>14) delete seen[k]; });
   const ownL=(tp.artsAll||[]).filter(a=>goodArtist(a.n)).slice(0,14);
-  if(!ownL.length) return [];
+  if(!ownL.length){ // chưa có lịch sử nghe: lấy nhạc mới thịnh hành
+    try{ const l=(await ytSearch('nhạc mới ra mắt '+new Date().getFullYear(),true)).filter(t=>t&&t.id&&!ndJunk(t,false)), out=[], per={};
+      for(const t of l){ const a=splitArtists(t.artist)[0]||''; if(!a||per[a]) continue; per[a]=1; out.push({t,a,w:'Thịnh hành hôm nay'}); if(out.length>=10) break; }
+      return out; }catch{ return []; }
+  }
   const mx=Math.max(...ownL.map(a=>a.c),1), aff=a=>Math.sqrt(Math.max(a.c,.05)/mx);
   const ownSet=new Set(ownL.map(a=>a.n.toLowerCase()));
   const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!tp.seen.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
