@@ -28,9 +28,9 @@ jobs:
         shell: bash
         working-directory: muse-v0.5/muse/server
         run: |
-          cargo build --release --features embed-ui
+          cargo build --release
           mkdir -p ../desktop/src-tauri/binaries
-          cp target/release/BBeat-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
+          cp target/release/muse-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
 
       - name: Tải Discord Social SDK
         id: sdk
@@ -86,7 +86,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p ../dist/muse-server
-          cp target/release/BBeat-server.exe ../dist/muse-server/
+          cp target/release/muse-server.exe ../dist/muse-server/
           cp -r static ../dist/muse-server/static
           cp start-muse.bat ../dist/muse-server/
           cp start-gateway.bat ../dist/muse-server/

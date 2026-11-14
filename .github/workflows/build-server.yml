@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist/data
-          cp target/release/BBeat-server.exe dist/muse-server.exe
+          cp target/release/muse-server.exe dist/
           cp -r static dist/static
           cp start-muse.bat dist/
           echo "Thư mục lưu dữ liệu Muse (tài khoản, playlist, ảnh). Đừng xoá khi cập nhật server." > dist/data/README.txt

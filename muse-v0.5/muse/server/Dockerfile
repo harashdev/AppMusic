@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
 COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 WORKDIR /app
-COPY --from=build /app/target/release/BBeat-server /app/muse-server
+COPY --from=build /app/target/release/muse-server /app/muse-server
 COPY static ./static
 VOLUME /app/data
 EXPOSE 3000

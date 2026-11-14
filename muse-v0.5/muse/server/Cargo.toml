@@ -1,5 +1,5 @@
 [package]
-name = "BBeat-server"
+name = "muse-server"
 version = "0.5.0"
 edition = "2021"
 
