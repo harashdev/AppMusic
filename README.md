@@ -3,17 +3,8 @@
 ```
 muse/
 ├─ server/   Axum + SQLite: đăng nhập, avatar GIF, bạn bè, playlist, yêu thích, lịch sử, phòng nghe chung + giao diện web
-├─ desktop/  Tauri v2: app desktop kết nối tới server
-└─ client/   (mới, thử nghiệm) Rust thuần + egui: app desktop không dùng WebView2, tiết kiệm RAM
+└─ desktop/  Tauri v2: app desktop kết nối tới server
 ```
-
-## Client Rust thuần (`client/`) – branch `rewrite/egui-native`
-Bản viết lại giao diện desktop bằng **egui**, phát nhạc **native** (rodio/symphonia) qua endpoint có sẵn `/api/yt/audio/:id` của server, không còn WebView2 hay player YouTube nhúng.
-
-- Đã có: đăng nhập/đăng ký (nhớ phiên), trang chủ (gợi ý), tìm kiếm, yêu thích, lịch sử, hàng đợi, playlist (tạo/xóa/thêm/bớt), thanh phát nhạc (tua, âm lượng, lặp, phím cách).
-- Chưa có so với bản web: phòng nghe chung, bạn bè, hồ sơ/banner/GIF động, lời karaoke, Discord presence, cài đặt, tâm trạng/khám phá.
-- Bài hát được tải trọn về RAM (vài MB) rồi mới phát nên có độ trễ ngắn trước khi nghe. Chỉ giải mã AAC/MP4 (không dùng WebM/Opus).
-- Build: `cd muse-v0.5/muse/client && MUSE_URL=https://muse.example.com cargo build --release`, hoặc chạy workflow "Build native (Muse, egui)" trên GitHub Actions rồi tải file `.exe` ở mục Artifacts.
 
 ## Chạy server
 ```bash
@@ -127,8 +118,19 @@ Cùng ô *Cài đặt → Nhập playlist từ app khác*: dán link playlist c�
 
 
 
-## Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is"
-Kệ mới ở trang chủ (ngay dưới *Nghệ sĩ yêu thích*), bấm *Hiện tất cả* để xem toàn bộ. Bấm một thẻ để mở danh sách "This Is <nghệ sĩ>" (tối đa 50 bài tiêu biểu, có nút Phát / Xáo trộn / Lưu thành danh sách phát / Tải tất cả); bấm một bài để nghe.
-- **Không có danh sách nghệ sĩ viết sẵn.** Server đọc bảng xếp hạng YouTube Music (toàn cầu + khu vực theo ngôn ngữ trình duyệt; bảng lỗi thì dùng video đang thịnh hành từ tìm kiếm), lấy thứ hạng và **lượt xem** của từng bài, hỏi thêm **lượt thích** (Return YouTube Dislike) cho 30 bài đứng đầu, rồi chấm điểm độ hot của nghệ sĩ: các bài hot cộng dồn (bài thứ 2, 3… nhẹ dần) + hạng trên bảng nghệ sĩ + đang tăng/giảm hạng + quy mô khán giả. Kết quả cache 30 phút.
-- Trình duyệt chỉ nhích nhẹ thứ tự theo gu nghe của bạn (tối đa +25%) và ẩn nghệ sĩ bạn hay bỏ qua.
-- API mới: `GET /api/yt/best-artists?region=VN`, `GET /api/yt/this-is?name=…&id=…`, `GET /api/yt/artists?names=A|B` (ảnh nghệ sĩ cho kệ *Nghệ sĩ yêu thích*; route này trước đây frontend gọi nhưng server chưa có).
+## Cổng nhà – nhạc / album / tìm kiếm chạy bằng IP nhà, server chỉ lưu dữ liệu người dùng
+**Vì sao:** YouTube chặn IP của VPS/Render (IP trung tâm dữ liệu) nên khi đặt server trên mạng thì tìm kiếm, album, nghệ sĩ và luồng nhạc hay lỗi, trong khi chạy ở nhà vẫn tốt. Giải pháp: phần nói chuyện với YouTube chạy ngay trên máy của bạn (IP nhà), phần còn lại vẫn ở server chính.
+
+```
+App/trình duyệt ──► cổng nhà (127.0.0.1:38417, chạy ở nhà)
+                      ├─ /api/yt/*, /api/img  → tự lấy từ YouTube bằng IP nhà
+                      └─ mọi thứ còn lại (giao diện, đăng nhập, bạn bè, avatar/banner, WebSocket) → server chính
+```
+- **App desktop (BBeat):** tự bật cổng nhà (file `muse-server.exe` được đóng gói ngay cạnh app) rồi mở `http://127.0.0.1:38417`; thoát app thì tắt luôn. Nếu không bật được thì app mở thẳng server chính như cũ. Đặt biến môi trường `MUSE_DIRECT=1` để cố ý bỏ qua cổng nhà.
+- **Chạy tay / dùng trình duyệt:** chạy `start-gateway.bat` (sửa `GATEWAY_REMOTE` thành địa chỉ server chính) rồi mở `http://127.0.0.1:38417`. Hoặc `GATEWAY_REMOTE=https://... PORT=38417 muse-server`.
+- **Android:** app đã có tiến trình `libmuse_audio.so` chạy ở chế độ `AUDIO_ONLY`; bản này mở rộng cho cả tìm kiếm, album, nghệ sĩ (trước chỉ có nhạc). Tiến trình lỗi hoặc YouTube vẫn chặn thì WebView tự gọi lại server chính.
+- Cài đặt "nội dung nhạy cảm" của tài khoản được cổng nhà hỏi lại server chính (nhớ 60 giây); khách thì mặc định tắt.
+- `yt-dlp` / `deno` (tuỳ chọn, giúp khi YouTube hỏi "not a bot"): đặt cạnh `muse-server.exe`; biến `YT_BROWSER`, `YT_COOKIES`, `YTDLP_PATH` đặt như ở phần trên.
+- Server chính không cần đổi gì: nhớ đẩy `static/index.html` mới lên (cho phép service worker chạy ở 127.0.0.1) và build lại như bình thường.
+
+**Đóng gói desktop tại máy:** build server trước, chép vào `desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe` rồi mới `cargo tauri build` (GitHub Actions "Build desktop (Muse)" đã tự làm bước này).
