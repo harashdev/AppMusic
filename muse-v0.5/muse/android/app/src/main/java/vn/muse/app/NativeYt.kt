@@ -12,7 +12,12 @@ import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
 import org.schabi.newpipe.extractor.stream.StreamInfo
+import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
@@ -32,12 +37,15 @@ import kotlin.concurrent.thread
  *    bản cũ tin link đó nên hỏng, bản này bỏ link chết và chuyển sang client kế tiếp.
  *  - NewPipeExtractor (thư viện của NewPipe) chạy song song như một nguồn nữa: nó tự giải mã chữ ký/tham số n và đổi client
  *    theo YouTube, nên khi các client viết tay bị chặn thì vẫn có link. Mọi yêu cầu của nó cũng đi bằng IP điện thoại.
- *  - Cuối cùng mới thử các máy chủ Piped (gọi từ điện thoại) làm đường dự phòng.
+ *  - Không còn Piped: link Piped gắn với IP máy chủ Piped chứ không phải IP điện thoại. Giờ 100% là IP của người dùng.
  *  - Hết hạn link lấy từ tham số expire của chính link, không đoán 3 giờ.
  *  - Lỗi không còn bị nuốt: lý do từng client được ghi vào logcat (tag MuseYt) và trả về qua [lastError] để giao diện hiện ra.
  *
- * [LocalAudio.handle] gọi hàm này khi tiến trình cục bộ không có hoặc không lấy được nhạc. Mọi lỗi đều trả null để WebView
- * quay về gọi server như cũ.
+ * PHÁT NHẠC: NativeYt tự mở một máy chủ HTTP nhỏ ở 127.0.0.1:<cổng riêng> ([ensureProxy]). Trang web phát thẳng từ địa chỉ đó
+ * (MuseNative.audioUrl) nên thẻ <audio> dùng mạng của Chromium như phát một file bình thường, KHÔNG còn đi qua
+ * shouldInterceptRequest/WebResourceResponse (thứ từng cắt luồng thành từng lát 512KB–2MB rồi đứt giữa chừng gây giật/dừng).
+ * Proxy trả MỘT phản hồi cho cả đoạn được yêu cầu, tự tải nối tiếp từng đoạn từ googlevideo bằng IP điện thoại; nếu link
+ * đứt/hết hạn/đổi mạng giữa chừng thì tự lấy link mới và nối tiếp đúng byte đó, trình phát không hề biết.
  */
 object NativeYt {
     private const val TAG = "MuseYt"
@@ -46,7 +54,8 @@ object NativeYt {
     private const val CHUNK = 2L * 1024 * 1024
     private const val TTL_MS = 3L * 3600 * 1000      // trần thời gian giữ link nếu link không có expire
     private const val STAGGER_MS = 350L              // so le giữa các client để không bắn cùng lúc
-    private const val PIPED_DELAY_MS = 4500L         // Piped chỉ là đường cuối
+    private const val UP_CHUNK = 1L * 1024 * 1024    // mỗi lần xin googlevideo 1MB (proxy nối các đoạn lại thành một luồng)
+    private const val MAX_FAILS = 4                  // số lần đứt liên tiếp trước khi bỏ cuộc cho một kết nối
     private const val LATE_DELAY_MS = 2500L          // thêm cho client cần PO token (iOS, TV_SIMPLY)
     private const val NEWPIPE_DELAY_MS = 900L        // NewPipeExtractor chờ ANDROID_VR một chút rồi chạy song song
     private const val RACE_TIMEOUT_MS = 30_000L
@@ -80,13 +89,6 @@ object NativeYt {
             "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", "{}", late = true)
     )
 
-    private val pipedBases = listOf(
-        "https://pipedapi.kavin.rocks",
-        "https://api.piped.private.coffee",
-        "https://pipedapi.adminforge.de",
-        "https://pipedapi.ducks.party"
-    )
-
     private data class Info(val url: String, val size: Long, val mime: String, val ua: String, val expAt: Long, val src: String = "")
     private class Res(val info: Info?)
 
@@ -97,7 +99,7 @@ object NativeYt {
     private val expireRe = Regex("[?&]expire=(\\d+)")
     private val totalRe = Regex("/(\\d+)\\s*$")
 
-    // Nguồn (nhãn client / "Piped") đã làm đứt tải bài này: lần lấy link kế tiếp bỏ qua nguồn đó.
+    // Nguồn (nhãn client / "NewPipe") đã làm đứt tải bài này: lần lấy link kế tiếp bỏ qua nguồn đó.
     // Mỗi mục tự hết hạn sau BAD_TTL_MS để một lỗi thoáng qua không loại nguồn đó mãi mãi.
     private val badSrc = ConcurrentHashMap<String, ConcurrentHashMap<String, Long>>()
     private const val BAD_TTL_MS = 10 * 60_000L
@@ -131,31 +133,46 @@ object NativeYt {
         return minOf(cap, maxOf(now + 60_000L, e * 1000L - 5 * 60_000L))
     }
 
-    private fun resolve(id: String, webm: Boolean, force: Boolean): Info? {
-        val key = keyOf(id, webm)
-        if (force) cache.remove(key)
-        val hit = cache[key]
-        if (hit != null && System.currentTimeMillis() < hit.expAt) return hit
-        cache.remove(key)
-        if (cache.size > 200) cache.clear()
+    private val locks = ConcurrentHashMap<String, Any>()
 
-        val errs = ConcurrentHashMap<Int, String>()
-        val got = race(id, webm, errs)
-        if (got != null) {
-            cache[key] = got
-            lastErr.remove(id)
-            return got
+    /**
+     * Lấy link luồng cho bài [id]. [stale] là link vừa bị hỏng: nếu cache đã có link khác (luồng khác vừa làm mới xong) thì dùng luôn,
+     * không đua lại với YouTube. Mỗi bài chỉ có một cuộc đua tại một thời điểm, các luồng khác chờ rồi lấy kết quả.
+     */
+    private fun resolve(id: String, webm: Boolean, stale: Info? = null): Info? {
+        val key = keyOf(id, webm)
+        return synchronized(locks.getOrPut(key) { Any() }) {
+            val hit = cache[key]
+            if (hit != null && hit !== stale && System.currentTimeMillis() < hit.expAt) return hit
+            cache.remove(key)
+            if (cache.size > 200) cache.clear()
+
+            val errs = ConcurrentHashMap<Int, String>()
+            val got = race(id, webm, errs)
+            if (got != null) {
+                cache[key] = got
+                lastErr.remove(id)
+                return got
+            }
+            val msg = errs.entries.sortedBy { it.key }.joinToString(" | ") { it.value }
+                .ifEmpty { "không lấy được luồng âm thanh (hết thời gian chờ)" }
+            lastErr[id] = msg
+            Log.w(TAG, "[$id] thất bại hết: $msg")
+            null
         }
-        val msg = errs.entries.sortedBy { it.key }.joinToString(" | ") { it.value }
-            .ifEmpty { "không lấy được luồng âm thanh (hết thời gian chờ)" }
-        lastErr[id] = msg
-        Log.w(TAG, "[$id] thất bại hết: $msg")
-        return null
+    }
+
+    /** Lấy sẵn link của bài sắp phát (chạy nền) để lúc chuyển bài không phải chờ cuộc đua + tải thử. */
+    fun prefetch(id: String, webm: Boolean) {
+        if (!idRe.matches(id)) return
+        val hit = cache[keyOf(id, webm)]
+        if (hit != null && System.currentTimeMillis() < hit.expAt - 10 * 60_000L) return
+        thread(isDaemon = true, name = "muse-yt-prefetch") { runCatching { resolve(id, webm) } }
     }
 
     /** Chạy các client so le nhau, trả về luồng đầu tiên TẢI THỬ được. */
     private fun race(id: String, webm: Boolean, errs: MutableMap<Int, String>): Info? {
-        val total = clients.size + 2 // +2 là NewPipe và Piped
+        val total = clients.size + 1 // +1 là NewPipe
         val q = LinkedBlockingQueue<Res>()
         val stop = AtomicBoolean(false)
         // Nếu mọi nguồn đều từng làm đứt tải bài này thì cho thử lại tất cả từ đầu.
@@ -188,19 +205,6 @@ object NativeYt {
                 if (!stop.get()) r = verified(viaNewPipe(id, webm))
             } catch (e: Throwable) { // cả lỗi nạp lớp/thiếu thư viện cũng không được làm sập cuộc đua
                 val m = "NewPipe: " + (e.message ?: e.javaClass.simpleName)
-                errs[clients.size + 1] = m
-                Log.w(TAG, "[$id] $m")
-            }
-            q.put(Res(r))
-        }
-        thread(isDaemon = true, name = "muse-yt-piped") {
-            var r: Info? = null
-            try {
-                if ("Piped" in bad) throw Exception("bỏ qua (link lần trước bị đứt giữa chừng)")
-                Thread.sleep(PIPED_DELAY_MS)
-                if (!stop.get()) r = viaPiped(id, webm)
-            } catch (e: Exception) {
-                val m = "Piped: " + (e.message ?: e.javaClass.simpleName)
                 errs[clients.size] = m
                 Log.w(TAG, "[$id] $m")
             }
@@ -363,38 +367,6 @@ object NativeYt {
         return Info(url, 0L, mime, uaForUrl(url), expiryOf(url), "NewPipe")
     }
 
-    /** Đường dự phòng: nhờ máy chủ Piped (gọi từ điện thoại) đưa link luồng. Link Piped không gắn IP máy. */
-    private fun viaPiped(id: String, webm: Boolean): Info {
-        var last = "không có máy chủ nào dùng được"
-        for (base in pipedBases) {
-            try {
-                val conn = URL("$base/streams/$id").openConnection() as HttpURLConnection
-                var txt = ""
-                var httpCode = 0
-                try {
-                    conn.connectTimeout = 6000
-                    conn.readTimeout = 10000
-                    conn.setRequestProperty("User-Agent", WEB_UA)
-                    httpCode = conn.responseCode
-                    if (httpCode == 200) txt = readText(conn)
-                } finally { conn.disconnect() }
-                if (httpCode != 200) { last = "$base: HTTP $httpCode"; continue }
-                val list = JSONObject(txt).optJSONArray("audioStreams")
-                if (list == null) { last = "$base: không có audioStreams"; continue }
-                val f = pickAudio(list, webm)
-                if (f == null) { last = "$base: không có luồng âm thanh"; continue }
-                val url = f.optString("url")
-                val size = f.optLong("contentLength", 0L)
-                val mime = f.optString("mimeType").substringBefore(';').trim().ifEmpty { "audio/mp4" }
-                val info = Info(url, size, mime, WEB_UA, minOf(System.currentTimeMillis() + 30 * 60_000L, expiryOf(url)), "Piped")
-                return verified(info)
-            } catch (e: Exception) {
-                last = "$base: ${e.message ?: e.javaClass.simpleName}"
-            }
-        }
-        throw Exception(last)
-    }
-
     /** Mở một đoạn [start, end] của luồng. Thử header Range trước, rồi tham số &range= (cách yt-dlp/NewPipe dùng). */
     private fun openRange(info: Info, start: Long, end: Long): HttpURLConnection? {
         for (viaParam in booleanArrayOf(false, true)) {
@@ -447,8 +419,9 @@ object NativeYt {
     /** Tải một đoạn (từ byte [start], tối đa CHUNK) thẳng bằng IP điện thoại, không đi qua WebView. Dùng cho nút "Tải xuống". */
     fun fetchChunk(id: String, webm: Boolean, start: Long): AudioChunk? {
         if (!idRe.matches(id)) return null
+        var stale: Info? = null
         for (attempt in 0..1) {
-            val info = resolve(id, webm, attempt == 1) ?: return null
+            val info = resolve(id, webm, stale) ?: return null
             if (start >= info.size) return null
             val end = minOf(info.size - 1, start + CHUNK - 1)
             val conn = openRange(info, start, end)
@@ -456,6 +429,7 @@ object NativeYt {
                 cache.remove(keyOf(id, webm))
                 markBad(id, info.src) // lần lấy link kế tiếp dùng client khác
                 lastErr[id] = "${info.src.ifEmpty { "link" }} bị YouTube từ chối ở byte $start (hết hạn, đổi mạng hoặc thiếu PO token)"
+                stale = info
                 continue
             }
             return try {
@@ -470,22 +444,112 @@ object NativeYt {
         return null
     }
 
-    /** Dùng trong shouldInterceptRequest (luồng nền). Trả null = để WebView gọi server như bình thường. */
-    fun handle(req: WebResourceRequest): WebResourceResponse? {
-        if (!req.method.equals("GET", true)) return null
-        val path = req.url.encodedPath ?: return null
-        if (!path.startsWith(PREFIX)) return null
-        val id = path.removePrefix(PREFIX)
-        if (!idRe.matches(id)) return null
-        val webm = req.url.getQueryParameter("f") == "webm"
-        val rh = req.requestHeaders["Range"] ?: req.requestHeaders["range"]
+    // ---- Máy chủ HTTP cục bộ (127.0.0.1) -----------------------------------------------------------------------------------
 
-        for (attempt in 0..1) {
-            val info = resolve(id, webm, attempt == 1) ?: return null
+    @Volatile private var proxySock: ServerSocket? = null
+    private val proxyLock = Any()
+
+    /** Mở (nếu chưa mở) máy chủ cục bộ và trả về cổng. Chỉ nhận kết nối từ chính điện thoại (loopback). */
+    fun ensureProxy(): Int {
+        proxySock?.let { if (!it.isClosed) return it.localPort }
+        return synchronized(proxyLock) {
+            proxySock?.let { if (!it.isClosed) return it.localPort }
+            val ss = ServerSocket(0, 32, InetAddress.getByName("127.0.0.1"))
+            proxySock = ss
+            thread(isDaemon = true, name = "muse-yt-proxy") {
+                while (!ss.isClosed) {
+                    val s = try { ss.accept() } catch (e: Exception) { break }
+                    thread(isDaemon = true, name = "muse-yt-conn") { serve(s) }
+                }
+                synchronized(proxyLock) { if (proxySock === ss) proxySock = null }
+            }
+            ss.localPort
+        }
+    }
+
+    fun shutdown() {
+        synchronized(proxyLock) { runCatching { proxySock?.close() }; proxySock = null }
+    }
+
+    /** Địa chỉ để thẻ <audio> phát thẳng; rỗng nếu không mở được máy chủ cục bộ. */
+    fun audioUrl(id: String, webm: Boolean): String {
+        if (!idRe.matches(id)) return ""
+        return try { "http://127.0.0.1:${ensureProxy()}/a/$id?f=${if (webm) "webm" else "mp4"}" } catch (e: Exception) { "" }
+    }
+
+    private fun readLine(inp: InputStream): String? {
+        val sb = StringBuilder()
+        while (true) {
+            val c = inp.read()
+            if (c < 0) return if (sb.isEmpty()) null else sb.toString()
+            if (c == '\n'.code) return sb.toString().trimEnd('\r')
+            if (sb.length > 8192) return null
+            sb.append(c.toChar())
+        }
+    }
+
+    private fun sendHead(out: java.io.OutputStream, code: Int, reason: String, hdr: Map<String, String>) {
+        val sb = StringBuilder("HTTP/1.1 $code $reason\r\n")
+        for ((k, v) in hdr) sb.append(k).append(": ").append(v).append("\r\n")
+        sb.append("Connection: close\r\n\r\n")
+        out.write(sb.toString().toByteArray(Charsets.ISO_8859_1))
+        out.flush()
+    }
+
+    private val corsHdr = linkedMapOf(
+        "Access-Control-Allow-Origin" to "*",
+        "Access-Control-Allow-Headers" to "Range",
+        "Access-Control-Expose-Headers" to "Content-Range, Content-Length, Accept-Ranges",
+        "Cache-Control" to "no-store"
+    )
+
+    private fun fail(out: java.io.OutputStream, code: Int, reason: String, msg: String) {
+        val body = msg.toByteArray(Charsets.UTF_8)
+        val h = LinkedHashMap(corsHdr)
+        h["Content-Type"] = "text/plain; charset=utf-8"
+        h["Content-Length"] = body.size.toString()
+        sendHead(out, code, reason, h)
+        out.write(body); out.flush()
+    }
+
+    /** Xử lý một kết nối từ trình phát: GET /a/<id>?f=webm|mp4 kèm Range. Trả MỘT phản hồi liền mạch cho cả đoạn được xin. */
+    private fun serve(s: Socket) {
+        try {
+            s.soTimeout = 20_000
+            s.tcpNoDelay = true
+            val inp = s.getInputStream().buffered()
+            val out = s.getOutputStream().buffered(64 * 1024)
+            val reqLine = readLine(inp) ?: return
+            val parts = reqLine.split(' ')
+            if (parts.size < 2) return
+            val method = parts[0].uppercase()
+            var range: String? = null
+            while (true) {
+                val l = readLine(inp) ?: return
+                if (l.isEmpty()) break
+                val i = l.indexOf(':')
+                if (i > 0 && l.substring(0, i).trim().equals("Range", true)) range = l.substring(i + 1).trim()
+            }
+            s.soTimeout = 0
+            if (method == "OPTIONS") {
+                val h = LinkedHashMap(corsHdr); h["Content-Length"] = "0"
+                sendHead(out, 204, "No Content", h); return
+            }
+            if (method != "GET" && method != "HEAD") { fail(out, 405, "Method Not Allowed", "chỉ hỗ trợ GET/HEAD"); return }
+            val target = parts[1]
+            val path = target.substringBefore('?')
+            val query = target.substringAfter('?', "")
+            val id = path.removePrefix("/a/").removePrefix("/api/yt/audio/")
+            if (!idRe.matches(id)) { fail(out, 404, "Not Found", "id không hợp lệ"); return }
+            val webm = query.split('&').any { it == "f=webm" }
+
+            var info: Info = resolve(id, webm)
+                ?: run { fail(out, 503, "Service Unavailable", lastError(id).ifEmpty { "không lấy được luồng âm thanh trên máy" }); return }
+
             var start = 0L
             var endReq = Long.MAX_VALUE
-            if (rh != null) {
-                val m = rangeRe.find(rh)
+            if (range != null) {
+                val m = rangeRe.find(range)
                 if (m != null) {
                     val a = m.groupValues[1].toLongOrNull()
                     val b = m.groupValues[2].toLongOrNull()
@@ -493,29 +557,87 @@ object NativeYt {
                     else { start = a ?: 0L; endReq = b ?: Long.MAX_VALUE }
                 }
             }
-            if (start >= info.size) return null
-            val chunk = if (start == 0L) FIRST_CHUNK else CHUNK
-            val end = minOf(endReq, info.size - 1, start + chunk - 1)
-            val conn = openRange(info, start, end)
-            if (conn == null) {
-                // Địa chỉ luồng hết hạn / đổi IP (Wi-Fi <-> 4G) / bị chặn: bỏ link, lấy link mới rồi thử tiếp.
-                cache.remove(keyOf(id, webm))
-                lastErr[id] = "link hết hạn hoặc đổi mạng giữa chừng"
-                continue
+            if (start >= info.size) {
+                val h = LinkedHashMap(corsHdr); h["Content-Range"] = "bytes */${info.size}"; h["Content-Length"] = "0"
+                sendHead(out, 416, "Range Not Satisfiable", h); return
             }
-            val headers = HashMap<String, String>()
-            headers["Content-Range"] = "bytes $start-$end/${info.size}"
-            headers["Accept-Ranges"] = "bytes"
-            headers["Content-Length"] = (end - start + 1).toString()
-            headers["Cache-Control"] = "no-store"
-            headers["Access-Control-Allow-Origin"] = "*"
-            return try {
-                WebResourceResponse(info.mime, null, 206, "Partial Content", headers, conn.inputStream)
-            } catch (e: Exception) {
-                conn.disconnect()
-                null
+            val end = minOf(endReq, info.size - 1)
+            val total = info.size
+            val partial = range != null
+            val h = LinkedHashMap(corsHdr)
+            h["Content-Type"] = info.mime
+            h["Accept-Ranges"] = "bytes"
+            h["Content-Length"] = (end - start + 1).toString()
+            if (partial) h["Content-Range"] = "bytes $start-$end/$total"
+            sendHead(out, if (partial) 206 else 200, if (partial) "Partial Content" else "OK", h)
+            if (method == "HEAD") { out.flush(); return }
+
+            var pos = start
+            var fails = 0
+            val buf = ByteArray(32 * 1024)
+            while (pos <= end) {
+                val chunkEnd = minOf(end, pos + UP_CHUNK - 1)
+                val conn = openRange(info, pos, chunkEnd)
+                var broken = conn == null
+                if (conn != null) {
+                    try {
+                        val up = conn.inputStream
+                        var left = chunkEnd - pos + 1
+                        while (left > 0) {
+                            val n = try { up.read(buf, 0, minOf(buf.size.toLong(), left).toInt()) } catch (e: IOException) { -2 }
+                            if (n == -2) { broken = true; break }
+                            if (n < 0) { broken = true; break }
+                            out.write(buf, 0, n) // lỗi ghi = trình phát đã đóng kết nối (tua/đổi bài): thoát luôn qua catch bên ngoài
+                            pos += n; left -= n
+                        }
+                    } finally { conn.disconnect() }
+                }
+                if (!broken) { fails = 0; continue }
+                // Đứt giữa chừng (link chết, đổi Wi-Fi <-> 4G, YouTube ngắt): thử lại cùng link, rồi mới đổi link, nối tiếp đúng byte [pos].
+                out.flush()
+                if (++fails > MAX_FAILS) { lastErr[id] = "đứt kết nối nhiều lần ở byte $pos"; return }
+                Log.w(TAG, "[$id] đứt ở byte $pos (lần $fails), nguồn ${info.src}")
+                if (fails >= 2) {
+                    cache.remove(keyOf(id, webm))
+                    markBad(id, info.src)
+                    val n = resolve(id, webm, info)
+                    if (n == null) return
+                    if (n.size != total) { lastErr[id] = "link mới có dung lượng khác (${n.size} ≠ $total)"; return }
+                    info = n
+                } else Thread.sleep(300)
             }
+            out.flush()
+        } catch (e: Exception) {
+            // trình phát đóng kết nối: bình thường
+        } finally {
+            runCatching { s.close() }
         }
-        return null
+    }
+
+    /**
+     * Dùng trong shouldInterceptRequest cho bản web cũ vẫn gọi /api/yt/audio/<id>. Không tự nối googlevideo nữa: chuyển yêu cầu
+     * tới máy chủ cục bộ ở trên. Trả null = không xử lý được (LocalAudio sẽ trả lỗi chứ không rơi về server, để giữ 100% IP máy).
+     */
+    fun handle(req: WebResourceRequest): WebResourceResponse? {
+        if (!req.method.equals("GET", true)) return null
+        val path = req.url.encodedPath ?: return null
+        if (!path.startsWith(PREFIX)) return null
+        val id = path.removePrefix(PREFIX)
+        if (!idRe.matches(id)) return null
+        val webm = req.url.getQueryParameter("f") == "webm"
+        val port = try { ensureProxy() } catch (e: Exception) { return null }
+        return try {
+            val c = URL("http://127.0.0.1:$port/a/$id?f=${if (webm) "webm" else "mp4"}").openConnection() as HttpURLConnection
+            c.connectTimeout = 3000
+            c.readTimeout = 60_000
+            (req.requestHeaders["Range"] ?: req.requestHeaders["range"])?.let { c.setRequestProperty("Range", it) }
+            val code = c.responseCode
+            if (code != 200 && code != 206) { c.disconnect(); return null }
+            val mime = c.contentType?.substringBefore(';')?.trim().takeUnless { it.isNullOrEmpty() } ?: "audio/mp4"
+            val headers = HashMap<String, String>()
+            for (k in listOf("Content-Range", "Accept-Ranges", "Content-Length", "Cache-Control")) c.getHeaderField(k)?.let { headers[k] = it }
+            headers["Access-Control-Allow-Origin"] = "*"
+            WebResourceResponse(mime, null, code, if (code == 206) "Partial Content" else "OK", headers, c.inputStream)
+        } catch (e: Exception) { null }
     }
 }
