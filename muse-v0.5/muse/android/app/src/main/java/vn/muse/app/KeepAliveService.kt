@@ -92,7 +92,12 @@ class KeepAliveService : Service() {
         return START_NOT_STICKY
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) { stopSelf() }
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        // Khi người dùng vuốt app khỏi recents: chỉ dừng nếu không đang phát nhạc.
+        // Nếu đang phát (Playback.playing = true), service foreground vẫn còn thông báo
+        // nên Android không giết tiến trình — giữ nhạc tiếp tục.
+        if (!Playback.playing) stopSelf()
+    }
 
     override fun onDestroy() {
         main.removeCallbacks(idleStop)
