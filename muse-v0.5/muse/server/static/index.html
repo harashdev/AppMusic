@@ -311,9 +311,7 @@ body.vid #vctl,body.vc #vctl{display:block}
 /* Nút to, vùng chạm lớn, không blur/đổ bóng nặng để khỏi giật */
 #vctl button{background:#0007;color:#fff;padding:0;opacity:0;pointer-events:none;transition:opacity .15s;border-radius:50%;touch-action:manipulation}
 #vctl.show button{opacity:1;pointer-events:auto}
-/* khi đang phát video: nút lùi/tới 5 giây và toàn màn hình luôn hiện sẵn (không cần rê chuột), mờ nhẹ cho đỡ vướng hình */
-body.vid #vctl button{opacity:.8;pointer-events:auto}
-body.vid #vctl.show button{opacity:1}
+/* các nút (lùi/tới 5 giây, toàn màn hình) chỉ hiện khi rê chuột vào video (máy tính) hoặc chạm vào video (Android/cảm ứng); xem JS bên dưới */
 /* toàn màn hình: ẩn hai nút tua 5 giây, chỉ còn nút thoát */
 .art:fullscreen #vctl .vcMid{display:none}
 .art:-webkit-full-screen #vctl .vcMid{display:none}
@@ -3991,16 +3989,20 @@ new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).obs
 /* ===== Giao diện điều khiển video riêng (lùi/tới 5 giây, toàn màn hình) ===== */
 (function(){
   const art=document.querySelector('#vPlay .art'), vc=document.getElementById('vctl'); if(!art||!vc) return;
-  let hideTm=0;
-  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); hideTm=setTimeout(()=>vc.classList.remove('show'),2500); };
+  let hideTm=0, hov=false;   /* hov: chuột đang nằm trên video → giữ nút hiện, không tự ẩn */
+  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); if(!hov) hideTm=setTimeout(()=>vc.classList.remove('show'),2500); };
   const hide=()=>{ clearTimeout(hideTm); vc.classList.remove('show'); };
   const act=fn=>e=>{ e.stopPropagation(); if(cur) fn(); show(); };
   const skip=d=>{ const du=getDur(); seekTo(Math.max(0,Math.min(du?du-0.3:1e9,getTime()+d))); broadcastState(); };
   $('#vcBack').onclick=act(()=>skip(-5));
   $('#vcFwd').onclick=act(()=>skip(5));
-  /* chạm vào video: hiện/ẩn nút; chuột: rê vào là hiện */
-  vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(vc.classList.contains('show')) hide(); else show(); });
-  vc.addEventListener('mousemove',show); vc.addEventListener('mouseleave',hide);
+  /* chạm vào video (Android/cảm ứng): hiện nút, tự ẩn sau 2,5 giây, chạm lần nữa thì ẩn ngay.
+     chuột (máy tính): rê vào là hiện và giữ hiện, rời khỏi video thì ẩn.
+     dùng pointer events để lần chạm không bị tính nhầm thành "rê chuột" (trình duyệt giả lập mousemove sau khi chạm) */
+  vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(e.pointerType==='mouse'||hov){ show(); return; } if(vc.classList.contains('show')) hide(); else show(); });
+  vc.addEventListener('pointermove',e=>{ if(e.pointerType!=='mouse') return; hov=true; show(); });
+  vc.addEventListener('pointerleave',e=>{ if(e.pointerType!=='mouse') return; hov=false; hide(); });
+  vc.addEventListener('pointerdown',e=>{ if(e.pointerType!=='mouse') hov=false; });
   /* toàn màn hình (iOS không hỗ trợ cho div → dùng chế độ phủ kín màn hình) */
   const isFs=()=>document.fullscreenElement===art||document.webkitFullscreenElement===art||art.classList.contains('pfs');
   const paintFs=()=>{ const f=isFs(); setIc($('#vcFull'),f?'fullx':'full'); $('#vcFull').title=$('#vcFull').ariaLabel=f?(window.BB_LANG==='en'?'Exit fullscreen':'Thoát toàn màn hình'):(window.BB_LANG==='en'?'Fullscreen':'Toàn màn hình'); };
