@@ -15,6 +15,8 @@ set YT_COOKIES=
 rem Cach de nhat: de ten trinh duyet da dang nhap YouTube (firefox, edge, chrome, brave) - yt-dlp tu doc cookies, khong can xuat file
 set YT_BROWSER=firefox
 if exist admin.local.bat call admin.local.bat
+rem Chi lang nghe tren chinh may nay (an IP mang LAN). Dung khi da co Tailscale Serve/Funnel hoac Caddy phia truoc. Xoa dong nay neu dien thoai can ket noi truc tiep qua Wi-Fi
+set BIND=127.0.0.1
 rem Link ung ho (tuy chon)
 set DONATE_URL=
 rem yt-dlp can mot JavaScript runtime (Deno) de giai ma YouTube; thieu thi bao "Requested format is not available"
