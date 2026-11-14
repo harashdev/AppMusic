@@ -66,6 +66,17 @@ struct Gateway {
     explicit: Mutex<HashMap<String, (bool, u64)>>,
 }
 
+// Giao diện nhúng sẵn (chỉ khi build với `--features embed-ui`, app desktop dùng): cổng nhà đặt GATEWAY_LOCAL_UI=1 thì tự phục vụ
+// trang chính từ chính file chạy này thay vì tải từ server chính → giao diện nằm trong app, server chính chỉ còn lưu dữ liệu.
+#[cfg(feature = "embed-ui")]
+const EMBED_INDEX: &str = include_str!("../static/index.html");
+#[cfg(not(feature = "embed-ui"))]
+const EMBED_INDEX: &str = "";
+
+fn gw_local_ui() -> bool {
+    !EMBED_INDEX.is_empty() && std::env::var("GATEWAY_LOCAL_UI").map(|v| v.trim() == "1").unwrap_or(false)
+}
+
 // ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
 // Chính sách nội dung (CSP): chỉ cho tải script/khung từ chính server và YouTube, chặn nhúng trang vào khung khác.
 // Muốn tắt tạm khi gỡ lỗi: đặt biến môi trường CSP_OFF=1.
@@ -597,6 +608,13 @@ fn gw_retry_page() -> Response {
 async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
     let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
     let (parts, body) = req.into_parts();
+    if parts.method == axum::http::Method::GET && matches!(parts.uri.path(), "/" | "/index.html") && gw_local_ui() {
+        return (
+            [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-cache")],
+            EMBED_INDEX,
+        )
+            .into_response();
+    }
     let pq = parts.uri.path_and_query().map(|p| p.as_str()).unwrap_or("/");
     let url = format!("{}{}", g.remote, pq);
     let is_nav = parts.method == axum::http::Method::GET
