@@ -263,7 +263,7 @@ class MainActivity : ComponentActivity() {
     private fun askServer() {
         val input = EditText(this).apply {
             inputType = InputType.TYPE_TEXT_VARIATION_URI
-            hint = "https://ten-may.xxxx.ts.net"
+            hint = "https://appmusic-ur3z.onrender.com"
             setText(serverUrl())
         }
         AlertDialog.Builder(this)

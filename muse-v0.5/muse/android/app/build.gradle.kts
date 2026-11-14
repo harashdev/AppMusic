@@ -6,7 +6,7 @@ plugins {
 // Địa chỉ server gắn sẵn lúc build: biến môi trường MUSE_URL hoặc -PMUSE_URL=...
 val museUrl: String = (System.getenv("MUSE_URL")?.takeIf { it.isNotBlank() }
     ?: providers.gradleProperty("MUSE_URL").orNull
-    ?: "").trim().trimEnd('/')
+    ?: "https://appmusic-ur3z.onrender.com").trim().trimEnd('/')
 
 // Discord Social SDK (tùy chọn): CI giải nén SDK vào các thư mục này. Thiếu thì app vẫn build, chỉ không có tính năng.
 val sdkDir: String = (System.getenv("DISCORD_SDK_DIR") ?: "").trim()

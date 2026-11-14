@@ -133,7 +133,7 @@ impl MuseApp {
         let cfg = load_config();
         let default_server = option_env!("MUSE_URL")
             .filter(|s| !s.is_empty())
-            .unwrap_or("http://100.112.197.104:3000")
+            .unwrap_or("https://appmusic-ur3z.onrender.com")
             .to_string();
         let server_url = if cfg.server.is_empty() {
             default_server

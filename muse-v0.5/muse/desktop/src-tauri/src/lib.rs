@@ -12,7 +12,7 @@ use tauri::State;
 
 const SERVER_URL: &str = match option_env!("MUSE_URL") {
     Some(u) => u,
-    None => "http://localhost:3000",
+    None => "https://appmusic-ur3z.onrender.com",
 };
 
 #[cfg(desktop)]
