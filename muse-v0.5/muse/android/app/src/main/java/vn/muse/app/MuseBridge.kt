@@ -6,6 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Base64
 import android.webkit.JavascriptInterface
@@ -13,8 +15,26 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import androidx.core.content.ContextCompat
+import kotlin.concurrent.thread
 
 class MuseBridge(private val ctx: Context) {
+    private val ui = Handler(Looper.getMainLooper())
+
+    /**
+     * Tải một đoạn nhạc YouTube ngay trong app (IP điện thoại), không qua WebView fetch. Chạy nền, xong gọi lại
+     * window.museChunk(reqId, mime, total, base64) (hoặc museChunk(reqId, null) nếu không lấy được).
+     */
+    @JavascriptInterface
+    fun audioChunkAsync(reqId: String, id: String, fmt: String, start: Long) {
+        thread(isDaemon = true, name = "muse-dl") {
+            val ch = runCatching { LocalAudio.fetchChunk(id, fmt, start) ?: NativeYt.fetchChunk(id, fmt == "webm", start) }.getOrNull()
+            val rid = reqId.filter { it.isLetterOrDigit() }
+            val js = if (ch == null) "window.museChunk&&museChunk('$rid',null)"
+            else "window.museChunk&&museChunk('$rid','${ch.mime.filter { it.isLetterOrDigit() || it == '/' || it == '-' || it == '.' || it == '+' }}',${ch.total},'${Base64.encodeToString(ch.bytes, Base64.NO_WRAP)}')"
+            ui.post { Playback.sendToWeb?.invoke(js) }
+        }
+    }
+
     @JavascriptInterface
     fun update(title: String, artist: String, art: String, playing: Boolean, posMs: Long, durMs: Long, hasTrack: Boolean) {
         val trackChanged = title != Playback.title || artist != Playback.artist || art != Playback.art

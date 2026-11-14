@@ -124,6 +124,26 @@ object NativeYt {
         return null
     }
 
+    /** Tải một đoạn (từ byte [start], tối đa CHUNK) thẳng bằng IP điện thoại, không đi qua WebView. Dùng cho nút "Tải xuống". */
+    fun fetchChunk(id: String, webm: Boolean, start: Long): AudioChunk? {
+        if (!idRe.matches(id)) return null
+        for (attempt in 0..1) {
+            val info = resolve(id, webm, attempt == 1) ?: return null
+            if (start >= info.size) return null
+            val end = minOf(info.size - 1, start + CHUNK - 1)
+            val conn = openRange(info, start, end)
+            if (conn == null) {
+                cache.remove(id + "|" + (if (webm) "1" else "0"))
+                continue
+            }
+            return try {
+                val b = conn.inputStream.use { it.readBytes() }
+                if (b.isEmpty()) null else AudioChunk(b, info.size, info.mime)
+            } catch (e: Exception) { null } finally { conn.disconnect() }
+        }
+        return null
+    }
+
     /** Dùng trong shouldInterceptRequest (luồng nền). Trả null = để WebView gọi server như bình thường. */
     fun handle(req: WebResourceRequest): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null

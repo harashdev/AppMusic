@@ -16,6 +16,9 @@ import java.net.Socket
 import java.net.URL
 import kotlin.concurrent.thread
 
+/** Một đoạn nhạc đã tải xong: dữ liệu, tổng dung lượng cả bài, định dạng. */
+class AudioChunk(val bytes: ByteArray, val total: Long, val mime: String)
+
 /**
  * Lấy dữ liệu YouTube (nhạc, tìm kiếm, album, nghệ sĩ) ngay trên điện thoại (IP nhà), không đi qua server.
  *
@@ -91,6 +94,33 @@ object LocalAudio {
                 ok
             } catch (e: Exception) { proc = null; port = 0; false }
         }
+    }
+
+    /**
+     * Tải một đoạn nhạc (từ byte [start]) thẳng từ tiến trình cục bộ, không đi qua WebView. Dùng cho nút "Tải xuống":
+     * fetch() trong WebView có thể nhận về body rỗng với phản hồi do shouldInterceptRequest tạo ra.
+     * Chạy ở luồng nền. Trả null nếu không có tiến trình cục bộ hoặc không lấy được.
+     */
+    fun fetchChunk(id: String, fmt: String, start: Long): AudioChunk? {
+        val ctx = appCtx ?: return null
+        if (!ensureRunning(ctx)) return null
+        return try {
+            val c = URL("http://127.0.0.1:$port/api/yt/audio/${URLEncoder.encode(id, "UTF-8")}?f=${if (fmt == "webm") "webm" else "mp4"}")
+                .openConnection() as HttpURLConnection
+            try {
+                c.connectTimeout = 3000
+                c.readTimeout = 45000
+                c.setRequestProperty("Range", "bytes=$start-")
+                val code = c.responseCode
+                if (code != 206 && !(code == 200 && start == 0L)) return null
+                val b = c.inputStream.use { it.readBytes() }
+                if (b.isEmpty()) return null
+                val total = c.getHeaderField("Content-Range")?.substringAfter('/')?.trim()?.toLongOrNull()
+                    ?: (if (code == 200) b.size.toLong() else return null)
+                val mime = c.contentType?.substringBefore(';')?.trim().takeUnless { it.isNullOrEmpty() } ?: "audio/mp4"
+                AudioChunk(b, total, mime)
+            } finally { c.disconnect() }
+        } catch (e: Exception) { null }
     }
 
     /** Dùng trong WebViewClient.shouldInterceptRequest (chạy ở luồng nền). Trả null = để WebView gọi server như bình thường. */

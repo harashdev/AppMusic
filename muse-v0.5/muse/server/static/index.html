@@ -3589,6 +3589,22 @@ function downloadTrack(t,quiet){
   if(!quiet) notify('Đã thêm vào danh sách tải: '+(t.title||''));
   dlRender(); dlPump(); return it.p;
 }
+// App Android: tải từng đoạn ngay trong app (IP điện thoại) rồi trả về trang qua museChunk; fetch() trong WebView có thể nhận body rỗng.
+const museChunkWait={};
+window.museChunk=(rid,mime,total,b64)=>{ const f=museChunkWait[rid]; if(f) f(mime,total,b64); };
+function nativeChunk(id,fmt,start){
+  return new Promise(res=>{
+    const rid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+    const tm=setTimeout(()=>{ delete museChunkWait[rid]; res(null); },60000);
+    museChunkWait[rid]=(mime,total,b64)=>{
+      clearTimeout(tm); delete museChunkWait[rid];
+      if(!b64) return res(null);
+      try{ const bin=atob(b64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+        res({blob:new Blob([u8],{type:mime||'audio/mp4'}),total:+total||0,mime:mime||''}); }catch{ res(null); }
+    };
+    try{ window.MuseNative.audioChunkAsync(rid,id,fmt,start); }catch{ clearTimeout(tm); delete museChunkWait[rid]; res(null); }
+  });
+}
 async function dlRun(it){
   const t=it.track;
   const safe=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,120)||'bai-hat';
@@ -3601,19 +3617,30 @@ async function dlRun(it){
     } else {
       const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
       const parts=[]; let pos=0,total=0,mime='';
+      let nat=!!(window.MuseNative&&typeof window.MuseNative.audioChunkAsync==='function');
       for(;;){
-        let r=null;
-        for(let tr=0;tr<3;tr++){
-          try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
-          catch(e){ if(tr===2) throw e; await new Promise(z=>setTimeout(z,800)); }
+        let b=null, partial=true;
+        if(nat){
+          let c=null; for(let tr=0;tr<2&&!c;tr++) c=await nativeChunk(t.id,fxFmt,pos);
+          if(c&&c.blob.size){ b=c.blob; mime=c.mime||mime; total=c.total; }
+          else if(pos===0) nat=false; // không lấy được trong app → quay về cách tải cũ qua fetch
+          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB)');
         }
-        const b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng');
-        mime=r.headers.get('content-type')||mime;
-        const cr=r.headers.get('content-range');
-        total=(r.status===206&&cr)?(+cr.split('/')[1]||0):b.size;
+        if(!b){
+          let r=null;
+          for(let tr=0;tr<3;tr++){
+            try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
+            catch(e){ if(tr===2) throw e; await new Promise(z=>setTimeout(z,800)); }
+          }
+          b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng (HTTP '+r.status+', '+(r.headers.get('content-range')||'không có content-range')+')');
+          mime=r.headers.get('content-type')||mime;
+          const cr=r.headers.get('content-range');
+          total=(r.status===206&&cr)?(+cr.split('/')[1]||0):b.size;
+          partial=r.status===206;
+        }
         parts.push(b); pos+=b.size;
         it.pct=total?Math.min(99,Math.round(pos/total*100)):0; dlRender();
-        if(r.status!==206||pos>=total) break;
+        if(!partial||pos>=total) break;
       }
       blob=new Blob(parts,{type:mime||'audio/mp4'}); ext=/webm/i.test(mime)?'webm':'m4a';
       try{ offOk=await offSave(t,blob,mime||'audio/mp4',ext); it.osize=blob.size; }
