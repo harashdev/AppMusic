@@ -101,6 +101,8 @@ jobs:
 
       # Đăng APK lên Releases (tag android-latest, ghi đè bản cũ): tải ở mục Releases, không tính vào hạn mức artifact.
       - name: Đăng APK lên Releases
+        # Chỉ nhánh main mới ghi đè bản tải về; nhánh thử nghiệm vẫn build để kiểm tra biên dịch, APK lấy ở mục Artifacts.
+        if: github.ref == 'refs/heads/main'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}

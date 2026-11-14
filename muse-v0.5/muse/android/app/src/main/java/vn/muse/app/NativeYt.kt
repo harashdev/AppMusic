@@ -4,6 +4,14 @@ import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import org.json.JSONObject
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.downloader.Downloader
+import org.schabi.newpipe.extractor.downloader.Request
+import org.schabi.newpipe.extractor.downloader.Response
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
+import org.schabi.newpipe.extractor.stream.AudioStream
+import org.schabi.newpipe.extractor.stream.DeliveryMethod
+import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
@@ -22,6 +30,8 @@ import kotlin.concurrent.thread
  *  - Hỏi NHIỀU client song song (so le 350ms, cái nào có nhạc trước thì dùng) thay vì chỉ 2 client; YouTube hay đổi client nào còn chạy.
  *  - Mỗi link đều được TẢI THỬ vài byte trước khi dùng. Client cần PO token vẫn trả link nhưng link đó 403 khi tải;
  *    bản cũ tin link đó nên hỏng, bản này bỏ link chết và chuyển sang client kế tiếp.
+ *  - NewPipeExtractor (thư viện của NewPipe) chạy song song như một nguồn nữa: nó tự giải mã chữ ký/tham số n và đổi client
+ *    theo YouTube, nên khi các client viết tay bị chặn thì vẫn có link. Mọi yêu cầu của nó cũng đi bằng IP điện thoại.
  *  - Cuối cùng mới thử các máy chủ Piped (gọi từ điện thoại) làm đường dự phòng.
  *  - Hết hạn link lấy từ tham số expire của chính link, không đoán 3 giờ.
  *  - Lỗi không còn bị nuốt: lý do từng client được ghi vào logcat (tag MuseYt) và trả về qua [lastError] để giao diện hiện ra.
@@ -38,6 +48,7 @@ object NativeYt {
     private const val STAGGER_MS = 350L              // so le giữa các client để không bắn cùng lúc
     private const val PIPED_DELAY_MS = 4500L         // Piped chỉ là đường cuối
     private const val LATE_DELAY_MS = 2500L          // thêm cho client cần PO token (iOS, TV_SIMPLY)
+    private const val NEWPIPE_DELAY_MS = 900L        // NewPipeExtractor chờ ANDROID_VR một chút rồi chạy song song
     private const val RACE_TIMEOUT_MS = 30_000L
     // YouTube cho tải ~1MB đầu của link thiếu PO token rồi trả 403. Thử tải ở sâu trong file để loại link đó ngay từ đầu.
     private const val DEEP_PROBE = 1536L * 1024
@@ -144,7 +155,7 @@ object NativeYt {
 
     /** Chạy các client so le nhau, trả về luồng đầu tiên TẢI THỬ được. */
     private fun race(id: String, webm: Boolean, errs: MutableMap<Int, String>): Info? {
-        val total = clients.size + 1 // +1 là Piped
+        val total = clients.size + 2 // +2 là NewPipe và Piped
         val q = LinkedBlockingQueue<Res>()
         val stop = AtomicBoolean(false)
         // Nếu mọi nguồn đều từng làm đứt tải bài này thì cho thử lại tất cả từ đầu.
@@ -166,6 +177,21 @@ object NativeYt {
                 }
                 q.put(Res(r))
             }
+        }
+        // NewPipeExtractor: tự theo kịp thay đổi của YouTube. Chạy song song, nhưng chờ một chút để nếu client nhanh
+        // (ANDROID_VR) đã có link dùng được thì khỏi tải thêm trang YouTube + player JS.
+        thread(isDaemon = true, name = "muse-yt-newpipe") {
+            var r: Info? = null
+            try {
+                if ("NewPipe" in bad) throw Exception("bỏ qua (link lần trước bị đứt giữa chừng)")
+                Thread.sleep(NEWPIPE_DELAY_MS)
+                if (!stop.get()) r = verified(viaNewPipe(id, webm))
+            } catch (e: Throwable) { // cả lỗi nạp lớp/thiếu thư viện cũng không được làm sập cuộc đua
+                val m = "NewPipe: " + (e.message ?: e.javaClass.simpleName)
+                errs[clients.size + 1] = m
+                Log.w(TAG, "[$id] $m")
+            }
+            q.put(Res(r))
         }
         thread(isDaemon = true, name = "muse-yt-piped") {
             var r: Info? = null
@@ -260,6 +286,81 @@ object NativeYt {
         } finally {
             conn.disconnect()
         }
+    }
+
+    // ---- NewPipeExtractor ------------------------------------------------------------------------------------------------
+
+    /** Cầu nối HTTP cho NewPipeExtractor: mọi yêu cầu của nó đi thẳng từ điện thoại (IP máy), không qua server. */
+    private class NpDownloader : Downloader() {
+        override fun execute(request: Request): Response {
+            val conn = URL(request.url()).openConnection() as HttpURLConnection
+            try {
+                conn.requestMethod = request.httpMethod()
+                conn.connectTimeout = 10_000
+                conn.readTimeout = 20_000
+                conn.instanceFollowRedirects = true
+                conn.setRequestProperty("User-Agent", WEB_UA)
+                for ((k, vs) in request.headers()) {
+                    // Bỏ Accept-Encoding: để HttpURLConnection tự xin gzip và tự giải nén cho mình.
+                    if (k.equals("Accept-Encoding", true)) continue
+                    vs.forEachIndexed { i, v -> if (i == 0) conn.setRequestProperty(k, v) else conn.addRequestProperty(k, v) }
+                }
+                val body = request.dataToSend()
+                if (body != null) {
+                    conn.doOutput = true
+                    conn.outputStream.use { it.write(body) }
+                }
+                val code = conn.responseCode
+                if (code == 429) throw ReCaptchaException("YouTube yêu cầu xác minh (HTTP 429)", request.url())
+                val text = (if (code >= 400) conn.errorStream else conn.inputStream)
+                    ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+                val headers = HashMap<String, List<String>>()
+                for ((k, v) in conn.headerFields) if (k != null) headers[k] = v
+                return Response(code, conn.responseMessage ?: "", headers, text, conn.url.toString())
+            } finally {
+                conn.disconnect()
+            }
+        }
+    }
+
+    @Volatile private var npReady = false
+    private fun npInit() {
+        if (npReady) return
+        synchronized(this) {
+            if (npReady) return
+            NewPipe.init(NpDownloader())
+            npReady = true
+        }
+    }
+
+    /** Link googlevideo gắn với client tạo ra nó (tham số c=): dùng đúng User-Agent của client đó khi tải, như NewPipe làm. */
+    private fun uaForUrl(url: String): String {
+        val c = Regex("[?&]c=([A-Z0-9_]+)").find(url)?.groupValues?.get(1).orEmpty()
+        val want = when {
+            c == "ANDROID_VR" -> "ANDROID_VR"
+            c == "IOS" -> "IOS"
+            c.startsWith("TV") -> "TVHTML5_SIMPLY_EMBEDDED_PLAYER"
+            else -> ""
+        }
+        return clients.firstOrNull { it.name == want }?.ua ?: WEB_UA
+    }
+
+    /** Lấy link âm thanh bằng NewPipeExtractor (tự giải mã chữ ký / tham số n và chọn client còn chạy). Ném Exception có lý do nếu không được. */
+    private fun viaNewPipe(id: String, webm: Boolean): Info {
+        npInit()
+        val info = StreamInfo.getInfo("https://www.youtube.com/watch?v=$id")
+        val list = info.audioStreams.filter {
+            it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP && !it.content.isNullOrEmpty()
+        }
+        if (list.isEmpty()) throw Exception("NewPipe: không có luồng âm thanh tải trực tiếp được")
+        val want = if (webm) "audio/webm" else "audio/mp4"
+        fun mimeOf(s: AudioStream): String = s.format?.mimeType.orEmpty()
+        val best = list.maxByOrNull { (if (mimeOf(it).startsWith(want)) 1_000_000 else 0) + it.averageBitrate }
+            ?: throw Exception("NewPipe: không chọn được luồng")
+        val url = best.content
+        val mime = mimeOf(best).ifEmpty { want }
+        // Dung lượng để 0: verified() sẽ lấy từ Content-Range khi tải thử.
+        return Info(url, 0L, mime, uaForUrl(url), expiryOf(url), "NewPipe")
     }
 
     /** Đường dự phòng: nhờ máy chủ Piped (gọi từ điện thoại) đưa link luồng. Link Piped không gắn IP máy. */
