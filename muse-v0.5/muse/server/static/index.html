@@ -746,7 +746,7 @@ button *,#gear *,#meAv *{pointer-events:none}
   #main .grid{max-width:100%;overflow-x:auto}
 }
 
-#offBar{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;background:#2a2433;color:var(--text);box-shadow:0 6px 20px #0008,inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;white-space:nowrap;max-width:94vw}
+#offBar{display:none!important;position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;background:#2a2433;color:var(--text);box-shadow:0 6px 20px #0008,inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;white-space:nowrap;max-width:94vw}
 #offBar.ok{background:var(--accent);color:var(--on);font-weight:600}
 .offc{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:64px 20px}
 .offc .offi{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surf2);color:var(--sub)}
@@ -2659,8 +2659,8 @@ const pages={
 const offlineCard=()=>`<div class="offc"><div class="offi">${ic('cloudoff')}</div><h3>Không thể kết nối</h3><p>Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</p><div class="offact"><button class="pri" data-oc="retry">Thử lại</button><button class="out" data-oc="dl">${ic('download','sm')} Nghe những bài đã tải xuống</button></div></div>`;
 let offWatchTm=0;
 function offBar(on){
-  let b=$('#offBar'); if(!b){ b=document.createElement('button'); b.id='offBar'; b.onclick=()=>retryNet(page,undefined,false,null); document.body.appendChild(b); }
-  b.hidden=true;
+  // Không hiện thanh báo mất kết nối nữa (trước đây chỉ là nút rỗng bị CSS đè thuộc tính hidden → viên thuốc tối vô nghĩa ở mép trên).
+  const b=$('#offBar'); if(b) b.remove();
 }
 let bootedOffline=false;
 async function netProbe(){
