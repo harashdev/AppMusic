@@ -3,6 +3,10 @@ name = "muse-server"
 version = "0.5.0"
 edition = "2021"
 
+[features]
+# Nhúng sẵn giao diện (static/index.html) vào file chạy: dùng cho app desktop để cổng nhà tự phục vụ giao diện, không tải từ server chính.
+embed-ui = []
+
 [dependencies]
 axum = { version = "0.7", features = ["ws"] }
 tokio = { version = "1", features = ["full"] }
