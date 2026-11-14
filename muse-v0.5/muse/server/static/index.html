@@ -3591,11 +3591,19 @@ $('#npDis').onclick=()=>cur&&toggleDislike(cur);
 
 const blobB64=b=>new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b); });
 const DL_MIME={mp3:'audio/mpeg',webm:'audio/webm',m4a:'audio/mp4',mp4:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',flac:'audio/flac',aac:'audio/aac'};
-async function nativeSave(name,mime,blob){
-  const N=window.MuseNative, bad=r=>{ if(r) throw new Error(String(r).replace(/^err:/,'')); };
-  bad(N.saveBegin(name,mime));
-  try{ for(let o=0;o<blob.size;o+=786432) bad(N.saveChunk(await blobB64(blob.slice(o,o+786432)))); N.saveEnd(true); }
-  catch(x){ try{N.saveEnd(false)}catch{} throw x; }
+// Bridge Android chỉ có MỘT luồng ghi (saveBegin/saveChunk/saveEnd dùng chung). Tải 2 bài song song
+// (DL_PAR=2) mà không xếp hàng thì saveBegin của bài sau sẽ đóng + xoá file đang ghi dở của bài trước.
+let nativeSaveQ=Promise.resolve();
+function nativeSave(name,mime,blob){
+  const run=async()=>{
+    const N=window.MuseNative, bad=r=>{ if(r) throw new Error(String(r).replace(/^err:/,'')); };
+    bad(N.saveBegin(name,mime));
+    try{ for(let o=0;o<blob.size;o+=786432) bad(N.saveChunk(await blobB64(blob.slice(o,o+786432)))); N.saveEnd(true); }
+    catch(x){ try{N.saveEnd(false)}catch{} throw x; }
+  };
+  const p=nativeSaveQ.then(run,run);
+  nativeSaveQ=p.catch(()=>{});
+  return p;
 }
 async function dlSaveFile(name,blob,ext){
   if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); return; }
@@ -3756,7 +3764,7 @@ async function dlRun(it){
         }
       }
       try{ await dlSaveFile(safe+'.'+ext,blob,ext); it.name=safe+'.'+ext; }
-      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy, vẫn nghe offline trong app'; }
+      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy ('+String(e&&e.message||e).slice(0,80)+'), vẫn nghe offline trong app'; }
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
