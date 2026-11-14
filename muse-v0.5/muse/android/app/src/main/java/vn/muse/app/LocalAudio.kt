@@ -48,6 +48,7 @@ object LocalAudio {
     fun start(ctx: Context, server: String = "") {
         serverBase = server.trim().trimEnd('/')
         appCtx = ctx.applicationContext
+        thread(isDaemon = true, name = "muse-yt-proxy-boot") { runCatching { NativeYt.ensureProxy() } } // proxy phát nhạc IP máy: mở sẵn
         thread(isDaemon = true, name = "muse-local-audio") { ensureRunning(ctx.applicationContext) }
     }
 
@@ -56,6 +57,7 @@ object LocalAudio {
             runCatching { proc?.destroy() }
             proc = null; port = 0
         }
+        NativeYt.shutdown()
     }
 
     private var appCtx: Context? = null
@@ -127,8 +129,21 @@ object LocalAudio {
     }
 
     /** Dùng trong WebViewClient.shouldInterceptRequest (chạy ở luồng nền). Trả null = để WebView gọi server như bình thường. */
-    fun handle(req: WebResourceRequest): WebResourceResponse? =
-        handleLocal(req) ?: NativeYt.handle(req) // tiến trình cục bộ trước, rồi bản Kotlin thuần (chỉ phần nhạc); cả hai lỗi mới nhờ server
+    fun handle(req: WebResourceRequest): WebResourceResponse? {
+        val path = req.url.encodedPath.orEmpty()
+        if (path.startsWith("/api/yt/audio/")) {
+            // Nhạc: NativeYt (NewPipe + InnerTube, qua proxy 127.0.0.1) trước, rồi tiến trình libmuse_audio.so. KHÔNG rơi về server:
+            // link của server gắn IP server, đúng thứ gây ngắt/giật. Cả hai lỗi thì báo 503 để trình phát tự thử lại.
+            return NativeYt.handle(req) ?: handleLocal(req) ?: unavailable()
+        }
+        return handleLocal(req) // search/browse...: tiến trình cục bộ, lỗi thì null để server lo
+    }
+
+    private fun unavailable() = WebResourceResponse(
+        "text/plain", "UTF-8", 503, "Service Unavailable",
+        mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "no-store"),
+        ByteArrayInputStream(ByteArray(0))
+    )
 
     private fun handleLocal(req: WebResourceRequest): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null
