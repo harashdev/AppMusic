@@ -108,6 +108,11 @@ class MainActivity : ComponentActivity() {
         root.addView(errorBox)
         setContentView(root)
 
+        // Service worker của web (lưu ảnh bìa) tự gọi mạng, không đi qua WebViewClient: cho nó đi qua LocalAudio.handleImage luôn.
+        android.webkit.ServiceWorkerController.getInstance().setServiceWorkerClient(object : android.webkit.ServiceWorkerClient() {
+            override fun shouldInterceptRequest(request: WebResourceRequest): android.webkit.WebResourceResponse? =
+                LocalAudio.handleImage(request, serverUrl())
+        })
         LocalAudio.start(this) // nhạc YouTube lấy ngay trên máy (nếu APK có kèm libmuse_audio.so), không thì vẫn qua server
         setupWebView()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -190,7 +195,7 @@ class MainActivity : ComponentActivity() {
         web.webViewClient = object : WebViewClient() {
             // Chỉ /api/yt/audio/* được chuyển sang tiến trình cục bộ; null = WebView gọi server như cũ.
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): android.webkit.WebResourceResponse? =
-                LocalAudio.handle(request) ?: super.shouldInterceptRequest(view, request)
+                LocalAudio.handle(request) ?: LocalAudio.handleImage(request, serverUrl()) ?: super.shouldInterceptRequest(view, request)
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!request.isForMainFrame) return false

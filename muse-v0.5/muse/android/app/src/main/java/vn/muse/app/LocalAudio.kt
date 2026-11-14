@@ -3,7 +3,12 @@ package vn.muse.app
 import android.content.Context
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
+import java.net.URLEncoder
+import java.security.MessageDigest
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -105,5 +110,58 @@ object LocalAudio {
         } catch (e: Exception) {
             null
         }
+    }
+
+    // ------------------------------------------------------------------ ảnh bìa
+
+    private val imgHost = Regex("^(i\\.ytimg\\.com|[\\w-]+\\.(googleusercontent|ggpht)\\.com)$")
+
+    private fun sha1(s: String) = MessageDigest.getInstance("SHA-1").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
+
+    private fun download(url: String, ua: String?, timeoutMs: Int): Pair<String, ByteArray>? = try {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = timeoutMs; c.readTimeout = timeoutMs + 5000
+        if (!ua.isNullOrBlank()) c.setRequestProperty("User-Agent", ua)
+        val ct = c.contentType?.substringBefore(';')?.trim().orEmpty()
+        if (c.responseCode == 200 && ct.startsWith("image/")) {
+            val b = c.inputStream.use { it.readBytes() }
+            c.disconnect()
+            if (b.isNotEmpty() && b.size < 8 * 1024 * 1024) ct to b else null
+        } else { c.disconnect(); null }
+    } catch (e: Exception) { null }
+
+    /**
+     * Ảnh bìa YouTube/Google: tải bằng mạng gốc của điện thoại (không qua WebView, nên né được các kiểu chặn riêng của WebView/Chrome),
+     * lưu vào bộ nhớ đệm trong máy. Nếu mạng máy không tới được thì nhờ server tải hộ (/api/img). Cả hai đều lỗi thì trả null.
+     */
+    fun handleImage(req: WebResourceRequest, serverBase: String): WebResourceResponse? {
+        if (!req.method.equals("GET", true)) return null
+        val u = req.url
+        val host = u.host?.lowercase() ?: return null
+        if (u.scheme != "https" || !imgHost.matches(host)) return null
+        val ctx = appCtx ?: return null
+        val url = u.toString()
+        val dir = File(ctx.cacheDir, "img").apply { mkdirs() }
+        val f = File(dir, sha1(url))
+        val hdr = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=86400")
+        try {
+            if (f.exists()) {
+                DataInputStream(f.inputStream().buffered()).use { di ->
+                    val mime = di.readUTF()
+                    val b = di.readBytes()
+                    if (b.isNotEmpty()) return WebResourceResponse(mime, null, 200, "OK", hdr, ByteArrayInputStream(b))
+                }
+            }
+        } catch (e: Exception) { runCatching { f.delete() } }
+        val ua = req.requestHeaders["User-Agent"]
+        val got = download(url, ua, 6000)
+            ?: if (serverBase.isNotBlank()) download("$serverBase/api/img?u=" + URLEncoder.encode(url, "UTF-8"), ua, 15000) else null
+        if (got == null) return null
+        runCatching {
+            DataOutputStream(f.outputStream().buffered()).use { o -> o.writeUTF(got.first); o.write(got.second) }
+            val all = dir.listFiles()
+            if (all != null && all.size > 800) all.sortedBy { it.lastModified() }.take(200).forEach { it.delete() }
+        }
+        return WebResourceResponse(got.first, null, 200, "OK", hdr, ByteArrayInputStream(got.second))
     }
 }

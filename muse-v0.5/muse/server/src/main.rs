@@ -506,6 +506,7 @@ async fn main() {
         .route("/api/yt/best-artists", get(yt_best_artists))
         .route("/api/yt/this-is", get(yt_this_is))
         .route("/api/yt/audio/:id", get(yt_audio))
+        .route("/api/img", get(img_proxy))
         .route("/api/yt/video/:id", get(yt_video))
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -539,6 +540,46 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
     println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
     axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
+}
+
+// Ảnh bìa YouTube/Google qua server: dự phòng cho app khi mạng điện thoại chặn i.ytimg.com. Chỉ nhận https và đúng các tên miền ảnh này.
+#[derive(Deserialize)]
+struct ImgQ {
+    u: String,
+}
+
+async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Response {
+    let host_ok = reqwest::Url::parse(&q.u)
+        .ok()
+        .filter(|p| p.scheme() == "https")
+        .and_then(|p| p.host_str().map(|h| h.to_ascii_lowercase()))
+        .map(|h| h == "i.ytimg.com" || h.ends_with(".ggpht.com") || h.ends_with(".googleusercontent.com"))
+        .unwrap_or(false);
+    if !host_ok {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let r = match st.http.get(&q.u).send().await {
+        Ok(r) if r.status().is_success() => r,
+        _ => return StatusCode::BAD_GATEWAY.into_response(),
+    };
+    let ct = r
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    if !ct.starts_with("image/") {
+        return StatusCode::BAD_GATEWAY.into_response();
+    }
+    match r.bytes().await {
+        Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, ct)
+            .header(header::CACHE_CONTROL, "public, max-age=86400")
+            .body(Body::from(b))
+            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+        _ => StatusCode::BAD_GATEWAY.into_response(),
+    }
 }
 
 async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
