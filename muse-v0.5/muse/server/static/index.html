@@ -3,6 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<script>
+/* Bảo mật: không cho mở bảng "Chia sẻ" của hệ điều hành (Windows Share / Web Share), vì bảng đó kèm địa chỉ trang (tên miền, IP).
+   - navigator.share bị vô hiệu: mọi chỗ gọi sẽ rơi về nhánh "chép vào bộ nhớ tạm".
+   - Menu chuột phải của trình duyệt (có mục "Chia sẻ", "Sao chép liên kết trang") bị chặn, trừ trong ô nhập chữ. */
+(function(){
+  try{ Object.defineProperty(navigator,'share',{value:undefined,configurable:true}); }catch(e){}
+  try{ Object.defineProperty(navigator,'canShare',{value:undefined,configurable:true}); }catch(e){}
+  document.addEventListener('contextmenu',function(e){
+    var t=e.target; if(t&&t.closest&&t.closest('input,textarea,[contenteditable=""],[contenteditable="true"]')) return;
+    e.preventDefault();
+  },true);
+})();
+</script>
 <link rel="preconnect" href="https://i.ytimg.com" crossorigin>
 <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
 <link rel="preconnect" href="https://yt3.googleusercontent.com" crossorigin>
@@ -2415,7 +2429,7 @@ const pages={
     m.innerHTML=`<h2>Nghe cùng nhau</h2>
     <div class="two"><div class="panel"><h3 style="margin-top:0">Phòng hiện tại</h3>
       <div>Mã phòng: <b>${esc(room)}</b> <small>– mọi người trong phòng nghe đồng bộ và cùng điều khiển.</small></div>
-      <div class="row" style="margin-top:10px"><button class="pri" id="cpLink">Chép link phòng</button><button id="cpCode">Chép mã phòng</button></div></div>
+      <div class="row" style="margin-top:10px"><button class="pri" id="cpCode">Chép mã phòng</button></div></div>
     <div class="panel"><h3 style="margin-top:0">Tham gia phòng</h3>
       <small>Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.</small>
       <div class="row" style="margin-top:8px"><input id="joinCode" placeholder="Mã phòng hoặc link phòng"><button class="pri" id="joinBtn">Tham gia</button></div></div></div>
@@ -2423,7 +2437,6 @@ const pages={
       <div id="friends"></div><div class="row" style="margin-top:8px"><button id="goFriends">Quản lý bạn bè</button></div></div>
     <div class="panel"><h3 style="margin-top:0">Chat phòng</h3><div id="chat"></div>
       <div class="row"><input id="msg" placeholder="Nhắn gì đó…"><button id="send" class="pri">Gửi</button></div></div></div>`;
-    $('#cpLink').onclick=()=>copyInvite('Đã chép link phòng!');
     $('#cpCode').onclick=async()=>{ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } };
     const doJoin=()=>{ const r=parseRoom($('#joinCode').value); if(!r){ notify('Mã hoặc link phòng không hợp lệ'); return; } switchRoom(r); };
     $('#joinBtn').onclick=doJoin; $('#joinCode').onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
@@ -3082,7 +3095,8 @@ async function shareTrack(t){
   try{ if(navigator.share){ await navigator.share({title:t.title||'BBeat',text:(t.title||'')+(t.artist?' – '+t.artist:''),url:url||undefined}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
   try{ await navigator.clipboard.writeText(text); notify('Đã chép link bài hát để chia sẻ'); }catch{ await askText('Chia sẻ nhạc',text); }
 }
-async function copyInvite(msg){ const url=location.origin+'/?room='+room; try{await navigator.clipboard.writeText(url);notify(msg)}catch{await askText('Link phòng',url)} }
+/* Không còn tạo link phòng (link chứa tên miền/IP của server): chỉ chép MÃ phòng, bạn bè nhập mã ở "Tham gia phòng". */
+async function copyInvite(msg){ try{await navigator.clipboard.writeText(room);notify(msg||'Đã chép mã phòng')}catch{await askText('Mã phòng',room)} }
 const fmap=new Map();
 function setRoomUi(r){
   const ri=$('#roomInfo'); if(ri){ ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); }
