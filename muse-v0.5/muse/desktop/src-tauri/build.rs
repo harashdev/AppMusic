@@ -30,7 +30,7 @@ fn main() {
         .collect::<Vec<_>>()
         .join(",");
     let cap = format!(
-        r#"{{"identifier":"remote-muse","description":"Cho phép trang Muse từ server gọi lệnh của app (mở link, Discord)","windows":["main"],"remote":{{"urls":["{u}","{u}/*"]}},"permissions":["core:default",{p}]}}"#,
+        r#"{{"identifier":"remote-muse","description":"Cho phép trang Muse từ server / cổng nhà gọi lệnh của app (mở link, Discord)","windows":["main"],"remote":{{"urls":["{u}","{u}/*","http://127.0.0.1:38417","http://127.0.0.1:38417/*"]}},"permissions":["core:default",{p}]}}"#,
         u = url,
         p = perms
     );
