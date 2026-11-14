@@ -3579,7 +3579,14 @@ async function dlRun(it){
     } else {
       const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
       const parts=[]; let pos=0,total=0,mime='';
-      for(;;){
+      if(window.ANDROID_APP){   /* app Android: một phản hồi liên tục (không Range) -> không dính lỗi thân rỗng của WebView */
+        try{ const r=await fetch(url+'&full=1');
+          if(r.ok&&r.body){ const tl=+r.headers.get('content-length')||0, rd=r.body.getReader(), ch=[]; let got=0;
+            for(;;){ const {done,value}=await rd.read(); if(done) break; ch.push(value); got+=value.length; if(tl){ it.pct=Math.min(99,Math.round(got/tl*100)); dlRender(); } }
+            if(got>10000&&(!tl||got>=tl)){ mime=r.headers.get('content-type')||''; parts.push(new Blob(ch)); pos=got; total=got; } }
+        }catch(e){}
+      }
+      if(!parts.length) for(;;){
         let r=null;
         for(let tr=0;tr<3;tr++){
           try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }

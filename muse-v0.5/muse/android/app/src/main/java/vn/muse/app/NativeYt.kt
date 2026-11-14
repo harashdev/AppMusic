@@ -133,6 +133,22 @@ object NativeYt {
         return null
     }
 
+    /** Một đoạn đang mở: kết nối, tổng độ dài file, loại nội dung. */
+    class Chunk(val conn: HttpURLConnection, val total: Long, val mime: String)
+
+    /** Mở đoạn bắt đầu từ [pos] (dùng cho chế độ tải cả bài). Null nếu không lấy được. */
+    fun openChunk(id: String, webm: Boolean, pos: Long): Chunk? {
+        if (!idRe.matches(id)) return null
+        for (attempt in 0..1) {
+            val info = resolve(id, webm, attempt == 1) ?: return null
+            if (pos >= info.size) return null
+            val c = openRange(info, pos, minOf(info.size - 1, pos + CHUNK - 1))
+            if (c != null) return Chunk(c, info.size, info.mime)
+            cache.remove(id + "|" + (if (webm) "1" else "0"))
+        }
+        return null
+    }
+
     /** Dùng trong shouldInterceptRequest (luồng nền). Trả null = để WebView gọi server như bình thường. */
     fun handle(req: WebResourceRequest): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null

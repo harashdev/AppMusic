@@ -100,7 +100,62 @@ object LocalAudio {
     }
 
     /** Dùng trong WebViewClient.shouldInterceptRequest (chạy ở luồng nền). Trả null = để WebView gọi server như bình thường. */
+    private const val AUDIO = "/api/yt/audio/"
+
+    /**
+     * Tải cả bài (?full=1): trả MỘT phản hồi 200 liên tục, không dùng Range/206. Phía trong vẫn lấy từng đoạn (tiến trình trên máy,
+     * rồi bản Kotlin). Cách này tránh hẳn lỗi WebView trả thân rỗng cho fetch() có Range ("Nhận dữ liệu rỗng").
+     */
+    private fun handleFull(req: WebResourceRequest): WebResourceResponse? {
+        val id = (req.url.encodedPath ?: return null).removePrefix(AUDIO)
+        if (!Regex("[A-Za-z0-9_-]{11}").matches(id)) return null
+        val q = (req.url.encodedQuery ?: "").split('&').filter { it.isNotEmpty() && it != "full=1" }.joinToString("&")
+        val webm = req.url.getQueryParameter("f") == "webm"
+        var src = "local"
+        var first: NativeYt.Chunk? = openLocal(id, q, 0L)
+        var opener: (Long) -> NativeYt.Chunk? = { p -> openLocal(id, q, p) }
+        if (first == null) {
+            src = "native"
+            first = NativeYt.openChunk(id, webm, 0L)
+            opener = { p -> NativeYt.openChunk(id, webm, p) }
+        }
+        val f = first ?: return null
+        val h = HashMap<String, String>()
+        h["Content-Length"] = f.total.toString()
+        h["Cache-Control"] = "no-store"
+        h["X-Muse-Src"] = src
+        return WebResourceResponse(f.mime, null, 200, "OK", h, ChunkStream(f, opener))
+    }
+
+    private fun openLocal(id: String, rawQuery: String, pos: Long): NativeYt.Chunk? {
+        val ctx = appCtx ?: return null
+        if (!ensureRunning(ctx)) { lastErr = "không khởi động được (thiếu libmuse_audio.so hoặc hệ thống chặn chạy)"; return null }
+        return try {
+            val c = URL("http://127.0.0.1:$port$AUDIO$id?$rawQuery").openConnection() as HttpURLConnection
+            c.connectTimeout = 3000
+            c.readTimeout = 45000
+            c.setRequestProperty("Range", "bytes=$pos-")
+            val code = c.responseCode
+            if (code != 200 && code != 206) {
+                val msg = try { (c.errorStream?.bufferedReader()?.use { it.readText() } ?: "").take(400) } catch (e: Exception) { "" }
+                lastErr = "HTTP $code $msg".trim()
+                c.disconnect(); return null
+            }
+            val mime = c.contentType?.substringBefore(';')?.trim().takeUnless { it.isNullOrEmpty() } ?: "audio/mp4"
+            val total = if (code == 206) (c.getHeaderField("Content-Range")?.substringAfterLast('/')?.trim()?.toLongOrNull() ?: -1L)
+                        else c.getHeaderFieldLong("Content-Length", -1L)
+            if (total <= 0L || (code == 200 && pos > 0L)) { c.disconnect(); return null }
+            NativeYt.Chunk(c, total, mime)
+        } catch (e: Exception) {
+            lastErr = e.javaClass.simpleName + " " + (e.message ?: "")
+            null
+        }
+    }
+
     fun handle(req: WebResourceRequest): WebResourceResponse? {
+        if (req.method.equals("GET", true) && (req.url.encodedPath ?: "").startsWith(AUDIO) && req.url.getQueryParameter("full") == "1") {
+            handleFull(req)?.let { return it }
+        }
         handleLocal(req)?.let { return it }
         NativeYt.handle(req)?.let { return it }
         // Nhạc KHÔNG đi qua server: IP server (datacenter) luôn bị YouTube chặn nên quay về đó chỉ che mất lý do lỗi thật.
@@ -248,4 +303,43 @@ object LocalAudio {
         }
         return WebResourceResponse(got.first, null, 200, "OK", hdr, ByteArrayInputStream(got.second))
     }
+}
+
+/** Ghép các đoạn tải tuần tự thành một luồng liền mạch. Mỗi đoạn hết thì mở đoạn kế từ vị trí đã đọc; đoạn rỗng liên tiếp thì báo lỗi. */
+private class ChunkStream(first: NativeYt.Chunk, private val open: (Long) -> NativeYt.Chunk?) : java.io.InputStream() {
+    private val total = first.total
+    private var cur: NativeYt.Chunk? = first
+    private var ins: java.io.InputStream? = first.conn.inputStream
+    private var pos = 0L
+    private var empties = 0
+
+    override fun read(): Int {
+        val b = ByteArray(1)
+        val n = read(b, 0, 1)
+        return if (n <= 0) -1 else b[0].toInt() and 0xff
+    }
+
+    override fun read(buf: ByteArray, off: Int, len: Int): Int {
+        while (true) {
+            if (pos >= total) return -1
+            if (ins == null) {
+                val c = open(pos) ?: throw java.io.IOException("không tải tiếp được từ byte $pos")
+                cur = c
+                ins = c.conn.inputStream
+            }
+            val n = ins!!.read(buf, off, len)
+            if (n > 0) { pos += n; empties = 0; return n }
+            closeCur()
+            if (++empties >= 3) throw java.io.IOException("đoạn dữ liệu rỗng liên tiếp")
+        }
+    }
+
+    private fun closeCur() {
+        try { ins?.close() } catch (e: Exception) { }
+        try { cur?.conn?.disconnect() } catch (e: Exception) { }
+        ins = null
+        cur = null
+    }
+
+    override fun close() = closeCur()
 }
