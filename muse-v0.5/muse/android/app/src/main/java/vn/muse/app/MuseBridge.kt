@@ -81,6 +81,19 @@ class MuseBridge(private val ctx: Context) {
         }
     }
 
+    private fun cleanId(id: String) = id.filter { it.isLetterOrDigit() || it == '-' || it == '_' }
+
+    /**
+     * Địa chỉ để thẻ <audio> phát THẲNG từ máy chủ cục bộ (127.0.0.1) của app: nhạc đi bằng IP điện thoại, một luồng liền mạch,
+     * tự đổi link khi đứt. Rỗng nếu không mở được (web quay về đường cũ).
+     */
+    @JavascriptInterface
+    fun audioUrl(id: String, fmt: String): String = NativeYt.audioUrl(cleanId(id), fmt == "webm")
+
+    /** Lấy sẵn link của bài sắp phát (chạy nền) để chuyển bài không phải chờ. */
+    @JavascriptInterface
+    fun prefetch(id: String, fmt: String) { NativeYt.prefetch(cleanId(id), fmt == "webm") }
+
     /** Lý do lần lấy nhạc gần nhất của bài [id] thất bại trên máy (rỗng nếu không có). Web gọi khi không phát được. */
     @JavascriptInterface
     fun audioError(id: String): String = NativeYt.lastError(id.filter { it.isLetterOrDigit() || it == '-' || it == '_' })
