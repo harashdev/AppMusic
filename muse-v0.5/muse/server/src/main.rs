@@ -842,6 +842,137 @@ struct ImgQ {
     u: String,
 }
 
+// ===== Ảnh bìa: cache RAM + đĩa, nguồn gốc chạy trước, các nguồn dự phòng chạy đua (giống bản Android) =====
+struct ImgRam {
+    map: HashMap<String, (String, Bytes)>,
+    order: std::collections::VecDeque<String>,
+    bytes: usize,
+}
+const IMG_RAM_MAX: usize = 8 * 1024 * 1024;
+
+fn img_ram() -> &'static Mutex<ImgRam> {
+    static R: std::sync::OnceLock<Mutex<ImgRam>> = std::sync::OnceLock::new();
+    R.get_or_init(|| Mutex::new(ImgRam { map: HashMap::new(), order: Default::default(), bytes: 0 }))
+}
+
+fn img_ram_get(key: &str) -> Option<(String, Bytes)> {
+    img_ram().lock().ok()?.map.get(key).cloned()
+}
+
+fn img_ram_put(key: &str, ct: &str, b: &Bytes) {
+    let Ok(mut r) = img_ram().lock() else { return };
+    if r.map.contains_key(key) {
+        return;
+    }
+    r.bytes += b.len() + 64;
+    r.map.insert(key.to_string(), (ct.to_string(), b.clone()));
+    r.order.push_back(key.to_string());
+    while r.bytes > IMG_RAM_MAX {
+        let Some(old) = r.order.pop_front() else { break };
+        if let Some((_, ob)) = r.map.remove(&old) {
+            r.bytes = r.bytes.saturating_sub(ob.len() + 64);
+        }
+    }
+}
+
+// Thư mục cache ảnh trên đĩa: MUSE_CACHE_DIR, không có thì thư mục cache của hệ điều hành (không ghi cạnh file .exe vì có thể bị khoá quyền).
+fn img_cache_dir() -> Option<PathBuf> {
+    static D: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new();
+    D.get_or_init(|| {
+        let base = std::env::var_os("MUSE_CACHE_DIR")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("LOCALAPPDATA").map(|p| PathBuf::from(p).join("BBeat")))
+            .or_else(|| std::env::var_os("XDG_CACHE_HOME").map(|p| PathBuf::from(p).join("bbeat")))
+            .or_else(|| std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".cache").join("bbeat")))
+            .unwrap_or_else(|| std::env::temp_dir().join("bbeat"));
+        let d = base.join("img");
+        std::fs::create_dir_all(&d).ok()?;
+        Some(d)
+    })
+    .clone()
+}
+
+fn img_key(url: &str) -> String {
+    Sha256::digest(url.as_bytes()).iter().map(|b| format!("{b:02x}")).collect()
+}
+
+async fn img_disk_get(key: &str) -> Option<(String, Bytes)> {
+    let f = img_cache_dir()?.join(key);
+    let raw = tokio::fs::read(&f).await.ok()?;
+    let nl = raw.iter().position(|&c| c == b'\n')?;
+    let ct = String::from_utf8(raw[..nl].to_vec()).ok()?;
+    let body = &raw[nl + 1..];
+    if !ct.starts_with("image/") || body.is_empty() {
+        let _ = tokio::fs::remove_file(&f).await;
+        return None;
+    }
+    Some((ct, Bytes::copy_from_slice(body)))
+}
+
+async fn img_disk_put(key: &str, ct: &str, b: &Bytes) {
+    static N: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let Some(dir) = img_cache_dir() else { return };
+    let mut out = Vec::with_capacity(ct.len() + 1 + b.len());
+    out.extend_from_slice(ct.as_bytes());
+    out.push(b'\n');
+    out.extend_from_slice(b);
+    if tokio::fs::write(dir.join(key), out).await.is_err() {
+        return;
+    }
+    // Giữ thư mục gọn: cứ 50 ảnh mới thì kiểm tra, quá 800 file thì xoá 200 file cũ nhất.
+    if N.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 50 == 49 {
+        if let Ok(mut rd) = tokio::fs::read_dir(&dir).await {
+            let mut all: Vec<(SystemTime, PathBuf)> = Vec::new();
+            while let Ok(Some(e)) = rd.next_entry().await {
+                if let Ok(m) = e.metadata().await {
+                    all.push((m.modified().unwrap_or(UNIX_EPOCH), e.path()));
+                }
+            }
+            if all.len() > 800 {
+                all.sort();
+                for (_, f) in all.into_iter().take(200) {
+                    let _ = tokio::fs::remove_file(f).await;
+                }
+            }
+        }
+    }
+}
+
+const IMG_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+
+// Tải một URL ảnh: Ok((content-type, bytes)) nếu là ảnh hợp lệ, Err(ghi chú) nếu không.
+async fn img_fetch(client: &reqwest::Client, url: &str, timeout: Duration) -> Result<(String, Bytes), String> {
+    let r = client
+        .get(url)
+        .header("user-agent", IMG_UA)
+        .header("accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
+        .timeout(timeout)
+        .send()
+        .await
+        .map_err(|e| format!("[{}: lỗi kết nối ({e})] ", reqwest::Url::parse(url).ok().and_then(|u| u.host_str().map(|h| h.to_string())).unwrap_or_default()))?;
+    let host = r.url().host_str().unwrap_or("?").to_string();
+    if !r.status().is_success() {
+        return Err(format!("[{host}: HTTP {}] ", r.status().as_u16()));
+    }
+    let ct = r.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").split(';').next().unwrap_or("").trim().to_string();
+    if !ct.starts_with("image/") {
+        return Err(format!("[{host}: không phải ảnh ({ct})] "));
+    }
+    match r.bytes().await {
+        Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => Ok((ct, b)),
+        _ => Err(format!("[{host}: ảnh rỗng/quá lớn] ")),
+    }
+}
+
+fn img_resp(ct: &str, b: Bytes) -> Response {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, ct)
+        .header(header::CACHE_CONTROL, "public, max-age=86400")
+        .body(Body::from(b))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
 async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Response {
     let parsed = match reqwest::Url::parse(&q.u).ok().filter(|p| p.scheme() == "https") {
         Some(p) => p,
@@ -851,7 +982,16 @@ async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Respons
     if !(host == "i.ytimg.com" || host.ends_with(".ggpht.com") || host.ends_with(".googleusercontent.com")) {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    // Thử lần lượt: link gốc, rồi các tên miền ảnh khác của YouTube (cùng đường dẫn /vi/...).
+    // 1) RAM rồi đĩa: ảnh đã xem rồi hiện ngay, không hỏi mạng.
+    let key = img_key(&q.u);
+    if let Some((ct, b)) = img_ram_get(&key) {
+        return img_resp(&ct, b);
+    }
+    if let Some((ct, b)) = img_disk_get(&key).await {
+        img_ram_put(&key, &ct, &b);
+        return img_resp(&ct, b);
+    }
+    // 2) Nguồn gốc (IP của máy này): link gốc, rồi các tên miền ảnh khác của YouTube, rồi hạ dần chất lượng (hq720/maxres không phải video nào cũng có).
     let mut cands: Vec<String> = vec![q.u.clone()];
     if host == "i.ytimg.com" {
         for alt in ["i1.ytimg.com", "i9.ytimg.com", "img.youtube.com"] {
@@ -860,7 +1000,6 @@ async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Respons
                 cands.push(u.to_string());
             }
         }
-        // Ảnh /vi/ID/hq720.jpg (hoặc maxres...) không phải video nào cũng có: hạ dần chất lượng để luôn có ảnh.
         if let Some(pos) = q.u.rfind('/') {
             let (base, tail) = q.u.split_at(pos + 1);
             if base.contains("/vi/") && tail.ends_with(".jpg") {
@@ -872,39 +1011,73 @@ async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Respons
             }
         }
     }
-    let mut notes = String::new();
-    for u in cands {
-        let res = st
-            .http
-            .get(&u)
-            .header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
-            .header("accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
-            .send()
-            .await;
-        match res {
-            Ok(r) if r.status().is_success() => {
-                let ct = r.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").to_string();
-                if !ct.starts_with("image/") {
-                    notes.push_str(&format!("[{}: không phải ảnh ({ct})] ", r.url().host_str().unwrap_or("?")));
-                    continue;
-                }
-                match r.bytes().await {
-                    Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => {
-                        return Response::builder()
-                            .status(StatusCode::OK)
-                            .header(header::CONTENT_TYPE, ct)
-                            .header(header::CACHE_CONTROL, "public, max-age=86400")
-                            .body(Body::from(b))
-                            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
+    // 3) Dự phòng (wsrv.nl, DuckDuckGo, weserv.nl) chỉ bắt đầu SAU KHI nguồn gốc xong mà lỗi (hoặc sau 1,5 giây), chạy song song, cái nào xong trước thắng.
+    let enc: String = reqwest::Url::parse_with_params("https://x/", &[("u", q.u.as_str())])
+        .ok()
+        .and_then(|u| u.query().map(|s| s.trim_start_matches("u=").to_string()))
+        .unwrap_or_default();
+    let fallbacks = [
+        format!("https://wsrv.nl/?url={enc}"),
+        format!("https://external-content.duckduckgo.com/iu/?u={enc}&f=1"),
+        format!("https://images.weserv.nl/?url={enc}"),
+    ];
+    type Msg = Result<(String, Bytes), String>;
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Msg>();
+    let direct_done = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let mut tasks: Vec<tokio::task::JoinHandle<()>> = Vec::new();
+    {
+        let (tx, client, done) = (tx.clone(), st.http.clone(), direct_done.clone());
+        tasks.push(tokio::spawn(async move {
+            let mut notes = String::new();
+            for (i, u) in cands.iter().enumerate() {
+                match img_fetch(&client, u, Duration::from_secs(if i == 0 { 5 } else { 8 })).await {
+                    Ok(x) => {
+                        done.store(true, std::sync::atomic::Ordering::Relaxed);
+                        let _ = tx.send(Ok(x));
+                        return;
                     }
-                    _ => notes.push_str("[ảnh rỗng/quá lớn] "),
+                    Err(n) => notes.push_str(&n),
                 }
             }
-            Ok(r) => notes.push_str(&format!("[{}: HTTP {}] ", r.url().host_str().unwrap_or("?"), r.status().as_u16())),
-            Err(e) => notes.push_str(&format!("[lỗi kết nối: {e}] ")),
+            done.store(true, std::sync::atomic::Ordering::Relaxed);
+            let _ = tx.send(Err(notes));
+        }));
+    }
+    for (i, u) in fallbacks.into_iter().enumerate() {
+        let (tx, client, done) = (tx.clone(), st.http.clone(), direct_done.clone());
+        tasks.push(tokio::spawn(async move {
+            let t0 = std::time::Instant::now();
+            while !done.load(std::sync::atomic::Ordering::Relaxed) && t0.elapsed() < Duration::from_millis(1500) {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+            }
+            tokio::time::sleep(Duration::from_millis(150 * i as u64)).await;
+            let _ = tx.send(img_fetch(&client, &u, Duration::from_secs(8)).await);
+        }));
+    }
+    drop(tx);
+    let mut notes = String::new();
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
+    let mut got: Option<(String, Bytes)> = None;
+    while let Ok(Some(m)) = tokio::time::timeout_at(deadline, rx.recv()).await {
+        match m {
+            Ok(x) => {
+                got = Some(x);
+                break;
+            }
+            Err(n) => notes.push_str(&n),
         }
     }
-    (StatusCode::BAD_GATEWAY, format!("Server không tải được ảnh: {notes}")).into_response()
+    for t in tasks {
+        t.abort();
+    }
+    match got {
+        Some((ct, b)) => {
+            img_ram_put(&key, &ct, &b);
+            img_disk_put(&key, &ct, &b).await;
+            img_resp(&ct, b)
+        }
+        None => (StatusCode::BAD_GATEWAY, format!("Không tải được ảnh: {notes}")).into_response(),
+    }
 }
 
 async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
