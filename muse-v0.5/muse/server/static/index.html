@@ -3763,8 +3763,12 @@ async function dlRun(it){
           catch(e){ it.note='không đổi được sang WAV, đã lưu bản gốc'; }
         }
       }
-      try{ await dlSaveFile(safe+'.'+ext,blob,ext); it.name=safe+'.'+ext; }
-      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy ('+String(e&&e.message||e).slice(0,80)+'), vẫn nghe offline trong app'; }
+      try{
+        try{ await dlSaveFile(safe+'.'+ext,blob,ext); }
+        catch(e1){ await new Promise(z=>setTimeout(z,600)); await dlSaveFile(safe+'.'+ext,blob,ext); } // thử lại 1 lần
+        it.name=safe+'.'+ext;
+      }
+      catch(e){ if(!offOk) throw e; try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app, không báo lỗi
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
