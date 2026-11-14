@@ -161,6 +161,7 @@ object NativeYt {
             headers["Accept-Ranges"] = "bytes"
             headers["Content-Length"] = (end - start + 1).toString()
             headers["Cache-Control"] = "no-store"
+            headers["X-Muse-Src"] = "native"
             headers["Access-Control-Allow-Origin"] = "*"
             return try {
                 WebResourceResponse(info.mime, null, 206, "Partial Content", headers, conn.inputStream)

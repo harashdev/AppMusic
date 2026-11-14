@@ -14,6 +14,11 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URL
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 /**
@@ -115,6 +120,7 @@ object LocalAudio {
             if (code != 200 && code != 206) { c.disconnect(); return null }
             val mime = c.contentType?.substringBefore(';')?.trim().takeUnless { it.isNullOrEmpty() } ?: "audio/mp4"
             val headers = HashMap<String, String>()
+            headers["X-Muse-Src"] = "local"
             for (k in listOf("Content-Range", "Accept-Ranges", "Content-Length", "Cache-Control")) {
                 c.getHeaderField(k)?.let { headers[k] = it }
             }
@@ -143,6 +149,53 @@ object LocalAudio {
         } else { c.disconnect(); null }
     } catch (e: Exception) { null }
 
+    // ------------------------------------------------------------------ tải ảnh song song (nhanh)
+
+    private val imgPool = Executors.newCachedThreadPool { r -> Thread(r, "muse-img").apply { isDaemon = true } }
+    @Volatile private var directFail = 0 // số lần liên tiếp tải trực tiếp i.ytimg.com thất bại: mạng chặn thì khỏi chờ nó nữa
+
+    /**
+     * Không chờ từng nguồn hết hạn rồi mới thử nguồn kế (trước đây mỗi ảnh có thể mất 6-20 giây khi mạng chặn i.ytimg.com).
+     * Bật nguồn đầu ngay; sau 0,9 giây chưa có ảnh (hoặc nguồn đó vừa lỗi) thì bật thêm nguồn kế tiếp. Nguồn nào xong trước thì dùng.
+     * Khi tải trực tiếp đã hỏng liên tiếp thì chuyển nó xuống sau các dịch vụ ảnh.
+     */
+    private fun raceImage(url: String, ua: String?, serverBase: String): Pair<String, ByteArray>? {
+        val enc = URLEncoder.encode(url, "UTF-8")
+        val direct = Callable<Pair<String, ByteArray>?> {
+            val r = download(url, ua, 5000)
+            if (r != null) directFail = 0 else if (!Thread.currentThread().isInterrupted) directFail++
+            r
+        }
+        val srcs = ArrayList<Callable<Pair<String, ByteArray>?>>()
+        srcs.add(direct)
+        srcs.add(Callable { download("https://wsrv.nl/?url=$enc&w=480", ua, 6000) })
+        srcs.add(Callable { download("https://external-content.duckduckgo.com/iu/?u=$enc&f=1", ua, 6000) })
+        srcs.add(Callable { download("https://images.weserv.nl/?url=$enc&w=480", ua, 6000) })
+        if (serverBase.isNotBlank()) srcs.add(Callable { download("$serverBase/api/img?u=$enc", ua, 12000) })
+        if (directFail >= 2 && srcs.size > 2) { srcs.removeAt(0); srcs.add(1, direct) }
+
+        val cs = ExecutorCompletionService<Pair<String, ByteArray>?>(imgPool)
+        val futures = ArrayList<Future<Pair<String, ByteArray>?>>()
+        var started = 0
+        var finished = 0
+        fun startNext() { if (started < srcs.size) { futures.add(cs.submit(srcs[started])); started++ } }
+        val deadline = System.currentTimeMillis() + 16000
+        var result: Pair<String, ByteArray>? = null
+        startNext()
+        while (finished < started) {
+            val left = deadline - System.currentTimeMillis()
+            if (left <= 0) break
+            val f = cs.poll(minOf(900L, left), TimeUnit.MILLISECONDS)
+            if (f == null) { startNext(); continue }
+            finished++
+            val r = try { f.get() } catch (e: Exception) { null }
+            if (r != null) { result = r; break }
+            startNext()
+        }
+        for (f in futures) f.cancel(true)
+        return result
+    }
+
     /**
      * Ảnh bìa YouTube/Google: tải bằng mạng gốc của điện thoại (không qua WebView, nên né được các kiểu chặn riêng của WebView/Chrome),
      * lưu vào bộ nhớ đệm trong máy. Nếu mạng máy không tới được thì nhờ server tải hộ (/api/img). Cả hai đều lỗi thì trả null.
@@ -168,13 +221,7 @@ object LocalAudio {
         } catch (e: Exception) { runCatching { f.delete() } }
         val ua = req.requestHeaders["User-Agent"]
         val enc = URLEncoder.encode(url, "UTF-8")
-        // Thử lần lượt, tất cả bằng mạng của điện thoại: trực tiếp -> wsrv.nl -> DuckDuckGo -> weserv.nl -> server (cuối cùng).
-        val got = download(url, ua, 6000)
-            ?: download("https://wsrv.nl/?url=$enc", ua, 8000)
-            ?: download("https://external-content.duckduckgo.com/iu/?u=$enc&f=1", ua, 8000)
-            ?: download("https://images.weserv.nl/?url=$enc", ua, 8000)
-            ?: if (serverBase.isNotBlank()) download("$serverBase/api/img?u=$enc", ua, 15000) else null
-        if (got == null) return null
+        val got = raceImage(url, ua, serverBase) ?: return null
         runCatching {
             DataOutputStream(f.outputStream().buffered()).use { o -> o.writeUTF(got.first); o.write(got.second) }
             val all = dir.listFiles()

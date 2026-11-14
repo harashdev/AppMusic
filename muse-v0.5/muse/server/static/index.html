@@ -1400,7 +1400,7 @@ function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[s
   const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
   const r=i.getBoundingClientRect(); if(!r.width||r.bottom<-600||r.top>innerHeight+600||r.right<-300||r.left>innerWidth+300) return;   /* ảnh lazy ngoài màn hình thì chưa tính */
   if(!i.dataset.t) i.dataset.t=now;
-  if(force||(bad&&now-(+i.dataset.t)>3000)||(!bad&&now-(+i.dataset.t)>6000)) imgNext(i); }); }
+  if(force||(bad&&now-(+i.dataset.t)>3000)||(!bad&&now-(+i.dataset.t)>3500)) imgNext(i); }); }
 setInterval(()=>{ if(!document.hidden) imgSweep(false); },2000);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
 const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
@@ -3585,7 +3585,7 @@ async function dlRun(it){
           try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
           catch(e){ if(tr===2) throw e; await new Promise(z=>setTimeout(z,800)); }
         }
-        const b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng');
+        const b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng (HTTP '+r.status+', nguồn: '+(r.headers.get('x-muse-src')||'server')+', dài '+(r.headers.get('content-length')||'?')+')');
         mime=r.headers.get('content-type')||mime;
         const cr=r.headers.get('content-range');
         total=(r.status===206&&cr)?(+cr.split('/')[1]||0):b.size;
