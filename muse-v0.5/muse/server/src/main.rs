@@ -549,37 +549,57 @@ struct ImgQ {
 }
 
 async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Response {
-    let host_ok = reqwest::Url::parse(&q.u)
-        .ok()
-        .filter(|p| p.scheme() == "https")
-        .and_then(|p| p.host_str().map(|h| h.to_ascii_lowercase()))
-        .map(|h| h == "i.ytimg.com" || h.ends_with(".ggpht.com") || h.ends_with(".googleusercontent.com"))
-        .unwrap_or(false);
-    if !host_ok {
+    let parsed = match reqwest::Url::parse(&q.u).ok().filter(|p| p.scheme() == "https") {
+        Some(p) => p,
+        None => return StatusCode::BAD_REQUEST.into_response(),
+    };
+    let host = parsed.host_str().map(|h| h.to_ascii_lowercase()).unwrap_or_default();
+    if !(host == "i.ytimg.com" || host.ends_with(".ggpht.com") || host.ends_with(".googleusercontent.com")) {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let r = match st.http.get(&q.u).send().await {
-        Ok(r) if r.status().is_success() => r,
-        _ => return StatusCode::BAD_GATEWAY.into_response(),
-    };
-    let ct = r
-        .headers()
-        .get(header::CONTENT_TYPE)
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("")
-        .to_string();
-    if !ct.starts_with("image/") {
-        return StatusCode::BAD_GATEWAY.into_response();
+    // Thử lần lượt: link gốc, rồi các tên miền ảnh khác của YouTube (cùng đường dẫn /vi/...).
+    let mut cands: Vec<String> = vec![q.u.clone()];
+    if host == "i.ytimg.com" {
+        for alt in ["i1.ytimg.com", "i9.ytimg.com", "img.youtube.com"] {
+            let mut u = parsed.clone();
+            if u.set_host(Some(alt)).is_ok() {
+                cands.push(u.to_string());
+            }
+        }
     }
-    match r.bytes().await {
-        Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => Response::builder()
-            .status(StatusCode::OK)
-            .header(header::CONTENT_TYPE, ct)
-            .header(header::CACHE_CONTROL, "public, max-age=86400")
-            .body(Body::from(b))
-            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()),
-        _ => StatusCode::BAD_GATEWAY.into_response(),
+    let mut notes = String::new();
+    for u in cands {
+        let res = st
+            .http
+            .get(&u)
+            .header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
+            .header("accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
+            .send()
+            .await;
+        match res {
+            Ok(r) if r.status().is_success() => {
+                let ct = r.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").to_string();
+                if !ct.starts_with("image/") {
+                    notes.push_str(&format!("[{}: không phải ảnh ({ct})] ", r.url().host_str().unwrap_or("?")));
+                    continue;
+                }
+                match r.bytes().await {
+                    Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => {
+                        return Response::builder()
+                            .status(StatusCode::OK)
+                            .header(header::CONTENT_TYPE, ct)
+                            .header(header::CACHE_CONTROL, "public, max-age=86400")
+                            .body(Body::from(b))
+                            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
+                    }
+                    _ => notes.push_str("[ảnh rỗng/quá lớn] "),
+                }
+            }
+            Ok(r) => notes.push_str(&format!("[{}: HTTP {}] ", r.url().host_str().unwrap_or("?"), r.status().as_u16())),
+            Err(e) => notes.push_str(&format!("[lỗi kết nối: {e}] ")),
+        }
     }
+    (StatusCode::BAD_GATEWAY, format!("Server không tải được ảnh: {notes}")).into_response()
 }
 
 async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
