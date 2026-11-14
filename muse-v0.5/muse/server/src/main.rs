@@ -6,9 +6,10 @@ use axum::{
     body::{Body, Bytes},
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        DefaultBodyLimit, Path, Query, State,
+        ConnectInfo, DefaultBodyLimit, Path, Query, State,
     },
-    http::{header, HeaderMap, StatusCode},
+    http::{header, HeaderMap, HeaderValue, Request, StatusCode},
+    middleware::{self, Next},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Json, Router,
@@ -48,6 +49,93 @@ struct AppState {
     http_proxy: Option<reqwest::Client>,
     // Cache địa chỉ luồng âm thanh YouTube: khoá -> (url, kích thước, mime, thời điểm tạo - giây)
     audio: Arc<Mutex<HashMap<String, (String, u64, String, u64, usize)>>>,
+    // Giới hạn đăng nhập/đăng ký: khoá -> (số lần, thời điểm bắt đầu cửa sổ - giây). Chống dò mật khẩu.
+    auth_limit: Arc<Mutex<HashMap<String, (u32, u64)>>>,
+}
+
+// ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
+// Chính sách nội dung (CSP): chỉ cho tải script/khung từ chính server và YouTube, chặn nhúng trang vào khung khác.
+// Muốn tắt tạm khi gỡ lỗi: đặt biến môi trường CSP_OFF=1.
+const CSP: &str = "default-src 'self'; \
+script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; \
+style-src 'self' 'unsafe-inline'; \
+img-src 'self' data: blob: https:; \
+media-src 'self' blob: https:; \
+font-src 'self' data:; \
+connect-src 'self' ws: wss: ipc: http://ipc.localhost https://www.youtube.com https://music.youtube.com https://returnyoutubedislikeapi.com https://api.github.com https://sponsor.ajay.app https://lrclib.net https://api-lyrics.simpmusic.org; \
+frame-src https://www.youtube.com https://www.youtube-nocookie.com; \
+worker-src 'self'; manifest-src 'self'; \
+object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+
+async fn security_headers(req: Request<Body>, next: Next) -> Response {
+    let is_api = req.uri().path().starts_with("/api/");
+    let mut res = next.run(req).await;
+    let h = res.headers_mut();
+    fn set(h: &mut HeaderMap, k: &'static str, v: &'static str) {
+        h.insert(header::HeaderName::from_static(k), HeaderValue::from_static(v));
+    }
+    set(h, "x-content-type-options", "nosniff");
+    set(h, "x-frame-options", "DENY");
+    set(h, "referrer-policy", "no-referrer");
+    set(h, "cross-origin-opener-policy", "same-origin");
+    set(h, "cross-origin-resource-policy", "same-origin");
+    set(h, "x-permitted-cross-domain-policies", "none");
+    set(h, "permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()");
+    set(h, "strict-transport-security", "max-age=31536000");
+    if std::env::var("CSP_OFF").ok().as_deref() != Some("1") {
+        set(h, "content-security-policy", CSP);
+    }
+    if is_api && !h.contains_key(header::CACHE_CONTROL) {
+        set(h, "cache-control", "no-store");
+    }
+    res
+}
+
+// Địa chỉ người gọi: ưu tiên X-Forwarded-For (khi đứng sau Caddy/Tailscale), không có thì dùng địa chỉ kết nối.
+fn client_key(headers: &HeaderMap, addr: &std::net::SocketAddr) -> String {
+    headers
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().chars().take(64).collect::<String>())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| addr.ip().to_string())
+}
+
+// true = đang bị khoá (đã vượt `max` lần trong `window` giây).
+fn rl_blocked(st: &AppState, key: &str, max: u32, window: u64) -> bool {
+    let mut g = st.auth_limit.lock().unwrap();
+    let now = now_secs();
+    if g.len() > 5000 {
+        g.retain(|_, (_, t)| now.saturating_sub(*t) < 3600);
+    }
+    let cur: Option<(u32, u64)> = g.get(key).copied();
+    match cur {
+        Some((n, t)) if now.saturating_sub(t) < window => n >= max,
+        Some(_) => {
+            g.remove(key);
+            false
+        }
+        None => false,
+    }
+}
+
+fn rl_hit(st: &AppState, key: &str, window: u64) {
+    let mut g = st.auth_limit.lock().unwrap();
+    let now = now_secs();
+    let e = g.entry(key.to_string()).or_insert((0, now));
+    if now.saturating_sub(e.1) >= window {
+        *e = (0, now);
+    }
+    e.0 += 1;
+}
+
+fn rl_clear(st: &AppState, key: &str) {
+    st.auth_limit.lock().unwrap().remove(key);
+}
+
+fn too_many() -> ApiErr {
+    (StatusCode::TOO_MANY_REQUESTS, "Thử quá nhiều lần. Vui lòng đợi vài phút rồi thử lại.".into())
 }
 
 #[derive(Serialize, Clone)]
@@ -316,6 +404,7 @@ async fn main() {
                     .ok()
             }),
         audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
     };
 
     let router = Router::new()
@@ -374,12 +463,16 @@ async fn main() {
         .nest_service("/banners", ServeDir::new(banner_dir))
         .fallback_service(ServeDir::new(static_dir))
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
+        .layer(middleware::from_fn(security_headers))
         .with_state(st);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
-    println!("Muse server: http://localhost:{port}");
-    axum::serve(listener, router).await.unwrap();
+    // BIND=127.0.0.1 -> chỉ nhận kết nối từ chính máy này (dùng khi đã có Caddy / Tailscale Serve / Funnel phía trước),
+    // nên IP mạng LAN và cổng không bị lộ ra ngoài. Mặc định 0.0.0.0 để không phá cách chạy hiện có (Docker, điện thoại cùng Wi-Fi).
+    let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "0.0.0.0".into());
+    let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
+    println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
+    axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
 
 async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
@@ -412,7 +505,13 @@ struct AuthResp {
     user: User,
 }
 
-async fn register(State(st): State<AppState>, Json(r): Json<AuthReq>) -> R<AuthResp> {
+async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
+    // Tối đa 10 lần đăng ký / giờ / địa chỉ, tránh tạo tài khoản hàng loạt.
+    let rkey = format!("reg:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &rkey, 10, 3600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &rkey, 3600);
     let username = r.username.trim().to_lowercase();
     if username.len() < 3 || username.len() > 24 || !username.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
         return Err(bad("Tên đăng nhập 3-24 ký tự: chữ, số hoặc _"));
@@ -453,8 +552,14 @@ async fn register(State(st): State<AppState>, Json(r): Json<AuthReq>) -> R<AuthR
     Ok(Json(AuthResp { token, user }))
 }
 
-async fn login(State(st): State<AppState>, Json(r): Json<AuthReq>) -> R<AuthResp> {
+async fn login(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
     let username = r.username.trim().to_lowercase();
+    // Chống dò mật khẩu: 5 lần sai / 10 phút cho mỗi tên đăng nhập, 30 lần sai / 10 phút cho mỗi địa chỉ.
+    let ukey = format!("u:{}", username.chars().take(40).collect::<String>());
+    let ikey = format!("ip:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ukey, 5, 600) || rl_blocked(&st, &ikey, 30, 600) {
+        return Err(too_many());
+    }
     let row = {
         let db = st.db.lock().unwrap();
         let x = db
@@ -464,12 +569,19 @@ async fn login(State(st): State<AppState>, Json(r): Json<AuthReq>) -> R<AuthResp
             .ok();
         x
     };
-    let Some((id, hash)) = row else { return Err(unauth_login()) };
+    let Some((id, hash)) = row else {
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
+        return Err(unauth_login());
+    };
     let pw = r.password.clone();
     let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
     if !ok {
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
         return Err(unauth_login());
     }
+    rl_clear(&st, &ukey);
     let db = st.db.lock().unwrap();
     let _ = db.execute("DELETE FROM sessions WHERE created_at < datetime('now','-30 days')", []);
     let token = new_token();
