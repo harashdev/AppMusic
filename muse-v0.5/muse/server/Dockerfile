@@ -14,3 +14,8 @@ COPY static ./static
 VOLUME /app/data
 EXPOSE 3000
 CMD ["/app/muse-server"]
+
+ADD --chmod=755 https://github.com/ViRb3/wgcf/releases/download/v2.2.29/wgcf_2.2.29_linux_amd64 /usr/local/bin/wgcf
+ADD https://github.com/pufferffish/wireproxy/releases/latest/download/wireproxy_linux_amd64.tar.gz /tmp/wp.tar.gz
+RUN tar -xzf /tmp/wp.tar.gz -C /usr/local/bin wireproxy && rm /tmp/wp.tar.gz
+COPY --chmod=755 start.sh /app/start.sh
