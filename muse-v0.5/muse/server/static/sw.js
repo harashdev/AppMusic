@@ -1,7 +1,7 @@
 /* Service worker: mở được giao diện khi mất mạng (dữ liệu danh sách phát lấy từ bộ nhớ cục bộ, nhạc đã tải nằm trong IndexedDB).
    - Trang chính: ưu tiên mạng nhưng chỉ chờ tối đa 4 giây rồi dùng bản đã lưu (mạng "treo" thì vẫn mở được app).
    - Ảnh bìa (YouTube/Google): lưu lại khi xem online để offline vẫn còn hình. */
-const CACHE = 'muse-shell-v4', IMG = 'muse-img-v2', IMG_MAX = 400;
+const CACHE = 'muse-shell-v5', IMG = 'muse-img-v2', IMG_MAX = 400;
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.add('/')).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== IMG).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 const timeout = (ms) => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
@@ -23,7 +23,14 @@ self.addEventListener('fetch', e => {
         const res = await fetch(r.url, { mode: 'cors', credentials: 'omit' });
         if (res.ok) { c.put(r.url, res.clone()).then(() => c.keys()).then(ks => { if (ks.length > IMG_MAX) c.delete(ks[0]); }).catch(() => {}); }
         return res;
-      } catch (_) { return fetch(r); }
+      } catch (_) {
+        /* Mạng chặn tên miền ảnh: thử trực tiếp, rồi nhờ server tải hộ (/api/img). */
+        try { return await fetch(r); }
+        catch (e) {
+          try { const p = await fetch('/api/img?u=' + encodeURIComponent(r.url)); if (p.ok) return p; } catch (_2) {}
+          throw e;
+        }
+      }
     }));
   }
 });

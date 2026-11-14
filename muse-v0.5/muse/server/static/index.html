@@ -1351,25 +1351,57 @@ const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
 document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,e.dataset.f?'fill':'')});
 function setIc(el,name,fill){ const s=name+(fill?'f':''); if(el.dataset.s===s) return; el.dataset.s=s; el.innerHTML=ic(name,fill?'fill':''); }
 
-const thumb=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
+const thumb0=(u,s=300)=>{ u=String(u||''); s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
   if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
   const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s>400?'hq720':'mqdefault'}.jpg`;
   return u; };
 const IMG_NET=/^https?:\/\/(i\.ytimg\.com|[\w-]+\.(googleusercontent|ggpht)\.com)\//;
-function imgRetryUrl(u,n){ u=u.replace(/([?&])_r=\d+/,'').replace(/[?&]$/,'');
-  if(n>=1&&/=w\d+-h\d+/.test(u)) u=u.replace(/=w(\d+)-h(\d+)/,(a,w)=>{ const v=Math.max(96,Math.round(w*(n>=2?.4:.65))); return '=w'+v+'-h'+v; });
-  return u+(u.includes('?')?'&':'?')+'_r='+(n+1); }
-function imgReload(i,n){ if(!i.isConnected) return; const o=i.dataset.o||(i.dataset.o=i.currentSrc||i.src); i.dataset.rt=n; i.dataset.t=Date.now(); i.loading='eager'; i.src=imgRetryUrl(o,n); }
+/* ẢNH BÌA – luôn phải hiện. Mọi bước đều chạy ngay trên máy người dùng (không phụ thuộc server):
+   trực tiếp i.ytimg.com -> các tên miền ảnh YouTube khác -> wsrv.nl -> DuckDuckGo -> weserv.nl -> server (/api/img) -> ảnh thay thế.
+   Ảnh lỗi (hoặc treo > 6 giây) tự nhảy sang nguồn kế tiếp; nguồn nào chạy được thì nhớ 6 giờ để các ảnh sau đi thẳng. */
+const imgHolder=k=>{ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))>>>0; const a=h%360, b=(a+40)%360;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${a},45%,28%)"/><stop offset="1" stop-color="hsl(${b},50%,16%)"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/><path d="M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z" fill="rgba(255,255,255,.55)"/></svg>`); };
+const IMG_PX=u=>'/api/img?u='+encodeURIComponent(u);
+const imgClean=u=>String(u).replace(/([?&])_r=\d+/,'').replace(/[?&]$/,'');
+const imgVia=(b,v)=>{ const e=encodeURIComponent(b); return v==='w'?'https://wsrv.nl/?url='+e : v==='d'?'https://external-content.duckduckgo.com/iu/?u='+e+'&f=1' : v==='v'?'https://images.weserv.nl/?url='+e : IMG_PX(b); };
+function imgChain(o){ o=imgClean(o); const c=[o]; const m=o.match(/^https?:\/\/(?:i\d?\.ytimg\.com|img\.youtube\.com)\/vi(?:_webp)?\/([\w-]{11})\//);
+  let base=o;
+  if(m){ base='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg'; c.push(base,'https://img.youtube.com/vi/'+m[1]+'/mqdefault.jpg','https://i1.ytimg.com/vi/'+m[1]+'/hqdefault.jpg'); }
+  for(const v of ['w','d','v','p']) c.push(imgVia(base,v));
+  return c.map(x=>x[0]==='/'?location.origin+x:x).filter((x,k,arr)=>arr.indexOf(x)===k); }
+function imgUnproxy(s){ try{ const u=new URL(s,location.href), h=u.hostname;
+  if(h==='wsrv.nl'||h==='images.weserv.nl') return u.searchParams.get('url')||'';
+  if(h==='external-content.duckduckgo.com'||(h===location.hostname&&u.pathname==='/api/img')) return u.searchParams.get('u')||''; }catch{} return ''; }
+let imgOk=0, imgBad=0, imgBest=''; try{ const [v,t]=String(LS.get('muse_imgvia','')).split('@'); if(v&&Date.now()-(+t||0)<6*3600e3) imgBest=v; }catch{}
+const thumb=(u,s)=>{ const r=thumb0(u,s); return imgBest&&IMG_NET.test(r)?imgVia(imgClean(r),imgBest):r; };
+/* Nhận ảnh vào hệ thống dự phòng: trả về URL gốc (hoặc '' nếu không phải ảnh bìa). */
+function imgAdopt(i){ if(i.dataset.o0) return i.dataset.o0; const src=i.src||''; if(!src||/^data:/.test(src)) return '';
+  let o=IMG_NET.test(src)?imgClean(src):imgUnproxy(src); if(!o) return '';
+  const h=i.closest('[data-tk]'), m=h&&String(h.dataset.tk).match(/^yt:([\w-]{11})$/);
+  if(m&&!/ytimg\.com/.test(o)) o='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg';   /* ảnh Google lỗi -> dùng thumbnail theo id bài */
+  return i.dataset.o0=o; }
+function imgNext(i){ if(!i.isConnected) return; const o=imgAdopt(i); if(!o) return; const ch=imgChain(o);
+  let k=ch.indexOf(i.src); if(k<0) k=(i.dataset.fi!==undefined&&i.dataset.fi!=='x')?+i.dataset.fi:0; k++;
+  i.dataset.t=Date.now();
+  if(k>=ch.length){ if(i.dataset.fi!=='x'){ i.dataset.fi='x'; i.src=imgHolder(o); } return; }
+  i.dataset.fi=k; i.loading='eager'; i.src=ch[k]; }
+document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG'||!i.dataset.o0) { if(i&&i.tagName==='IMG'&&IMG_NET.test(i.src||'')) imgOk++; return; }
+  const src=i.src||''; if(/^data:/.test(src)) return; delete i.dataset.t;
+  if(!imgOk&&!imgBest){ const v=/^https:\/\/wsrv\.nl\//.test(src)?'w':/duckduckgo\.com\/iu/.test(src)?'d':/images\.weserv\.nl/.test(src)?'v':src.indexOf('/api/img?')>=0?'p':'';
+    if(v){ imgBest=v; LS.set('muse_imgvia',v+'@'+Date.now()); } } },true);
 document.addEventListener('error',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||''; if(!src||/^data:/.test(src)) return;
-  if(/\/hq720\.jpg/.test(src)){ i.src=src.replace('hq720','mqdefault'); return; }
-  if(!i.dataset.fb){ const h=i.closest('[data-tk]'), m=h&&String(h.dataset.tk).match(/^yt:([\w-]{11})$/); if(m&&!/ytimg\.com/.test(src)&&(+i.dataset.rt||0)>=1){ i.dataset.fb='1'; i.dataset.rt=0; delete i.dataset.o; i.src='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg'; return; } }
-  const n=+(i.dataset.rt||0); if(n>=3||!IMG_NET.test(src)) return;
-  setTimeout(()=>imgReload(i,n+1),n===0?150:n===1?700:1800); },true);
-function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[src]').forEach(i=>{ const src=i.src; if(!IMG_NET.test(src)) return;
+  if(!imgAdopt(i)) return; if(!i.dataset.o0.length) return;
+  if(IMG_NET.test(src)&&!i.dataset.fi) imgBad++;
+  /* ảnh hq720 không có thì hạ ngay (không tốn một lượt chuỗi) */
+  if(/\/hq720\.jpg/.test(src)&&IMG_NET.test(src)){ i.dataset.fi='0'; i.src=src.replace('hq720','mqdefault'); return; }
+  const k=+i.dataset.fi||0; setTimeout(()=>imgNext(i), k===0?0:200); },true);
+function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[src]').forEach(i=>{ const src=i.src; if(!src||/^data:/.test(src)||i.dataset.fi==='x') return;
+  if(!(i.dataset.o0||IMG_NET.test(src)||imgUnproxy(src))) return;
   const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
+  const r=i.getBoundingClientRect(); if(!r.width||r.bottom<-600||r.top>innerHeight+600||r.right<-300||r.left>innerWidth+300) return;   /* ảnh lazy ngoài màn hình thì chưa tính */
   if(!i.dataset.t) i.dataset.t=now;
-  if((bad&&(force||(+i.dataset.rt||0)>=3&&now-(+i.dataset.t)>8000))||(!bad&&now-(+i.dataset.t)>7000)){ const r=+i.dataset.rt||0; if(force||r<6) imgReload(i,force?1:r+1); } }); }
-setInterval(()=>{ if(!document.hidden) imgSweep(false); },3000);
+  if(force||(bad&&now-(+i.dataset.t)>3000)||(!bad&&now-(+i.dataset.t)>6000)) imgNext(i); }); }
+setInterval(()=>{ if(!document.hidden) imgSweep(false); },2000);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
 const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');

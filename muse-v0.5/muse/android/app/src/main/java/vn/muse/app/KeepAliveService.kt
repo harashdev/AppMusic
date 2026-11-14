@@ -187,7 +187,9 @@ class KeepAliveService : Service() {
         val url = if (raw.startsWith("/")) serverUrl() + raw else raw
         if (!url.startsWith("http")) return
         thread(isDaemon = true, name = "muse-art") {
-            val bmp = (fetchArt(url) ?: if (url.contains("/hq720.jpg")) fetchArt(url.replace("hq720", "mqdefault")) else null)?.let { b ->
+            val enc = java.net.URLEncoder.encode(url.replace("hq720", "mqdefault"), "UTF-8")
+            val cands = listOf(url, url.replace("hq720", "mqdefault"), "https://wsrv.nl/?url=$enc", "https://external-content.duckduckgo.com/iu/?u=$enc&f=1")
+            val bmp = cands.distinct().firstNotNullOfOrNull { fetchArt(it) }?.let { b ->
                 val m = maxOf(b.width, b.height)
                 val cap = artCap()
                 if (m > cap) Bitmap.createScaledBitmap(b, b.width * cap / m, b.height * cap / m, true) else b

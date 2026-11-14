@@ -94,7 +94,10 @@ object LocalAudio {
     }
 
     /** Dùng trong WebViewClient.shouldInterceptRequest (chạy ở luồng nền). Trả null = để WebView gọi server như bình thường. */
-    fun handle(req: WebResourceRequest): WebResourceResponse? {
+    fun handle(req: WebResourceRequest): WebResourceResponse? =
+        handleLocal(req) ?: NativeYt.handle(req) // tiến trình cục bộ trước, rồi bản Kotlin thuần (chỉ phần nhạc); cả hai lỗi mới nhờ server
+
+    private fun handleLocal(req: WebResourceRequest): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null
         val path = req.url.encodedPath ?: return null
         if (PREFIXES.none { path.startsWith(it) }) return null
@@ -164,8 +167,13 @@ object LocalAudio {
             }
         } catch (e: Exception) { runCatching { f.delete() } }
         val ua = req.requestHeaders["User-Agent"]
+        val enc = URLEncoder.encode(url, "UTF-8")
+        // Thử lần lượt, tất cả bằng mạng của điện thoại: trực tiếp -> wsrv.nl -> DuckDuckGo -> weserv.nl -> server (cuối cùng).
         val got = download(url, ua, 6000)
-            ?: if (serverBase.isNotBlank()) download("$serverBase/api/img?u=" + URLEncoder.encode(url, "UTF-8"), ua, 15000) else null
+            ?: download("https://wsrv.nl/?url=$enc", ua, 8000)
+            ?: download("https://external-content.duckduckgo.com/iu/?u=$enc&f=1", ua, 8000)
+            ?: download("https://images.weserv.nl/?url=$enc", ua, 8000)
+            ?: if (serverBase.isNotBlank()) download("$serverBase/api/img?u=$enc", ua, 15000) else null
         if (got == null) return null
         runCatching {
             DataOutputStream(f.outputStream().buffered()).use { o -> o.writeUTF(got.first); o.write(got.second) }
