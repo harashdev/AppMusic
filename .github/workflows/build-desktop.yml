@@ -28,7 +28,7 @@ jobs:
         shell: bash
         working-directory: muse-v0.5/muse/server
         run: |
-          cargo build --release
+          cargo build --release --features embed-ui
           mkdir -p ../desktop/src-tauri/binaries
           cp target/release/muse-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
 
