@@ -194,7 +194,27 @@ class KeepAliveService : Service() {
         // Bản nhỏ (vài chục KB) tải trước để thông báo có ảnh gần như ngay; bản lớn tải song song rồi thay vào.
         val lo = lowResArt(url)
         thread(isDaemon = true, name = "muse-art-lo") { deliverArt(raw, fetchArtBitmap(lo, true), false) }
-        if (lo != url) thread(isDaemon = true, name = "muse-art-hi") { deliverArt(raw, fetchArtBitmap(url, false), true) }
+        if (lo != url) thread(isDaemon = true, name = "muse-art-hi") {
+            // Ảnh lớn là thứ hiện ở màn hình khoá: nếu chỉ thử 1 lần mà lỗi thì ảnh nhỏ bị giữ lại và bị kéo giãn → mờ.
+            // Nên thử lại tới 3 lần, có dự phòng độ phân giải (hq720 hay 404) và có proxy ảnh.
+            val cands = hiCandidates(url)
+            var bmp: Bitmap? = null
+            for (attempt in 0 until 3) {
+                if (artUrl != raw) return@thread
+                bmp = cands.firstNotNullOfOrNull { fetchArtBitmap(it, false) }
+                    ?: cands.firstNotNullOfOrNull { fetchArtBitmap(it, true) }
+                if (bmp != null) break
+                runCatching { Thread.sleep(1500L * (attempt + 1)) }
+            }
+            deliverArt(raw, bmp, true)
+        }
+    }
+
+    // Thumbnail YouTube: hq720 không phải video nào cũng có → hạ dần nhưng vẫn giữ độ phân giải cao nhất có thể.
+    private fun hiCandidates(u: String): List<String> {
+        val m = Regex("^(https://[^/]+/vi(?:_webp)?/[\\w-]{11}/)hq720(\\.(?:jpg|webp))(.*)$").find(u) ?: return listOf(u)
+        val (b, ext, rest) = m.destructured
+        return listOf("hq720", "maxresdefault", "sddefault", "hqdefault").map { b + it + ext + rest }
     }
 
     private fun deliverArt(raw: String, bmp: Bitmap?, hi: Boolean) {
