@@ -307,6 +307,18 @@ class MainActivity : ComponentActivity() {
         web.onResume(); web.resumeTimers()
     }
 
+    // Không để WebView tự dừng audio khi activity vào background / màn hình tắt.
+    // WebView.onPause() gửi "visibilitychange=hidden" vào JS và trình duyệt Chromium
+    // sẽ throttle/pause <audio> — đây là nguyên nhân nhạc dừng khi tắt màn hình.
+    override fun onPause() {
+        super.onPause()
+        // Luôn giữ WebView ở trạng thái resume khi có bài đang phát hoặc đang nạp.
+        if (Playback.hasTrack || Playback.playing) {
+            web.onResume()
+            web.resumeTimers()
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         // Có bài đang nạp (kể cả đang tạm dừng) thì giữ WebView chạy nền, để nút Phát/Tiếp trên thông báo còn tác dụng.
