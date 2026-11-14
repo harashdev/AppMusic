@@ -115,6 +115,16 @@ class MainActivity : ComponentActivity() {
         })
         LocalAudio.start(this) // nhạc YouTube lấy ngay trên máy (nếu APK có kèm libmuse_audio.so), không thì vẫn qua server
         setupWebView()
+        // Chẩn đoán tạm thời: nếu lấy nhạc/ảnh trên máy bị lỗi thì hiện hộp thoại cho bạn chụp màn hình gửi lại. Mọi thứ ổn thì không hiện gì.
+        thread(isDaemon = true, name = "muse-diag") {
+            Thread.sleep(6000)
+            val r = runCatching { LocalAudio.diagnose(applicationContext, serverUrl()) }.getOrElse { "Chẩn đoán lỗi: ${it.message}" }
+            if (r.isNotEmpty()) runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                val tv = TextView(this).apply { text = r; textSize = 12f; setTextIsSelectable(true); setPadding(40, 24, 40, 8) }
+                android.app.AlertDialog.Builder(this).setTitle("Chẩn đoán Muse").setView(tv).setPositiveButton("Đóng", null).show()
+            }
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when {

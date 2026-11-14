@@ -31,6 +31,7 @@ object LocalAudio {
     @Volatile private var proc: Process? = null
     @Volatile private var port = 0
     private val lock = Any()
+    private val tail = java.util.ArrayDeque<String>() // vài dòng cuối đầu ra của tiến trình, để chẩn đoán
 
     /** Gọi một lần khi mở app (chạy nền, không chặn giao diện). */
     fun start(ctx: Context) {
@@ -67,7 +68,11 @@ object LocalAudio {
                 val np = pb.start()
                 // Phải đọc hết đầu ra của tiến trình, không thì nó bị nghẽn khi buffer đầy.
                 thread(isDaemon = true, name = "muse-local-audio-log") {
-                    runCatching { np.inputStream.bufferedReader().forEachLine { /* bỏ qua */ } }
+                    runCatching {
+                        np.inputStream.bufferedReader().forEachLine { l ->
+                            synchronized(tail) { tail.addLast(l.take(200)); while (tail.size > 15) tail.removeFirst() }
+                        }
+                    }
                 }
                 proc = np; port = free
                 // Chờ cổng mở (tối đa ~3 giây).
@@ -163,5 +168,43 @@ object LocalAudio {
             if (all != null && all.size > 800) all.sortedBy { it.lastModified() }.take(200).forEach { it.delete() }
         }
         return WebResourceResponse(got.first, null, 200, "OK", hdr, ByteArrayInputStream(got.second))
+    }
+
+    // ------------------------------------------------------------------ chẩn đoán (tạm thời)
+
+    private fun probe(url: String, timeoutMs: Int): Pair<Boolean, String> = try {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = timeoutMs; c.readTimeout = timeoutMs
+        val code = c.responseCode
+        val ct = c.contentType.orEmpty()
+        val body = (if (code in 200..299) c.inputStream else c.errorStream)?.use { s ->
+            if (ct.startsWith("image/")) "(${s.readBytes().size} byte ảnh)" else s.readBytes().toString(Charsets.UTF_8).take(300)
+        }.orEmpty()
+        c.disconnect()
+        (code in 200..299) to "HTTP $code $ct $body".trim()
+    } catch (e: Exception) { false to "${e.javaClass.simpleName}: ${e.message}" }
+
+    /** Trả về chuỗi mô tả nếu có bước nào lỗi, chuỗi rỗng nếu mọi thứ ổn. */
+    fun diagnose(ctx: Context, serverBase: String): String {
+        val sb = StringBuilder()
+        var bad = false
+        fun line(ok: Boolean, s: String) { sb.append(if (ok) "OK  " else "LỖI ").append(s).append('\n'); if (!ok) bad = true }
+        val bin = File(ctx.applicationInfo.nativeLibraryDir, LIB)
+        line(bin.exists(), "File libmuse_audio.so: " + if (bin.exists()) "${bin.length() / 1024} KB" else "KHÔNG CÓ trong APK")
+        val up = ensureRunning(ctx)
+        line(up, "Tiến trình audio trên máy: " + if (up) "đang chạy, cổng $port" else "KHÔNG chạy được")
+        if (!up) synchronized(tail) { if (tail.isNotEmpty()) sb.append("  đầu ra: ").append(tail.joinToString(" | ")).append('\n') }
+        if (up) {
+            val (ok, msg) = probe("http://127.0.0.1:$port/api/yt/audio/dQw4w9WgXcQ?debug=1", 30000)
+            line(ok && msg.contains("client="), "Lấy nhạc ngay trên máy: $msg")
+        }
+        val img = "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg"
+        val (iok, imsg) = probe(img, 8000)
+        line(iok, "Tải ảnh từ YouTube bằng mạng máy: $imsg")
+        if (serverBase.isNotBlank()) {
+            val (sok, smsg) = probe("$serverBase/api/img?u=" + URLEncoder.encode(img, "UTF-8"), 40000)
+            line(sok, "Server tải ảnh hộ: $smsg")
+        }
+        return if (bad) sb.toString() else ""
     }
 }
