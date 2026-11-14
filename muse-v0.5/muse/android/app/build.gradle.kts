@@ -22,8 +22,8 @@ android {
         applicationId = "vn.muse.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.8.0"
+        versionCode = 7
+        versionName = "0.8.1"
         buildConfigField("String", "MUSE_URL", "\"${museUrl.replace("\"", "")}\"")
         if (hasSdk) {
             ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
