@@ -1776,6 +1776,7 @@ const warmed={};
 function warmTrack(t){
   try{
     if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return; warmed[t.id]=Date.now();
+    if(window.MuseNative&&typeof MuseNative.prefetch==='function'){ MuseNative.prefetch(String(t.id),fxFmt); return; } // Android: lấy sẵn link bằng IP máy
     fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
   }catch{}
 }
@@ -3072,7 +3073,9 @@ function onYouTubeIframeAPIReady(){
   if(window.YT&&window.YT.Player){ onYouTubeIframeAPIReady(); return; }
   const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.async=true; document.head.appendChild(s);
 })();
-const audYt=new Audio(); audYt.preload='auto';
+const audYt=new Audio(); audYt.preload='auto'; audYt.crossOrigin='anonymous'; // anonymous: phát từ proxy 127.0.0.1 của app Android (khác nguồn) mà EQ/hiệu ứng vẫn chạy
+/* App Android: nhạc phát THẲNG từ máy chủ cục bộ của app (IP điện thoại, một luồng liền mạch, tự nối lại khi đứt). '' = không có (PC/web). */
+const nativeAudioUrl=(id,fmt)=>{ try{ const N=window.MuseNative; if(N&&typeof N.audioUrl==='function'){ const u=String(N.audioUrl(String(id),fmt)||''); if(/^http:\/\/127\.0\.0\.1:\d+\//.test(u)) return u; } }catch{} return ''; };
 let eng='yt'; const fxFail={};
 const A=()=>eng==='fx'?audYt:aud;
 let fxFmt=(()=>{ try{ return audYt.canPlayType('audio/webm; codecs="opus"')?'webm':'mp4'; }catch{ return 'mp4'; } })(); const fxTried={};
@@ -3264,7 +3267,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
   } else if(eng==='fx'){
     if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
     audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
-    audYt.src=loc||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:'')); setPlaying(play);
+    audYt.src=loc||nativeAudioUrl(t.id,fxFmt)||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:'')); setPlaying(play);
     if(!loc&&play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
       if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
       ytFail[t.id]=true; loadTrack(t,0,true);
@@ -3318,7 +3321,7 @@ function seamlessToFx(){
   if(fxNeeded()&&!fxBuild()) return false;
   const lc=useLocal(t); if(lc&&!offUrl[t.id]) return false;
   const my=++hoTok; hoBusy=true;
-  const url=lc?offUrl[t.id]:('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token));
+  const url=lc?offUrl[t.id]:(nativeAudioUrl(t.id,fxFmt)||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)));
   const ok=()=>cur===t&&hoTok===my&&eng==='yt';
   let done=false, tm=0;
   const cleanup=()=>{ audYt.removeEventListener('canplay',onCan); audYt.removeEventListener('playing',onPlay); audYt.removeEventListener('error',onErr); clearTimeout(tm); hoBusy=false; };
