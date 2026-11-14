@@ -49,6 +49,7 @@ object LocalAudio {
         serverBase = server.trim().trimEnd('/')
         appCtx = ctx.applicationContext
         thread(isDaemon = true, name = "muse-yt-proxy-boot") { runCatching { NativeYt.ensureProxy() } } // proxy phát nhạc IP máy: mở sẵn
+        thread(isDaemon = true, name = "muse-yt-warm") { runCatching { NativeYt.warmUp() } } // làm nóng kết nối YouTube trước bài đầu tiên
         thread(isDaemon = true, name = "muse-local-audio") { ensureRunning(ctx.applicationContext) }
     }
 

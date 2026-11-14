@@ -3046,8 +3046,14 @@ async function syncClock(n){
 
 let ytLiveTm=0, ytSeen=false, ytHold=0;
 /* Bài lỗi thì chuyển bài kế, nhưng tối đa 3 lần trong 90 giây: mất mạng/server chết không được làm nhạc "nhảy" hết cả danh sách. */
-let failSkips=[], ytResume=[];
+let failSkips=[], ytResume=[], everPlayed=false; const coldRetry={};
 function failSkip(t){
+  // Từ lúc mở app chưa phát được bài nào = nguồn nhạc còn "nguội" (kết nối YouTube lần đầu có thể mất vài chục giây).
+  // Lúc này KHÔNG nhảy bài (bài kế cũng nguội y như vậy): thử lại đúng bài này vài lần, bài sau mới tính.
+  if(!everPlayed&&t&&cur===t&&(coldRetry[t.id]||0)<8){
+    const k=coldRetry[t.id]=(coldRetry[t.id]||0)+1; wdTries[t.id]=0; fxTried[t.id]=false;
+    adminNotify('Nguồn nhạc đang khởi động – thử lại bài này…');
+    setTimeout(()=>{ if(cur===t&&!everPlayed) loadTrack(t,0,true); },Math.min(5000,1000*k)); return; }
   const n=Date.now(); failSkips=failSkips.filter(x=>n-x<90000); failSkips.push(n);
   if(failSkips.length>3){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Nhiều bài liên tiếp không phát được nên đã dừng – kiểm tra mạng rồi bấm Phát'); return; }
   if(queue.length>1) nextTrack(true); else setPlaying(false);
@@ -3069,6 +3075,7 @@ function onYouTubeIframeAPIReady(){
         else if(e.data===2||e.data===0){ clearTimeout(ytLiveTm); ytLiveTm=0; yb.classList.remove('live'); }
         else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }
         else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
+      if(e.data===1) everPlayed=true;
       if(e.data===0){ playing=false; onEnded(); }
       // Player YouTube tự dừng khi mình vẫn đang "phát" (không phải do người dùng bấm) → bật lại, tối đa 3 lần/15 giây.
       if(e.data===2&&playing&&eng==='yt'&&cur&&!document.hidden&&!(navigator.userActivation&&!navigator.userActivation.hasBeenActive)){
@@ -3186,6 +3193,7 @@ audYt.addEventListener('ended',()=>{
   if(t&&d>15&&el.currentTime>1&&el.currentTime<d-5&&(earlyEnd[t.id]||0)<3){
     earlyEnd[t.id]=(earlyEnd[t.id]||0)+1; midAt[t.id]=el.currentTime; loadTrack(t,el.currentTime,true); return; }
   playing=false; onEnded(); });
+audYt.addEventListener('playing',()=>{ everPlayed=true; });
 audYt.addEventListener('timeupdate',()=>{ const t=cur; if(!t||eng!=='fx') return; const m=midAt[t.id];
   if(m!==undefined&&audYt.currentTime>m+8){ delete midAt[t.id]; midTries[t.id]=0; earlyEnd[t.id]=0; } });
 aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } });
@@ -3279,7 +3287,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(!loc&&play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
       if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
       ytFail[t.id]=true; loadTrack(t,0,true);
-    },7000); }
+    },everPlayed?7000:30000); }   // lần phát đầu sau khi mở app: chờ lâu hơn (kết nối YouTube còn nguội)
   } else {
     if(ytReady) yt.pauseVideo(); audYt.pause();
     aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
@@ -3318,7 +3326,7 @@ setInterval(()=>{
       if(!stuck&&wd.k===id&&pos>wd.pos+0.5) wdTries[cur.id]=0;
       wd.k=id; wd.pos=pos; wd.at=Date.now(); return;
     }
-    if(Date.now()-wd.at<12000) return;
+    if(Date.now()-wd.at<((!everPlayed&&pos<1)?35000:12000)) return;
     wd.at=Date.now(); wdRecover();
   }catch{}
 },2000);
