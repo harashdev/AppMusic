@@ -131,6 +131,25 @@ class MainActivity : ComponentActivity() {
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
 
         loadServer()
+        root.postDelayed(battCheck, 8000)
+    }
+
+    // Nhạc nền hay bị hệ thống (Doze / tiết kiệm pin của hãng) cắt khi tắt màn hình: lần đầu phát nhạc thì xin miễn tối ưu pin một lần.
+    private val battCheck = object : Runnable {
+        override fun run() {
+            if (prefs.getBoolean("batt_asked", false)) return
+            if (Playback.playing) { askBatteryOptOnce(); return }
+            root.postDelayed(this, 5000)
+        }
+    }
+
+    private fun askBatteryOptOnce() {
+        prefs.edit().putBoolean("batt_asked", true).apply()
+        try {
+            val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+            if (pm.isIgnoringBatteryOptimizations(packageName)) return
+            startActivity(Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
+        } catch (e: Exception) { /* máy không có màn hình này */ }
     }
 
     private val chrome = object : WebChromeClient() {
@@ -326,6 +345,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        root.removeCallbacks(battCheck)
         Playback.sendToWeb = null
         if (isFinishing) {
             stopService(Intent(this, KeepAliveService::class.java))
