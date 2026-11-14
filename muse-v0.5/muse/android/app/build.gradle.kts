@@ -54,9 +54,18 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { buildConfig = true }
+    // Giao diện web nhúng sẵn trong APK (assets/shell.html, copy từ server/static/index.html lúc build).
+    sourceSets { getByName("main") { assets.srcDir(layout.buildDirectory.dir("generated/shell")) } }
     // libmuse_audio.so là chương trình chạy được (không phải thư viện JNI): phải giải nén ra thư mục native thì mới chạy được.
     packaging { jniLibs { useLegacyPackaging = true } }
 }
+
+val copyShell = tasks.register<Copy>("copyShell") {
+    from(rootDir.parentFile.resolve("server/static/index.html"))
+    rename { "shell.html" }
+    into(layout.buildDirectory.dir("generated/shell"))
+}
+tasks.configureEach { if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyShell) }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")

@@ -75,6 +75,13 @@ jobs:
           cp target/aarch64-linux-android/release/muse-server ../android/app/src/main/jniLibs/arm64-v8a/libmuse_audio.so
           ls -l ../android/app/src/main/jniLibs/arm64-v8a/
 
+      - name: Báo nếu thiếu libmuse_audio.so (app vẫn phát bằng NativeYt.kt)
+        shell: bash
+        run: |
+          if [ ! -f app/src/main/jniLibs/arm64-v8a/libmuse_audio.so ]; then
+            echo "::warning::Không build được libmuse_audio.so; app dùng bản Kotlin NativeYt để lấy nhạc bằng IP điện thoại."
+          fi
+
       - name: Build APK (debug-signed, cài thẳng được)
         run: gradle --no-daemon --stacktrace assembleDebug
 

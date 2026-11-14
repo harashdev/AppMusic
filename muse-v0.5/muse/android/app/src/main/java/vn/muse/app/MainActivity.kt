@@ -227,7 +227,6 @@ class MainActivity : ComponentActivity() {
 
             override fun onPageFinished(view: WebView, url: String?) {
                 if (errorBox.visibility != View.VISIBLE) web.visibility = View.VISIBLE
-                if (url != null && url.startsWith(serverUrl())) cacheShell()
             }
         }
     }
@@ -262,9 +261,20 @@ class MainActivity : ComponentActivity() {
         web.visibility = View.INVISIBLE
     }
 
+    // Giao diện nằm sẵn trong APK: mở app là hiện ngay, không cần chờ server. Gọi API vẫn đi tới server vì baseURL là địa chỉ server.
+    private fun loadEmbedded(): Boolean = try {
+        val html = assets.open("shell.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+        val base = serverUrl() + "/"
+        errorBox.visibility = View.GONE
+        web.visibility = View.VISIBLE
+        web.loadDataWithBaseURL(base, html, "text/html", "UTF-8", base)
+        true
+    } catch (e: Exception) { false }
+
     private fun loadServer() {
         val url = serverUrl()
         if (url.isBlank()) { askServer(); return }
+        if (loadEmbedded()) return
         errorBox.visibility = View.GONE
         web.visibility = View.VISIBLE
         web.loadUrl(url)

@@ -73,7 +73,6 @@ android/   app Android = giao diện web của server đặt trong WebView + d�
 - Phát nhạc nền: khi bắt đầu phát, `MuseBridge` (JS `MuseNative.update`) bật **dịch vụ foreground** có `MediaSession`: thông báo Trước / Phát-Tạm dừng / Sau, ảnh bìa, điều khiển trên màn hình khoá và tai nghe, tự tạm dừng khi rút tai nghe hoặc có cuộc gọi, giữ WakeLock + WifiLock khi đang phát. Lệnh từ thông báo gửi ngược vào web qua `window.museCmd(...)`.
 - Trên Android, web tự dùng luồng âm thanh `<audio>` (`/api/yt/audio/:id`) thay cho iframe YouTube, vì iframe bị Android dừng khi tắt màn hình.
 - Giảm lag: bỏ `backdrop-filter`/blur trên Android, bỏ transition thuộc tính tuỳ biến trên `:root`, không vẽ lại thanh tiến trình khi app bị ẩn, WebView bật pre-raster, tự tải lại khi tiến trình WebView bị hệ thống thu hồi.
-- Lần đầu mở app sẽ hỏi cho phép bỏ tối ưu pin (giúp nhạc không bị cắt khi tắt màn hình lâu).
 - Nếu bấm phát mà nhạc dừng ngay: đặt `focusOff = true` ở đầu `KeepAliveService.kt` (tắt xử lý audio focus).
 
 **Lấy APK:** đẩy code lên GitHub → Actions → "Build Android (Muse)" → tải `muse-android` ở Artifacts. Nhớ build/chạy lại **server** vì `static/index.html` cũng đã đổi.
@@ -116,3 +115,11 @@ Cùng ô *Cài đặt → Nhập playlist từ app khác*: dán link playlist c�
 - API: `POST /api/pl-import/url` với body `{"url":"https://open.spotify.com/playlist/…"}` → `{name, tracks, total, skipped, skipped_list, truncated, source}`. Code ở `server/src/pl_import.rs` (có test cho phần đọc link, đọc trang và chấm điểm khớp bài: `cargo test`).
 - Các trang Spotify/Apple đổi cấu trúc là chuyện thường; nếu một app bỗng báo "không đọc được trang", hàm `parse_spotify` / `parse_apple` là chỗ cần chỉnh.
 
+
+
+## Cập nhật: ảnh bìa luôn hiện, nhạc bằng IP điện thoại, giao diện nhúng sẵn
+- **Ảnh bìa (web)**: mỗi ảnh thử lần lượt trực tiếp `i.ytimg.com` → các tên miền ảnh YouTube khác → wsrv.nl → DuckDuckGo → weserv.nl → server (`/api/img`) → ảnh thay thế (gradient + nốt nhạc), nên không còn ảnh vỡ. Ảnh lỗi hoặc treo quá 6 giây tự nhảy sang nguồn kế tiếp; nguồn nào chạy được thì nhớ 6 giờ. `/api/img` của server cũng thử nhiều tên miền và hạ dần chất lượng (`hq720` → `hqdefault` → `mqdefault` → `default`). CSP `connect-src` đã thêm các tên miền ảnh để service worker không bị chặn.
+- **Android, ảnh bìa**: giao diện và thông báo/màn hình khoá đều thử chuỗi nguồn trên bằng mạng điện thoại; có cache trong máy.
+- **Android, nhạc**: `/api/yt/audio/:id` thử lần lượt (1) tiến trình `libmuse_audio.so`, (2) `NativeYt.kt` (InnerTube ANDROID_VR/IOS ngay trên máy, tải từng đoạn Range bằng IP điện thoại), (3) mới tới server. Server trên Render (IP datacenter) hay bị YouTube trả 403 nên chỉ là đường cuối. Tìm kiếm/trang chủ/nghệ sĩ vẫn do `libmuse_audio.so` lo (cần bước "Build muse-server cho Android" thành công; thiếu thì workflow cảnh báo và app gọi server).
+- **Android, giao diện nhúng sẵn**: `server/static/index.html` được copy vào APK (`assets/shell.html`) lúc build, nên mở app là hiện ngay không cần chờ server; API tài khoản/avatar/bạn bè/playlist/phòng nghe chung vẫn gọi server. Sửa giao diện thì phải build lại APK.
+- Trình duyệt Chrome (không phải APK) không thể tự lấy luồng bằng IP máy do CORS; muốn nhạc bằng IP điện thoại + phát nền hãy cài APK.
