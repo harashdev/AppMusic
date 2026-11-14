@@ -4283,10 +4283,6 @@ struct AudQ {
     debug: Option<String>,
 }
 
-fn now_secs() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
-}
-
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
 // Đoạn đầu (bắt đầu bài / sau khi tua) nhỏ hơn để nhạc lên tiếng nhanh, không phải đợi tải đủ 2 MB.
 const AUDIO_FIRST_CHUNK: u64 = 256 * 1024;
