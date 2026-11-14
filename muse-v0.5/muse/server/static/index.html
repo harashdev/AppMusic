@@ -1400,7 +1400,7 @@ function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[s
   const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
   const r=i.getBoundingClientRect(); if(!r.width||r.bottom<-600||r.top>innerHeight+600||r.right<-300||r.left>innerWidth+300) return;   /* ảnh lazy ngoài màn hình thì chưa tính */
   if(!i.dataset.t) i.dataset.t=now;
-  if(force||(bad&&now-(+i.dataset.t)>3000)||(!bad&&now-(+i.dataset.t)>6000)) imgNext(i); }); }
+  if(force||(bad&&now-(+i.dataset.t)>1000)||(!bad&&now-(+i.dataset.t)>2500)) imgNext(i); }); }
 setInterval(()=>{ if(!document.hidden) imgSweep(false); },2000);
 addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
 const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
@@ -1789,6 +1789,9 @@ function warmNext(){
     if(!cur||!queue.length||queue.length<2) return;
     if(shuf){ return; }
     for(let k=1;k<=2;k++){ const t=queue[(qi+k)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); }
+    // Nạp sẵn cover album của 2 bài kế (đúng kích thước thanh nhạc và màn hình Đang phát) → chuyển bài là cover hiện ngay.
+    const nx=[queue[(qi+1)%queue.length],queue[(qi+2)%queue.length]].filter(t=>t&&t!==cur&&!blocked(t));
+    warmImgs(nx,800,2); warmImgs(nx,96,2);
   }catch{} },1500);
 }
 $('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classList.contains('card')||e.target.classList.contains('qk'))) e.target.click(); });
@@ -3033,6 +3036,13 @@ async function syncClock(n){
 }
 
 let ytLiveTm=0, ytSeen=false, ytHold=0;
+/* Bài lỗi thì chuyển bài kế, nhưng tối đa 3 lần trong 90 giây: mất mạng/server chết không được làm nhạc "nhảy" hết cả danh sách. */
+let failSkips=[], ytResume=[];
+function failSkip(t){
+  const n=Date.now(); failSkips=failSkips.filter(x=>n-x<90000); failSkips.push(n);
+  if(failSkips.length>3){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Nhiều bài liên tiếp không phát được nên đã dừng – kiểm tra mạng rồi bấm Phát'); return; }
+  if(queue.length>1) nextTrack(true); else setPlaying(false);
+}
 function ytHideNow(keep,hold){ if(hold) ytHold=Date.now()+hold; clearTimeout(ytLiveTm); ytLiveTm=0; if(!keep) ytSeen=false; const yb=document.getElementById('ytbox'); if(yb){ yb.style.transition='none'; yb.classList.remove('live'); void yb.offsetWidth; yb.style.transition=''; } }
 function onYouTubeIframeAPIReady(){
   yt=new YT.Player('ytp',{width:'100%',height:'100%',playerVars:{playsinline:1,rel:0,controls:0,disablekb:1,fs:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0},events:{
@@ -3041,7 +3051,7 @@ function onYouTubeIframeAPIReady(){
       const t=cur; if(!t||eng!=='yt') return;
       if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube không phát được bài này – chuyển sang luồng của server'); loadTrack(t,0,true); return; }
       adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-      if(queue.length>1) setTimeout(()=>{ if(cur===t) nextTrack(true); },800); else setPlaying(false);
+      setTimeout(()=>{ if(cur===t) failSkip(t); },800);
     },
     onStateChange:e=>{
       ytCheckAlb();
@@ -3051,6 +3061,10 @@ function onYouTubeIframeAPIReady(){
         else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }
         else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
       if(e.data===0){ playing=false; onEnded(); }
+      // Player YouTube tự dừng khi mình vẫn đang "phát" (không phải do người dùng bấm) → bật lại, tối đa 3 lần/15 giây.
+      if(e.data===2&&playing&&eng==='yt'&&cur&&!document.hidden&&!(navigator.userActivation&&!navigator.userActivation.hasBeenActive)){
+        const n=Date.now(); ytResume=ytResume.filter(x=>n-x<15000);
+        if(ytResume.length<3){ ytResume.push(n); setTimeout(()=>{ try{ if(playing&&eng==='yt'&&ytReady&&yt.getPlayerState()===2) yt.playVideo(); }catch{} },500); } }
       if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
     }}});
 }
@@ -3153,20 +3167,34 @@ function applyFx(){
   sm(fx.rWet.gain,S.reverb_on?(+S.reverb_mix||0)/100*1.4:0);
   applyVol();
 }
-audYt.addEventListener('ended',()=>{ if(eng==='fx'){ playing=false; onEnded(); } });
+const midTries={}, midAt={}, earlyEnd={};
+audYt.addEventListener('ended',()=>{
+  if(eng!=='fx') return;
+  // Luồng báo "hết" khi chưa tới cuối bài (bị cắt giữa chừng): tải lại đúng vị trí đó thay vì nhảy sang bài khác.
+  const t=cur, el=audYt, d=(isFinite(el.duration)&&el.duration>0)?el.duration:((t&&t.dur)||0);
+  if(t&&d>15&&el.currentTime>1&&el.currentTime<d-5&&(earlyEnd[t.id]||0)<3){
+    earlyEnd[t.id]=(earlyEnd[t.id]||0)+1; midAt[t.id]=el.currentTime; loadTrack(t,el.currentTime,true); return; }
+  playing=false; onEnded(); });
+audYt.addEventListener('timeupdate',()=>{ const t=cur; if(!t||eng!=='fx') return; const m=midAt[t.id];
+  if(m!==undefined&&audYt.currentTime>m+8){ delete midAt[t.id]; midTries[t.id]=0; earlyEnd[t.id]=0; } });
 aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } });
 audYt.addEventListener('error',()=>{
   if(eng!=='fx'||!cur) return;
   const t=cur, pos=audYt.currentTime||0, was=playing, ec=audYt.error?audYt.error.code:0;
   if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){
     offBad[t.id]=true; offRevoke(t.id); adminNotify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
+  // Lỗi giữa bài (đã phát được > 2 giây): chỉ tải lại đúng vị trí, tối đa 4 lần có chờ tăng dần.
+  // Không đổi định dạng, không "cấm luồng" 5 phút và không đổi sang player khác – đó chính là lý do nhạc dựt rồi nhảy bài.
+  if(pos>2&&(midTries[t.id]||0)<4&&!(isFinite(audYt.duration)&&audYt.duration-pos<3)){
+    const n=midTries[t.id]=(midTries[t.id]||0)+1; midAt[t.id]=pos;
+    setTimeout(()=>{ if(cur===t&&eng==='fx') loadTrack(t,pos,was); },Math.min(3000,400*n*n)); return; }
   if(!fxTried[t.id]){
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
   if(BGONLY){
     const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
     if(n<=2){ setTimeout(()=>{ if(cur===t&&eng==='fx') loadTrack(t,pos,was); },1200*n); return; }
     wdTries[t.id]=0; fxTried[t.id]=false; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-    if(queue.length>1) nextTrack(true); else setPlaying(false);
+    failSkip(t);
     return; }
   fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000;
   fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
@@ -3207,7 +3235,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 let bgResume=[];
 audYt.addEventListener('pause',()=>{
-  if(eng==='fx'&&playing&&cur&&!audYt.ended&&document.hidden){
+  if(eng==='fx'&&playing&&cur&&!audYt.ended){
     // Chạy nền bị hệ thống/WebView tạm dừng ngoài ý muốn → bật lại. Nhưng nếu app khác giành âm thanh liên tục
     // (3 lần trong 15 giây) thì thôi, chuyển sang trạng thái tạm dừng thật để thông báo hiện đúng và người dùng bấm Phát.
     const n=Date.now(); bgResume=bgResume.filter(x=>n-x<15000);
@@ -3256,7 +3284,7 @@ function wdRecover(){
     if(BGONLY){
       if(n===2){ adminNotify('Nhạc bị đứng – thử lại…'); loadTrack(t,pos,was); return; }
       wdTries[t.id]=0; { const w=natWhy(t.id); if(w) notify('Không phát được “'+(t.title||'')+'”: '+w); else adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp'); }
-      if(queue.length>1) nextTrack(true); else setPlaying(false);
+      failSkip(t);
       return; }
     fxFail[t.id]=true; adminNotify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
   }
@@ -3266,7 +3294,7 @@ function wdRecover(){
   }
   if(eng==='aud'&&n<=1){ loadTrack(t,pos,was); return; }
   wdTries[t.id]=0; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-  if(queue.length>1) nextTrack(true); else setPlaying(false);
+  failSkip(t);
 }
 setInterval(()=>{
   try{
