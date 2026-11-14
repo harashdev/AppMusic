@@ -3056,11 +3056,13 @@ function addMenu(t,e){
 async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${encodeURIComponent(key(t))}`,{method:'DELETE'}); loadPlaylists(); go('playlist',curPl,true); }
 
 /* ===== Phòng & đồng bộ ===== */
-function connect(){
+async function wsTicket(){ const r=await api('/api/ws-ticket',{method:'POST'}); return r.ticket; }
+async function connect(){
   if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
     if(!p.get('room')) history.replaceState(null,'','?room='+room);
     setRoomUi(room); }
-  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?token='+encodeURIComponent(token));
+  let tk; try{ tk=await wsTicket(); }catch{ if(token) setTimeout(connect,3000); return; }
+  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?ticket='+encodeURIComponent(tk));
   ws.onopen=()=>send({type:'hello'});
   ws.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
   ws.onclose=()=>{ if(token) setTimeout(connect,2000); };
@@ -3160,8 +3162,9 @@ async function loadFriends(){
     box.appendChild(d);
   });
 }
-function connectUser(){
-  const u=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws-user?token='+encodeURIComponent(token));
+async function connectUser(){
+  let tk; try{ tk=await wsTicket(); }catch{ return; }
+  const u=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws-user?ticket='+encodeURIComponent(tk));
   u.onmessage=e=>{ try{ const m=JSON.parse(e.data);
     if(m.type==='invite') showInvite(m);
     else if(m.type==='friend_request'){ showFriendReq(m); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); }
