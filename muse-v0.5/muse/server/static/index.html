@@ -3968,7 +3968,7 @@ setInterval(()=>{
   if(dc.user){ if(playing) pushPresence(); }
   else if(sdkOn()&&Date.now()-sdkP.last>60000){ sdkP.last=Date.now(); discordConnect().catch(()=>{}); }
 },15000);
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
 const SYNC={
   listen:{get:()=>listenGet(),set:v=>LS.set('muse_listen_dev',JSON.stringify(v))},
