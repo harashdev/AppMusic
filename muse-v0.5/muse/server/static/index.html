@@ -1406,6 +1406,11 @@ addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibi
 const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
 const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
 function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
+/* Nạp trước ảnh bìa của những dòng đầu ngay khi có kết quả (trước khi vẽ ra màn hình): app Android tải/ghi cache sẵn nên ảnh hiện tức thì. */
+const warmSeen=new Set();
+function warmImgs(list,s,n=14){ try{ let k=0; for(const t of (list||[])){ if(k>=n) break; const u=t&&(t.image||t.thumbnail); if(!u) continue;
+  const src=thumb(u,s); if(warmSeen.has(src)) continue; warmSeen.add(src); k++; const i=new Image(); i.decoding='async'; i.src=src; }
+  if(warmSeen.size>800) warmSeen.clear(); }catch{} }
 
 let guest=!token&&LS.get('muse_guest','0')==='1';
 const GUEST_USER={id:0,username:'guest',display_name:'Khách',avatar:'🎧',accent:'#8ecbff',bg:'',bg_url:'',code:'',is_admin:false,banner:'',banner_color:'',status:'',crop:''};
@@ -2687,6 +2692,7 @@ const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['alb
 let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
 const ytSearchF=(q,f)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f)
   .then(r=>(r&&Array.isArray(r.tracks))?{tracks:r.tracks,entities:Array.isArray(r.entities)?r.entities:[]}:{tracks:Array.isArray(r)?r:[],entities:[]})
+  .then(x=>{ warmImgs(x.tracks,96); warmImgs(x.entities,360,8); return x; })
   .catch(e=>{ delete ytCache[k]; throw e; })); };
 const nz=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[\(\[（][^\)\]）]*[\)\]）]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const ALB_BAD=['lyric','lyrics','cover','live','reaction','karaoke','instrumental','remix','sped up','slowed','nightcore','8d','tutorial','歌ってみた','カバー','piano ver','acoustic ver','ver','version','edit','mix','short','tv size','dance practice','performance','teaser','trailer','concert','fan made','fanmade','amv','mad','bootleg','mashup','reverb','bass boosted','loop','1 hour','10 hours'];
@@ -3231,7 +3237,7 @@ function wdRecover(){
     if(n===1){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
     if(BGONLY){
       if(n===2){ adminNotify('Nhạc bị đứng – thử lại…'); loadTrack(t,pos,was); return; }
-      wdTries[t.id]=0; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
+      wdTries[t.id]=0; { const w=natWhy(t.id); if(w) notify('Không phát được “'+(t.title||'')+'”: '+w); else adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp'); }
       if(queue.length>1) nextTrack(true); else setPlaying(false);
       return; }
     fxFail[t.id]=true; adminNotify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
@@ -3591,14 +3597,17 @@ function downloadTrack(t,quiet){
 }
 // App Android: tải từng đoạn ngay trong app (IP điện thoại) rồi trả về trang qua museChunk; fetch() trong WebView có thể nhận body rỗng.
 const museChunkWait={};
-window.museChunk=(rid,mime,total,b64)=>{ const f=museChunkWait[rid]; if(f) f(mime,total,b64); };
+window.museChunk=(rid,mime,total,b64,err)=>{ const f=museChunkWait[rid]; if(f) f(mime,total,b64,err); };
+/* Lý do thật khiến app không lấy được nhạc trên máy (từng client YouTube lỗi gì); rỗng nếu không biết. */
+const natWhy=id=>{ try{ return String((window.MuseNative&&typeof MuseNative.audioError==='function'&&MuseNative.audioError(String(id)))||'').slice(0,300); }catch{ return ''; } };
 function nativeChunk(id,fmt,start){
+  nativeChunk.err='';
   return new Promise(res=>{
     const rid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-    const tm=setTimeout(()=>{ delete museChunkWait[rid]; res(null); },60000);
-    museChunkWait[rid]=(mime,total,b64)=>{
+    const tm=setTimeout(()=>{ delete museChunkWait[rid]; nativeChunk.err='quá thời gian chờ khi lấy nhạc trên máy'; res(null); },60000);
+    museChunkWait[rid]=(mime,total,b64,err)=>{
       clearTimeout(tm); delete museChunkWait[rid];
-      if(!b64) return res(null);
+      if(!b64){ nativeChunk.err=String(err||''); return res(null); }
       try{ const bin=atob(b64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
         res({blob:new Blob([u8],{type:mime||'audio/mp4'}),total:+total||0,mime:mime||''}); }catch{ res(null); }
     };
@@ -3618,19 +3627,20 @@ async function dlRun(it){
       const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
       const parts=[]; let pos=0,total=0,mime='';
       let nat=!!(window.MuseNative&&typeof window.MuseNative.audioChunkAsync==='function');
+      let natErr='';
       for(;;){
         let b=null, partial=true;
         if(nat){
           let c=null; for(let tr=0;tr<2&&!c;tr++) c=await nativeChunk(t.id,fxFmt,pos);
           if(c&&c.blob.size){ b=c.blob; mime=c.mime||mime; total=c.total; }
-          else if(pos===0) nat=false; // không lấy được trong app → quay về cách tải cũ qua fetch
-          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB)');
+          else if(pos===0){ natErr=nativeChunk.err||natWhy(t.id)||'không rõ nguyên nhân'; nat=false; } // không lấy được trong app → thử server, nhưng nhớ lý do thật
+          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB)'+(nativeChunk.err?': '+nativeChunk.err:''));
         }
         if(!b){
           let r=null;
           for(let tr=0;tr<3;tr++){
             try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
-            catch(e){ if(tr===2) throw e; await new Promise(z=>setTimeout(z,800)); }
+            catch(e){ if(tr===2){ if(natErr) throw new Error('Trên máy: '+natErr+' • Server: '+String(e&&e.message||e).slice(0,120)); throw e; } await new Promise(z=>setTimeout(z,800)); }
           }
           b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng (HTTP '+r.status+', '+(r.headers.get('content-range')||'không có content-range')+')');
           mime=r.headers.get('content-type')||mime;
@@ -3662,7 +3672,7 @@ async function dlRun(it){
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
     if(!it.quiet) notify('Đã tải xong: '+(t.title||'')); return true;
   }catch(e){
-    it.status='error'; it.err=String(e&&e.message||e).slice(0,200);
+    it.status='error'; it.err=String(e&&e.message||e).slice(0,400);
     if(!it.quiet) notify('Không tải được: '+it.err); return false;
   }
 }

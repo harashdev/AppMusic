@@ -75,6 +75,11 @@ android/   app Android = giao diện web của server đặt trong WebView + d�
 - Giảm lag: bỏ `backdrop-filter`/blur trên Android, bỏ transition thuộc tính tuỳ biến trên `:root`, không vẽ lại thanh tiến trình khi app bị ẩn, WebView bật pre-raster, tự tải lại khi tiến trình WebView bị hệ thống thu hồi.
 - Nếu bấm phát mà nhạc dừng ngay: đặt `focusOff = true` ở đầu `KeepAliveService.kt` (tắt xử lý audio focus).
 
+**Nhạc & ảnh bìa trên máy (cập nhật):**
+- `NativeYt.kt` hỏi nhiều client InnerTube song song (ANDROID_VR 2 phiên bản, TV embedded, IOS 2 phiên bản, TV simply), **tải thử vài byte** để chỉ nhận link thật sự tải được (client cần PO token vẫn trả link nhưng link đó 403), rồi mới dùng; cuối cùng thử Piped. Link hết hạn theo tham số `expire` của chính link. Lý do mỗi client lỗi được ghi vào logcat (tag `MuseYt`) và hiện cho người dùng khi tải/phát thất bại, thay vì câu lỗi của server.
+- Các đoạn của một file tải về luôn đến từ cùng một nguồn (tiến trình cục bộ hoặc NativeYt), không ghép lẫn hai định dạng.
+- Ảnh bìa: bộ nhớ đệm RAM + đĩa, nguồn gốc chạy ngay và các nguồn dự phòng chạy song song (không tuần tự), ảnh `hq720`/`maxres`/`sd` không tồn tại thì hạ xuống `mqdefault` ngay trong app; web nạp trước ảnh của kết quả tìm kiếm.
+
 **Lấy APK:** đẩy code lên GitHub → Actions → "Build Android (Muse)" → tải `muse-android` ở Artifacts. Nhớ build/chạy lại **server** vì `static/index.html` cũng đã đổi.
 **Build trên máy:** mở `android/` bằng Android Studio hoặc `gradle assembleDebug` (JDK 17 + Android SDK 34).
 

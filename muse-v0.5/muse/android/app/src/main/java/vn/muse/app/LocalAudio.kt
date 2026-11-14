@@ -14,6 +14,9 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URL
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 /** Một đoạn nhạc đã tải xong: dữ liệu, tổng dung lượng cả bài, định dạng. */
@@ -157,25 +160,90 @@ object LocalAudio {
 
     // ------------------------------------------------------------------ ảnh bìa
 
-    private val imgHost = Regex("^(i\\.ytimg\\.com|[\\w-]+\\.(googleusercontent|ggpht)\\.com)$")
+    private val imgHost = Regex("^(i\\d?\\.ytimg\\.com|img\\.youtube\\.com|[\\w-]+\\.(googleusercontent|ggpht)\\.com)$")
+    private val badThumb = Regex("^(https://[^/]+/vi(?:_webp)?/[\\w-]{11}/)(hq720|maxresdefault|sddefault)(\\.(?:jpg|webp))(.*)$")
+
+    private class Img(val mime: String, val bytes: ByteArray)
+    private class Fetched(val idx: Int, val code: Int, val img: Img?)
+
+    // RAM (~8MB) đứng trước đĩa: ảnh đã xem rồi hiện ngay, không đọc đĩa, không hỏi mạng.
+    private val ramImgs = object : android.util.LruCache<String, Img>(8 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Img): Int = value.bytes.size + 64
+    }
+    private val imgHdr = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=86400")
 
     private fun sha1(s: String) = MessageDigest.getInstance("SHA-1").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
 
-    private fun download(url: String, ua: String?, timeoutMs: Int): Pair<String, ByteArray>? = try {
+    private fun imgResp(i: Img) = WebResourceResponse(i.mime, null, 200, "OK", imgHdr, ByteArrayInputStream(i.bytes))
+
+    private fun fetchImg(idx: Int, url: String, ua: String?, timeoutMs: Int): Fetched = try {
         val c = URL(url).openConnection() as HttpURLConnection
-        c.connectTimeout = timeoutMs; c.readTimeout = timeoutMs + 5000
-        if (!ua.isNullOrBlank()) c.setRequestProperty("User-Agent", ua)
-        val ct = c.contentType?.substringBefore(';')?.trim().orEmpty()
-        if (c.responseCode == 200 && ct.startsWith("image/")) {
-            val b = c.inputStream.use { it.readBytes() }
-            c.disconnect()
-            if (b.isNotEmpty() && b.size < 8 * 1024 * 1024) ct to b else null
-        } else { c.disconnect(); null }
-    } catch (e: Exception) { null }
+        try {
+            c.connectTimeout = timeoutMs
+            c.readTimeout = timeoutMs + 3000
+            if (!ua.isNullOrBlank()) c.setRequestProperty("User-Agent", ua)
+            val code = c.responseCode
+            val ct = c.contentType?.substringBefore(';')?.trim().orEmpty()
+            if (code == 200 && ct.startsWith("image/")) {
+                val b = c.inputStream.use { it.readBytes() }
+                if (b.isNotEmpty() && b.size < 8 * 1024 * 1024) Fetched(idx, code, Img(ct, b)) else Fetched(idx, 0, null)
+            } else Fetched(idx, code, null)
+        } finally { c.disconnect() }
+    } catch (e: Exception) { Fetched(idx, 0, null) }
+
+    /**
+     * Tải ảnh: nguồn gốc (IP điện thoại) chạy ngay; các nguồn dự phòng (wsrv.nl, DuckDuckGo, weserv.nl, server) chỉ bắt đầu
+     * SAU KHI nguồn gốc xong mà lỗi/treo (hoặc sau một khoảng ngắn), và chạy song song, cái nào xong trước thắng.
+     * Nguồn gốc trả 404/410 nghĩa là ảnh không tồn tại: trả null ngay (không hỏi proxy, vì proxy cũng sẽ 404 và chỉ tốn thời gian).
+     */
+    private fun raceImg(url: String, ua: String?, serverBase: String): Img? {
+        val enc = URLEncoder.encode(url, "UTF-8")
+        val urls = ArrayList<String>()
+        urls.add(url)
+        urls.add("https://wsrv.nl/?url=$enc")
+        urls.add("https://external-content.duckduckgo.com/iu/?u=$enc&f=1")
+        urls.add("https://images.weserv.nl/?url=$enc")
+        if (serverBase.isNotBlank()) urls.add("$serverBase/api/img?u=$enc")
+        val q = LinkedBlockingQueue<Fetched>()
+        val stop = AtomicBoolean(false)
+        val directDone = AtomicBoolean(false)
+        urls.forEachIndexed { i, u ->
+            thread(isDaemon = true, name = "muse-img-$i") {
+                var f = Fetched(i, 0, null)
+                try {
+                    if (i > 0) {
+                        // chờ nguồn gốc xong (lỗi/treo) hoặc tối đa 1.5s, rồi so le nhẹ giữa các dự phòng
+                        val t0 = System.currentTimeMillis()
+                        while (!stop.get() && !directDone.get() && System.currentTimeMillis() - t0 < 1500L) Thread.sleep(50)
+                        if (i > 1) Thread.sleep(150L * (i - 1))
+                    }
+                    if (!stop.get()) f = fetchImg(i, u, ua, if (i == 0) 5000 else 8000)
+                } catch (e: Exception) { /* bỏ qua */ }
+                if (i == 0) directDone.set(true)
+                q.put(f)
+            }
+        }
+        val deadline = System.currentTimeMillis() + 20_000L
+        var done = 0
+        try {
+            while (done < urls.size) {
+                val left = deadline - System.currentTimeMillis()
+                if (left <= 0) break
+                val f = q.poll(left, TimeUnit.MILLISECONDS) ?: break
+                done++
+                if (f.img != null) return f.img
+                if (f.idx == 0 && (f.code == 404 || f.code == 410)) return null
+            }
+        } finally {
+            stop.set(true)
+        }
+        return null
+    }
 
     /**
      * Ảnh bìa YouTube/Google: tải bằng mạng gốc của điện thoại (không qua WebView, nên né được các kiểu chặn riêng của WebView/Chrome),
-     * lưu vào bộ nhớ đệm trong máy. Nếu mạng máy không tới được thì nhờ server tải hộ (/api/img). Cả hai đều lỗi thì trả null.
+     * lưu vào RAM và bộ nhớ đệm trong máy. Thumbnail hq720/maxres/sd không có thì hạ ngay xuống mqdefault tại đây (không cần
+     * web thử lại). Mạng máy không tới được thì nhờ proxy ảnh/server tải hộ. Tất cả đều lỗi thì trả null.
      */
     fun handleImage(req: WebResourceRequest, serverBase: String): WebResourceResponse? {
         if (!req.method.equals("GET", true)) return null
@@ -184,32 +252,39 @@ object LocalAudio {
         if (u.scheme != "https" || !imgHost.matches(host)) return null
         val ctx = appCtx ?: return null
         val url = u.toString()
+        ramImgs.get(url)?.let { return imgResp(it) }
         val dir = File(ctx.cacheDir, "img").apply { mkdirs() }
         val f = File(dir, sha1(url))
-        val hdr = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=86400")
         try {
             if (f.exists()) {
                 DataInputStream(f.inputStream().buffered()).use { di ->
                     val mime = di.readUTF()
                     val b = di.readBytes()
-                    if (b.isNotEmpty()) return WebResourceResponse(mime, null, 200, "OK", hdr, ByteArrayInputStream(b))
+                    if (b.isNotEmpty()) {
+                        val img = Img(mime, b)
+                        ramImgs.put(url, img)
+                        return imgResp(img)
+                    }
                 }
             }
         } catch (e: Exception) { runCatching { f.delete() } }
         val ua = req.requestHeaders["User-Agent"]
-        val enc = URLEncoder.encode(url, "UTF-8")
-        // Thử lần lượt, tất cả bằng mạng của điện thoại: trực tiếp -> wsrv.nl -> DuckDuckGo -> weserv.nl -> server (cuối cùng).
-        val got = download(url, ua, 6000)
-            ?: download("https://wsrv.nl/?url=$enc", ua, 8000)
-            ?: download("https://external-content.duckduckgo.com/iu/?u=$enc&f=1", ua, 8000)
-            ?: download("https://images.weserv.nl/?url=$enc", ua, 8000)
-            ?: if (serverBase.isNotBlank()) download("$serverBase/api/img?u=$enc", ua, 15000) else null
+        var got = raceImg(url, ua, serverBase)
+        if (got == null) {
+            val m = badThumb.find(url)
+            if (m != null) {
+                val low = m.groupValues[1] + "mqdefault" + m.groupValues[3] + m.groupValues[4]
+                got = raceImg(low, ua, serverBase)
+            }
+        }
         if (got == null) return null
+        ramImgs.put(url, got)
+        val img = got
         runCatching {
-            DataOutputStream(f.outputStream().buffered()).use { o -> o.writeUTF(got.first); o.write(got.second) }
+            DataOutputStream(f.outputStream().buffered()).use { o -> o.writeUTF(img.mime); o.write(img.bytes) }
             val all = dir.listFiles()
             if (all != null && all.size > 800) all.sortedBy { it.lastModified() }.take(200).forEach { it.delete() }
         }
-        return WebResourceResponse(got.first, null, 200, "OK", hdr, ByteArrayInputStream(got.second))
+        return imgResp(img)
     }
 }

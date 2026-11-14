@@ -15,25 +15,55 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import androidx.core.content.ContextCompat
+import org.json.JSONObject
 import kotlin.concurrent.thread
 
 class MuseBridge(private val ctx: Context) {
     private val ui = Handler(Looper.getMainLooper())
 
+    // Bài nào đang tải dở bằng nguồn nào ("local" = tiến trình cục bộ, "native" = NativeYt). Hai nguồn có thể chọn định dạng/bitrate
+    // khác nhau, nên các đoạn của MỘT file phải đến từ cùng một nguồn, nếu không file ghép ra sẽ hỏng.
+    private val dlSrc = java.util.concurrent.ConcurrentHashMap<String, String>()
+
     /**
      * Tải một đoạn nhạc YouTube ngay trong app (IP điện thoại), không qua WebView fetch. Chạy nền, xong gọi lại
-     * window.museChunk(reqId, mime, total, base64) (hoặc museChunk(reqId, null) nếu không lấy được).
+     * window.museChunk(reqId, mime, total, base64, err). Không lấy được thì mime = null và err là lý do thật
+     * (từng client YouTube lỗi gì) để giao diện hiện ra thay vì lỗi của server.
      */
     @JavascriptInterface
     fun audioChunkAsync(reqId: String, id: String, fmt: String, start: Long) {
         thread(isDaemon = true, name = "muse-dl") {
-            val ch = runCatching { LocalAudio.fetchChunk(id, fmt, start) ?: NativeYt.fetchChunk(id, fmt == "webm", start) }.getOrNull()
+            val webm = fmt == "webm"
+            var ch: AudioChunk? = null
+            if (start <= 0L) {
+                dlSrc.remove(id)
+                ch = runCatching { LocalAudio.fetchChunk(id, fmt, 0L) }.getOrNull()
+                if (ch != null) dlSrc[id] = "local"
+                else {
+                    ch = runCatching { NativeYt.fetchChunk(id, webm, 0L) }.getOrNull()
+                    if (ch != null) dlSrc[id] = "native"
+                }
+            } else {
+                ch = when (dlSrc[id]) {
+                    "local" -> runCatching { LocalAudio.fetchChunk(id, fmt, start) }.getOrNull()
+                    "native" -> runCatching { NativeYt.fetchChunk(id, webm, start) }.getOrNull()
+                    else -> null
+                }
+            }
             val rid = reqId.filter { it.isLetterOrDigit() }
-            val js = if (ch == null) "window.museChunk&&museChunk('$rid',null)"
-            else "window.museChunk&&museChunk('$rid','${ch.mime.filter { it.isLetterOrDigit() || it == '/' || it == '-' || it == '.' || it == '+' }}',${ch.total},'${Base64.encodeToString(ch.bytes, Base64.NO_WRAP)}')"
+            val js = if (ch == null) {
+                val err = NativeYt.lastError(id).ifEmpty { "không lấy được luồng âm thanh trên máy" }
+                "window.museChunk&&museChunk('$rid',null,0,'',${JSONObject.quote(err)})"
+            } else {
+                "window.museChunk&&museChunk('$rid','${ch.mime.filter { it.isLetterOrDigit() || it == '/' || it == '-' || it == '.' || it == '+' }}',${ch.total},'${Base64.encodeToString(ch.bytes, Base64.NO_WRAP)}')"
+            }
             ui.post { Playback.sendToWeb?.invoke(js) }
         }
     }
+
+    /** Lý do lần lấy nhạc gần nhất của bài [id] thất bại trên máy (rỗng nếu không có). Web gọi khi không phát được. */
+    @JavascriptInterface
+    fun audioError(id: String): String = NativeYt.lastError(id.filter { it.isLetterOrDigit() || it == '-' || it == '_' })
 
     @JavascriptInterface
     fun update(title: String, artist: String, art: String, playing: Boolean, posMs: Long, durMs: Long, hasTrack: Boolean) {
