@@ -8,7 +8,7 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         ConnectInfo, DefaultBodyLimit, Path, Query, State,
     },
-    http::{header, HeaderMap, HeaderValue, Request, StatusCode},
+    http::{header, HeaderMap, HeaderValue, Request, StatusCode, Uri},
     middleware::{self, Next},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -54,6 +54,16 @@ struct AppState {
     auth_limit: Arc<Mutex<HashMap<String, (u32, u64)>>>,
     // Vé WebSocket dùng một lần, sống 30 giây: vé -> (người dùng, hạn - giây). Tránh để token phiên nằm trong URL (log proxy).
     ws_tickets: Arc<Mutex<HashMap<String, (User, u64)>>>,
+    // Chế độ "cổng nhà" (GATEWAY_REMOTE): địa chỉ server chính để chuyển tiếp mọi thứ không phải YouTube.
+    gateway: Option<Arc<Gateway>>,
+}
+
+// Cổng nhà: chạy trên máy ở nhà (IP dân cư) để YouTube không chặn như khi chạy trên VPS/Render.
+struct Gateway {
+    remote: String, // vd. https://muse.example.com (không có dấu / cuối)
+    client: reqwest::Client,
+    // token đã băm -> (cho phép nội dung nhạy cảm, thời điểm lấy - giây)
+    explicit: Mutex<HashMap<String, (bool, u64)>>,
 }
 
 // ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
@@ -413,8 +423,9 @@ async fn run_audio_only() {
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
         ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        gateway: gateway_from_env(),
     };
-    let router = Router::new().route("/api/yt/audio/:id", get(yt_audio)).with_state(st);
+    let router = yt_routes().with_state(st);
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
     // Chỉ nhận kết nối từ chính máy này, không bao giờ mở ra mạng.
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{port}")).await.unwrap();
@@ -422,10 +433,224 @@ async fn run_audio_only() {
     axum::serve(listener, router.into_make_service()).await.unwrap();
 }
 
+// Các route lấy dữ liệu từ YouTube (tìm kiếm, album, nghệ sĩ, luồng âm thanh, ảnh bìa...). Dùng chung cho server chính,
+// chế độ AUDIO_ONLY (Android) và chế độ cổng nhà (desktop). Tất cả đều chạy được với tư cách khách (không cần tài khoản).
+fn yt_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/search", get(yt_search))
+        .route("/api/yt/browse", get(yt_browse_music))
+        .route("/api/yt/similar", get(yt_similar))
+        .route("/api/yt/fresh", get(yt_fresh))
+        .route("/api/yt/artists", get(yt_artists))
+        .route("/api/yt/best-artists", get(yt_best_artists))
+        .route("/api/yt/this-is", get(yt_this_is))
+        .route("/api/yt/audio/:id", get(yt_audio))
+        .route("/api/img", get(img_proxy))
+        .route("/api/yt/video/:id", get(yt_video))
+}
+
+fn gateway_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(90))
+        .user_agent("Muse-Gateway/0.5")
+        .build()
+        .expect("không tạo được HTTP client cho cổng nhà")
+}
+
+// AUDIO_ONLY (Android) có thể kèm GATEWAY_REMOTE chỉ để hỏi server chính xem người dùng có bật "nội dung nhạy cảm" không.
+fn gateway_from_env() -> Option<Arc<Gateway>> {
+    let remote = std::env::var("GATEWAY_REMOTE").ok()?.trim().trim_end_matches('/').to_string();
+    if remote.is_empty() {
+        return None;
+    }
+    Some(Arc::new(Gateway { remote, client: gateway_client(), explicit: Mutex::new(HashMap::new()) }))
+}
+
+// Cài đặt "nội dung nhạy cảm" nằm ở tài khoản trên server chính: hỏi lại server chính (nhớ 60 giây) thay vì đọc DB cục bộ.
+async fn gateway_explicit(g: &Gateway, headers: &HeaderMap) -> bool {
+    let Some(tok) = bearer(headers) else { return false };
+    let key = tok_hash(&tok);
+    let now = now_secs();
+    if let Some((v, t)) = g.explicit.lock().unwrap().get(&key).copied() {
+        if now.saturating_sub(t) < 60 {
+            return v;
+        }
+    }
+    let val = match g
+        .client
+        .get(format!("{}/api/settings", g.remote))
+        .header("authorization", format!("Bearer {tok}"))
+        .timeout(Duration::from_secs(8))
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r.json::<Value>().await.ok().and_then(|j| j.get("explicit").and_then(|x| x.as_bool())).unwrap_or(false),
+        _ => false,
+    };
+    let mut c = g.explicit.lock().unwrap();
+    if c.len() > 500 {
+        c.clear();
+    }
+    c.insert(key, (val, now));
+    val
+}
+
+// (cho phép nội dung nhạy cảm, dùng proxy) cho các route YouTube: server chính đọc từ DB, cổng nhà hỏi server chính.
+async fn net_prefs(st: &AppState, headers: &HeaderMap) -> (bool, bool) {
+    if let Some(g) = &st.gateway {
+        return (gateway_explicit(g, headers).await, false);
+    }
+    match require(st, headers) {
+        Ok(user) => user_net_prefs(st, user.id),
+        Err(_) => (false, false),
+    }
+}
+
+// ===== Cổng nhà =====
+// GATEWAY_REMOTE=https://server-chinh  ->  chương trình này chạy trên máy ở nhà và làm 2 việc:
+//   1) tự xử lý mọi route YouTube (tìm kiếm, album, nghệ sĩ, nhạc, ảnh bìa) bằng IP nhà;
+//   2) chuyển tiếp mọi thứ còn lại (giao diện, đăng nhập, bạn bè, avatar/banner, phòng nghe chung, WebSocket) lên server chính.
+// Giao diện được mở ở http://127.0.0.1:PORT (cùng một nguồn gốc) nên không dính CORS/CSP. Server chính chỉ còn lưu dữ liệu người dùng.
+async fn run_gateway(remote: String) {
+    let st = AppState {
+        db: Arc::new(Mutex::new(init_db(std::path::Path::new(":memory:")))),
+        rooms: Arc::new(Mutex::new(HashMap::new())),
+        notify: Arc::new(Mutex::new(HashMap::new())),
+        avatar_dir: PathBuf::new(),
+        bg_dir: PathBuf::new(),
+        banner_dir: PathBuf::new(),
+        app_dir: PathBuf::new(),
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .user_agent("Muse/0.3")
+            .build()
+            .expect("không tạo được HTTP client"),
+        http_proxy: None,
+        audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        gateway: Some(Arc::new(Gateway { remote: remote.clone(), client: gateway_client(), explicit: Mutex::new(HashMap::new()) })),
+    };
+    let router = yt_routes()
+        .route("/ws/:room", get(gw_ws))
+        .route("/ws-user", get(gw_ws))
+        .fallback(gw_http)
+        .with_state(st);
+    let port = std::env::var("PORT").unwrap_or_else(|_| "38417".into());
+    let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "127.0.0.1".into());
+    let listener = match tokio::net::TcpListener::bind(format!("{bind}:{port}")).await {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Không mở được cổng {bind}:{port}: {e} (có thể cổng nhà đã chạy sẵn?)");
+            return;
+        }
+    };
+    println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
+    axum::serve(listener, router.into_make_service()).await.unwrap();
+}
+
+fn gw_hop(name: &str) -> bool {
+    matches!(
+        name,
+        "host" | "connection" | "keep-alive" | "proxy-authenticate" | "proxy-authorization" | "te" | "trailer" | "transfer-encoding" | "upgrade" | "content-length"
+    )
+}
+
+// Chuyển tiếp nguyên một yêu cầu HTTP lên server chính rồi trả lại phản hồi (không giải nén, không tự theo chuyển hướng).
+async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
+    let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
+    let (parts, body) = req.into_parts();
+    let pq = parts.uri.path_and_query().map(|p| p.as_str()).unwrap_or("/");
+    let url = format!("{}{}", g.remote, pq);
+    let bytes = match axum::body::to_bytes(body, 16 * 1024 * 1024).await {
+        Ok(b) => b,
+        Err(_) => return StatusCode::PAYLOAD_TOO_LARGE.into_response(),
+    };
+    let mut rb = g.client.request(parts.method.clone(), &url);
+    for (k, v) in parts.headers.iter() {
+        let n = k.as_str();
+        if gw_hop(n) || n == "origin" || n == "referer" {
+            continue;
+        }
+        rb = rb.header(k, v);
+    }
+    if !bytes.is_empty() {
+        rb = rb.body(bytes);
+    }
+    match rb.send().await {
+        Ok(r) => {
+            let status = r.status();
+            let headers = r.headers().clone();
+            match r.bytes().await {
+                Ok(b) => {
+                    let mut out = Response::new(Body::from(b));
+                    *out.status_mut() = status;
+                    for (k, v) in headers.iter() {
+                        if gw_hop(k.as_str()) {
+                            continue;
+                        }
+                        out.headers_mut().append(k.clone(), v.clone());
+                    }
+                    out
+                }
+                Err(e) => (StatusCode::BAD_GATEWAY, format!("Cổng nhà: lỗi đọc phản hồi từ server chính ({e})")).into_response(),
+            }
+        }
+        Err(e) => (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} ({e})", g.remote)).into_response(),
+    }
+}
+
+// Chuyển tiếp WebSocket (phòng nghe chung, thông báo mời) lên server chính, giữ nguyên đường dẫn + vé (?ticket=).
+async fn gw_ws(State(st): State<AppState>, ws: WebSocketUpgrade, uri: Uri) -> Response {
+    use tokio_tungstenite::tungstenite::Message as TM;
+    let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
+    let pq = uri.path_and_query().map(|p| p.as_str()).unwrap_or("/").to_string();
+    let base = g.remote.replacen("https://", "wss://", 1).replacen("http://", "ws://", 1);
+    let url = format!("{base}{pq}");
+    ws.on_upgrade(move |client: WebSocket| async move {
+        let Ok((up, _)) = tokio_tungstenite::connect_async(url.as_str()).await else { return };
+        let (mut up_tx, mut up_rx) = up.split();
+        let (mut c_tx, mut c_rx) = client.split();
+        let to_up = async {
+            while let Some(Ok(m)) = c_rx.next().await {
+                let t = match m {
+                    Message::Text(s) => TM::Text(s),
+                    Message::Binary(b) => TM::Binary(b),
+                    Message::Close(_) => break,
+                    _ => continue,
+                };
+                if up_tx.send(t).await.is_err() {
+                    break;
+                }
+            }
+        };
+        let to_client = async {
+            while let Some(Ok(m)) = up_rx.next().await {
+                let t = match m {
+                    TM::Text(s) => Message::Text(s),
+                    TM::Binary(b) => Message::Binary(b),
+                    TM::Close(_) => break,
+                    _ => continue,
+                };
+                if c_tx.send(t).await.is_err() {
+                    break;
+                }
+            }
+        };
+        tokio::select! { _ = to_up => {}, _ = to_client => {} }
+    })
+}
+
 #[tokio::main]
 async fn main() {
     if std::env::var("AUDIO_ONLY").map(|v| v.trim() == "1").unwrap_or(false) {
         run_audio_only().await;
+        return;
+    }
+    if let Some(remote) = std::env::var("GATEWAY_REMOTE").ok().map(|v| v.trim().trim_end_matches('/').to_string()).filter(|v| !v.is_empty()) {
+        run_gateway(remote).await;
         return;
     }
     let data_dir = PathBuf::from(std::env::var("DATA_DIR").unwrap_or_else(|_| "data".into()));
@@ -470,6 +695,7 @@ async fn main() {
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
         ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        gateway: None,
     };
 
     let router = Router::new()
@@ -498,16 +724,7 @@ async fn main() {
         .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
-        .route("/api/yt/search", get(yt_search))
-        .route("/api/yt/browse", get(yt_browse_music))
-        .route("/api/yt/similar", get(yt_similar))
-        .route("/api/yt/fresh", get(yt_fresh))
-        .route("/api/yt/artists", get(yt_artists))
-        .route("/api/yt/best-artists", get(yt_best_artists))
-        .route("/api/yt/this-is", get(yt_this_is))
-        .route("/api/yt/audio/:id", get(yt_audio))
-        .route("/api/img", get(img_proxy))
-        .route("/api/yt/video/:id", get(yt_video))
+        .merge(yt_routes())
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
         .route("/api/friends/respond", post(respond_request))
@@ -549,57 +766,37 @@ struct ImgQ {
 }
 
 async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Response {
-    let parsed = match reqwest::Url::parse(&q.u).ok().filter(|p| p.scheme() == "https") {
-        Some(p) => p,
-        None => return StatusCode::BAD_REQUEST.into_response(),
-    };
-    let host = parsed.host_str().map(|h| h.to_ascii_lowercase()).unwrap_or_default();
-    if !(host == "i.ytimg.com" || host.ends_with(".ggpht.com") || host.ends_with(".googleusercontent.com")) {
+    let host_ok = reqwest::Url::parse(&q.u)
+        .ok()
+        .filter(|p| p.scheme() == "https")
+        .and_then(|p| p.host_str().map(|h| h.to_ascii_lowercase()))
+        .map(|h| h == "i.ytimg.com" || h.ends_with(".ggpht.com") || h.ends_with(".googleusercontent.com"))
+        .unwrap_or(false);
+    if !host_ok {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    // Thử lần lượt: link gốc, rồi các tên miền ảnh khác của YouTube (cùng đường dẫn /vi/...).
-    let mut cands: Vec<String> = vec![q.u.clone()];
-    if host == "i.ytimg.com" {
-        for alt in ["i1.ytimg.com", "i9.ytimg.com", "img.youtube.com"] {
-            let mut u = parsed.clone();
-            if u.set_host(Some(alt)).is_ok() {
-                cands.push(u.to_string());
-            }
-        }
+    let r = match st.http.get(&q.u).send().await {
+        Ok(r) if r.status().is_success() => r,
+        _ => return StatusCode::BAD_GATEWAY.into_response(),
+    };
+    let ct = r
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    if !ct.starts_with("image/") {
+        return StatusCode::BAD_GATEWAY.into_response();
     }
-    let mut notes = String::new();
-    for u in cands {
-        let res = st
-            .http
-            .get(&u)
-            .header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
-            .header("accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
-            .send()
-            .await;
-        match res {
-            Ok(r) if r.status().is_success() => {
-                let ct = r.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").to_string();
-                if !ct.starts_with("image/") {
-                    notes.push_str(&format!("[{}: không phải ảnh ({ct})] ", r.url().host_str().unwrap_or("?")));
-                    continue;
-                }
-                match r.bytes().await {
-                    Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => {
-                        return Response::builder()
-                            .status(StatusCode::OK)
-                            .header(header::CONTENT_TYPE, ct)
-                            .header(header::CACHE_CONTROL, "public, max-age=86400")
-                            .body(Body::from(b))
-                            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
-                    }
-                    _ => notes.push_str("[ảnh rỗng/quá lớn] "),
-                }
-            }
-            Ok(r) => notes.push_str(&format!("[{}: HTTP {}] ", r.url().host_str().unwrap_or("?"), r.status().as_u16())),
-            Err(e) => notes.push_str(&format!("[lỗi kết nối: {e}] ")),
-        }
+    match r.bytes().await {
+        Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, ct)
+            .header(header::CACHE_CONTROL, "public, max-age=86400")
+            .body(Body::from(b))
+            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+        _ => StatusCode::BAD_GATEWAY.into_response(),
     }
-    (StatusCode::BAD_GATEWAY, format!("Server không tải được ảnh: {notes}")).into_response()
 }
 
 async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
@@ -2942,10 +3139,7 @@ fn pick_client(st: &AppState, use_proxy: bool) -> reqwest::Client {
 
 async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtQ>) -> R<Value> {
     // Không bắt buộc đăng nhập: khách (không có token) vẫn tìm nhạc được với cài đặt mặc định.
-    let (allow_explicit, use_proxy) = match require(&st, &headers) {
-        Ok(user) => user_net_prefs(&st, user.id),
-        Err(_) => (false, false),
-    };
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
     let client = pick_client(&st, use_proxy);
     let text: String = q.q.unwrap_or_default().trim().chars().take(100).collect();
     if text.is_empty() {
@@ -3147,10 +3341,7 @@ fn yt_related_artists(v: &Value, out: &mut Vec<(String, String)>) {
 
 // GET /api/yt/similar?artist=Tên → { artist, related: [{name,id}], tracks: [...] }  (tracks xen kẽ giữa các nghệ sĩ liên quan)
 async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtSimQ>) -> R<Value> {
-    let (allow_explicit, use_proxy) = match require(&st, &headers) {
-        Ok(user) => user_net_prefs(&st, user.id),
-        Err(_) => (false, false),
-    };
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
     let client = pick_client(&st, use_proxy);
     let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
     if name.is_empty() {
@@ -3489,10 +3680,7 @@ fn yt_album_cards(v: &Value, out: &mut Vec<(String, i64, String, String)>) {
 
 // GET /api/yt/fresh?artist=Tên → { artist, tracks: [{..., age: số ngày kể từ ngày phát hành}] }  (mới nhất trước, chỉ giữ bài ≤ 60 ngày)
 async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtFreshQ>) -> R<Value> {
-    let (allow_explicit, use_proxy) = match require(&st, &headers) {
-        Ok(user) => user_net_prefs(&st, user.id),
-        Err(_) => (false, false),
-    };
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
     let client = pick_client(&st, use_proxy);
     let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
     if name.is_empty() {
@@ -4278,10 +4466,7 @@ struct YtThisQ {
 }
 
 async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtThisQ>) -> R<Value> {
-    let (allow_explicit, use_proxy) = match require(&st, &headers) {
-        Ok(user) => user_net_prefs(&st, user.id),
-        Err(_) => (false, false),
-    };
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
     let client = pick_client(&st, use_proxy);
     let name: String = q.name.unwrap_or_default().trim().chars().take(80).collect();
     if name.is_empty() {
@@ -4409,10 +4594,7 @@ struct YtBrowseQ {
 }
 
 async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtBrowseQ>) -> R<Value> {
-    let (allow_explicit, use_proxy) = match require(&st, &headers) {
-        Ok(user) => user_net_prefs(&st, user.id),
-        Err(_) => (false, false),
-    };
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
     let client = pick_client(&st, use_proxy);
     let id: String = q.id.unwrap_or_default().trim().chars().take(80).collect();
     if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
