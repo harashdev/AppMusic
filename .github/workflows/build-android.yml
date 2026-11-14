@@ -9,6 +9,9 @@ on:
       - "muse-v0.5/muse/server/**"
       - ".github/workflows/build-android.yml"
 
+permissions:
+  contents: write   # để đăng APK lên Releases
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -88,11 +91,27 @@ jobs:
       - name: Đổi tên APK thành BBeat.apk
         run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/BBeat.apk
 
+      # Kho artifact của repo hay đầy hạn mức (lỗi "Artifact storage quota has been hit"), nên không để nó làm hỏng cả lần build.
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: bbeat-android
           path: muse-v0.5/muse/android/app/build/outputs/apk/debug/BBeat.apk
           if-no-files-found: error
+
+      # Đăng APK lên Releases (tag android-latest, ghi đè bản cũ): tải ở mục Releases, không tính vào hạn mức artifact.
+      - name: Đăng APK lên Releases
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          APK=muse-v0.5/muse/android/app/build/outputs/apk/debug/BBeat.apk
+          TAG=android-latest
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
+            --title "BBeat - bản build mới nhất" --notes "APK tự build bởi GitHub Actions (cài thẳng được)."
+          gh release upload "$TAG" "$APK" --clobber
+          echo "APK: https://github.com/${{ github.repository }}/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload build reports (khi lỗi)
         if: failure()
