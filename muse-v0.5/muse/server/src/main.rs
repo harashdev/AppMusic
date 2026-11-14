@@ -4723,9 +4723,13 @@ struct AudQ {
 }
 
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
-// Đoạn đầu (bắt đầu bài / sau khi tua) nhỏ hơn để nhạc lên tiếng nhanh, không phải đợi tải đủ 2 MB.
-const AUDIO_FIRST_CHUNK: u64 = 256 * 1024;
+// Đoạn đầu tăng lên 512 KB để đủ buffer cho kết nối chậm (256 KB hay bị stall trên Render free-tier
+// do cold-start + độ trễ cao; 512 KB vẫn lên tiếng trong ~1 giây trên mạng bình thường).
+const AUDIO_FIRST_CHUNK: u64 = 512 * 1024;
 const AUDIO_TTL: u64 = 3 * 60 * 60;
+// Thời gian tối đa cho resolve_race: sau thời gian này nếu chưa có client nào thành công thì trả lỗi ngay,
+// không chờ hết tất cả timeout của từng client (tránh người dùng chờ 30+ giây).
+const AUDIO_RACE_TIMEOUT_SECS: u64 = 12;
 
 // (clientName, header id, clientVersion, user-agent, phần context thêm)
 fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static str, Value)> {
@@ -4914,18 +4918,27 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
         set.spawn(async move { (ci, resolve_audio(&c, &v, webm, ci).await) });
     }
     let mut last = "Không lấy được luồng âm thanh".to_string();
-    while let Some(joined) = set.join_next().await {
-        match joined {
-            Ok((_, Ok(x))) => {
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(AUDIO_RACE_TIMEOUT_SECS);
+    loop {
+        match tokio::time::timeout_at(deadline, set.join_next()).await {
+            Ok(Some(joined)) => match joined {
+                Ok((_, Ok(x))) => {
+                    set.abort_all();
+                    return Ok(x);
+                }
+                Ok((ci, Err(e))) => {
+                    eprintln!("[audio] {vid} nguồn {ci}: {e}");
+                    audio_mark_bad(vid, ci);
+                    last = e;
+                }
+                Err(_) => {}
+            },
+            Ok(None) => break, // tất cả task đã xong
+            Err(_) => {
+                // Hết thời gian AUDIO_RACE_TIMEOUT_SECS: huỷ các task còn lại, trả lỗi ngay.
                 set.abort_all();
-                return Ok(x);
+                return Err(format!("hết thời gian chờ ({AUDIO_RACE_TIMEOUT_SECS}s): {last}"));
             }
-            Ok((ci, Err(e))) => {
-                eprintln!("[audio] {vid} nguồn {ci}: {e}");
-                audio_mark_bad(vid, ci);
-                last = e;
-            }
-            Err(_) => {}
         }
     }
     Err(last)
@@ -5525,7 +5538,9 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 .header(header::ACCEPT_RANGES, "bytes")
                 .header(header::CONTENT_RANGE, format!("bytes {start}-{}/{size}", start + len - 1))
                 .header(header::CONTENT_LENGTH, len.to_string())
-                .header(header::CACHE_CONTROL, "private, max-age=600")
+                // Tăng cache-control lên 1 giờ: link googlevideo sống ~6h, client có thể
+                // tua lại mà không cần hỏi server lại. Vẫn private để không bị CDN cache chung.
+                .header(header::CACHE_CONTROL, "private, max-age=3600")
                 .body(Body::from(b))
                 .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
         }
