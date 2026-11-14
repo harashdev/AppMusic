@@ -309,7 +309,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        if (Playback.playing) { web.onResume(); web.resumeTimers() }
+        // Có bài đang nạp (kể cả đang tạm dừng) thì giữ WebView chạy nền, để nút Phát/Tiếp trên thông báo còn tác dụng.
+        if (Playback.hasTrack || Playback.playing) { web.onResume(); web.resumeTimers() }
     }
 
     override fun onDestroy() {

@@ -13,8 +13,6 @@ import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaSession
@@ -27,8 +25,10 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 import kotlin.concurrent.thread
 
 class KeepAliveService : Service() {
@@ -38,11 +38,10 @@ class KeepAliveService : Service() {
 
     private var wl: PowerManager.WakeLock? = null
     private var wifi: WifiManager.WifiLock? = null
-    private var focusReq: AudioFocusRequest? = null
-    private var focusAt = 0L
-    private var focusOff = false
-    private var resumeOnFocus = false
+    // Không tự giữ audio focus nữa: WebView (Chromium) đã tự xin focus cho thẻ <audio>, và hai bên giành nhau
+    // khiến service nhận AUDIOFOCUS_LOSS "giả" rồi tự gửi lệnh pause (lúc được lúc không tuỳ bài tải nhanh hay chậm).
     private var wasPlaying = false
+    private var lastSig = ""
 
     private var artUrl = ""
     private var artBmp: Bitmap? = null
@@ -99,7 +98,6 @@ class KeepAliveService : Service() {
         main.removeCallbacks(idleStop)
         Playback.onChanged = null
         runCatching { unregisterReceiver(noisy) }
-        abandonFocus()
         releaseLocks()
         runCatching { session.isActive = false; session.release() }
         super.onDestroy()
@@ -109,7 +107,11 @@ class KeepAliveService : Service() {
         val p = Playback
         loadArtIfNeeded(p.art)
 
-        session.setMetadata(
+        // Chỉ dựng lại metadata + thông báo khi có gì đổi (bài, trạng thái, ảnh bìa); vị trí phát cập nhật nhẹ qua PlaybackState.
+        val sig = "${p.title}\u0001${p.artist}\u0001${p.playing}\u0001${p.hasTrack}\u0001${System.identityHashCode(artBmp)}\u0001${p.durMs / 1000}"
+        val changed = sig != lastSig
+        lastSig = sig
+        if (changed) session.setMetadata(
             MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, p.title)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, p.artist)
@@ -129,17 +131,15 @@ class KeepAliveService : Service() {
                 )
                 .build()
         )
-        nm.notify(NID, buildNotification())
+        if (changed) nm.notify(NID, buildNotification())
 
-        if (p.playing != wasPlaying) {
-            wasPlaying = p.playing
-            if (p.playing) { acquireLocks(); requestFocus(); main.removeCallbacks(idleStop) }
-            else {
-                releaseLocks()
-                if (!resumeOnFocus) abandonFocus()
-                main.removeCallbacks(idleStop); main.postDelayed(idleStop, IDLE_MS)
-            }
+        if (p.playing) {
+            acquireLocks(); main.removeCallbacks(idleStop) // acquire đặt lại hạn 6 giờ mỗi lần, nghe liên tục vẫn không hết khoá
+        } else if (wasPlaying) {
+            releaseLocks()
+            main.removeCallbacks(idleStop); main.postDelayed(idleStop, IDLE_MS)
         }
+        wasPlaying = p.playing
     }
 
     private fun pi(action: String, code: Int): PendingIntent = PendingIntent.getService(
@@ -186,16 +186,64 @@ class KeepAliveService : Service() {
         if (raw.isBlank()) return
         val url = if (raw.startsWith("/")) serverUrl() + raw else raw
         if (!url.startsWith("http")) return
-        thread(isDaemon = true, name = "muse-art") {
-            val enc = java.net.URLEncoder.encode(url.replace("hq720", "mqdefault"), "UTF-8")
-            val cands = listOf(url, url.replace("hq720", "mqdefault"), "https://wsrv.nl/?url=$enc", "https://external-content.duckduckgo.com/iu/?u=$enc&f=1")
-            val bmp = cands.distinct().firstNotNullOfOrNull { fetchArt(it) }?.let { b ->
-                val m = maxOf(b.width, b.height)
-                val cap = artCap()
-                if (m > cap) Bitmap.createScaledBitmap(b, b.width * cap / m, b.height * cap / m, true) else b
-            }
-            main.post { if (artUrl == raw && bmp != null) { artBmp = bmp; refresh() } }
+        // Bản nhỏ (vài chục KB) tải trước để thông báo có ảnh gần như ngay; bản lớn tải song song rồi thay vào.
+        val lo = lowResArt(url)
+        thread(isDaemon = true, name = "muse-art-lo") { deliverArt(raw, fetchArtBitmap(lo, true), false) }
+        if (lo != url) thread(isDaemon = true, name = "muse-art-hi") { deliverArt(raw, fetchArtBitmap(url, false), true) }
+    }
+
+    private fun deliverArt(raw: String, bmp: Bitmap?, hi: Boolean) {
+        if (bmp == null) return
+        main.post {
+            if (artUrl != raw) return@post
+            if (!hi && artBmp != null) return@post // bản lớn về trước thì bỏ bản nhỏ
+            artBmp = bmp
+            refresh()
         }
+    }
+
+    private fun lowResArt(u: String): String = when {
+        u.contains("hq720") -> u.replace("hq720", "mqdefault")
+        u.contains("googleusercontent.com") || u.contains("ggpht.com") ->
+            u.replace(Regex("=w\\d+-h\\d+[^?#]*$"), "=w400-h400-l90-rj").replace(Regex("=s\\d+[^?#]*$"), "=s400")
+        else -> u
+    }
+
+    private fun sha1(s: String) = MessageDigest.getInstance("SHA-1").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
+
+    // Có cache trong máy: bài nghe lại / bài đã từng hiện thì ảnh lên ngay, không cần mạng.
+    private fun fetchArtBitmap(url: String, useProxies: Boolean): Bitmap? {
+        val dir = File(cacheDir, "art").apply { mkdirs() }
+        val f = File(dir, sha1(url))
+        runCatching {
+            if (f.exists() && f.length() > 0) {
+                decodeArt(f.readBytes())?.let { f.setLastModified(System.currentTimeMillis()); return it }
+            }
+        }
+        val enc = java.net.URLEncoder.encode(url, "UTF-8")
+        val bytes = fetchArtBytes(url, 3500)
+            ?: (if (useProxies) fetchArtBytes("https://wsrv.nl/?url=$enc", 5000) else null)
+            ?: (if (useProxies) fetchArtBytes("https://external-content.duckduckgo.com/iu/?u=$enc&f=1", 5000) else null)
+            ?: return null
+        val bmp = decodeArt(bytes) ?: return null
+        runCatching {
+            f.writeBytes(bytes)
+            val all = dir.listFiles()
+            if (all != null && all.size > 60) all.sortedBy { it.lastModified() }.take(20).forEach { it.delete() }
+        }
+        return bmp
+    }
+
+    private fun decodeArt(b: ByteArray): Bitmap? {
+        val cap = artCap()
+        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(b, 0, b.size, o)
+        if (o.outWidth <= 0 || o.outHeight <= 0) return null
+        var s = 1
+        while (maxOf(o.outWidth, o.outHeight) / (s * 2) >= cap) s *= 2
+        val bmp = BitmapFactory.decodeByteArray(b, 0, b.size, BitmapFactory.Options().apply { inSampleSize = s }) ?: return null
+        val m = maxOf(bmp.width, bmp.height)
+        return if (m > cap) Bitmap.createScaledBitmap(bmp, bmp.width * cap / m, bmp.height * cap / m, true) else bmp
     }
 
     private fun artCap(): Int {
@@ -205,11 +253,13 @@ class KeepAliveService : Service() {
         return if (low) minOf(side, 768) else side
     }
 
-    private fun fetchArt(url: String): Bitmap? = runCatching {
+    private fun fetchArtBytes(url: String, timeoutMs: Int): ByteArray? = runCatching {
         val c = URL(url).openConnection() as HttpURLConnection
-        c.connectTimeout = 6000; c.readTimeout = 8000
-        if (c.responseCode !in 200..299) return@runCatching null
-        c.inputStream.use { BitmapFactory.decodeStream(it) }
+        c.connectTimeout = timeoutMs; c.readTimeout = timeoutMs + 2000
+        try {
+            if (c.responseCode !in 200..299) return@runCatching null
+            c.inputStream.use { it.readBytes() }.takeIf { it.isNotEmpty() && it.size < 8 * 1024 * 1024 }
+        } finally { c.disconnect() }
     }.getOrNull()
 
     private fun acquireLocks() {
@@ -224,35 +274,6 @@ class KeepAliveService : Service() {
     private fun releaseLocks() {
         wl?.let { if (it.isHeld) it.release() }
         wifi?.let { if (it.isHeld) it.release() }
-    }
-
-    private fun requestFocus() {
-        if (focusOff) return
-        val am = getSystemService(AudioManager::class.java)
-        val req = focusReq ?: AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-            .setOnAudioFocusChangeListener { change -> main.post { onFocus(change) } }
-            .build().also { focusReq = it }
-        focusAt = SystemClock.elapsedRealtime()
-        am.requestAudioFocus(req)
-    }
-
-    private fun abandonFocus() {
-        focusReq?.let { runCatching { getSystemService(AudioManager::class.java).abandonAudioFocusRequest(it) } }
-        resumeOnFocus = false
-    }
-
-    private fun onFocus(change: Int) {
-        if ((change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) &&
-            SystemClock.elapsedRealtime() - focusAt < 2000
-        ) {
-            focusOff = true; abandonFocus(); Playback.command("resume"); return
-        }
-        when (change) {
-            AudioManager.AUDIOFOCUS_LOSS -> { resumeOnFocus = false; if (Playback.playing) Playback.command("pause") }
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (Playback.playing) { resumeOnFocus = true; Playback.command("pause") }
-            AudioManager.AUDIOFOCUS_GAIN -> if (resumeOnFocus) { resumeOnFocus = false; Playback.command("play") }
-        }
     }
 
     private companion object {

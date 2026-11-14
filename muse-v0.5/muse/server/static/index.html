@@ -3042,7 +3042,10 @@ let fxDownUntil=0;
 const MOBILE=(()=>{ try{ return (window.ANDROID_APP||matchMedia('(pointer:coarse)').matches)&&LS.get('bgplay','1')==='1'; }catch{ return !!window.ANDROID_APP; } })();
 const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
 const ytFail={}, wdTries={};
-const wantStream=t=>t&&t.src==='yt'&&!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available));
+// App Android: player YouTube (iframe) bị tạm dừng khi tắt màn hình → luôn phát bằng luồng âm thanh, kể cả khi bài/luồng từng lỗi
+// (trước đây lỗi 1 lần là bị "cấm luồng" 5 phút và rơi về iframe → nhạc nền im lặng, lúc được lúc không).
+const BGONLY=!!window.ANDROID_APP;
+const wantStream=t=>t&&t.src==='yt'&&(BGONLY||(!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||fxNeeded()||(S.proxy&&cfg.proxy_available))));
 const OFF=(()=>{
   let dbp=null;
   const open=()=>dbp||(dbp=new Promise((res,rej)=>{
@@ -3135,6 +3138,12 @@ audYt.addEventListener('error',()=>{
     offBad[t.id]=true; offRevoke(t.id); adminNotify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
   if(!fxTried[t.id]){
     fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
+  if(BGONLY){
+    const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
+    if(n<=2){ setTimeout(()=>{ if(cur===t&&eng==='fx') loadTrack(t,pos,was); },1200*n); return; }
+    wdTries[t.id]=0; fxTried[t.id]=false; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
+    if(queue.length>1) nextTrack(true); else setPlaying(false);
+    return; }
   fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000;
   fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
     let real='';
@@ -3172,8 +3181,16 @@ document.addEventListener('visibilitychange',()=>{
     else if(!document.hidden&&playing&&eng==='fx'&&audYt.paused) audYt.play().catch(()=>{});
   }catch{}
 });
+let bgResume=[];
 audYt.addEventListener('pause',()=>{
-  if(eng==='fx'&&playing&&cur&&!audYt.ended&&document.hidden) setTimeout(()=>{ if(eng==='fx'&&playing&&audYt.paused) audYt.play().catch(()=>{}); },400);
+  if(eng==='fx'&&playing&&cur&&!audYt.ended&&document.hidden){
+    // Chạy nền bị hệ thống/WebView tạm dừng ngoài ý muốn → bật lại. Nhưng nếu app khác giành âm thanh liên tục
+    // (3 lần trong 15 giây) thì thôi, chuyển sang trạng thái tạm dừng thật để thông báo hiện đúng và người dùng bấm Phát.
+    const n=Date.now(); bgResume=bgResume.filter(x=>n-x<15000);
+    if(bgResume.length>=3){ bgResume=[]; setPlaying(false); broadcastState(); updateBar(); return; }
+    bgResume.push(n);
+    setTimeout(()=>{ if(eng==='fx'&&playing&&audYt.paused) audYt.play().catch(()=>{}); },400);
+  }
 });
 function loadTrack(t,pos=0,play=true,ts=null){
   hoTok++; hoBusy=false; audYt.muted=false;
@@ -3212,6 +3229,11 @@ function wdRecover(){
   const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
   if(eng==='fx'){
     if(n===1){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
+    if(BGONLY){
+      if(n===2){ adminNotify('Nhạc bị đứng – thử lại…'); loadTrack(t,pos,was); return; }
+      wdTries[t.id]=0; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
+      if(queue.length>1) nextTrack(true); else setPlaying(false);
+      return; }
     fxFail[t.id]=true; adminNotify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
   }
   if(eng==='yt'){
@@ -4097,10 +4119,18 @@ async function start(u,offlineBoot){
 }
 (async()=>{
   if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
-  try{ const u=await api('/api/me'); LS.set('muse_me',JSON.stringify(u)); start(u); }
-  catch(e){
-    let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
-    if(e.net&&c) start(c,true); else if(e.message!=='401'&&c&&JSON.parse(LS.get('muse_s','{}')).offline_pl) start(c,true); else showAuth();
+  let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
+  try{
+    const req=api('/api/me');
+    // Đã có hồ sơ lưu sẵn: chỉ chờ server tối đa 6 giây (server Render ngủ có thể mất cả phút mới dậy), quá thì vào app luôn.
+    let u;
+    if(c){ req.catch(()=>{}); u=await Promise.race([req,new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{net:true})),6000))]); }
+    else u=await req;
+    LS.set('muse_me',JSON.stringify(u)); start(u);
+  }catch(e){
+    // Chỉ khi server trả đúng 401 (phiên hết hạn/không còn) mới bắt đăng nhập lại.
+    // Mạng lỗi, server chậm/đang khởi động, 5xx... → KHÔNG đăng xuất: vào bằng hồ sơ đã lưu, tự tải lại khi server sống lại (offWatch).
+    if(e.message==='401'||!c) showAuth(); else start(c,true);
   }
 })();
 </script>
