@@ -355,7 +355,7 @@ body.has-cur #bar{display:grid}
 .bt b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
 .bt .l2{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tm{margin-left:auto;font-size:11px;color:var(--sub);flex:none;font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff26 var(--p,0%));outline:0;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff59 var(--p,0%),#ffffff59 var(--b,0%),#ffffff26 var(--b,0%));outline:0;cursor:pointer}
 input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:12px;border-radius:50%;background:#fff;transition:width .12s}
 input[type=range]:hover::-webkit-slider-thumb{width:12px}
@@ -3433,6 +3433,17 @@ function applyVol(){
 $('#vol').oninput=e=>{ vol=e.target.value/100; LS.set('vol',vol); applyVol(); };
 $('#bVol').onclick=()=>{ if(vol>0){ lastVol=vol; vol=0; } else vol=lastVol||.8; LS.set('vol',vol); applyVol(); };
 const getTime=()=>!cur?0:eng==='yt'?(ytReady?yt.getCurrentTime():0):A().currentTime;
+// Phần đã tải sẵn (0..1) để vẽ vùng đệm trên thanh tua.
+function bufFrac(){
+  try{
+    if(!cur) return 0;
+    if(eng==='yt') return ytReady&&yt.getVideoLoadedFraction?yt.getVideoLoadedFraction()||0:0;
+    const a=A(), d=a.duration; if(!d||!isFinite(d)) return 0;
+    const b=a.buffered, t=a.currentTime; let end=0;
+    for(let i=0;i<b.length;i++){ if(b.start(i)<=t+0.5&&b.end(i)>end) end=b.end(i); }
+    return Math.min(1,end/d);
+  }catch{ return 0; }
+}
 const getDur=()=>!cur?0:eng==='yt'?(ytReady?yt.getDuration():0):(A().duration||cur.dur||0);
 function seekTo(t){ if(!cur) return; if(eng==='yt'){ if(ytReady){ ytHideNow(true,4500); yt.seekTo(t,true); } } else A().currentTime=t; }
 function setPlaying(p){
@@ -4062,7 +4073,8 @@ function dlDetTick(){
   const dd=m.querySelector('.dd'); if(!cur){ dlDetClose(); return; }
   if(!dd||dlDetKey!==key(cur)){ dlDetRender(); return; }
   const d=getDur(), t=getTime(), sk=$('#ddSeek');
-  if(sk&&d&&document.activeElement!==sk) sk.value=1000*t/d;
+  if(sk&&d&&document.activeElement!==sk){ sk.value=1000*t/d; sk.style.setProperty('--p',(100*t/d)+'%'); }
+  if(sk){ sk.style.setProperty('--b',(100*bufFrac())+'%'); }
   const tm=$('#ddTm'); if(tm) tm.textContent=fmt(t)+' / '+fmt(d);
   setIc($('#ddPp'),playing?'pause':'play',true); dd.classList.toggle('dd-playing',!!playing);
   const sh=$('#ddShuf'); if(sh) sh.classList.toggle('on',!!shuf);
@@ -4077,6 +4089,7 @@ function dlDetRender(){
   cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; } }); };
   if(dimg) dimg.onerror=()=>{ dimg.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) dimg.src=u; else dimg.style.display='none'; }); };
   if(isLoc(cur)&&!cur.image){ offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; } else if(dimg) dimg.style.display='none'; }); } // nhạc từ máy: bìa nằm trong kho offline
+  sk.oninput=()=>sk.style.setProperty('--p',sk.value/10+'%');
   sk.onchange=()=>{ const d=getDur(); if(d){ seekTo(d*sk.value/1000); broadcastState(); } };
   vr.oninput=()=>{ vol=vr.value/100; LS.set('vol',vol); applyVol(); };
   dd.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b) return; const a=b.dataset.dd;
@@ -4306,6 +4319,7 @@ setInterval(()=>{
   if(document.hidden) return;
   const d=getDur(),t=getTime();
   if(d&&!seeking){ const v=1000*t/d; $('#seek').value=v; $('#seek').style.setProperty('--p',v/10+'%'); $('#bOpen').style.setProperty('--rp',(v/10).toFixed(1)); }
+  $('#seek').style.setProperty('--b',(100*bufFrac())+'%');
   $('#tm').textContent=cur?fmt(t)+' / '+fmt(d):'0:00 / 0:00'; setIc($('#pp'),playing?'pause':'play',true);
   if(lyrLines){ const k=curLine(t); const s=k>=0?lyrLines[k].s:''; if(s!==lastNpLine){ lastNpLine=s; $('#npLine').textContent=s; } if(lyrActive()) hiLyric(k); }
 },400);
