@@ -4381,7 +4381,7 @@ $('#npLyr').onclick=()=>setNp(true,'lyr');
 let vidOv=null;
 const vidWant=()=>!!(cur&&vidOv&&vidOv.k===key(cur)?vidOv.on:showVideo);
 function setVideo(v){ showVideo=!!v; vidOv=null; LS.set('vid',v?'1':'0'); syncVid(); }
-var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='';
+var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='', vidWaitK='', vidWaitT=0;
 if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
     if(me&&me.is_admin&&S.show_errors) fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ if(/yt-dlp/.test(tx)) adminNotify('Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album'); else adminNotify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ adminNotify('Không phát được video: không kết nối được server'); }catch{} }); }
   vidEl.classList.remove('on'); try{ syncVid(); }catch{} }; }
@@ -4390,7 +4390,11 @@ function vidSync0(){
   if(!vidEl||!vidFail) return;
   const on=document.body.classList.contains('vid')&&cur&&cur.src==='yt'&&!vidFail[cur.id];
   if(!on){ vidEl.classList.remove('on'); if(vidId){ vidId=''; try{ vidEl.pause(); vidEl.removeAttribute('src'); vidEl.load(); }catch{} } return; }
-  if(vidId!==cur.id){ vidId=cur.id; vidEl.classList.remove('on'); vidEl.src=vidUrl(cur.id); try{ vidEl.load(); }catch{} vidPrefetchNext(); return; }
+  if(vidId!==cur.id){
+    // Chờ nhạc lên tiếng rồi mới xin video: yt-dlp tải video chạy song song với tải âm thanh nên làm bài vào chậm. Tối đa chờ 12 giây.
+    if(vidWaitK!==cur.id){ vidWaitK=cur.id; vidWaitT=Date.now(); }
+    if(!(playing&&getTime()>0.8)&&Date.now()-vidWaitT<12000){ vidEl.classList.remove('on'); if(!vidEl.paused) try{ vidEl.pause(); }catch{} return; }
+    vidId=cur.id; vidEl.classList.remove('on'); vidEl.src=vidUrl(cur.id); try{ vidEl.load(); }catch{} vidPrefetchNext(); return; }
   if(vidEl.readyState<2) return;
   const t=getTime(), du=vidEl.duration||0; if(!(t>=0)) return;
   const tt=du?Math.min(t,du-0.05):t, d=tt-vidEl.currentTime, ad=Math.abs(d);
