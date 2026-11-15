@@ -48,6 +48,7 @@ jobs:
           Get-ChildItem dist -Recurse | Select-Object FullName, Length
 
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: muse-server-windows
           path: muse-v0.5/muse/server/dist

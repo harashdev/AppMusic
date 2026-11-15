@@ -64,6 +64,7 @@ jobs:
           fi
 
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: muse-windows
           path: |
@@ -91,6 +92,7 @@ jobs:
           cp start-muse.bat ../dist/muse-server/
           cp start-gateway.bat ../dist/muse-server/
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: muse-server-windows
           path: muse-v0.5/muse/dist/muse-server

@@ -29,6 +29,7 @@ jobs:
         run: cargo build --release
 
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: muse-native-windows
           path: muse-v0.5/muse/client/target/release/muse-native.exe
