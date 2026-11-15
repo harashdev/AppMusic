@@ -1,7 +1,7 @@
 /* Service worker: mở được giao diện khi mất mạng (dữ liệu danh sách phát lấy từ bộ nhớ cục bộ, nhạc đã tải nằm trong IndexedDB).
    - Trang chính: ưu tiên mạng nhưng chỉ chờ tối đa 4 giây rồi dùng bản đã lưu (mạng "treo" thì vẫn mở được app).
    - Ảnh bìa (YouTube/Google): lưu lại khi xem online để offline vẫn còn hình. */
-const CACHE = 'muse-shell-v5', IMG = 'muse-img-v2', IMG_MAX = 400;
+const CACHE = 'muse-shell-v6', IMG = 'muse-img-v2', IMG_MAX = 400;
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.add('/')).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== IMG).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 const timeout = (ms) => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
