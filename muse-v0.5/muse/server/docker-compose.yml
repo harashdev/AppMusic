@@ -1,8 +1,27 @@
 services:
-  muse:
-    build: .
+  # Provider PO token (bgutil). Chỉ expose trong mạng nội bộ compose, KHÔNG publish ra ngoài (server này không có xác thực).
+  bgutil:
+    image: brainicism/bgutil-ytdlp-pot-provider
+    init: true
     restart: unless-stopped
+    expose:
+      - "4416"
+
+  muse:
+    build:
+      context: .
+      args:
+        # WITH_WPC=1 để thêm plugin wpc (Chromium) – thử nghiệm, image nặng hơn nhiều.
+        WITH_WPC: ${WITH_WPC:-0}
+    restart: unless-stopped
+    depends_on:
+      - bgutil
     environment:
+      - YT_POT_URL=http://bgutil:4416
+      - YT_WPC=${WITH_WPC:-0}
+      # Khi WITH_WPC=1 đặt YTDLP_PATH=/usr/local/bin/yt-dlp-wpc và YT_CHROME=/usr/bin/chromium trong file .env
+      - YTDLP_PATH=${YTDLP_PATH:-/usr/local/bin/yt-dlp}
+      - YT_CHROME=${YT_CHROME:-}
       - DONATE_URL=${DONATE_URL:-}
       - YT_PROXY=${YT_PROXY:-}
       - SERVE_MUSIC=${SERVE_MUSIC:-}
