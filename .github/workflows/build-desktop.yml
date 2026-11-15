@@ -35,6 +35,20 @@ jobs:
           mkdir -p ../desktop/src-tauri/binaries
           cp target/release/muse-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
 
+      # yt-dlp + deno đi kèm app: PC lấy nhạc bằng IP người dùng, không phụ thuộc client YouTube viết tay (hay bị "Sign in to confirm you're not a bot" / PO token).
+      - name: Tải yt-dlp và deno (đi kèm app)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path binaries | Out-Null
+          Invoke-WebRequest "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile "binaries/yt-dlp-x86_64-pc-windows-msvc.exe"
+          Invoke-WebRequest "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip" -OutFile "deno.zip"
+          Expand-Archive -Force "deno.zip" -DestinationPath "deno-tmp"
+          Move-Item -Force "deno-tmp/deno.exe" "binaries/deno-x86_64-pc-windows-msvc.exe"
+          Remove-Item -Recurse -Force "deno.zip","deno-tmp"
+          foreach ($f in "yt-dlp-x86_64-pc-windows-msvc.exe","deno-x86_64-pc-windows-msvc.exe","muse-server-x86_64-pc-windows-msvc.exe") {
+            if (-not (Test-Path "binaries/$f")) { throw "Thiếu binaries/$f" }
+          }
+
       - name: Tải Discord Social SDK
         id: sdk
         shell: bash
