@@ -355,7 +355,8 @@ body.has-cur #bar{display:grid}
 .bt b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
 .bt .l2{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tm{margin-left:auto;font-size:11px;color:var(--sub);flex:none;font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff59 var(--p,0%),#ffffff59 var(--b,0%),#ffffff26 var(--b,0%));outline:0;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff26 var(--p,0%));outline:0;cursor:pointer}
+@media(min-width:701px){input[type=range]{background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff59 var(--p,0%),#ffffff59 var(--b,0%),#ffffff26 var(--b,0%))}}
 input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:12px;border-radius:50%;background:#fff;transition:width .12s}
 input[type=range]:hover::-webkit-slider-thumb{width:12px}
