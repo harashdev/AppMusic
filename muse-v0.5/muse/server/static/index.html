@@ -852,28 +852,28 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-nav .tabs{display:flex;gap:4px}
 .dd-nav .tabs button.on{background:#ffffff26;color:#fff;font-weight:600}
 .dd-nav .x{justify-self:end;font-size:16px;line-height:1;padding:5px 10px}
-.dd-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,38%) 1fr;gap:24px;padding:22px 28px}
+.dd-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(220px,26%) 1fr;gap:16px;padding:18px 24px}
 .dd-info{overflow:auto;scrollbar-width:thin;min-width:0;background:#0000001a;margin:-22px 0 -22px -28px;padding:22px 24px 22px 28px;border-radius:0}
-.dd-info h2{margin:0 0 6px;font-size:22px;line-height:1.25;overflow-wrap:anywhere}
+.dd-info h2{margin:0 0 6px;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
 .dd-info .ar{color:#ffffffb3;margin-bottom:10px}
 .dd-info hr{border:0;height:4px;background:linear-gradient(90deg,#ffffffcc 0 55%,#ffffff55 55%);margin:6px 0 14px;width:100%}
-.dd-info dl{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0;font-size:14px}
+.dd-info dl{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;margin:0;font-size:13px}
 .dd-info dt{color:#ffffffb3;font-weight:600;white-space:nowrap}.dd-info dd{margin:0;overflow-wrap:anywhere}
 .dd-art{container-type:size;position:relative;min-width:0;min-height:0}
 .dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px}
-.dd-cov{left:50%;width:min(70cqw,92cqh);aspect-ratio:1;transform:translate(-68%,-50%);object-fit:cover;box-shadow:0 12px 40px #000a;background:var(--surf2);z-index:1}
-.dd-disc{left:50%;width:min(70cqw,92cqh);aspect-ratio:1;transform:translate(-30%,-50%);border-radius:50%;z-index:0;
+.dd-cov{left:50%;width:min(64cqw,95cqh);aspect-ratio:1;transform:translate(-75%,-50%);object-fit:cover;box-shadow:0 12px 40px #000a;background:var(--surf2);z-index:1}
+.dd-disc{left:50%;width:min(64cqw,95cqh);aspect-ratio:1;transform:translate(-25%,-50%);border-radius:50%;z-index:0;
  background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 8px 24px #0008}
 /* Mặt đĩa mang hình bìa (cover vuông đè lên giữa đĩa nên chỉ lộ phần cung bên phải; đĩa quay thì hình quay theo).
    Lớp ::after phủ rãnh đĩa mờ + vệt sáng + lỗ giữa để vẫn ra dáng đĩa than. */
 .dd-disc{overflow:hidden}
-.dd-dimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;filter:brightness(.62) contrast(1.08) saturate(.95)}
+.dd-dimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;filter:brightness(.92) contrast(1.05) saturate(1.05)}
 .dd-disc::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
- background:radial-gradient(circle,#0c0c0c 0 4%,#cfcfcf 4% 8%,#111 8% 10%,transparent 10%),
-  radial-gradient(circle,#0000 0 58%,#000a 100%),
-  repeating-radial-gradient(circle,#0000 0 2px,#00000026 2px 4px),
-  conic-gradient(from 25deg,#fff0 0 8%,#ffffff22 13%,#fff0 19% 58%,#ffffff1a 63%,#fff0 69%);
- box-shadow:inset 0 0 0 2px #0007,inset 0 0 30px #000b}
+ background:radial-gradient(circle,#0b1118 0 5.5%,#e6e9ec 6% 10.5%,#ffffff55 10.8% 16.5%,#0000 17%),
+  radial-gradient(circle,#0000 0 16.5%,#0000003a 17% 17.6%,#0000 18.4%),
+  radial-gradient(circle,#0000 0 62%,#0000004d 100%),
+  conic-gradient(from 25deg,#fff0 0 8%,#ffffff30 14%,#fff0 21% 56%,#ffffff26 63%,#fff0 70%);
+ box-shadow:inset 0 0 0 2px #ffffff26,inset 0 0 22px #0006}
 /* Đĩa luôn có animation nhưng tạm dừng khi không phát: dừng đúng góc đang quay, không về lại vị trí ban đầu. */
 .dd-disc{animation:ddspin 6s linear infinite paused}
 .dd-playing .dd-disc{animation-play-state:running}
@@ -884,17 +884,21 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-lyr div[data-k]{padding:7px 0;font-size:21px;line-height:1.4;color:#ffffff80;cursor:pointer;transition:color .2s}
 .dd-lyr div[data-k]:hover{color:#ffffffcc}.dd-lyr .cur{color:#fff!important;font-weight:700}
 .dd-lyr .none,.dd-lyr .plain{color:#ffffffb3;font-size:16px;line-height:1.6}
-@keyframes ddspin{to{transform:translate(-30%,-50%) rotate(360deg)}}
-.dd-ft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:10px 20px 14px;background:#00000030}
-.dd-now{grid-column:1/-1;font-size:13px;color:#ffffffcc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dd-ctl{display:flex;align-items:center;gap:4px}
-.dd-ctl button{background:none;border:0;color:#fff;width:36px;height:34px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
-.dd-ctl button:hover{background:#ffffff26}.dd-ctl button.on{color:#fff;background:#ffffff33}
-.dd-ctl .vol{width:80px;accent-color:#fff}
-.dd-prog{display:flex;align-items:center;gap:10px}
+@keyframes ddspin{to{transform:translate(-25%,-50%) rotate(360deg)}}
+.dd-ft{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"now ctl tm" "seek seek seek";gap:8px 16px;align-items:center;padding:12px 24px 16px;background:#00000030}
+.dd-now{grid-area:now;display:flex;gap:12px;align-items:baseline;min-width:0;font-size:14px;color:#ffffffd9;white-space:nowrap;overflow:hidden}
+.dd-now b{font-weight:700;color:#fff;flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis}.dd-now span{overflow:hidden;text-overflow:ellipsis}
+.dd-ctl{grid-area:ctl;display:flex;align-items:center;gap:6px}
+.dd-ctl button{background:#e8edf1e6;border:0;color:color-mix(in srgb,var(--ddc) 55%,#000);width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 1px 3px #0005}
+.dd-ctl button:hover{background:#fff}.dd-ctl button.on{background:#fff;box-shadow:0 0 0 2px #ffffff88}
+.dd-ctl button svg{width:14px;height:14px}
+.dd-vol{display:flex;align-items:center;gap:6px}
+.dd-vol .vol{width:0;opacity:0;margin:0;transition:width .2s,opacity .2s;accent-color:#fff}
+.dd-vol:hover .vol,.dd-vol:focus-within .vol{width:84px;opacity:1}
+.dd-prog{grid-area:seek;display:flex}
 .dd-prog input{flex:1;accent-color:#fff;--accent:#fff}
-.dd-prog span{font-variant-numeric:tabular-nums;color:#ffffffb3;font-size:13px;min-width:40px;text-align:right}
-@media (max-width:820px){.dd-info{margin:0;border-radius:8px}.dd-body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.dd-info{max-height:34vh}.dd-ft{grid-template-columns:1fr}}
+.dd-tm{grid-area:tm;justify-self:end;font-variant-numeric:tabular-nums;color:#ffffffd9;font-size:13px;white-space:nowrap}
+@media (max-width:820px){.dd-info{margin:0;border-radius:8px}.dd-body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.dd-info{max-height:34vh}.dd-ft{grid-template-columns:1fr;grid-template-areas:"now" "ctl" "seek" "tm"}}
 </style>
 </head>
 <body class="skin-default">
@@ -4076,7 +4080,7 @@ let dlDetOn=false, dlDetTimer=0, dlDetKey='', dlDetTab='det', dlDetLyrKey='';
 const winCmd=c=>{ try{ if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP) return window.__TAURI__.core.invoke(c); }catch{} return null; };
 function toggleBrowserFs(){ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); }catch{} }
 // F11: phóng to toàn màn hình app desktop (trình duyệt thường đã tự có F11).
-document.addEventListener('keydown',e=>{ if(e.key==='F11'){ const p=winCmd('win_toggle_fullscreen'); if(p){ e.preventDefault(); p.catch(()=>{}); } } });
+document.addEventListener('keydown',e=>{ if(e.key==='F11'){ const p=winCmd('win_toggle_fullscreen'); if(p){ e.preventDefault(); p.catch(toggleBrowserFs); } } });
 async function dlDetLyrics(){
   const box=$('#ddLyr'); if(!box||!cur) return; const t=cur, k=key(t);
   if(dlDetLyrKey===k&&box.childElementCount) return;
@@ -4118,9 +4122,10 @@ function dlDetHtml(){
    <dl>${row('Codec',codec)}${row('Kênh','2.0 Stereo')}${row('Nguồn',sr+' kHz')}${row('Dữ liệu',(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''))}${row('Thời lượng',fmt(dur))}${row('Đã thêm',added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
    <div class="dd-lyr" id="ddLyr"></div>
    <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" src="${esc(thumb(t.image,800))}"></div><img class="dd-cov" alt="" src="${esc(thumb(t.image,800))}"></div></div>
-  <div class="dd-ft"><div class="dd-now">${esc((t.artist?t.artist+' – ':'')+(t.title||''))}</div>
-   <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"><span id="ddTm">0:00</span></div>
-   <div class="dd-ctl"><button data-dd="stop" title="Dừng">${ic('stop','fill sm')}</button><button data-dd="prev" title="Bài trước">${ic('prev','fill sm')}</button><button data-dd="pp" id="ddPp"></button><button data-dd="next" title="Bài sau">${ic('next','fill sm')}</button><button data-dd="shuf" id="ddShuf" title="Ngẫu nhiên">${ic('shuffle','sm')}</button><button data-dd="vol" id="ddVol">${ic('vol','sm')}</button><input class="vol" id="ddVolR" type="range" min="0" max="100"></div></div>`;
+  <div class="dd-ft"><div class="dd-now">${t.artist?'<b>'+esc(t.artist)+'</b>':''}<span>${esc(t.title||'')}</span></div>
+   <div class="dd-ctl"><button data-dd="stop" title="Dừng">${ic('stop','fill sm')}</button><button data-dd="prev" title="Bài trước"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3 1.5 8 8 13zM14.5 3 8 8l6.5 5z"/></svg></button><button data-dd="pp" id="ddPp"></button><button data-dd="next" title="Bài sau"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3l6.5 5L8 13zM1.5 3 8 8l-6.5 5z"/></svg></button><button data-dd="shuf" id="ddShuf" title="Ngẫu nhiên">${ic('shuffle','sm')}</button><span class="dd-vol"><button data-dd="vol" id="ddVol">${ic('vol','sm')}</button><input class="vol" id="ddVolR" type="range" min="0" max="100"></span></div>
+   <div class="dd-tm" id="ddTm">0:00 / 0:00</div>
+   <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"></div></div>`;
 }
 function dlDetTick(){
   const m=$('#main'); if(!dlDetOn||page!=='downloads'||!m){ dlDetClose(); return; }
@@ -4156,7 +4161,7 @@ function dlDetRender(){
     else if(a==='vol') $('#bVol').click();
     else if(a==='stop'){ setPlaying(false); seekTo(0); broadcastState(); }
     else if(a==='det'||a==='lyr') dlDetSetTab(dd,a)
-    else if(a==='max'){ const p=winCmd('win_toggle_fullscreen'); if(p) p.catch(()=>{}); else toggleBrowserFs(); } };
+    else if(a==='max'){ const p=winCmd('win_toggle_fullscreen'); if(p) p.catch(toggleBrowserFs); else toggleBrowserFs(); } };
   dd.classList.toggle('dd-tab-lyr',dlDetTab==='lyr');
   const lb=$('#ddLyr'); if(lb) lb.onclick=e=>{ const d=e.target.closest('[data-k]'); if(d&&lyrLines){ seekTo(lyrLines[+d.dataset.k].t); broadcastState(); } };
   if(dlDetTab==='lyr') dlDetLyrics();
