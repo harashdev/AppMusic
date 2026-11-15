@@ -5,6 +5,7 @@ services:
     environment:
       - DONATE_URL=${DONATE_URL:-}
       - YT_PROXY=${YT_PROXY:-}
+      - SERVE_MUSIC=${SERVE_MUSIC:-}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
       - PUBLIC_URL=${PUBLIC_URL:-}
