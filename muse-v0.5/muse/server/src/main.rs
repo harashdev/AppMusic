@@ -657,33 +657,59 @@ fn gateway_from_env() -> Option<Arc<Gateway>> {
     Some(Arc::new(Gateway { remote, client: gateway_client(), explicit: Mutex::new(HashMap::new()) }))
 }
 
-// Cài đặt "nội dung nhạy cảm" nằm ở tài khoản trên server chính: hỏi lại server chính (nhớ 60 giây) thay vì đọc DB cục bộ.
-async fn gateway_explicit(g: &Gateway, headers: &HeaderMap) -> bool {
-    let Some(tok) = bearer(headers) else { return false };
-    let key = tok_hash(&tok);
-    let now = now_secs();
-    if let Some((v, t)) = g.explicit.lock().unwrap().get(&key).copied() {
-        if now.saturating_sub(t) < 60 {
-            return v;
-        }
-    }
-    let val = match g
+// Cài đặt "nội dung nhạy cảm" nằm ở tài khoản trên server chính. KHÔNG được để tìm kiếm/phát nhạc đứng chờ server chính
+// (Render gói free hay ngủ đông, một lần hỏi có thể mất vài chục giây): trả ngay giá trị đã nhớ, làm mới ngầm ở nền.
+const EXPLICIT_FRESH_SECS: u64 = 600;
+async fn gateway_fetch_explicit(g: &Gateway, tok: &str, timeout: Duration) -> Option<bool> {
+    let r = g
         .client
         .get(format!("{}/api/settings", g.remote))
         .header("authorization", format!("Bearer {tok}"))
-        .timeout(Duration::from_secs(8))
+        .timeout(timeout)
         .send()
         .await
-    {
-        Ok(r) if r.status().is_success() => r.json::<Value>().await.ok().and_then(|j| j.get("explicit").and_then(|x| x.as_bool())).unwrap_or(false),
-        _ => false,
-    };
+        .ok()?;
+    if !r.status().is_success() {
+        return None;
+    }
+    let j = r.json::<Value>().await.ok()?;
+    Some(j.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false))
+}
+
+async fn gateway_explicit(g: &Arc<Gateway>, headers: &HeaderMap) -> bool {
+    let Some(tok) = bearer(headers) else { return false };
+    let key = tok_hash(&tok);
+    let now = now_secs();
+    let cached = g.explicit.lock().unwrap().get(&key).copied();
+    if let Some((v, t)) = cached {
+        if now.saturating_sub(t) >= EXPLICIT_FRESH_SECS {
+            // Hết hạn: dùng giá trị cũ ngay, đánh dấu lại để 1 lần làm mới ở nền (thất bại thì 60s sau thử lại).
+            g.explicit.lock().unwrap().insert(key.clone(), (v, now.saturating_sub(EXPLICIT_FRESH_SECS - 60)));
+            let g2 = g.clone();
+            tokio::spawn(async move {
+                if let Some(nv) = gateway_fetch_explicit(&g2, &tok, Duration::from_secs(20)).await {
+                    g2.explicit.lock().unwrap().insert(key, (nv, now_secs()));
+                }
+            });
+        }
+        return v;
+    }
+    // Lần đầu chưa có gì trong bộ nhớ: chỉ chờ tối đa 2,5s; không được thì tạm coi là false và thử lại sau 60s.
+    let val = gateway_fetch_explicit(g, &tok, Duration::from_millis(2500)).await;
     let mut c = g.explicit.lock().unwrap();
     if c.len() > 500 {
         c.clear();
     }
-    c.insert(key, (val, now));
-    val
+    match val {
+        Some(v) => {
+            c.insert(key, (v, now));
+            v
+        }
+        None => {
+            c.insert(key, (false, now.saturating_sub(EXPLICIT_FRESH_SECS - 60)));
+            false
+        }
+    }
 }
 
 // (cho phép nội dung nhạy cảm, dùng proxy) cho các route YouTube: server chính đọc từ DB, cổng nhà hỏi server chính.
@@ -5442,13 +5468,30 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
 fn audio_order() -> Vec<usize> {
     let mut v: Vec<usize> = (0..audio_clients().len()).collect();
     let has = |k: &str| std::env::var(k).map(|x| !x.trim().is_empty()).unwrap_or(false);
-    if has("YT_COOKIES") || has("YT_BROWSER") {
+    // yt-dlp chỉ là phương án dự phòng TUỲ CHỌN: có sẵn thì dùng, không có thì bỏ qua (không bắt người dùng cài yt-dlp / Deno).
+    let ytdlp_ok = ytdlp_ready() || ytdlp_in_path();
+    if ytdlp_ok && (has("YT_COOKIES") || has("YT_BROWSER")) {
         v.insert(0, 90);
-    } else {
+    } else if ytdlp_ok {
         v.push(90);
     }
-    v.push(99);
+    // Piped trả link gắn với IP của máy chủ Piped chứ không phải IP người dùng (Android cũng đã bỏ) nên ở chế độ IP nhà (desktop/Android) không dùng.
+    if !home_ip_mode() {
+        v.push(99);
+    }
     v
+}
+
+// Server đang chạy trên máy người dùng (cổng nhà của desktop, hoặc AUDIO_ONLY của Android): mọi luồng nhạc phải đi bằng IP của họ.
+fn home_ip_mode() -> bool {
+    std::env::var("GATEWAY_REMOTE").map(|x| !x.trim().is_empty()).unwrap_or(false)
+        || std::env::var("AUDIO_ONLY").map(|x| x.trim() == "1").unwrap_or(false)
+}
+
+// Có file yt-dlp trong PATH không (không chạy nó, chỉ tìm file).
+fn ytdlp_in_path() -> bool {
+    let Some(paths) = std::env::var_os("PATH") else { return false };
+    std::env::split_paths(&paths).any(|d| d.join("yt-dlp.exe").is_file() || d.join("yt-dlp").is_file())
 }
 
 async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: usize, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
