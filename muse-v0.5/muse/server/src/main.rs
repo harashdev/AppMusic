@@ -5191,26 +5191,36 @@ const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
 // do cold-start + độ trễ cao; 512 KB vẫn lên tiếng trong ~1 giây trên mạng bình thường).
 const AUDIO_FIRST_CHUNK: u64 = 512 * 1024;
 const AUDIO_TTL: u64 = 3 * 60 * 60;
-// Thời gian tối đa cho resolve_race: sau thời gian này nếu chưa có client nào thành công thì trả lỗi ngay,
-// không chờ hết tất cả timeout của từng client (tránh người dùng chờ 30+ giây).
-const AUDIO_RACE_TIMEOUT_SECS: u64 = 12;
+// Thời gian tối đa cho resolve_race. Mỗi link giờ được tải thử (kể cả thử sâu trong file) và client cần PO token
+// bắt đầu muộn hơn, nên cần rộng hơn bản cũ (12s). Vẫn có trần để không bắt người dùng chờ vô hạn.
+const AUDIO_RACE_TIMEOUT_SECS: u64 = 30;
+// So le giữa các client để không bắn cùng lúc (giống NativeYt.kt bên Android).
+const AUDIO_STAGGER_MS: u64 = 350;
+// Client cần PO token (IOS, TV_SIMPLY) chỉ là dự phòng: chờ thêm để client không cần token kịp trả lời trước.
+const AUDIO_LATE_DELAY_MS: u64 = 2500;
+// YouTube cho tải ~1MB đầu của link thiếu PO token rồi trả 403 (nhạc "chạy được vài giây rồi dừng").
+// Thử tải ở sâu trong file để loại link đó ngay từ đầu.
+const AUDIO_DEEP_PROBE: u64 = 1536 * 1024;
 
 // (clientName, header id, clientVersion, user-agent, phần context thêm)
+// Danh sách và thứ tự giống NativeYt.kt (Android): thêm ANDROID_VR 1.65.10, IOS 21.26.4, TV_SIMPLY.
 fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static str, Value)> {
+    let vr = || json!({ "deviceMake": "Oculus", "deviceModel": "Quest 3", "androidSdkVersion": 32, "osName": "Android", "osVersion": "12L" });
+    let ios = || json!({ "deviceMake": "Apple", "deviceModel": "iPhone16,2", "osName": "iPhone", "osVersion": "18.3.2.22D82" });
     vec![
         (
             "ANDROID_VR",
             "28",
             "1.60.19",
             "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
-            json!({ "deviceMake": "Oculus", "deviceModel": "Quest 3", "androidSdkVersion": 32, "osName": "Android", "osVersion": "12L" }),
+            vr(),
         ),
         (
-            "IOS",
-            "5",
-            "20.10.4",
-            "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
-            json!({ "deviceMake": "Apple", "deviceModel": "iPhone16,2", "osName": "iPhone", "osVersion": "18.3.2.22D82" }),
+            "ANDROID_VR",
+            "28",
+            "1.65.10",
+            "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            vr(),
         ),
         (
             "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
@@ -5219,7 +5229,92 @@ fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static st
             "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
             json!({}),
         ),
+        (
+            "IOS",
+            "5",
+            "21.26.4",
+            "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            ios(),
+        ),
+        (
+            "IOS",
+            "5",
+            "20.10.4",
+            "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            ios(),
+        ),
+        (
+            "TVHTML5_SIMPLY",
+            "75",
+            "1.0",
+            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
+            json!({}),
+        ),
     ]
+}
+
+// Client hay cần PO token (link có nhưng tải bị 403): chỉ chạy muộn làm dự phòng.
+fn audio_client_late(ci: usize) -> bool {
+    matches!(audio_clients().get(ci).map(|c| c.0), Some("IOS") | Some("TVHTML5_SIMPLY"))
+}
+
+// Xin một đoạn [start, end] bằng header Range, rồi bằng tham số &range= (cách yt-dlp/NewPipe dùng).
+// Chỉ đọc khối dữ liệu đầu tiên rồi bỏ, không kéo cả file. Trả về (số byte đọc được, tổng dung lượng nếu có Content-Range).
+async fn probe_range(client: &reqwest::Client, url: &str, ua: &str, start: u64, end: u64) -> Option<(usize, Option<u64>)> {
+    for via_param in [false, true] {
+        let req = if via_param {
+            let sep = if url.contains('?') { '&' } else { '?' };
+            client.get(format!("{url}{sep}range={start}-{end}"))
+        } else {
+            client.get(url).header("range", format!("bytes={start}-{end}"))
+        };
+        let Ok(mut r) = req.header("user-agent", ua).timeout(Duration::from_secs(8)).send().await else { continue };
+        let code = r.status().as_u16();
+        // Với header Range phải là 206; 200 nghĩa là máy chủ bỏ qua Range và sẽ gửi cả file (chỉ chấp nhận ở cách ?range=).
+        if !(code == 206 || (via_param && code == 200)) {
+            continue;
+        }
+        let total = r
+            .headers()
+            .get("content-range")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.rsplit('/').next())
+            .and_then(|x| x.trim().parse::<u64>().ok());
+        match r.chunk().await {
+            Ok(Some(b)) if !b.is_empty() => return Some((b.len(), total)),
+            Ok(_) => return Some((0, total)),
+            Err(_) => continue,
+        }
+    }
+    None
+}
+
+// Tải thử link trước khi tin nó (giống NativeYt.verified bên Android). Client cần PO token vẫn trả link nhưng link đó 403
+// khi tải, hoặc chỉ tải được ~1MB đầu rồi chết. Bản cũ tin link đó nên cuộc đua chọn nhầm client hỏng và nhạc dừng giữa chừng.
+// Trả về dung lượng thật của luồng (lấy từ Content-Range nếu client không báo).
+async fn verify_link(client: &reqwest::Client, url: &str, ua: &str, size_hint: u64) -> Result<u64, String> {
+    let Some((n, total)) = probe_range(client, url, ua, 0, 1023).await else {
+        return Err("link không tải được (403/hết hạn/cần PO token)".to_string());
+    };
+    if n == 0 {
+        return Err("link trả dữ liệu rỗng".to_string());
+    }
+    let size = if size_hint > 0 { size_hint } else { total.unwrap_or(0) };
+    if size == 0 {
+        return Err("không biết dung lượng luồng".to_string());
+    }
+    // Link thiếu PO token qua được 1KB đầu nhưng chết ở sâu hơn: thử thêm một đoạn ở ~1.5MB và một đoạn gần cuối file.
+    for at in [AUDIO_DEEP_PROBE, size.saturating_sub(64 * 1024)] {
+        if at <= 1024 || at + 16 >= size {
+            continue;
+        }
+        match probe_range(client, url, ua, at, at + 15).await {
+            Some((m, _)) if m > 0 => {}
+            Some(_) => return Err(format!("link trả dữ liệu rỗng ở byte {at}")),
+            None => return Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
+        }
+    }
+    Ok(size)
 }
 
 async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: usize) -> Result<(String, u64, String, usize), String> {
@@ -5246,12 +5341,12 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
         {
             Ok(r) if r.status().is_success() => r,
             Ok(r) => {
-                last = format!("{name}: YouTube trả về HTTP {}", r.status().as_u16());
+                last = format!("{name} {ver}: YouTube trả về HTTP {}", r.status().as_u16());
                 eprintln!("[audio] {vid} {last}");
                 continue;
             }
             Err(e) => {
-                last = format!("{name}: không kết nối được YouTube ({e})");
+                last = format!("{name} {ver}: không kết nối được YouTube ({e})");
                 eprintln!("[audio] {vid} {last}");
                 continue;
             }
@@ -5262,7 +5357,7 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
         };
         if v.pointer("/playabilityStatus/status").and_then(|x| x.as_str()) != Some("OK") {
             last = format!(
-                "{name}: {} ({})",
+                "{name} {ver}: {} ({})",
                 v.pointer("/playabilityStatus/reason").and_then(|x| x.as_str()).unwrap_or("video không phát được"),
                 v.pointer("/playabilityStatus/status").and_then(|x| x.as_str()).unwrap_or("?")
             );
@@ -5270,7 +5365,7 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
             continue;
         }
         let Some(fmts) = v.pointer("/streamingData/adaptiveFormats").and_then(|x| x.as_array()) else {
-            last = format!("{name}: không có danh sách định dạng");
+            last = format!("{name} {ver}: không có danh sách định dạng");
             eprintln!("[audio] {vid} {last}");
             continue;
         };
@@ -5310,8 +5405,8 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
             .and_then(|x| x.parse().ok())
             .or_else(|| f.get("contentLength").and_then(|x| x.as_u64()))
             .unwrap_or(0);
-        if url.is_empty() || size == 0 {
-            last = format!("{name}: định dạng không có URL trực tiếp (có thể cần PO token)");
+        if url.is_empty() {
+            last = format!("{name} {ver}: định dạng không có URL trực tiếp (có thể cần PO token)");
             eprintln!("[audio] {vid} {last}");
             continue;
         }
@@ -5323,7 +5418,15 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
             .next()
             .unwrap_or("audio/mp4")
             .to_string();
-        return Ok((url, size, mime, ci));
+        // Chỉ nhận link thật sự tải được (xem verify_link); link chết thì bỏ để client kế tiếp thắng cuộc đua.
+        match verify_link(client, &url, ua, size).await {
+            Ok(real_size) => return Ok((url, real_size, mime, ci)),
+            Err(e) => {
+                last = format!("{name} {ver}: {e}");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+        }
     }
     Err(last)
 }
@@ -5372,16 +5475,25 @@ fn audio_mark_bad(id: &str, src: usize) {
     m.insert((id.to_string(), src), now_secs());
 }
 
-// Hỏi cùng lúc các client YouTube (ANDROID_VR / IOS / TV), cái nào trả về trước thì dùng.
+// Hỏi các client YouTube (ANDROID_VR / TV / IOS ...) gần như cùng lúc, cái nào có link TẢI THỬ ĐƯỢC trước thì dùng.
+// Các client bắt đầu so le nhau (AUDIO_STAGGER_MS); client cần PO token (IOS, TV_SIMPLY) chỉ làm dự phòng nên bắt đầu muộn hơn.
 // Trước đây thử lần lượt: client đầu bị lỗi là mất thêm 1-2 lượt gọi mạng trước khi nhạc lên tiếng.
 async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[usize]) -> Result<(String, u64, String, usize), String> {
     let mut set = tokio::task::JoinSet::new();
-    for &ci in cands {
+    for (i, &ci) in cands.iter().enumerate() {
         let c = client.clone();
         let v = vid.to_string();
-        set.spawn(async move { (ci, resolve_audio(&c, &v, webm, ci).await) });
+        let wait = i as u64 * AUDIO_STAGGER_MS + if audio_client_late(ci) { AUDIO_LATE_DELAY_MS } else { 0 };
+        set.spawn(async move {
+            if wait > 0 {
+                tokio::time::sleep(Duration::from_millis(wait)).await;
+            }
+            (ci, resolve_audio(&c, &v, webm, ci).await)
+        });
     }
-    let mut last = "Không lấy được luồng âm thanh".to_string();
+    // Gom lý do lỗi của TỪNG client (không chỉ cái cuối) để người dùng thấy vì sao bài không phát được.
+    let mut errs: Vec<String> = Vec::new();
+    let why = |errs: &Vec<String>| if errs.is_empty() { "Không lấy được luồng âm thanh".to_string() } else { errs.join(" | ") };
     let deadline = tokio::time::Instant::now() + Duration::from_secs(AUDIO_RACE_TIMEOUT_SECS);
     loop {
         match tokio::time::timeout_at(deadline, set.join_next()).await {
@@ -5393,7 +5505,7 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
                 Ok((ci, Err(e))) => {
                     eprintln!("[audio] {vid} nguồn {ci}: {e}");
                     audio_mark_bad(vid, ci);
-                    last = e;
+                    errs.push(e);
                 }
                 Err(_) => {}
             },
@@ -5401,11 +5513,18 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
             Err(_) => {
                 // Hết thời gian AUDIO_RACE_TIMEOUT_SECS: huỷ các task còn lại, trả lỗi ngay.
                 set.abort_all();
-                return Err(format!("hết thời gian chờ ({AUDIO_RACE_TIMEOUT_SECS}s): {last}"));
+                return Err(format!("hết thời gian chờ ({AUDIO_RACE_TIMEOUT_SECS}s): {}", why(&errs)));
             }
         }
     }
-    Err(last)
+    Err(why(&errs))
+}
+
+// Xoá dấu "đã hỏng" của các client YouTube (không đụng yt-dlp/Piped) cho một bài.
+// Dùng khi MỌI client đều đang bị đánh dấu hỏng: thay vì báo lỗi ngay suốt 10 phút, cho thử lại tất cả từ đầu (giống NativeYt.kt).
+fn audio_clear_bad(id: &str) {
+    let mut m = bad_map().lock().unwrap();
+    m.retain(|(vid, src), _| !(vid == id && *src < 90));
 }
 
 // Mỗi bài chỉ cho một yêu cầu đi lấy luồng tại một thời điểm: trình duyệt hay gửi nhiều yêu cầu Range cùng lúc
@@ -5852,7 +5971,13 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 };
                 // Hỏi song song các client YouTube thay vì lần lượt: nhạc lên tiếng nhanh hơn khi client đầu bị chặn/chậm.
                 if res.is_none() && pos == 0 {
-                    let cands: Vec<usize> = order.iter().copied().filter(|s| *s < 90 && !audio_bad(&id, *s)).collect();
+                    let mut cands: Vec<usize> = order.iter().copied().filter(|s| *s < 90 && !audio_bad(&id, *s)).collect();
+                    if cands.is_empty() {
+                        // Mọi client đều từng lỗi ở bài này (có thể chỉ là lỗi thoáng qua): cho thử lại tất cả từ đầu
+                        // thay vì báo "bị YouTube chặn" suốt 10 phút.
+                        audio_clear_bad(&id);
+                        cands = order.iter().copied().filter(|s| *s < 90).collect();
+                    }
                     if cands.len() > 1 {
                         match resolve_race(&client, &id, webm, &cands).await {
                             Ok(x) => res = Some(x),

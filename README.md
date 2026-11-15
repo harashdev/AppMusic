@@ -95,7 +95,7 @@ Lưu ý: Rich Presence thật sự (hiện "Đang nghe…" trên hồ sơ) vẫn
 
 
 ## Khi YouTube chặn luồng âm thanh (403 / "Sign in to confirm you're not a bot")
-Server thử lần lượt: ANDROID_VR → IOS → TV nhúng → **yt-dlp** → Piped; nguồn nào bị chặn được nhớ 10 phút. Mỗi đoạn tải thử 3 cách (Range header, `?range=`, đoạn 256KB).
+Server (và cổng nhà trên desktop) hỏi song song các client InnerTube giống app Android/NewPipe: ANDROID_VR (2 bản) → TV nhúng → IOS (2 bản) → TV_SIMPLY, rồi mới tới **yt-dlp** → Piped. Client cần PO token (IOS, TV_SIMPLY) chỉ là dự phòng và bắt đầu muộn hơn. Mỗi link đều được **tải thử** trước khi dùng (vài byte đầu, một đoạn ở ~1.5MB và một đoạn gần cuối file): link thiếu PO token vẫn qua ~1MB đầu rồi 403 nên trước đây nhạc chạy được vài giây rồi dừng, giờ link đó bị loại ngay. Nguồn nào bị chặn được nhớ 10 phút; nếu mọi client đều đang bị đánh dấu hỏng thì tự thử lại tất cả từ đầu. Lỗi hiện ra liệt kê lý do của từng client. Mỗi đoạn tải thử 3 cách (Range header, `?range=`, đoạn 256KB).
 Cách chắc nhất: cài `yt-dlp` (đặt `yt-dlp.exe` cạnh `muse-server.exe`, hoặc đặt `YTDLP_PATH`) và đặt `YT_COOKIES` = file cookies.txt xuất từ trình duyệt đã đăng nhập YouTube (có cookies thì yt-dlp được thử đầu tiên). Nên dùng tài khoản phụ, vì tài khoản dùng cookies cho bot vẫn có rủi ro bị YouTube khóa. Cập nhật yt-dlp thường xuyên (`yt-dlp -U`).
 
 Nếu link yt-dlp bị googlevideo trả 403 (link gắn với client/PO token của yt-dlp), server tự cho yt-dlp tải file âm thanh về thư mục tạm (`%TEMP%\muse-audio`, tự dọn sau 6 giờ) rồi phát từ file đó.
