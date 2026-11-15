@@ -22,8 +22,9 @@ android {
         applicationId = "vn.muse.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.8.1"
+        versionCode = 8
+        versionName = "0.8.2"
+        manifestPlaceholders["museHost"] = runCatching { java.net.URI(museUrl).host }.getOrNull() ?: "localhost"
         buildConfigField("String", "MUSE_URL", "\"${museUrl.replace("\"", "")}\"")
         if (hasSdk) {
             ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
