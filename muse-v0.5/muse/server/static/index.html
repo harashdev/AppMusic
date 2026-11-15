@@ -1527,17 +1527,21 @@ document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG'
   if(!imgOk&&!imgBest){ const v=/^https:\/\/wsrv\.nl\//.test(src)?'w':/duckduckgo\.com\/iu/.test(src)?'d':/images\.weserv\.nl/.test(src)?'v':src.indexOf('/api/img?')>=0?'p':'';
     if(v){ imgBest=v; LS.set('muse_imgvia',v+'@'+Date.now()); } } },true);
 /* YouTube không có ảnh hq720 thì trả về ảnh xám 120x90 (trạng thái vẫn "tải thành công" nên sự kiện lỗi không chạy) → bìa lớn hiện khung xám nhoè.
-   Nhận ra ảnh đó qua kích thước rồi hạ về mqdefault, hết cách thì đi tiếp chuỗi nguồn dự phòng. */
-document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||'';
-  if(!/^https?:\/\/(i\d?\.ytimg\.com|img\.youtube\.com)\/vi(_webp)?\/[\w-]{11}\/(hq720|maxresdefault|sddefault|hqdefault|mqdefault)\.jpg/.test(src)) return;
-  if(!(i.naturalWidth===120&&i.naturalHeight===90)) return;
-  if(/\/(hq720|maxresdefault|sddefault)\.jpg/.test(src)){ i.dataset.fi='0'; i.src=src.replace(/\/(hq720|maxresdefault|sddefault)\.jpg/,'/mqdefault.jpg'); return; }
-  imgNext(i); },true);
+   Nhận ra ảnh đó qua kích thước rồi thử lần lượt bản nét nhất còn có: hq720 → maxresdefault → sddefault → hqdefault → mqdefault (320px, mờ nhất nên để cuối). */
+const YT_RES=['hq720','maxresdefault','sddefault','hqdefault','mqdefault'];
+const YT_RES_RE=/^(https?:\/\/(?:i\d?\.ytimg\.com|img\.youtube\.com)\/vi(?:_webp)?\/[\w-]{11}\/)(hq720|maxresdefault|sddefault|hqdefault|mqdefault)\.jpg/;
+function ytLowerRes(src){ const m=String(src).match(YT_RES_RE); if(!m) return ''; const k=YT_RES.indexOf(m[2]); if(k<0||k>=YT_RES.length-1) return ''; return src.replace(m[0],m[1]+YT_RES[k+1]+'.jpg'); }
+document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||'', m=src.match(YT_RES_RE);
+  if(!m){ if(i.style.objectViewBox) i.style.objectViewBox=''; return; }
+  if(i.naturalWidth===120&&i.naturalHeight===90){ const nx=ytLowerRes(src); i.dataset.fi='0'; if(nx) i.src=nx; else imgNext(i); return; }
+  /* sddefault/hqdefault là khung 4:3 có viền đen trên/dưới (nội dung 16:9) → cắt viền khi hiển thị (object-view-box: Chrome/WebView; trình duyệt chưa hỗ trợ thì bỏ qua) */
+  const lb=(m[2]==='sddefault'||m[2]==='hqdefault')&&i.naturalWidth*3===i.naturalHeight*4;
+  i.style.objectViewBox=lb?'inset(12.5% 0)':''; },true);
 document.addEventListener('error',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||''; if(!src||/^data:/.test(src)) return;
   if(!imgAdopt(i)) return; if(!i.dataset.o0.length) return;
   if(IMG_NET.test(src)&&!i.dataset.fi) imgBad++;
   /* ảnh hq720 không có thì hạ ngay (không tốn một lượt chuỗi) */
-  if(/\/hq720\.jpg/.test(src)&&IMG_NET.test(src)){ i.dataset.fi='0'; i.src=src.replace('hq720','mqdefault'); return; }
+  if(IMG_NET.test(src)){ const nx=ytLowerRes(src); if(nx){ i.dataset.fi='0'; i.src=nx; return; } }
   const k=+i.dataset.fi||0; setTimeout(()=>imgNext(i), k===0?0:200); },true);
 function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[src]').forEach(i=>{ const src=i.src; if(!src||/^data:/.test(src)||i.dataset.fi==='x') return;
   if(!(i.dataset.o0||IMG_NET.test(src)||imgUnproxy(src))) return;
