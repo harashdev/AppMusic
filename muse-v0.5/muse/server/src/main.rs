@@ -5194,6 +5194,12 @@ const AUDIO_TTL: u64 = 3 * 60 * 60;
 // Thời gian tối đa cho resolve_race. Mỗi link giờ được tải thử (kể cả thử sâu trong file) và client cần PO token
 // bắt đầu muộn hơn, nên cần rộng hơn bản cũ (12s). Vẫn có trần để không bắt người dùng chờ vô hạn.
 const AUDIO_RACE_TIMEOUT_SECS: u64 = 30;
+// Khi bật plugin wpc (mở Chrome để sinh PO token, mất vài giây mỗi lần) thì cuộc đua cần dài hơn.
+fn audio_race_timeout_secs() -> u64 {
+    let wpc = std::env::var("YT_WPC").map(|x| matches!(x.trim(), "1" | "true" | "yes")).unwrap_or(false)
+        || std::env::var("YT_CHROME").map(|x| !x.trim().is_empty()).unwrap_or(false);
+    if wpc { 75 } else { AUDIO_RACE_TIMEOUT_SECS }
+}
 // So le giữa các client để không bắn cùng lúc (giống NativeYt.kt bên Android).
 const AUDIO_STAGGER_MS: u64 = 350;
 // Client cần PO token (IOS, TV_SIMPLY) chỉ là dự phòng: chờ thêm để client không cần token kịp trả lời trước.
@@ -5498,7 +5504,7 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
     // Gom lý do lỗi của TỪNG client (không chỉ cái cuối) để người dùng thấy vì sao bài không phát được.
     let mut errs: Vec<String> = Vec::new();
     let why = |errs: &Vec<String>| if errs.is_empty() { "Không lấy được luồng âm thanh".to_string() } else { errs.join(" | ") };
-    let deadline = tokio::time::Instant::now() + Duration::from_secs(AUDIO_RACE_TIMEOUT_SECS);
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(audio_race_timeout_secs());
     loop {
         match tokio::time::timeout_at(deadline, set.join_next()).await {
             Ok(Some(joined)) => match joined {
@@ -5517,7 +5523,7 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
             Err(_) => {
                 // Hết thời gian AUDIO_RACE_TIMEOUT_SECS: huỷ các task còn lại, trả lỗi ngay.
                 set.abort_all();
-                return Err(format!("hết thời gian chờ ({AUDIO_RACE_TIMEOUT_SECS}s): {}", why(&errs)));
+                return Err(format!("hết thời gian chờ ({}s): {}", audio_race_timeout_secs(), why(&errs)));
             }
         }
     }
@@ -5585,6 +5591,21 @@ fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
                 let p = abs.to_string_lossy().trim_start_matches(r"\\?\").to_string();
                 cmd.arg("--js-runtimes").arg(format!("deno:{p}"));
             }
+        }
+    }
+    // PO token: plugin bgutil (HTTP server, mặc định http://127.0.0.1:4416) và plugin wpc (Chrome).
+    // YT_POT_URL = địa chỉ provider bgutil khi không nằm ở mặc định (vd. http://bgutil:4416 trong docker-compose).
+    if let Ok(u) = std::env::var("YT_POT_URL") {
+        let u = u.trim().to_string();
+        if !u.is_empty() {
+            cmd.arg("--extractor-args").arg(format!("youtubepot-bgutilhttp:base_url={u}"));
+        }
+    }
+    // YT_CHROME = đường dẫn Chrome/Chromium cho plugin wpc (không đặt thì plugin tự tìm).
+    if let Ok(c) = std::env::var("YT_CHROME") {
+        let c = c.trim().to_string();
+        if !c.is_empty() {
+            cmd.arg("--extractor-args").arg(format!("youtubepot-wpc:browser_path={c}"));
         }
     }
     if let Ok(c) = std::env::var("YT_COOKIES") {
