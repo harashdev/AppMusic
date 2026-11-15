@@ -459,6 +459,11 @@ async fn run_audio_only() {
 // Các route lấy dữ liệu từ YouTube (tìm kiếm, album, nghệ sĩ, luồng âm thanh, ảnh bìa...). Dùng chung cho server chính,
 // chế độ AUDIO_ONLY (Android) và chế độ cổng nhà (desktop). Tất cả đều chạy được với tư cách khách (không cần tài khoản).
 fn yt_routes() -> Router<AppState> {
+    yt_meta_routes().merge(yt_media_routes())
+}
+
+// Nhóm "dữ liệu danh sách": tìm kiếm, trang chủ/khám phá, album, nghệ sĩ... (JSON nhỏ, cache được).
+fn yt_meta_routes() -> Router<AppState> {
     Router::new()
         .route("/api/yt/search", get(yt_search))
         .route("/api/yt/browse", get(yt_browse_music))
@@ -467,6 +472,11 @@ fn yt_routes() -> Router<AppState> {
         .route("/api/yt/artists", get(yt_artists))
         .route("/api/yt/best-artists", get(yt_best_artists))
         .route("/api/yt/this-is", get(yt_this_is))
+}
+
+// Nhóm "luồng nặng": âm thanh, video, ảnh bìa qua server. Server chính không phục vụ nhóm này (app tự lấy bằng IP máy).
+fn yt_media_routes() -> Router<AppState> {
+    Router::new()
         .route("/api/yt/audio/:id", get(yt_audio))
         .route("/api/img", get(img_proxy))
         .route("/api/yt/video/:id", get(yt_video))
@@ -474,11 +484,154 @@ fn yt_routes() -> Router<AppState> {
 
 // Server chính chỉ lưu dữ liệu người dùng (database): các route lấy nhạc / tìm kiếm / ảnh bìa từ YouTube bị tắt và báo rõ lý do.
 // Nhạc do chính app tự lấy: app desktop qua cổng nhà (GATEWAY_REMOTE), app Android qua AUDIO_ONLY – hai chế độ đó vẫn dùng yt_routes().
-// Đặt SERVE_MUSIC=1 trên server chính để bật lại như trước.
+// Mặc định (không đặt SERVE_MUSIC) server chính chạy chế độ "meta": xem media_off_routes() và meta_cache().
 fn music_off_routes() -> Router<AppState> {
     Router::new()
         .route("/api/yt/*rest", axum::routing::any(music_off))
         .route("/api/img", axum::routing::any(music_off))
+}
+
+// Chế độ mặc định của server chính ("meta"): chỉ nhóm luồng nặng bị tắt (HTTP 410), phần danh sách vẫn chạy và được cache.
+fn media_off_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/audio/*rest", axum::routing::any(music_off))
+        .route("/api/yt/video/*rest", axum::routing::any(music_off))
+        .route("/api/img", axum::routing::any(music_off))
+}
+
+// ===== Cache dữ liệu danh sách (metadata) trên server chính =====
+// Ý tưởng: server tải danh sách từ YouTube Music giống cổng nhà rồi LƯU XUỐNG ĐĨA (data/app/meta-cache/).
+//  - Còn mới (< 1 giờ): trả thẳng từ cache, không hỏi YouTube.
+//  - Hết hạn: hỏi YouTube, thành công thì cập nhật cache.
+//  - YouTube lỗi / chặn IP server: vẫn trả bản cũ (tối đa 7 ngày) thay vì lỗi, để trang chủ không trống.
+// Khoá cache gồm đường dẫn + query và cài đặt "nội dung nhạy cảm" của người gọi (kết quả khác nhau theo cài đặt đó).
+// Kết quả rỗng không được lưu (tránh "ghi nhớ" lúc YouTube chặn). Header phản hồi `x-muse-cache`: hit | stale.
+const META_FRESH_SECS: u64 = 3600;
+const META_STALE_SECS: u64 = 7 * 86400;
+const META_MAX_BYTES: usize = 2 * 1024 * 1024;
+const META_MAX_FILES: usize = 3000;
+static META_WRITES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+fn meta_cache_path(st: &AppState, key: &str) -> Option<PathBuf> {
+    if st.app_dir.as_os_str().is_empty() {
+        return None;
+    }
+    let d = Sha256::digest(key.as_bytes());
+    let mut name = String::with_capacity(d.len() * 2 + 5);
+    for b in d.iter() {
+        name.push_str(&format!("{:02x}", b));
+    }
+    name.push_str(".json");
+    Some(st.app_dir.join("meta-cache").join(name))
+}
+
+// File: dòng 1 = thời điểm lưu (giây), phần còn lại = nội dung JSON.
+fn meta_cache_read(p: &std::path::Path) -> Option<(u64, String)> {
+    let s = std::fs::read_to_string(p).ok()?;
+    let (t, body) = s.split_once('\n')?;
+    Some((t.trim().parse().ok()?, body.to_string()))
+}
+
+fn meta_cache_write(p: &std::path::Path, body: &str) {
+    let Some(dir) = p.parent() else { return };
+    if std::fs::create_dir_all(dir).is_err() {
+        return;
+    }
+    // Ghi file tạm rồi đổi tên: không bao giờ đọc phải file ghi dở.
+    let tmp = p.with_extension(format!("{}.tmp", uuid::Uuid::new_v4().simple()));
+    if std::fs::write(&tmp, format!("{}\n{}", now_secs(), body)).is_ok() {
+        if std::fs::rename(&tmp, p).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+        }
+    }
+    if META_WRITES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 50 == 49 {
+        meta_cache_prune(dir);
+    }
+}
+
+// Xoá file quá 7 ngày; nếu vẫn quá nhiều file thì xoá các file cũ nhất (người dùng tìm bừa không làm đầy ổ đĩa).
+fn meta_cache_prune(dir: &std::path::Path) {
+    let Ok(rd) = std::fs::read_dir(dir) else { return };
+    let now = SystemTime::now();
+    let mut files: Vec<(SystemTime, PathBuf)> = Vec::new();
+    for e in rd.flatten() {
+        let p = e.path();
+        let Ok(m) = e.metadata() else { continue };
+        let mt = m.modified().unwrap_or(UNIX_EPOCH);
+        if now.duration_since(mt).map(|d| d.as_secs() > META_STALE_SECS).unwrap_or(false) {
+            let _ = std::fs::remove_file(&p);
+            continue;
+        }
+        files.push((mt, p));
+    }
+    if files.len() > META_MAX_FILES {
+        files.sort_by_key(|f| f.0);
+        let extra = files.len() - META_MAX_FILES;
+        for (_, p) in files.into_iter().take(extra) {
+            let _ = std::fs::remove_file(p);
+        }
+    }
+}
+
+// Kết quả "rỗng": mảng rỗng, hoặc object mà mọi trường dạng mảng đều rỗng (vd. {"tracks":[]}).
+fn meta_is_empty(v: &Value) -> bool {
+    match v {
+        Value::Null => true,
+        Value::Array(a) => a.is_empty(),
+        Value::Object(o) => {
+            let arrs: Vec<&Vec<Value>> = o.values().filter_map(|x| x.as_array()).collect();
+            !arrs.is_empty() && arrs.iter().all(|a| a.is_empty())
+        }
+        _ => false,
+    }
+}
+
+fn meta_json(body: String, state: &'static str) -> Response {
+    ([("content-type", "application/json"), ("x-muse-cache", state)], body).into_response()
+}
+
+async fn meta_cache(State(st): State<AppState>, req: Request<Body>, next: Next) -> Response {
+    if req.method() != axum::http::Method::GET {
+        return next.run(req).await;
+    }
+    let pq = req.uri().path_and_query().map(|p| p.as_str().to_string()).unwrap_or_default();
+    if pq.len() > 300 {
+        return next.run(req).await;
+    }
+    let (explicit, _) = net_prefs(&st, req.headers()).await;
+    let key = format!("{}|{}", explicit as u8, pq);
+    let path = meta_cache_path(&st, &key);
+    let cached = path.as_deref().and_then(meta_cache_read);
+    if let Some((t, body)) = &cached {
+        if now_secs().saturating_sub(*t) < META_FRESH_SECS {
+            return meta_json(body.clone(), "hit");
+        }
+    }
+    let res = next.run(req).await;
+    if res.status().is_success() {
+        let (parts, body) = res.into_parts();
+        let bytes = match axum::body::to_bytes(body, META_MAX_BYTES).await {
+            Ok(b) => b,
+            Err(_) => return (StatusCode::BAD_GATEWAY, "Dữ liệu từ YouTube quá lớn").into_response(),
+        };
+        let empty = serde_json::from_slice::<Value>(&bytes).map(|v| meta_is_empty(&v)).unwrap_or(false);
+        if empty {
+            // YouTube trả rỗng (thường là bị chặn): có bản cũ thì dùng bản cũ.
+            if let Some((_, b)) = &cached {
+                return meta_json(b.clone(), "stale");
+            }
+        } else if let (Some(p), Ok(txt)) = (path.as_deref(), std::str::from_utf8(&bytes)) {
+            meta_cache_write(p, txt);
+        }
+        return Response::from_parts(parts, Body::from(bytes));
+    }
+    // YouTube lỗi: ưu tiên bản cũ (còn trong 7 ngày) hơn là báo lỗi.
+    if let Some((t, b)) = &cached {
+        if now_secs().saturating_sub(*t) < META_STALE_SECS {
+            return meta_json(b.clone(), "stale");
+        }
+    }
+    res
 }
 
 async fn music_off() -> Response {
@@ -774,7 +927,18 @@ async fn main() {
         gateway: None,
     };
 
-    let serve_music = std::env::var("SERVE_MUSIC").map(|v| v.trim() == "1").unwrap_or(false);
+    // SERVE_MUSIC: "1" = server chính phục vụ cả nhạc như cổng nhà; "0" = tắt hết (410);
+    // để trống (mặc định) = chế độ "meta": danh sách/tìm kiếm có cache, còn luồng âm thanh/video/ảnh bìa vẫn do app tự lấy.
+    let music_mode = match std::env::var("SERVE_MUSIC").unwrap_or_default().trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "on" | "yes" => "full",
+        "0" | "false" | "off" | "no" => "off",
+        _ => "meta",
+    };
+    let music_router = match music_mode {
+        "full" => yt_routes(),
+        "off" => music_off_routes(),
+        _ => yt_meta_routes().layer(middleware::from_fn_with_state(st.clone(), meta_cache)).merge(media_off_routes()),
+    };
     let router = Router::new()
         .route("/api/config", get(config))
         .route("/api/register", post(register))
@@ -801,7 +965,7 @@ async fn main() {
         .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
-        .merge(if serve_music { yt_routes() } else { music_off_routes() })
+        .merge(music_router)
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
         .route("/api/friends/respond", post(respond_request))
@@ -833,8 +997,10 @@ async fn main() {
     let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "0.0.0.0".into());
     let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
     println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
-    if !serve_music {
-        println!("Nguồn nhạc (YouTube) đã tắt trên server này: chỉ lưu dữ liệu người dùng. Đặt SERVE_MUSIC=1 để bật lại.");
+    match music_mode {
+        "off" => println!("Nguồn nhạc (YouTube) đã tắt trên server này (SERVE_MUSIC=0): chỉ lưu dữ liệu người dùng."),
+        "meta" => println!("Server chính ở chế độ meta: danh sách/tìm kiếm YouTube có cache trên đĩa; luồng âm thanh/video do app tự lấy (SERVE_MUSIC=1 để phục vụ cả nhạc)."),
+        _ => {}
     }
     axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
