@@ -91,8 +91,8 @@ html{color-scheme:dark}
 select option,select optgroup{background:#1c1f26;color:#f1f3f5}
 select option:checked,select option:hover{background:var(--accent);color:var(--on)}
 .dd{position:relative;display:inline-block;min-width:0}
-.dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:var(--hover);outline:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--text)}
-.dd-btn:hover{background:var(--hover2)}
+.dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:linear-gradient(180deg,#433f56,#353245)!important;outline:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--text)}
+.dd-btn:hover{background:linear-gradient(180deg,#4b4761,#3c3850)!important}
 .dd-btn:focus-visible,.dd.open .dd-btn{outline:2px solid var(--accent)}
 .dd-btn .dd-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dd-btn svg{flex:none;width:16px;height:16px;opacity:.7;transition:transform .15s}
@@ -868,9 +868,9 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-art{container-type:size;position:relative;min-width:0;min-height:0;overflow:hidden;margin:-10px -24px -14px -8px}
 /* Bìa to gần kín chiều cao, đĩa nhô ra sau và bị cắt ở mép phải (kiểu foobar2000) */
 .dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px;--s:min(96cqh,74cqw);--gap:14px}
-.dd-cov{left:var(--gap);width:var(--s);aspect-ratio:1;transform:translateY(-50%);object-fit:cover;box-shadow:0 12px 40px #000a;background:var(--surf2);z-index:1}
+.dd-cov{left:var(--gap);width:var(--s);aspect-ratio:1;transform:translateY(-50%);object-fit:cover;box-shadow:5px 0 12px -4px #0007;background:var(--surf2);z-index:1}
 .dd-disc{left:calc(var(--gap) + var(--s)*.5);width:var(--s);aspect-ratio:1;transform:translateY(-50%);border-radius:50%;z-index:0;
- background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 8px 24px #0008}
+ background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 3px 12px #0004}
 /* Mặt đĩa mang hình bìa (cover vuông đè lên giữa đĩa nên chỉ lộ phần cung bên phải; đĩa quay thì hình quay theo).
    Lớp ::after phủ rãnh đĩa mờ + vệt sáng + lỗ giữa để vẫn ra dáng đĩa than. */
 .dd-disc{overflow:hidden;will-change:transform;backface-visibility:hidden}
@@ -878,9 +878,9 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-disc::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
  background:radial-gradient(circle,#0b1118 0 5.5%,#e6e9ec 6% 10.5%,#ffffff55 10.8% 16.5%,#0000 17%),
   radial-gradient(circle,#0000 0 16.5%,#0000003a 17% 17.6%,#0000 18.4%),
-  radial-gradient(circle,#0000 0 62%,#0000004d 100%),
-  conic-gradient(from 25deg,#fff0 0 8%,#ffffff30 14%,#fff0 21% 56%,#ffffff26 63%,#fff0 70%);
- box-shadow:inset 0 0 0 2px #ffffff26,inset 0 0 22px #0006}
+  radial-gradient(circle,#0000 0 70%,#00000020 100%),
+  conic-gradient(from 25deg,#fff0 0 8%,#ffffff18 14%,#fff0 21% 56%,#ffffff12 63%,#fff0 70%);
+ box-shadow:inset 0 0 0 1px #ffffff18,inset 0 0 8px #0003}
 /* Đĩa luôn có animation nhưng tạm dừng khi không phát: dừng đúng góc đang quay, không về lại vị trí ban đầu. */
 .dd-disc{animation:ddspin 6s linear infinite paused}
 .dd-playing .dd-disc{animation-play-state:running}
