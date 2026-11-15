@@ -59,6 +59,8 @@ struct AppState {
     ws_tickets: Arc<Mutex<HashMap<String, (User, u64)>>>,
     // Chế độ "cổng nhà" (GATEWAY_REMOTE): địa chỉ server chính để chuyển tiếp mọi thứ không phải YouTube.
     gateway: Option<Arc<Gateway>>,
+    // Mã ghép thiết bị dùng một lần (đăng nhập nhanh không cần gõ mật khẩu): mã -> (user_id admin, hạn - giây).
+    pair_codes: Arc<Mutex<HashMap<String, (i64, u64)>>>,
 }
 
 // Cổng nhà: chạy trên máy ở nhà (IP dân cư) để YouTube không chặn như khi chạy trên VPS/Render.
@@ -479,6 +481,7 @@ async fn run_audio_only() {
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
         ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
         gateway: gateway_from_env(),
     };
     let router = yt_routes().with_state(st);
@@ -779,6 +782,7 @@ async fn run_gateway(remote: String) {
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
         ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
         gateway: Some(Arc::new(Gateway { remote: remote.clone(), client: gateway_client(), explicit: Mutex::new(HashMap::new()) })),
     };
     let router = yt_routes()
@@ -1102,6 +1106,7 @@ async fn main() {
         audio: Arc::new(Mutex::new(HashMap::new())),
         auth_limit: Arc::new(Mutex::new(HashMap::new())),
         ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
         gateway: None,
     };
 
@@ -1123,6 +1128,8 @@ async fn main() {
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
         .route("/api/ws-ticket", post(ws_ticket))
+        .route("/api/admin/pair-code", post(admin_pair_code))
+        .route("/api/pair/redeem", post(pair_redeem))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
         .route("/api/account/name", post(account_name))
@@ -2019,6 +2026,74 @@ async fn ws_ticket(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
 fn take_ws_ticket(st: &AppState, ticket: &str) -> Option<User> {
     let (u, exp) = st.ws_tickets.lock().unwrap().remove(ticket)?;
     if exp > now_secs() { Some(u) } else { None }
+}
+
+// Mã ghép thiết bị dùng một lần: chỉ máy đang chạy server mới tạo được mã (loopback),
+// để đăng nhập nhanh tài khoản ADMIN_USER trên desktop/Android khác mà không cần gõ mật khẩu
+// và không bao giờ đóng mật khẩu/token vào các bản build phân phát chung.
+fn is_loopback(addr: &std::net::SocketAddr) -> bool {
+    addr.ip().is_loopback()
+}
+
+#[derive(Deserialize)]
+struct PairRedeem {
+    code: String,
+}
+
+// POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
+async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>) -> R<Value> {
+    if !is_loopback(&addr) {
+        return Err((StatusCode::FORBIDDEN, "Chỉ tạo được mã từ chính máy chạy server".into()));
+    }
+    let Ok(admin_user) = std::env::var("ADMIN_USER") else {
+        return Err(bad("Chưa đặt ADMIN_USER"));
+    };
+    let admin_user = admin_user.trim().to_lowercase();
+    let uid: i64 = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT id FROM users WHERE username=?1 AND is_admin=1", [&admin_user], |r| r.get(0))
+            .map_err(|_| bad("Chưa có tài khoản admin (kiểm tra ADMIN_USER/ADMIN_PASS rồi khởi động lại server)"))?
+    };
+    let now = now_secs();
+    let mut g = st.pair_codes.lock().unwrap();
+    g.retain(|_, (_, exp)| *exp > now);
+    // Chỉ giữ một mã hiệu lực tại một thời điểm: tạo mã mới thì mã cũ (nếu còn) mất hiệu lực.
+    g.retain(|_, (u, _)| *u != uid);
+    let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
+    let exp = now + 300;
+    g.insert(code.clone(), (uid, exp));
+    Ok(Json(json!({ "code": code, "expires_in": 300 })))
+}
+
+// POST /api/pair/redeem { code } -> { token, user }: dùng mã trên để đăng nhập, không cần mật khẩu. Dùng một lần.
+async fn pair_redeem(
+    State(st): State<AppState>,
+    ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
+    headers: HeaderMap,
+    Json(r): Json<PairRedeem>,
+) -> R<AuthResp> {
+    let ikey = format!("pair:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ikey, 10, 600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &ikey, 600);
+    let code = r.code.trim();
+    let now = now_secs();
+    let uid = {
+        let mut g = st.pair_codes.lock().unwrap();
+        g.retain(|_, (_, exp)| *exp > now);
+        let Some((uid, _)) = g.remove(code) else {
+            return Err((StatusCode::UNAUTHORIZED, "Mã sai hoặc đã hết hạn".into()));
+        };
+        uid
+    };
+    let db = st.db.lock().unwrap();
+    let user = db
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [uid], row_to_user)
+        .map_err(|_| (StatusCode::UNAUTHORIZED, "Tài khoản không còn tồn tại".into()))?;
+    let token = new_token();
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), uid]).map_err(|_| e500())?;
+    Ok(Json(AuthResp { token, user }))
 }
 
 async fn ws_handler(ws: WebSocketUpgrade, Path(room): Path<String>, Query(q): Query<WsQ>, State(st): State<AppState>) -> Response {
