@@ -191,6 +191,7 @@ struct User {
     banner_color: String,
     status: String,
     crop: String,
+    supporter: i64, // 0 = chưa ủng hộ, 1 = thành viên nhỏ, 2 = thành viên lớn (donate Ko-fi)
 }
 
 #[derive(Serialize)]
@@ -204,11 +205,13 @@ struct Friend {
     banner_color: String,
     status: String,
     crop: String,
+    supporter: i64,
 }
 
-const USER_COLS: &str = "id, username, display_name, avatar, accent, bg, bg_url, code, is_admin, banner, banner_color, status, crop";
+const USER_COLS: &str = "id, username, display_name, avatar, accent, bg, bg_url, code, is_admin, banner, banner_color, status, crop, supporter";
 
 fn row_to_user(r: &rusqlite::Row) -> rusqlite::Result<User> {
+    let is_admin = r.get::<_, i64>(8)? != 0;
     Ok(User {
         id: r.get(0)?,
         username: r.get(1)?,
@@ -218,11 +221,12 @@ fn row_to_user(r: &rusqlite::Row) -> rusqlite::Result<User> {
         bg: r.get(5)?,
         bg_url: r.get(6)?,
         code: r.get(7)?,
-        is_admin: r.get::<_, i64>(8)? != 0,
+        is_admin,
         banner: r.get(9)?,
         banner_color: r.get(10)?,
         status: r.get(11)?,
         crop: r.get(12)?,
+        supporter: if is_admin { 2 } else { r.get(13)? }, // admin: quyền cao nhất, luôn là thành viên lớn
     })
 }
 
@@ -262,7 +266,7 @@ fn tok_hash(t: &str) -> String {
 static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
 fn user_from_token(db: &Connection, token: &str) -> Option<User> {
-    let sql = "SELECT u.id,u.username,u.display_name,u.avatar,u.accent,u.bg,u.bg_url,u.code,u.is_admin,u.banner,u.banner_color,u.status,u.crop \
+    let sql = "SELECT u.id,u.username,u.display_name,u.avatar,u.accent,u.bg,u.bg_url,u.code,u.is_admin,u.banner,u.banner_color,u.status,u.crop,u.supporter \
                FROM users u JOIN sessions s ON s.user_id=u.id \
                WHERE s.token=?1 AND s.created_at > datetime('now','-30 days')";
     db.query_row(sql, [tok_hash(token)], row_to_user).ok()
@@ -345,9 +349,21 @@ fn init_db(path: &std::path::Path) -> Connection {
         "ALTER TABLE users ADD COLUMN discord_access TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_refresh TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_expires INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN supporter INTEGER NOT NULL DEFAULT 0",
     ] {
         let _ = db.execute(ddl, []);
     }
+    // Lịch sử donate Ko-fi (webhook). user_id để trống nếu chưa khớp được tài khoản nào.
+    let _ = db.execute_batch(
+        "CREATE TABLE IF NOT EXISTS kofi_donations(
+           txn_id TEXT PRIMARY KEY,
+           user_id INTEGER,
+           amount REAL NOT NULL DEFAULT 0,
+           currency TEXT NOT NULL DEFAULT '',
+           from_name TEXT NOT NULL DEFAULT '',
+           message TEXT NOT NULL DEFAULT '',
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
+    );
     // Dữ liệu nghe đồng bộ theo TÀI KHOẢN (lượt phát, nghe hết/bỏ qua, không thích, theo dõi nghệ sĩ, tiếp tục nghe).
     // Mọi tài khoản (kể cả admin) dùng chung một cơ chế, khóa theo user_id.
     let _ = db.execute(
@@ -1126,6 +1142,8 @@ async fn main() {
         .route("/api/logout", post(logout))
         .route("/api/ws-ticket", post(ws_ticket))
         .route("/api/admin/pair-code", post(admin_pair_code))
+        .route("/api/kofi/webhook", post(kofi_webhook))
+        .route("/api/admin/supporter", post(admin_set_supporter))
         .route("/api/pair/redeem", post(pair_redeem))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
@@ -1853,10 +1871,11 @@ fn friend_from_row(r: &rusqlite::Row, online: &HashSet<i64>) -> rusqlite::Result
         banner_color: r.get(5)?,
         status: r.get(6)?,
         crop: r.get(7)?,
+        supporter: if r.get::<_, i64>(9)? != 0 { 2 } else { r.get(8)? },
     })
 }
 
-const FRIEND_COLS: &str = "u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop";
+const FRIEND_COLS: &str = "u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop, u.supporter, u.is_admin";
 
 // Gửi lời mời kết bạn bằng mã bạn bè (hoặc tên đăng nhập). Nếu người kia đã mời mình trước thì tự chấp nhận.
 async fn add_friend(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<FriendReq>) -> Result<Json<serde_json::Value>, ApiErr> {
@@ -2036,6 +2055,109 @@ fn is_loopback(addr: &std::net::SocketAddr) -> bool {
 struct PairRedeem {
     code: String,
 }
+
+// ---- Ủng hộ qua Ko-fi: webhook ghi nhận donate -> mở khoá "Thẻ chia sẻ" (FANS NO.) ----
+// Cấu hình: KOFI_TOKEN (Verification Token trong Ko-fi > More > API), KOFI_SMALL_MIN (mặc định 1), KOFI_BIG_MIN (mặc định 10).
+// Người donate ghi MÃ KẾT BẠN (hoặc tên đăng nhập) của tài khoản BBeat vào lời nhắn Ko-fi để server khớp tài khoản.
+// Tổng tiền donate >= KOFI_BIG_MIN -> thành viên lớn (2), >= KOFI_SMALL_MIN -> thành viên nhỏ (1). Chỉ tăng, không tự hạ.
+fn tier_for_total(total: f64) -> i64 {
+    let envf = |k: &str, d: f64| std::env::var(k).ok().and_then(|v| v.trim().parse::<f64>().ok()).unwrap_or(d);
+    if total >= envf("KOFI_BIG_MIN", 10.0) {
+        2
+    } else if total >= envf("KOFI_SMALL_MIN", 1.0) {
+        1
+    } else {
+        0
+    }
+}
+fn same_secret(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    a.len() == b.len() && a.iter().zip(b.iter()).fold(0u8, |d, (x, y)| d | (x ^ y)) == 0
+}
+#[derive(Deserialize)]
+struct KofiForm {
+    data: String,
+}
+async fn kofi_webhook(State(st): State<AppState>, axum::extract::Form(f): axum::extract::Form<KofiForm>) -> Result<StatusCode, ApiErr> {
+    let secret = std::env::var("KOFI_TOKEN").unwrap_or_default();
+    let secret = secret.trim();
+    if secret.is_empty() {
+        return Err(bad("Server chưa đặt KOFI_TOKEN"));
+    }
+    let v: Value = serde_json::from_str(&f.data).map_err(|_| bad("Dữ liệu không hợp lệ"))?;
+    let tok = v.get("verification_token").and_then(|x| x.as_str()).unwrap_or("");
+    if !same_secret(tok, secret) {
+        return Err((StatusCode::FORBIDDEN, "Sai token".into()));
+    }
+    let kind = v.get("type").and_then(|x| x.as_str()).unwrap_or("");
+    if kind != "Donation" && kind != "Subscription" {
+        return Ok(StatusCode::OK);
+    }
+    let txn = v.get("kofi_transaction_id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    if txn.is_empty() {
+        return Err(bad("Thiếu mã giao dịch"));
+    }
+    let amount: f64 = v.get("amount").and_then(|x| x.as_str()).and_then(|a| a.trim().parse().ok()).unwrap_or(0.0);
+    let currency = v.get("currency").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let from_name = v.get("from_name").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let message: String = v.get("message").and_then(|x| x.as_str()).unwrap_or("").chars().take(500).collect();
+    let db = st.db.lock().unwrap();
+    // Khớp tài khoản: từ nào trong lời nhắn trùng mã kết bạn (8 ký tự) hoặc tên đăng nhập.
+    let mut uid: Option<i64> = None;
+    for w in message.split(|c: char| !(c.is_alphanumeric() || c == '_' || c == '-' || c == '.')).filter(|w| !w.is_empty()) {
+        if let Ok(id) = db.query_row(
+            "SELECT id FROM users WHERE code=?1 COLLATE NOCASE OR username=?1 COLLATE NOCASE",
+            [w],
+            |r| r.get::<_, i64>(0),
+        ) {
+            uid = Some(id);
+            break;
+        }
+    }
+    let inserted = db
+        .execute(
+            "INSERT OR IGNORE INTO kofi_donations(txn_id,user_id,amount,currency,from_name,message) VALUES(?1,?2,?3,?4,?5,?6)",
+            params![txn, uid, amount, currency, from_name, message],
+        )
+        .map_err(|_| e500())?;
+    if inserted > 0 {
+        if let Some(id) = uid {
+            let total: f64 = db
+                .query_row("SELECT COALESCE(SUM(amount),0) FROM kofi_donations WHERE user_id=?1", [id], |r| r.get(0))
+                .unwrap_or(0.0);
+            let tier = tier_for_total(total);
+            if tier > 0 {
+                let _ = db.execute("UPDATE users SET supporter=MAX(supporter,?1) WHERE id=?2", params![tier, id]);
+            }
+        }
+    }
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct SupporterReq {
+    username: String,
+    tier: i64,
+}
+// Admin gán tay (khi người donate quên ghi mã vào lời nhắn): POST /api/admin/supporter { username, tier: 0|1|2 }
+async fn admin_set_supporter(State(st): State<AppState>, h: HeaderMap, Json(r): Json<SupporterReq>) -> R<Value> {
+    let me = require(&st, &h)?;
+    if !me.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin".into()));
+    }
+    if !(0..=2).contains(&r.tier) {
+        return Err(bad("tier chỉ là 0, 1 hoặc 2"));
+    }
+    let db = st.db.lock().unwrap();
+    let n = db
+        .execute("UPDATE users SET supporter=?1 WHERE username=?2 COLLATE NOCASE", params![r.tier, r.username.trim()])
+        .map_err(|_| e500())?;
+    if n == 0 {
+        return Err(bad("Không có tài khoản này"));
+    }
+    Ok(Json(json!({ "ok": true, "tier": r.tier })))
+}
+
 
 // POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
 async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>) -> R<Value> {
