@@ -7,6 +7,9 @@ on:
       - "muse-v0.5/muse/server/**"
       - ".github/workflows/build-server.yml"
 
+permissions:
+  contents: write   # để đăng bản server lên Releases
+
 jobs:
   build-server:
     runs-on: windows-latest
@@ -53,3 +56,17 @@ jobs:
           name: muse-server-windows
           path: muse-v0.5/muse/server/dist
           if-no-files-found: error
+
+      # Đăng bản server lên Releases (tag server-latest, ghi đè bản cũ): không tính vào hạn mức artifact.
+      - name: Đăng server lên Releases
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          powershell -NoProfile -Command "Compress-Archive -Path dist/* -DestinationPath muse-server-windows.zip -Force"
+          TAG=server-latest
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
+            --title "Muse server - bản build mới nhất" --notes "Server Windows (kèm yt-dlp, deno) tự build bởi GitHub Actions."
+          gh release upload "$TAG" muse-server-windows.zip --clobber
