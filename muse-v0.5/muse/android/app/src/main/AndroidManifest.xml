@@ -37,6 +37,27 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Link thẻ chia sẻ: https://<server>/u/<tên> mở thẳng vào app (autoVerify cần ANDROID_CERT_SHA256 trên server, xem README). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${museHost}" android:pathPrefix="/u/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="${museHost}" android:pathPrefix="/u/" />
+            </intent-filter>
+            <!-- Nút "Mở trong BBeat" của trang link dùng bbeat://u/<tên> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="bbeat" android:host="u" />
+            </intent-filter>
         </activity>
 
         <service
