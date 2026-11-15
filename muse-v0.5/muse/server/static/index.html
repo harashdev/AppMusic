@@ -862,11 +862,19 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-nav .x{justify-self:end;font-size:16px;line-height:1;padding:5px 10px}
 .dd-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,31%) 1fr;gap:16px;padding:18px 24px}
 .dd-info{overflow:auto;scrollbar-width:thin;min-width:0;background:none;margin:-22px 0 -22px -28px;padding:22px 24px 22px 28px;border-radius:0}
-.dd-info h2{margin:0 0 8px;font-size:clamp(24px,2.3vw,32px);font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-.dd-info .ar{color:#ffffffb3;margin-bottom:12px;font-size:15px}
-.dd-info hr{border:0;height:4px;background:linear-gradient(90deg,#ffffffcc 0 55%,#ffffff55 55%);margin:8px 0 18px;width:100%}
-.dd-info dl{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;margin:0;font-size:14.5px;line-height:1.35}
-.dd-info dt{color:#ffffffb3;font-weight:600;white-space:nowrap}.dd-info dd{margin:0;overflow-wrap:anywhere}
+.dd-info h2{margin:0 0 10px;font-size:clamp(17px,1.5vw,20px);font-weight:600;line-height:1.3;overflow-wrap:anywhere;text-shadow:0 1px 6px #0003}
+.dd-info hr{border:0;height:9px;background:linear-gradient(90deg,#ffffffd9,#ffffffd9),#ffffff;background-clip:padding-box;margin:0 0 22px;width:100%;position:relative;box-shadow:inset -2px 0 #0000,0 1px 4px #0002;
+ -webkit-mask:linear-gradient(90deg,#000 0 calc(50% - 1px),#0000 calc(50% - 1px) calc(50% + 1px),#000 calc(50% + 1px) calc(75% - 1px),#0000 calc(75% - 1px) calc(75% + 1px),#000 calc(75% + 1px));
+ mask:linear-gradient(90deg,#000 0 calc(50% - 1px),#0000 calc(50% - 1px) calc(50% + 1px),#000 calc(50% + 1px) calc(75% - 1px),#0000 calc(75% - 1px) calc(75% + 1px),#000 calc(75% + 1px))}
+.dd-info dl{display:grid;grid-template-columns:auto 1fr;gap:15px 22px;margin:0;font-size:15px;line-height:1.3;align-items:center;text-shadow:0 1px 5px #0003}
+.dd-info dt{color:#fff;font-weight:700;white-space:nowrap}.dd-info dd{margin:0;overflow-wrap:anywhere;color:#ffffffee}
+.ddb{display:inline-flex;align-items:center;gap:5px;height:20px;vertical-align:middle;font-weight:800;letter-spacing:.2px;text-shadow:none}
+.ddb svg{display:block;flex:none}
+.ddb-c{font-size:19px;letter-spacing:-.5px;gap:4px}
+.ddb-ch i{font-style:normal;font-size:10px;font-weight:700;background:#ffffffcc;color:#1b2a3a;border-radius:3px;padding:2px 4px;line-height:1}
+.ddb-ch b{font-size:10px;font-weight:800;letter-spacing:.6px;background:#ffffff40;border-radius:3px;padding:2px 5px;line-height:1}
+.ddb-pc{gap:10px;font-weight:600}.ddb-pc u{display:inline-flex;gap:2px;height:13px;align-items:stretch;text-decoration:none}
+.ddb-pc u s{display:block;width:2px;background:#ffffffd9;border-radius:1px}
 .dd-art{container-type:size;position:relative;min-width:0;min-height:0;overflow:hidden;margin:-14px -24px -16px -8px}
 /* Bìa to gần kín chiều cao, đĩa nhô ra sau và bị cắt ở mép phải (kiểu foobar2000) */
 .dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px;--s:min(98cqh,74cqw);--gap:14px}
@@ -4209,7 +4217,7 @@ function dlDetInfo(t){
   let kb=mt.kbps||0; if(!kb&&sz&&dur) kb=Math.round(sz*8/1000/dur);
   const sr=mt.sr?String(+(mt.sr/1000).toFixed(1)):(fm==='webm'||fm==='opus'?'48':'44.1');
   const ageD=x.at?Math.max(0,Math.floor((Date.now()-x.at)/864e5)):0;
-  return {codec:DD_CODEC[fm]||(fm?fm.toUpperCase():'—'), ch:mt.ch===1?'1.0 Mono':'2.0 Stereo', sr, dur,
+  return {fm, codec:DD_CODEC[fm]||(fm?fm.toUpperCase():'—'), ch:mt.ch===1?'1.0 Mono':mt.ch>2?mt.ch+'.0 Surround':'2.0 Stereo', sr, dur, src:(mt.bits?mt.bits+' bit · ':'')+sr+' kHz',
     data:(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''),
     added:x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—'};
 }
@@ -4222,29 +4230,58 @@ async function dlDetMeta(t){
       let p=12, byteRate=0, dataSize=0;
       while(p+8<=dv.byteLength){
         const id=dv.getUint32(p), sz=dv.getUint32(p+4,true);
-        if(id===0x666d7420){ m.ch=dv.getUint16(p+10,true); m.sr=dv.getUint32(p+12,true); byteRate=dv.getUint32(p+16,true); }
+        if(id===0x666d7420){ m.ch=dv.getUint16(p+10,true); m.sr=dv.getUint32(p+12,true); byteRate=dv.getUint32(p+16,true); m.bits=dv.getUint16(p+22,true); }
         else if(id===0x64617461){ dataSize=Math.min(sz,Math.max(0,b.size-p-8)); break; }
         p+=8+sz+(sz&1);
       }
       if(byteRate){ m.kbps=Math.round(byteRate*8/1000); if(dataSize) m.dur=Math.round(dataSize/byteRate); }
     }
+    if(dv.byteLength>26&&dv.getUint32(0)===0x664C6143){ // fLaC: STREAMINFO cho sample rate / kênh / bit / thời lượng
+      const b18=dv.getUint8(18),b19=dv.getUint8(19),b20=dv.getUint8(20),b21=dv.getUint8(21);
+      const sr=(b18<<12)|(b19<<4)|(b20>>4); m.ch=((b20>>1)&7)+1; m.bits=(((b20&1)<<4)|(b21>>4))+1;
+      const tot=(b21&15)*4294967296+dv.getUint32(22); if(sr){ m.sr=sr; if(tot) m.dur=Math.round(tot/sr); }
+    }
     if(!m.dur){ const u=URL.createObjectURL(b); m.dur=await audioDur(u); URL.revokeObjectURL(u); }
     ddMeta[k]=m; if(m.dur&&cur&&key(cur)===k&&!cur.dur) cur.dur=m.dur;
   }catch{}
+}
+const DD_FMT={m4a:'aac',mp4:'aac',aac:'aac',webm:'opus',opus:'opus',wav:'wav',mp3:'mp3',flac:'flac',ogg:'ogg',oga:'ogg',wma:'wma',mka:'mka'};
+// Icon + tên định dạng (flac, mp3, aac...) thay cho chữ thường
+function ddCodecHtml(I){
+  const n=DD_FMT[I.fm]||(I.fm||'').toLowerCase();
+  if(!n) return esc(I.codec);
+  return `<span class="ddb ddb-c" title="${esc(I.codec)}"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9v0M5 6v6M8 2.5v13M11 5v8M14 7.5v3M16.5 9v0"/></svg>${esc(n)}</span>`;
+}
+// Huy hiệu kênh: [2.0] STEREO
+function ddChHtml(I){
+  const m=/^(\S+)\s+(.+)$/.exec(I.ch)||['',I.ch,''];
+  return `<span class="ddb ddb-ch" title="${esc(I.ch)}"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 7.5v3h2.6L9.5 14V4L5.6 7.5z" fill="currentColor" stroke-linejoin="round"/><path d="M12 6.2a4 4 0 0 1 0 5.6M14.2 4.3a6.8 6.8 0 0 1 0 9.4"/></svg><i>${esc(m[1])}</i><b>${esc(String(m[2]).toUpperCase())}</b></span>`;
+}
+function ddPlaysHtml(n){
+  const k=Math.min(n,10); let b=''; for(let i=0;i<k;i++) b+='<s></s>';
+  return `<span class="ddb ddb-pc">${k?'<u>'+b+'</u>':''}<span>${n}</span></span>`;
 }
 function dlDetHtml(){
   const t=cur, I=dlDetInfo(t), st=dlDetStats(t);
   const row=(a,b,id)=>`<dt>${a}</dt><dd${id?' id="'+id+'"':''}>${esc(String(b))}</dd>`;
   const cimg=esc(thumb(t.image,800));
+  setTimeout(()=>ddFillIcons(),0);
   return `<div class="dd-scrim" data-dd="menu-x"></div><div class="dd-nav"><button class="menu" data-dd="menu" title="Menu"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Toàn màn hình (F11)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
-  <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><div class="ar">${esc(t.artist||'')}</div><hr>
-   <dl>${row('Codec',I.codec,'ddCodec')}${row('Kênh',I.ch,'ddCh')}${row('Nguồn',I.sr+' kHz','ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
+  <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><hr>
+   <dl>${row('Codec','','ddCodec')}${row('Kênh','','ddCh')}${row('Nguồn',I.src,'ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe','','ddPc')}</dl></div>
    <div class="dd-lyr" id="ddLyr"></div>
    <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" decoding="async" fetchpriority="low" src="${cimg}"></div><img class="dd-cov" alt="" decoding="async" fetchpriority="high" src="${cimg}"></div></div>
   <div class="dd-ft"><div class="dd-now">${t.artist?'<b>'+esc(t.artist)+'</b>':''}<span>${esc(t.title||'')}</span></div>
    <div class="dd-ctl"><button data-dd="stop" title="Dừng">${ic('stop','fill sm')}</button><button data-dd="prev" title="Bài trước"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3 1.5 8 8 13zM14.5 3 8 8l6.5 5z"/></svg></button><button data-dd="pp" id="ddPp"></button><button data-dd="next" title="Bài sau"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3l6.5 5L8 13zM1.5 3 8 8l-6.5 5z"/></svg></button><button data-dd="shuf" id="ddShuf" title="Ngẫu nhiên">${ic('shuffle','sm')}</button><span class="dd-vol"><button data-dd="vol" id="ddVol">${ic('vol','sm')}</button><input class="vol" id="ddVolR" type="range" min="0" max="100"></span></div>
    <div class="dd-tm" id="ddTm">0:00 / 0:00</div>
    <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"></div></div>`;
+}
+let ddIconKey='';
+function ddFillIcons(){
+  if(!cur) return; const I=dlDetInfo(cur), n=(playsAll()[key(cur)]||{}).n||0, sig=[I.fm,I.ch,n].join('|');
+  const c=$('#ddCodec'), h=$('#ddCh'), p=$('#ddPc'); if(!c||!h||!p) return;
+  if(c.dataset.sig===sig) return; c.dataset.sig=sig;
+  c.innerHTML=ddCodecHtml(I); h.innerHTML=ddChHtml(I); p.innerHTML=ddPlaysHtml(n);
 }
 function dlDetTick(){
   const m=$('#main'); if(!dlDetOn||page!=='downloads'||!m){ dlDetClose(); return; }
@@ -4255,7 +4292,7 @@ function dlDetTick(){
   if(sk){ sk.style.setProperty('--b',(100*bufFrac())+'%'); }
   const tm=$('#ddTm'); if(tm) tm.textContent=fmt(t)+' / '+fmt(d);
   { const I=dlDetInfo(cur), set=(id,v)=>{ const e=$('#'+id); if(e&&e.textContent!==v) e.textContent=v; };
-    set('ddCodec',I.codec); set('ddCh',I.ch); set('ddSr',I.sr+' kHz'); set('ddData',I.data); set('ddDur',fmt(I.dur)); }
+    ddFillIcons(); set('ddSr',I.src); set('ddData',I.data); set('ddDur',fmt(I.dur)); }
   setIc($('#ddPp'),playing?'pause':'play',true); dd.classList.toggle('dd-playing',!!playing);
   const sh=$('#ddShuf'); if(sh) sh.classList.toggle('on',!!shuf);
   const vr=$('#ddVolR'); if(vr&&document.activeElement!==vr) vr.value=Math.round(vol*100);
