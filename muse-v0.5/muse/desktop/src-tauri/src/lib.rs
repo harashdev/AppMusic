@@ -378,6 +378,22 @@ fn open_url(url: String) -> Result<(), String> {
     r.map(|_| ()).map_err(|e| e.to_string())
 }
 
+// Phóng to / thu nhỏ và toàn màn hình (F11) cho cửa sổ app, gọi từ giao diện.
+#[cfg(desktop)]
+#[tauri::command]
+fn win_toggle_max(window: tauri::WebviewWindow) -> Result<(), String> {
+    let maxed = window.is_maximized().map_err(|e| e.to_string())?;
+    let r = if maxed { window.unmaximize() } else { window.maximize() };
+    r.map_err(|e| e.to_string())
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+fn win_toggle_fullscreen(window: tauri::WebviewWindow) -> Result<(), String> {
+    let full = window.is_fullscreen().map_err(|e| e.to_string())?;
+    window.set_fullscreen(!full).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -387,6 +403,8 @@ pub fn run() {
         .manage(discord_rpc::DiscordState(Mutex::new(Default::default())))
         .invoke_handler(tauri::generate_handler![
             open_url,
+            win_toggle_max,
+            win_toggle_fullscreen,
             discord_rpc::discord_connect,
             discord_rpc::discord_activity,
             discord_rpc::discord_clear,
