@@ -340,6 +340,14 @@ body.vid .npt{margin-top:0}
 #lyrBody .cur{opacity:1}
 #lyrBody .plain{font-size:16px;font-weight:500;opacity:.9;line-height:1.7;cursor:default}
 #lyrBody .none{font-size:15px;font-weight:500;opacity:.8;cursor:default}
+.cmf{display:flex;gap:8px;align-items:flex-end;position:sticky;bottom:0;padding:8px 0 4px;background:linear-gradient(to top,var(--npbg,#17141f) 70%,transparent)}
+.cmf textarea{flex:1;resize:none;min-height:40px;max-height:110px;border-radius:12px;border:0;padding:10px 12px;font:inherit;font-size:14px;background:color-mix(in srgb,var(--npfg,#fff) 14%,transparent);color:inherit}
+.cmf textarea::placeholder{color:inherit;opacity:.6}
+.cmi{display:flex;gap:10px;padding:8px 0;align-items:flex-start}
+.cmi .av{width:34px;height:34px;flex:none;font-size:18px}
+.cmb{min-width:0;flex:1}.cmb b{font-size:13px}.cmb small{opacity:.65;margin-left:6px;font-size:11px}
+.cmb p{margin:2px 0 0;font-size:14px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+.cmx{background:none;color:inherit;opacity:.5;padding:2px 6px;font-size:12px}.cmx:hover{opacity:1}
 .qh{display:flex;align-items:center;gap:8px;padding:6px 0 8px}.qh b{flex:1;font-size:16px}
 #np .qh button{background:color-mix(in srgb,var(--npfg) 16%,transparent);color:inherit;padding:6px 14px;font-size:13px}
 .qi{display:flex;gap:10px;align-items:center;padding:6px 8px;margin:0 -8px;border-radius:10px;cursor:pointer}
@@ -1001,6 +1009,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
         <button role="tab" data-nt="play" class="on">Đang phát</button>
         <button role="tab" data-nt="lyr">Lời</button>
         <button role="tab" data-nt="q">Tiếp theo</button>
+        <button role="tab" data-nt="c">Bình luận</button>
       </div>
       <button class="ico" id="npMore" title="Thêm"><i data-ic="dots"></i></button>
       <button class="ico" id="npMax" title="Phóng to"><i data-ic="full"></i></button>
@@ -1040,6 +1049,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     </div>
     <div class="npv" id="vLyr"><div class="lh"><b id="lTitle"></b><span id="lArtist"></span></div><div id="lyrBody"></div></div>
     <div class="npv" id="vQ"></div>
+    <div class="npv" id="vC"></div>
   </aside>
 </div>
 
@@ -1114,7 +1124,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
     'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
-    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
+    'Lời':'Lyrics','Bình luận':'Comments','Viết bình luận…':'Write a comment…','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
     'Không có file âm thanh nào được chọn':'No audio files selected','Đang thêm nhạc, vui lòng chờ…':'Adding music, please wait…','File nhạc này không còn trong bộ nhớ của app – hãy thêm lại':'This music file is no longer in the app’s storage – please add it again','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
     'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
     'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
@@ -3622,7 +3632,7 @@ function loadTrack(t,pos=0,play=true,ts=null){
     if(ytReady) yt.pauseVideo(); audYt.pause();
     aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
   }
-  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); pushPresence(); msUpdate(); warmNext();
+  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); if(npOpen&&npTab==='c') renderComments(); pushPresence(); msUpdate(); warmNext();
 }
 const wd={k:'',pos:-1,at:0};
 function wdRecover(){
@@ -4614,9 +4624,9 @@ function setNpMax(on){
 }
 function showTab(){
   document.querySelectorAll('.npTabs [data-nt]').forEach(b=>{ const on=b.dataset.nt===npTab; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
-  $('#vPlay').classList.toggle('show',npTab==='play'); $('#vLyr').classList.toggle('show',npTab==='lyr'); $('#vQ').classList.toggle('show',npTab==='q');
+  $('#vPlay').classList.toggle('show',npTab==='play'); $('#vLyr').classList.toggle('show',npTab==='lyr'); $('#vQ').classList.toggle('show',npTab==='q'); $('#vC').classList.toggle('show',npTab==='c');
   if(!npOpen) return;
-  if(npTab==='lyr') openLyrics(); else if(npTab==='q') renderQueue();
+  if(npTab==='lyr') openLyrics(); else if(npTab==='q') renderQueue(); else if(npTab==='c') renderComments();
 }
 document.querySelectorAll('.npTabs [data-nt]').forEach(b=>b.onclick=()=>{ npTab=b.dataset.nt; showTab(); });
 $('#npHide').onclick=()=>setNp(false);
@@ -4668,6 +4678,34 @@ function paintNp(rgb,t){
   st.setProperty('--npbg',`rgb(${R|0},${G|0},${B|0})`); st.setProperty('--npfg',lum>.58?'#101010':'#ffffff');
 }
 
+/* BÌNH LUẬN: lưu trên server của app theo từng bài (key = nguồn:id), chỉ người dùng app này thấy; không dính bình luận YouTube. */
+let cmSeq=0;
+const cmAgo=iso=>{ const t=Date.parse(String(iso).replace(' ','T')+'Z'); if(!t) return ''; const m=Math.max(0,Math.floor((Date.now()-t)/60000));
+  if(m<1) return 'vừa xong'; if(m<60) return m+' phút trước'; const h=Math.floor(m/60); if(h<24) return h+' giờ trước'; const d=Math.floor(h/24); if(d<30) return d+' ngày trước'; return new Date(t).toLocaleDateString(); };
+async function renderComments(){
+  const box=$('#vC'); if(!box) return; const t=cur, seq=++cmSeq;
+  if(!t){ box.innerHTML='<p style="opacity:.8">Hãy phát một bài để xem bình luận.</p>'; return; }
+  if(guest){ box.innerHTML='<p style="opacity:.8">Đăng nhập để xem và viết bình luận.</p>'; return; }
+  const k=key(t);
+  const draw=(data)=>{
+    if(seq!==cmSeq||cur!==t) return;
+    const keep=(box.querySelector('textarea')||{}).value||'';
+    box.innerHTML=`<div class="qh"><b>Bình luận · ${data.count}</b></div>
+      <div id="cmList">${data.items.length?data.items.map(c=>`<div class="cmi" data-cid="${c.id}">${avHtml(c.avatar,'')}<div class="cmb"><b>${esc(c.display_name)}</b><small>${esc(cmAgo(c.created_at))}</small><p>${esc(c.body)}</p></div>${c.can_delete?'<button class="cmx" data-del="1" title="Xoá bình luận">Xoá</button>':''}</div>`).join(''):'<p style="opacity:.8">Chưa có bình luận nào cho bài này. Hãy là người đầu tiên!</p>'}</div>
+      <div class="cmf"><textarea id="cmIn" maxlength="500" rows="1" placeholder="Viết bình luận…"></textarea><button class="pri sm" id="cmSend">Gửi</button></div>`;
+    const ta=$('#cmIn'); ta.value=keep;
+    const send=async()=>{ const body=ta.value.trim(); if(!body) return; $('#cmSend').disabled=true;
+      try{ await api('/api/comments',{json:{key:k,body}}); ta.value=''; renderComments(); }
+      catch(e){ notify(e.message||'Không gửi được bình luận'); $('#cmSend').disabled=false; } };
+    $('#cmSend').onclick=send;
+    ta.onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } };
+    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ const id=b.closest('[data-cid]').dataset.cid;
+      try{ await api('/api/comments/'+id,{method:'DELETE'}); renderComments(); }catch(e){ notify(e.message||'Không xoá được'); } });
+  };
+  if(!box.querySelector('#cmList')) box.innerHTML='<p style="opacity:.8">Đang tải bình luận…</p>';
+  try{ draw(await api('/api/comments?key='+encodeURIComponent(k))); }
+  catch(e){ if(seq===cmSeq) box.innerHTML='<p style="opacity:.8">Không tải được bình luận.</p>'; }
+}
 function renderQueue(){
   const q=$('#vQ'); if(!q) return;
   q.innerHTML=`<div class="qh"><b>Tiếp theo · ${queue.length} bài</b><button id="qClr">Xoá</button></div>`+
