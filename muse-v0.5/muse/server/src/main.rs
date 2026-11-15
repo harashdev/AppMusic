@@ -379,6 +379,28 @@ fn init_db(path: &std::path::Path) -> Connection {
     db
 }
 
+
+// Tên đặt trước: không ai (trừ admin) đăng ký làm tên đăng nhập hoặc đặt làm tên hiển thị được.
+// Thêm tên khác qua biến môi trường RESERVED_NAMES (cách nhau bằng dấu phẩy). ADMIN_USER cũng tự được đặt trước.
+const RESERVED_DEFAULT: &[&str] = &["saki_hanami"];
+fn norm_name(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+fn is_reserved_name(s: &str) -> bool {
+    let n = norm_name(s);
+    if n.is_empty() {
+        return false;
+    }
+    let mut list: Vec<String> = RESERVED_DEFAULT.iter().map(|x| norm_name(x)).collect();
+    if let Ok(a) = std::env::var("ADMIN_USER") {
+        list.push(norm_name(&a));
+    }
+    if let Ok(r) = std::env::var("RESERVED_NAMES") {
+        list.extend(r.split(',').map(norm_name));
+    }
+    list.iter().any(|x| !x.is_empty() && *x == n)
+}
+
 // Tạo/cấp quyền admin từ biến môi trường ADMIN_USER (+ ADMIN_PASS nếu tài khoản chưa tồn tại).
 fn bootstrap_admin(db: &Connection) {
     let Ok(user) = std::env::var("ADMIN_USER") else { return };
@@ -387,9 +409,13 @@ fn bootstrap_admin(db: &Connection) {
         eprintln!("ADMIN_USER không hợp lệ (3-24 ký tự: chữ, số, _)");
         return;
     }
-    // Chống chiếm tên: nếu tên admin đã bị đăng ký thường (chưa phải admin) thì xóa tài khoản đó cùng toàn bộ dữ liệu, rồi tạo lại admin sạch.
-    if std::env::var("ADMIN_PASS").map(|p| p.len() >= 8 && p.len() <= 128).unwrap_or(false) {
-        let _ = db.execute("DELETE FROM users WHERE username=?1 AND is_admin=0", [&user]);
+    // Không xóa tài khoản của ai. Từ bản này tên admin được đặt trước (xem is_reserved_name) nên người khác không đăng ký trùng được.
+    // Nếu tên đã có người dùng thường đăng ký từ trước thì không tự cấp admin cho họ, chỉ cảnh báo để chủ server xử lý thủ công.
+    if let Ok(row) = db.query_row("SELECT is_admin FROM users WHERE username=?1", [&user], |r| r.get::<_, i64>(0)) {
+        if row == 0 {
+            eprintln!("Cảnh báo: tên admin '{user}' đã bị tài khoản thường dùng từ trước; không tạo/ghi đè admin.");
+            return;
+        }
     }
     let existing: Option<(i64, String)> = db
         .query_row("SELECT id, pass_hash FROM users WHERE username=?1", [&user], |r| Ok((r.get(0)?, r.get(1)?)))
@@ -1444,6 +1470,9 @@ async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std
     if username.len() < 3 || username.len() > 24 || !username.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
         return Err(bad("Tên đăng nhập 3-24 ký tự: chữ, số hoặc _"));
     }
+    if is_reserved_name(&username) || r.display_name.as_deref().map(is_reserved_name).unwrap_or(false) {
+        return Err((StatusCode::CONFLICT, "Tên đăng nhập đã tồn tại".into()));
+    }
     if r.password.len() < 8 || r.password.len() > 128 {
         return Err(bad("Mật khẩu từ 8 đến 128 ký tự"));
     }
@@ -1553,6 +1582,9 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
     let name: String = r.display_name.trim().chars().take(24).collect();
     if name.is_empty() {
         return Err(bad("Tên hiển thị không được trống"));
+    }
+    if !user.is_admin && is_reserved_name(&name) {
+        return Err((StatusCode::CONFLICT, "Tên hiển thị này đã được đặt trước".into()));
     }
     let a = &r.accent;
     if a.len() != 7 || !a.starts_with('#') || !a[1..].chars().all(|c| c.is_ascii_hexdigit()) {
@@ -2204,6 +2236,9 @@ async fn account_name(State(st): State<AppState>, headers: HeaderMap, Json(r): J
     let name: String = r.display_name.chars().filter(|c| !c.is_control()).collect::<String>().trim().chars().take(24).collect();
     if name.is_empty() {
         return Err(bad("Tên hiển thị không được trống"));
+    }
+    if !user.is_admin && is_reserved_name(&name) {
+        return Err((StatusCode::CONFLICT, "Tên hiển thị này đã được đặt trước".into()));
     }
     let db = st.db.lock().unwrap();
     db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, user.id]).map_err(|_| e500())?;
