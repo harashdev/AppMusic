@@ -251,6 +251,10 @@ body.has-cur #main{padding-bottom:116px}
 #np{position:fixed;right:12px;top:12px;bottom:100px;width:min(420px,calc(100vw - 24px));z-index:30;display:flex;flex-direction:column;color:var(--npfg);background:linear-gradient(180deg,var(--npbg),color-mix(in srgb,var(--npbg) 60%,#000));box-shadow:0 18px 60px #000b;transform:translateX(calc(100% + 28px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
 body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 @media(min-width:1100px){#np{position:relative;right:auto;top:auto;bottom:auto;width:auto;z-index:auto;box-shadow:none;transform:none;visibility:visible;transition:none;display:none}body.has-np #np{display:flex}}
+/* Phóng to khung Đang phát: phủ gần hết màn hình (chừa thanh phát nhạc ở dưới). Nút cạnh X đổi thành "Thu nhỏ" để về lại cỡ cũ.
+   Điện thoại (≤700px) khung này đã full màn hình nên ẩn nút. */
+body.np-max.has-np #np{position:fixed;left:12px;right:12px;top:12px;bottom:100px;width:auto;z-index:36;display:flex;transform:none;visibility:visible;box-shadow:0 18px 60px #000b}
+@media(max-width:700px){#npMax{display:none}}
 .nph{display:flex;align-items:center;gap:4px;padding:12px 12px 6px 16px;flex:none}
 .npTabs{display:flex;flex:1;min-width:0;background:color-mix(in srgb,var(--npfg) 13%,transparent);border-radius:999px;padding:3px}
 .npTabs button{flex:1;background:none;color:inherit;padding:7px 8px;font-size:13px;opacity:.78;white-space:nowrap}
@@ -942,6 +946,7 @@ body.dl-det #main{padding:0!important;overflow:hidden}
         <button role="tab" data-nt="q">Tiếp theo</button>
       </div>
       <button class="ico" id="npMore" title="Thêm"><i data-ic="dots"></i></button>
+      <button class="ico" id="npMax" title="Phóng to"><i data-ic="full"></i></button>
       <button class="ico" id="npHide" title="Đóng"><i data-ic="x"></i></button>
     </div>
     <div class="npv show" id="vPlay">
@@ -1031,7 +1036,7 @@ body.dl-det #main{padding:0!important;overflow:hidden}
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
     'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
-    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
+    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
     'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
     'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
     'Bài sau':'Next','Lặp lại':'Repeat','Mở Đang phát bên phải':'Open Now playing panel','Bấm để xem đang phát':'Click to see what’s playing',
@@ -4150,7 +4155,13 @@ function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!
 function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',vidWant()&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',vidWant()); }
 $('#npVid').onclick=()=>{ if(!cur) return; vidOv={k:key(cur),on:!vidWant()}; syncVid(); };
 const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
-function setNp(open,tab){ npOpen=open; if(tab) npTab=tab; LS.set('npopen',open?'1':'0'); updateBar(); showTab(); }
+function setNp(open,tab){ npOpen=open; if(tab) npTab=tab; if(!open) setNpMax(false); LS.set('npopen',open?'1':'0'); updateBar(); showTab(); }
+// Phóng to / thu nhỏ khung Đang phát (nút cạnh nút X). Đóng khung thì tự thu nhỏ lại.
+function setNpMax(on){
+  on=!!on&&!!npOpen; document.body.classList.toggle('np-max',on);
+  const b=$('#npMax'); if(!b) return;
+  b.innerHTML=ic(on?'fullx':'full'); b.title=on?'Thu nhỏ':'Phóng to';
+}
 function showTab(){
   document.querySelectorAll('.npTabs [data-nt]').forEach(b=>{ const on=b.dataset.nt===npTab; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
   $('#vPlay').classList.toggle('show',npTab==='play'); $('#vLyr').classList.toggle('show',npTab==='lyr'); $('#vQ').classList.toggle('show',npTab==='q');
@@ -4159,6 +4170,7 @@ function showTab(){
 }
 document.querySelectorAll('.npTabs [data-nt]').forEach(b=>b.onclick=()=>{ npTab=b.dataset.nt; showTab(); });
 $('#npHide').onclick=()=>setNp(false);
+$('#npMax').onclick=()=>setNpMax(!document.body.classList.contains('np-max'));
 $('#bPip').onclick=()=>setNp(!npOpen);
 $('#bar').addEventListener('click',e=>{ if(e.target.closest('button,input,.vol')||seeking||Date.now()-seekEndAt<500) return; setNp(!npOpen); });
 $('#bOpen').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setNp(!npOpen); } };
