@@ -2444,7 +2444,7 @@ const pages={
     const editBanner=async(src)=>{ const r=await openCrop({title:'Chỉnh sửa banner',kind:'b',src,crop:cropFor('b'),color:bannerColor()}); if(!r) return false; D.bx=r.x; D.by=r.y; D.bz=r.z; D.ba=r.ar; return true; };
     $('#banBtn').onclick=()=>$('#banFile').click();
     $('#banBtn').onkeydown=e=>{ if(e.target.id==='banBtn'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); $('#banFile').click(); } };
-    $('#banFile').onchange=async e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); e.target.value=''; if(!f) return;
+    $('#banFile').onchange=async e=>{ let f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); e.target.value=''; if(!f) return; f=(await shrinkImg(f,1600))||f;
       const url=URL.createObjectURL(f), old={bx:D.bx,by:D.by,bz:D.bz,ba:D.ba}; D.bx=50; D.by=50; D.bz=1;
       if(!(await editBanner(url))){ URL.revokeObjectURL(url); Object.assign(D,old); return; }
       if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=f; D.bannerPrev=url; D.bannerClear=false; refresh(); };
@@ -2461,13 +2461,23 @@ const pages={
     }
     $('#avBtn').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#avFile').click(); } };
     const AV_MAX=10*1048576;
-    const shrinkImg=f=>new Promise(res=>{ if(!f||f.size<=AV_MAX) return res(f); const im=new Image(), u=URL.createObjectURL(f);
-      im.onload=()=>{ URL.revokeObjectURL(u); let side=Math.min(2048,Math.max(im.naturalWidth,im.naturalHeight)), q=.9;
-        const go=()=>{ const k=Math.min(1,side/Math.max(im.naturalWidth,im.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-          c.toBlob(b=>{ if(!b) return res(null); if(b.size<=AV_MAX||side<=128) return res(b); if(q>.6) q-=.1; else side=Math.round(side*.75); go(); },'image/jpeg',q); };
+    /* Thu nhỏ ảnh tĩnh TRƯỚC khi tải lên: ảnh chụp điện thoại vài MB đi qua mạng tới server là phần lâu nhất khi bấm Lưu.
+       Avatar chỉ hiện tối đa ~512px, banner ~720px nên 1024/1600px là dư. Chỉ đụng tới JPG/PNG (GIF, WebP động giữ nguyên để không mất chuyển động);
+       nếu kết quả không nhỏ hơn bản gốc thì dùng bản gốc. File > 10MB vẫn bị ép nén như cũ. */
+    const shrinkImg=(f,maxSide=2048)=>new Promise(res=>{
+      if(!f) return res(f);
+      const still=/^image\/(jpeg|png)$/i.test(f.type), must=f.size>AV_MAX, want=still&&f.size>600*1024;
+      if(!must&&!want) return res(f);
+      const im=new Image(), u=URL.createObjectURL(f), keep=must?null:f;
+      const mime=f.type==='image/png'?'image/webp':'image/jpeg';
+      im.onload=()=>{ URL.revokeObjectURL(u); const big=Math.max(im.naturalWidth,im.naturalHeight); let side=Math.min(must?2048:maxSide,big), q=.9;
+        const go=()=>{ const k=Math.min(1,side/big), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+          c.toBlob(b=>{ if(!b) return res(keep);
+            if(!must) return res(b.size<f.size?b:f);
+            if(b.size<=AV_MAX||side<=128) return res(b); if(q>.6) q-=.1; else side=Math.round(side*.75); go(); },mime,q); };
         go(); };
-      im.onerror=()=>{ URL.revokeObjectURL(u); res(null); }; im.src=u; });
-    $('#avFile').onchange=async e=>{ let f=e.target.files[0]; e.target.value=''; if(!f) return; if(/^video\//.test(f.type)||/\.mp4$/i.test(f.name)){ $('#profMsg').textContent='Không nhận video (mp4) làm avatar'; return; } $('#profMsg').textContent=f.size>AV_MAX?'Đang nén ảnh…':''; f=await shrinkImg(f); if(!f){ $('#profMsg').textContent='Không đọc được ảnh này'; return; } $('#profMsg').textContent='';
+      im.onerror=()=>{ URL.revokeObjectURL(u); res(keep); }; im.src=u; });
+    $('#avFile').onchange=async e=>{ let f=e.target.files[0]; e.target.value=''; if(!f) return; if(/^video\//.test(f.type)||/\.mp4$/i.test(f.name)){ $('#profMsg').textContent='Không nhận video (mp4) làm avatar'; return; } $('#profMsg').textContent=f.size>AV_MAX?'Đang nén ảnh…':''; f=await shrinkImg(f,1024); if(!f){ $('#profMsg').textContent='Không đọc được ảnh này'; return; } $('#profMsg').textContent='';
       const url=URL.createObjectURL(f);
       const r=await openCrop({title:'Chỉnh sửa avatar',kind:'a',src:url,crop:{x:50,y:50,z:1},color:'#2a2733'});
       if(!r){ URL.revokeObjectURL(url); return; }
@@ -2475,14 +2485,16 @@ const pages={
       D.avatarFile=f; D.avatarPrev=url; D.ax=r.x; D.ay=r.y; D.az=r.z; D.aa=r.ar; refresh(); };
     $('#saveProfile').onclick=async()=>{ try{
       $('#profMsg').textContent='Đang lưu…';
-      /* Các lần tải ảnh độc lập nhau nên chạy song song thay vì chờ từng cái. */
-      const jobs=[];
-      if(D.bg==='custom'&&D.bgFile){ jobs.push(api('/api/background',{body:D.bgFile}).then(u=>{ D.bgUrl=u.bg_url; D.bgFile=null; $('#bgUrl').value=D.bgUrl; })); }
-      if(D.avatarFile){ jobs.push(api('/api/avatar',{body:D.avatarFile}).then(()=>{ D.avatarFile=null; })); }
-      if(D.bannerFile){ jobs.push(api('/api/banner',{body:D.bannerFile}).then(()=>{ D.bannerFile=null; })); }
-      else if(D.bannerClear&&me.banner){ jobs.push(api('/api/banner',{method:'DELETE'})); }
-      if(jobs.length) await Promise.all(jobs);
-      const u=await api('/api/profile',{json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa}}});
+      /* Tải ảnh và gửi hồ sơ chạy SONG SONG (trước đây nối đuôi nhau, mỗi bước thêm một vòng chờ mạng).
+         Riêng ảnh nền riêng phải xong trước vì hồ sơ cần link của nó. */
+      let avRes=null, banRes=null;
+      if(D.bg==='custom'&&D.bgFile){ const r=await api('/api/background',{body:D.bgFile}); D.bgUrl=r.bg_url; D.bgFile=null; $('#bgUrl').value=D.bgUrl; }
+      const avJob=D.avatarFile?api('/api/avatar',{body:D.avatarFile}).then(r=>{ avRes=r; D.avatarFile=null; }):null;
+      const banJob=D.bannerFile?api('/api/banner',{body:D.bannerFile}).then(r=>{ banRes=r; D.bannerFile=null; })
+        :(D.bannerClear&&me.banner?api('/api/banner',{method:'DELETE'}).then(r=>{ banRes=r; }):null);
+      const profJob=api('/api/profile',{json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa}}});
+      const [pr]=await Promise.all([profJob,avJob,banJob]);
+      const u={...pr}; if(avRes) u.avatar=avRes.avatar; if(banRes) u.banner=banRes.banner;   /* hồ sơ có thể về trước khi ảnh lưu xong → lấy avatar/banner từ phản hồi của chính lần tải ảnh */
       applyUser(u); appPrev=false;
       if(D.bannerPrev){ URL.revokeObjectURL(D.bannerPrev); D.bannerPrev=''; } D.bannerClear=false; if(D.avatarPrev){ URL.revokeObjectURL(D.avatarPrev); D.avatarPrev=''; } if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; }
       refresh(); appPrev=false; $('#profMsg').textContent='Đã lưu ✔'; }catch(e){ $('#profMsg').textContent=e.message; } };
