@@ -73,8 +73,12 @@ android/   app Android = giao diện web của server đặt trong WebView + d�
 - Phát nhạc nền: khi bắt đầu phát, `MuseBridge` (JS `MuseNative.update`) bật **dịch vụ foreground** có `MediaSession`: thông báo Trước / Phát-Tạm dừng / Sau, ảnh bìa, điều khiển trên màn hình khoá và tai nghe, tự tạm dừng khi rút tai nghe hoặc có cuộc gọi, giữ WakeLock + WifiLock khi đang phát. Lệnh từ thông báo gửi ngược vào web qua `window.museCmd(...)`.
 - Trên Android, web tự dùng luồng âm thanh `<audio>` (`/api/yt/audio/:id`) thay cho iframe YouTube, vì iframe bị Android dừng khi tắt màn hình.
 - Giảm lag: bỏ `backdrop-filter`/blur trên Android, bỏ transition thuộc tính tuỳ biến trên `:root`, không vẽ lại thanh tiến trình khi app bị ẩn, WebView bật pre-raster, tự tải lại khi tiến trình WebView bị hệ thống thu hồi.
-- Lần đầu mở app sẽ hỏi cho phép bỏ tối ưu pin (giúp nhạc không bị cắt khi tắt màn hình lâu).
 - Nếu bấm phát mà nhạc dừng ngay: đặt `focusOff = true` ở đầu `KeepAliveService.kt` (tắt xử lý audio focus).
+
+**Nhạc & ảnh bìa trên máy (cập nhật):**
+- `NativeYt.kt` hỏi nhiều client InnerTube song song (ANDROID_VR 2 phiên bản, TV embedded, IOS 2 phiên bản, TV simply), **tải thử vài byte** để chỉ nhận link thật sự tải được (client cần PO token vẫn trả link nhưng link đó 403), rồi mới dùng; cuối cùng thử Piped. Link hết hạn theo tham số `expire` của chính link. Lý do mỗi client lỗi được ghi vào logcat (tag `MuseYt`) và hiện cho người dùng khi tải/phát thất bại, thay vì câu lỗi của server.
+- Các đoạn của một file tải về luôn đến từ cùng một nguồn (tiến trình cục bộ hoặc NativeYt), không ghép lẫn hai định dạng.
+- Ảnh bìa: bộ nhớ đệm RAM + đĩa, nguồn gốc chạy ngay và các nguồn dự phòng chạy song song (không tuần tự), ảnh `hq720`/`maxres`/`sd` không tồn tại thì hạ xuống `mqdefault` ngay trong app; web nạp trước ảnh của kết quả tìm kiếm.
 
 **Lấy APK:** đẩy code lên GitHub → Actions → "Build Android (Muse)" → tải `muse-android` ở Artifacts. Nhớ build/chạy lại **server** vì `static/index.html` cũng đã đổi.
 **Build trên máy:** mở `android/` bằng Android Studio hoặc `gradle assembleDebug` (JDK 17 + Android SDK 34).
@@ -118,27 +122,18 @@ Cùng ô *Cài đặt → Nhập playlist từ app khác*: dán link playlist c�
 
 
 
-## Cổng nhà – nhạc / album / tìm kiếm chạy bằng IP nhà, server chỉ lưu dữ liệu người dùng
-**Vì sao:** YouTube chặn IP của VPS/Render (IP trung tâm dữ liệu) nên khi đặt server trên mạng thì tìm kiếm, album, nghệ sĩ và luồng nhạc hay lỗi, trong khi chạy ở nhà vẫn tốt. Giải pháp: phần nói chuyện với YouTube chạy ngay trên máy của bạn (IP nhà), phần còn lại vẫn ở server chính.
+## Cập nhật: ảnh bìa luôn hiện, nhạc bằng IP điện thoại, giao diện nhúng sẵn
+- **Ảnh bìa (web)**: mỗi ảnh thử lần lượt trực tiếp `i.ytimg.com` → các tên miền ảnh YouTube khác → wsrv.nl → DuckDuckGo → weserv.nl → server (`/api/img`) → ảnh thay thế (gradient + nốt nhạc), nên không còn ảnh vỡ. Ảnh lỗi hoặc treo quá 6 giây tự nhảy sang nguồn kế tiếp; nguồn nào chạy được thì nhớ 6 giờ. `/api/img` của server cũng thử nhiều tên miền và hạ dần chất lượng (`hq720` → `hqdefault` → `mqdefault` → `default`). CSP `connect-src` đã thêm các tên miền ảnh để service worker không bị chặn.
+- **Android, ảnh bìa**: giao diện và thông báo/màn hình khoá đều thử chuỗi nguồn trên bằng mạng điện thoại; có cache trong máy.
+- **Android, nhạc**: `/api/yt/audio/:id` thử lần lượt (1) tiến trình `libmuse_audio.so`, (2) `NativeYt.kt` (InnerTube ANDROID_VR/IOS ngay trên máy, tải từng đoạn Range bằng IP điện thoại), (3) mới tới server. Server trên Render (IP datacenter) hay bị YouTube trả 403 nên chỉ là đường cuối. Tìm kiếm/trang chủ/nghệ sĩ vẫn do `libmuse_audio.so` lo (cần bước "Build muse-server cho Android" thành công; thiếu thì workflow cảnh báo và app gọi server).
+- **Android, giao diện nhúng sẵn**: `server/static/index.html` được copy vào APK (`assets/shell.html`) lúc build, nên mở app là hiện ngay không cần chờ server; API tài khoản/avatar/bạn bè/playlist/phòng nghe chung vẫn gọi server. Sửa giao diện thì phải build lại APK.
+- Trình duyệt Chrome (không phải APK) không thể tự lấy luồng bằng IP máy do CORS; muốn nhạc bằng IP điện thoại + phát nền hãy cài APK.
 
-```
-App/trình duyệt ──► cổng nhà (127.0.0.1:38417, chạy ở nhà)
-                      ├─ /api/yt/*, /api/img  → tự lấy từ YouTube bằng IP nhà
-                      └─ mọi thứ còn lại (giao diện, đăng nhập, bạn bè, avatar/banner, WebSocket) → server chính
-```
-- **App desktop (BBeat):** tự bật cổng nhà (file `muse-server.exe` được đóng gói ngay cạnh app) rồi mở `http://127.0.0.1:38417`; thoát app thì tắt luôn. Nếu không bật được thì app mở thẳng server chính như cũ. Đặt biến môi trường `MUSE_DIRECT=1` để cố ý bỏ qua cổng nhà.
-- **Chạy tay / dùng trình duyệt:** chạy `start-gateway.bat` (sửa `GATEWAY_REMOTE` thành địa chỉ server chính) rồi mở `http://127.0.0.1:38417`. Hoặc `GATEWAY_REMOTE=https://... PORT=38417 muse-server`.
-- **Android:** app đã có tiến trình `libmuse_audio.so` chạy ở chế độ `AUDIO_ONLY`; bản này mở rộng cho cả tìm kiếm, album, nghệ sĩ (trước chỉ có nhạc). Tiến trình lỗi hoặc YouTube vẫn chặn thì WebView tự gọi lại server chính.
-- Cài đặt "nội dung nhạy cảm" của tài khoản được cổng nhà hỏi lại server chính (nhớ 60 giây); khách thì mặc định tắt.
-- `yt-dlp` / `deno` (tuỳ chọn, giúp khi YouTube hỏi "not a bot"): đặt cạnh `muse-server.exe`; biến `YT_BROWSER`, `YT_COOKIES`, `YTDLP_PATH` đặt như ở phần trên.
-- Server chính không cần đổi gì: nhớ đẩy `static/index.html` mới lên (cho phép service worker chạy ở 127.0.0.1) và build lại như bình thường.
 
-**Server chính – chế độ `meta` (mặc định) có cache danh sách:** server chính **không phục vụ luồng nặng**: `/api/yt/audio/*`, `/api/yt/video/*` và `/api/img` trả HTTP 410 (nhạc do app tự lấy bằng IP máy). Nhưng phần **dữ liệu danh sách** (`/api/yt/search`, `browse`, `similar`, `fresh`, `artists`, `best-artists`, `this-is`: các mục trang chủ, tìm kiếm, album, nghệ sĩ) vẫn chạy và được **cache xuống đĩa** (`data/app/meta-cache/`):
-- còn mới (< 1 giờ) → trả thẳng từ cache; hết hạn → hỏi YouTube rồi cập nhật cache;
-- YouTube lỗi / chặn IP server → vẫn trả **bản cũ** (tối đa 7 ngày) thay vì lỗi; kết quả rỗng không được lưu;
-- khoá cache gồm đường dẫn + query + cài đặt "nội dung nhạy cảm" của người gọi; header phản hồi `x-muse-cache: hit | stale` cho biết đang dùng cache;
-- tự dọn file quá 7 ngày và giữ tối đa 3000 file.
-Biến `SERVE_MUSIC`: để trống = chế độ `meta`; `1` = server chính phục vụ cả nhạc như cổng nhà; `0` = tắt hết (mọi route nhạc trả 410 như bản cũ). Lưu ý: cache chỉ được điền khi server lấy được dữ liệu từ YouTube ít nhất một lần; nếu IP server bị chặn hoàn toàn và cache còn trống thì vẫn lỗi (khi đó dùng `YT_PROXY`).
-(Hành vi cũ khi `SERVE_MUSIC=0`:) Các đường `/api/yt/*` (tìm kiếm, album, nghệ sĩ, luồng nhạc, video) và `/api/img` (ảnh bìa qua server) trả về HTTP 410 kèm lời giải thích. Tài khoản, bạn bè, playlist, yêu thích, lịch sử, đồng bộ, avatar/banner, phòng nghe chung vẫn chạy như cũ. Nhạc do app tự lấy: app desktop qua cổng nhà, app Android qua `AUDIO_ONLY` (cả hai vẫn dùng đủ các route YouTube trên máy người dùng). Muốn server chính phục vụ cả luồng nhạc (ví dụ chạy ở nhà, dùng trình duyệt trực tiếp) thì đặt `SERVE_MUSIC=1`. Lưu ý: nếu cổng nhà không bật được và app tự mở thẳng server chính thì sẽ không có nhạc. Các tính năng *nhập playlist từ link* (`/api/yt-import/url`, `/api/pl-import/url`) vẫn chạy ở server chính.
-
-**Đóng gói desktop tại máy:** build server trước, chép vào `desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe` rồi mới `cargo tauri build` (GitHub Actions "Build desktop (Muse)" đã tự làm bước này).
+## Thẻ chia sẻ hồ sơ (FANS NO.) + link mở thẳng vào app
+- Bấm avatar → **Thẻ chia sẻ**: thẻ "BBeat / FANS NO. / DATE" vẽ bằng canvas. Nút **Chia sẻ link** tải ảnh thẻ lên server (`POST /api/card` → `data/cards/<id>.png`) rồi mở bảng chia sẻ của Android (hoặc chép link trên máy tính).
+- Link có dạng `https://<server>/u/<tên đăng nhập>?v=…`. Trang này có thẻ Open Graph (`og:image` = ảnh thẻ, `og:title` = tên) nên khi dán vào Zalo/Messenger/Discord/Telegram sẽ hiện **ảnh thẻ + link profile**. Chỉ người đã bấm *Chia sẻ link* mới có trang công khai.
+- Android: APK có intent-filter cho `https://<server>/u/*` (host lấy từ `MUSE_URL` lúc build) và `bbeat://u/<tên>`. Mở link từ trình duyệt/chat sẽ vào app và hiện thẻ hồ sơ. Trang link có nút **Mở trong BBeat** (dùng `bbeat://`) nên chạy được kể cả khi Android chưa xác minh App Links.
+- Muốn bấm link trong chat mở **thẳng** vào app (không hỏi): đặt biến môi trường server `ANDROID_CERT_SHA256` = vân tay SHA-256 của chứng chỉ ký APK (nhiều giá trị cách nhau dấu phẩy). Server phục vụ `/.well-known/assetlinks.json`. Đặt `PUBLIC_URL` để link/ảnh xem trước luôn đúng tên miền.
+- API: `POST /api/card` (PNG ≤ 3MB, cần đăng nhập), `GET /api/u/:username` (thông tin công khai tối thiểu), `GET /u/:username` (trang xem trước).
+- Thanh trên cùng có 2 nút: **Quét QR** (đăng nhập thiết bị khác) và **Chế độ tối** (lưu trên máy này).
