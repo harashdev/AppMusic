@@ -385,9 +385,6 @@ fn init_db(path: &std::path::Path) -> Connection {
 // Tên đặt trước: không ai (trừ admin) đăng ký làm tên đăng nhập hoặc đặt làm tên hiển thị được.
 // Thêm tên khác qua biến môi trường RESERVED_NAMES (cách nhau bằng dấu phẩy). ADMIN_USER cũng tự được đặt trước.
 const RESERVED_DEFAULT: &[&str] = &["saki_hanami"];
-fn norm_name(s: &str) -> String {
-    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
-}
 fn is_reserved_name(s: &str) -> bool {
     let n = norm_name(s);
     if n.is_empty() {
