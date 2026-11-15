@@ -5329,6 +5329,7 @@ struct AudQ {
     t: Option<String>,
     f: Option<String>,
     debug: Option<String>,
+    h: Option<u32>, // chiều cao video yêu cầu (240/360/480/720/1080); không có thì dùng YT_VIDEO_HEIGHT hoặc 360
 }
 
 const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
@@ -5938,8 +5939,8 @@ async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_r
 // Mỗi video một khóa riêng: tải sẵn bài kế tiếp không chặn bài đang phát (trước đây dùng 1 khóa chung nên phải chờ nhau).
 static YTDLP_VID_LOCKS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
 
-fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
-    let prefix = format!("{vid}_v.");
+fn find_local_video(vid: &str, h: u32) -> Option<(PathBuf, u64, String)> {
+    let prefix = format!("{vid}_v{h}."); // mỗi độ phân giải một file riêng
     for e in std::fs::read_dir(audio_cache_dir()).ok()?.flatten() {
         let name = e.file_name().to_string_lossy().to_string();
         if !name.starts_with(&prefix) {
@@ -5959,17 +5960,33 @@ fn find_local_video(vid: &str) -> Option<(PathBuf, u64, String)> {
     None
 }
 
-async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String), String> {
-    if let Some(x) = find_local_video(vid) {
+// Quy yêu cầu về các mức cố định để không sinh ra quá nhiều file cache khác nhau.
+fn video_height(req: Option<u32>) -> u32 {
+    let def = std::env::var("YT_VIDEO_HEIGHT")
+        .ok()
+        .and_then(|x| x.trim().parse::<u32>().ok())
+        .filter(|n| *n >= 144 && *n <= 2160)
+        .unwrap_or(360);
+    match req.unwrap_or(def) {
+        0..=240 => 240,
+        241..=360 => 360,
+        361..=480 => 480,
+        481..=720 => 720,
+        _ => 1080,
+    }
+}
+
+async fn ytdlp_video(vid: &str, use_proxy: bool, h: u32) -> Result<(PathBuf, u64, String), String> {
+    if let Some(x) = find_local_video(vid, h) {
         return Ok(x);
     }
     let lock = {
         let m = YTDLP_VID_LOCKS.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
         let mut g = m.lock().unwrap();
-        g.entry(vid.to_string()).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
+        g.entry(format!("{vid}_{h}")).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
     };
     let _guard = lock.lock().await;
-    if let Some(x) = find_local_video(vid) {
+    if let Some(x) = find_local_video(vid, h) {
         return Ok(x);
     }
     let dir = audio_cache_dir();
@@ -5989,13 +6006,8 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
             }
         }
     }
-    let h: u32 = std::env::var("YT_VIDEO_HEIGHT")
-        .ok()
-        .and_then(|x| x.trim().parse::<u32>().ok())
-        .filter(|n| *n >= 144 && *n <= 2160)
-        .unwrap_or(240); // 240p (trước là 360p) đủ cho khung video nhỏ, file nhẹ hơn nên tải xong nhanh hơn; đặt YT_VIDEO_HEIGHT để đổi. Trước: 360p đủ nét cho khung video nhỏ và nhẹ hơn 480p ~40% nên tải nhanh hơn (đặt YT_VIDEO_HEIGHT để đổi)
     let fmt = format!("bv[height<={h}][ext=mp4][vcodec^=avc1]/bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
-    let template = dir.join(format!("{vid}_v.%(ext)s"));
+    let template = dir.join(format!("{vid}_v{h}.%(ext)s"));
     let mut cmd = ytdlp_base(use_proxy);
     cmd.arg("-f").arg(fmt).arg("--no-mtime").arg("--no-progress").arg("-N").arg("4").arg("--socket-timeout").arg("15").arg("-o").arg(&template);
     cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
@@ -6008,7 +6020,7 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
         let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
         return Err(format!("yt-dlp (tải video): {line}"));
     }
-    find_local_video(vid).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file video".to_string())
+    find_local_video(vid, h).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file video".to_string())
 }
 
 // GET /api/yt/video/:id?t=token  -> video (không có âm thanh), hỗ trợ Range
@@ -6026,7 +6038,8 @@ async fn yt_video(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         None => false,
     };
     let (start, end_req) = parse_range(&headers);
-    match ytdlp_video(&id, use_proxy).await {
+    let h = video_height(q.h);
+    match ytdlp_video(&id, use_proxy, h).await {
         Ok((path, total, mime)) => match serve_local(&path, total, mime, start, end_req).await {
             Ok(r) => r,
             Err(e) => {
