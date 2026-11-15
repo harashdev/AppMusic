@@ -47,6 +47,7 @@ struct AppState {
     avatar_dir: PathBuf,
     bg_dir: PathBuf,
     banner_dir: PathBuf,
+    card_dir: PathBuf, // ảnh thẻ chia sẻ hồ sơ (data/cards/<id>.png)
     app_dir: PathBuf,
     http: reqwest::Client,
     // Client đi qua proxy (biến môi trường YT_PROXY), dùng khi người dùng bật "Proxy" trong Cài đặt.
@@ -484,6 +485,7 @@ async fn run_audio_only() {
         avatar_dir: PathBuf::new(),
         bg_dir: PathBuf::new(),
         banner_dir: PathBuf::new(),
+        card_dir: PathBuf::new(),
         app_dir: PathBuf::new(),
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
@@ -785,6 +787,7 @@ async fn run_gateway(remote: String) {
         avatar_dir: PathBuf::new(),
         bg_dir: PathBuf::new(),
         banner_dir: PathBuf::new(),
+        card_dir: PathBuf::new(),
         app_dir: PathBuf::new(),
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
@@ -1081,10 +1084,12 @@ async fn main() {
     let avatar_dir = data_dir.join("avatars");
     let bg_dir = data_dir.join("backgrounds");
     let banner_dir = data_dir.join("banners");
+    let card_dir = data_dir.join("cards");
     let app_dir = data_dir.join("app");
     std::fs::create_dir_all(&avatar_dir).unwrap();
     std::fs::create_dir_all(&bg_dir).unwrap();
     std::fs::create_dir_all(&banner_dir).unwrap();
+    std::fs::create_dir_all(&card_dir).unwrap();
     std::fs::create_dir_all(&app_dir).unwrap();
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "static".into());
 
@@ -1097,6 +1102,7 @@ async fn main() {
         avatar_dir: avatar_dir.clone(),
         bg_dir: bg_dir.clone(),
         banner_dir: banner_dir.clone(),
+        card_dir: card_dir.clone(),
         app_dir: app_dir.clone(),
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
@@ -1169,6 +1175,10 @@ async fn main() {
         .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
+        .route("/api/card", post(upload_card).layer(DefaultBodyLimit::max(3 * 1024 * 1024)))
+        .route("/api/u/:username", get(card_user))
+        .route("/u/:username", get(card_page))
+        .route("/.well-known/assetlinks.json", get(assetlinks))
         .merge(music_router)
         .route("/api/friends", get(list_friends).post(add_friend))
         .route("/api/friends/requests", get(list_requests))
@@ -1192,6 +1202,7 @@ async fn main() {
         .nest_service("/avatars", ServeDir::new(avatar_dir))
         .nest_service("/backgrounds", ServeDir::new(bg_dir))
         .nest_service("/banners", ServeDir::new(banner_dir))
+        .nest_service("/cards", ServeDir::new(card_dir))
         .fallback_service(ServeDir::new(static_dir))
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
         .layer(middleware::from_fn(security_headers))
@@ -3875,6 +3886,176 @@ async fn admin_icon_reset(State(st): State<AppState>, headers: HeaderMap) -> Res
     }
     let _ = tokio::fs::remove_file(st.app_dir.join("icon.png")).await;
     Ok(StatusCode::OK)
+}
+
+// ---------- Thẻ chia sẻ hồ sơ ----------
+// App vẽ thẻ "FANS NO." bằng canvas rồi tải PNG lên đây (POST /api/card). Server lưu data/cards/<id>.png và phục vụ:
+//   GET /u/<username>      trang có thẻ Open Graph (Zalo/Messenger/Discord/Telegram hiện ảnh thẻ + tên khi dán link) và nút mở thẳng vào app Android
+//   GET /api/u/<username>  thông tin công khai tối thiểu để app hiện thẻ hồ sơ khi mở link
+// Chỉ người đã tạo thẻ chia sẻ mới có trang công khai; chưa tạo thì trả 404 (không lộ tên/ảnh của người chưa chia sẻ).
+fn card_path(st: &AppState, id: i64) -> PathBuf {
+    st.card_dir.join(format!("{id}.png"))
+}
+
+async fn card_version(st: &AppState, id: i64) -> Option<u64> {
+    let m = tokio::fs::metadata(card_path(st, id)).await.ok()?;
+    m.modified().ok()?.duration_since(UNIX_EPOCH).ok().map(|d| d.as_secs())
+}
+
+fn card_name_ok(n: &str) -> bool {
+    !n.is_empty() && n.len() <= 64 && n.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+}
+
+#[derive(Serialize)]
+struct PublicUser {
+    id: i64,
+    username: String,
+    display_name: String,
+    avatar: String,
+    accent: String,
+    banner: String,
+    banner_color: String,
+    status: String,
+    crop: String,
+    supporter: i64,
+    online: bool,
+}
+
+fn public_user_by_name(st: &AppState, username: &str) -> Option<PublicUser> {
+    let db = st.db.lock().unwrap();
+    db.query_row(
+        "SELECT id,username,display_name,avatar,accent,banner,banner_color,status,crop,supporter,is_admin FROM users WHERE username=?1 COLLATE NOCASE",
+        [username],
+        |r| {
+            let is_admin = r.get::<_, i64>(10)? != 0;
+            Ok(PublicUser {
+                id: r.get(0)?,
+                username: r.get(1)?,
+                display_name: r.get(2)?,
+                avatar: r.get(3)?,
+                accent: r.get(4)?,
+                banner: r.get(5)?,
+                banner_color: r.get(6)?,
+                status: r.get(7)?,
+                crop: r.get(8)?,
+                supporter: if is_admin { 2 } else { r.get(9)? },
+                online: false,
+            })
+        },
+    )
+    .ok()
+}
+
+async fn upload_card(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if body.len() > 3 * 1024 * 1024 || !body.starts_with(&[0x89, b'P', b'N', b'G']) {
+        return Err(bad("Ảnh thẻ phải là PNG, tối đa 3MB"));
+    }
+    tokio::fs::write(card_path(&st, user.id), &body).await.map_err(|_| e500())?;
+    let v = card_version(&st, user.id).await.unwrap_or(0);
+    Ok(Json(json!({ "username": user.username, "path": format!("/u/{}", user.username), "v": v })))
+}
+
+async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
+    if !card_name_ok(&username) {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+    }
+    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".to_string()))?;
+    if card_version(&st, u.id).await.is_none() {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+    }
+    Ok(Json(u))
+}
+
+fn card_esc(s: &str) -> String {
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&#39;")
+}
+
+fn card_base_url(headers: &HeaderMap) -> String {
+    if let Ok(p) = std::env::var("PUBLIC_URL") {
+        let p = p.trim().trim_end_matches('/').to_string();
+        if !p.is_empty() {
+            return p;
+        }
+    }
+    let host = headers
+        .get("x-forwarded-host")
+        .or_else(|| headers.get(header::HOST))
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().chars().filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-' || *c == ':').collect::<String>())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "localhost".into());
+    let proto = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().to_string())
+        .filter(|s| s == "http" || s == "https")
+        .unwrap_or_else(|| "https".into());
+    format!("{proto}://{host}")
+}
+
+const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>@TITLE@</title>
+<meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
+<meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
+<meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
+<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="520">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
+<meta name="theme-color" content="#07070b">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#07070b;color:#f3f0fa;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{width:min(560px,100%);padding:20px;text-align:center}.w img{width:100%;border-radius:18px;box-shadow:0 12px 40px #000a;background:#17141f;aspect-ratio:1200/520}
+h1{font-size:22px;margin:18px 0 2px}p{margin:0 0 18px;color:#a8a3b6}
+.b{display:block;padding:13px;border-radius:999px;background:#8ecbff;color:#07131d;font-weight:700;text-decoration:none;margin-top:10px}.b.o{background:none;color:#f3f0fa;border:1px solid #ffffff2e}
+</style></head><body><div class="w"><img src="@IMG@" alt="Thẻ BBeat"><h1>@NAME@</h1><p>@DESC@</p>
+<a class="b" id="open" href="@INTENT@">Mở trong BBeat</a><a class="b o" href="@WEB@">Mở bản web</a></div>
+<script>(function(){try{if(/Android/i.test(navigator.userAgent||'')&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");}}catch(e){}})();</script>
+</body></html>"##;
+
+async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>) -> Response {
+    let nf = || (StatusCode::NOT_FOUND, [(header::CONTENT_TYPE, "text/plain; charset=utf-8")], "Không tìm thấy thẻ BBeat này").into_response();
+    if !card_name_ok(&username) {
+        return nf();
+    }
+    let Some(u) = public_user_by_name(&st, &username) else { return nf() };
+    let Some(v) = card_version(&st, u.id).await else { return nf() };
+    let base = card_base_url(&headers);
+    let uname = u.username.clone(); // dạng chữ hoa/thường chuẩn trong DB; chỉ gồm [A-Za-z0-9_.-]
+    let page_url = format!("{base}/u/{uname}");
+    let img = format!("{base}/cards/{}.png?v={v}", u.id);
+    let title = format!("{} trên BBeat", u.display_name);
+    let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", u.id, u.display_name);
+    let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
+    let intent = format!("intent://u/{uname}#Intent;scheme=bbeat;package=vn.muse.app;S.browser_fallback_url={};end", enc(&format!("{page_url}?web=1")));
+    let html = CARD_PAGE
+        .replace("@INTENT_JS@", &intent) // chuỗi này chỉ chứa ký tự an toàn trong "..." (tên đã lọc, URL đã mã hoá)
+        .replace("@INTENT@", &card_esc(&intent))
+        .replace("@WEB@", &card_esc(&format!("{base}/?u={uname}")))
+        .replace("@TITLE@", &card_esc(&title))
+        .replace("@DESC@", &card_esc(&desc))
+        .replace("@NAME@", &card_esc(&u.display_name))
+        .replace("@URL@", &card_esc(&page_url))
+        .replace("@IMG@", &card_esc(&img));
+    ([(header::CONTENT_TYPE, "text/html; charset=utf-8"), (header::CACHE_CONTROL, "public, max-age=300")], html).into_response()
+}
+
+// Android App Links (tuỳ chọn): đặt ANDROID_CERT_SHA256 = vân tay SHA-256 của chứng chỉ ký APK (nhiều giá trị cách nhau dấu phẩy)
+// thì link https://<server>/u/<tên> mở thẳng vào app, không qua trình duyệt. Không đặt thì trả 404 và nút "Mở trong BBeat" ở trang link vẫn dùng được.
+async fn assetlinks() -> Response {
+    let fps: Vec<String> = std::env::var("ANDROID_CERT_SHA256")
+        .unwrap_or_default()
+        .split(',')
+        .map(|s| s.trim().to_uppercase())
+        .filter(|s| !s.is_empty())
+        .collect();
+    if fps.is_empty() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let v = json!([{ "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": { "namespace": "android_app", "package_name": "vn.muse.app", "sha256_cert_fingerprints": fps } }]);
+    ([(header::CONTENT_TYPE, "application/json")], v.to_string()).into_response()
 }
 
 async fn serve_icon(State(st): State<AppState>) -> Response {
