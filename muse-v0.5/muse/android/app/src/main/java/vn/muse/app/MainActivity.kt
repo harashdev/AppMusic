@@ -131,7 +131,17 @@ class MainActivity : ComponentActivity() {
         ) askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
         Playback.sendToWeb = { js -> web.evaluateJavascript(js, null) }
 
+        Deeplink.userFrom(intent)?.let { Deeplink.pending = it } // mở app từ link thẻ: web lấy tên này sau khi vào app
         loadServer()
+    }
+
+    // App đang chạy mà bấm link thẻ: hiện thẻ ngay.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val name = Deeplink.userFrom(intent) ?: return
+        Deeplink.pending = ""
+        web.evaluateJavascript("window.museOpenUser&&museOpenUser('$name')", null)
     }
 
     private val chrome = object : WebChromeClient() {
