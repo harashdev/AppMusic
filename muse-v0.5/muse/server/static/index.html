@@ -1558,6 +1558,7 @@ const libTitle=()=>(guest||!me||!me.id)?'Thư viện của bạn':'Thư viện c
 function paintLibTitle(){ const sp=document.getElementById('libTitleTx'); if(!sp) return; const t=libTitle(); sp.textContent=t; if(sp.parentNode) sp.parentNode.title=t; }
 function applyUser(u){
   const acc=(!u.accent||u.accent.toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:u.accent; u.accent=acc; me=u;
+  try{ if(!guest&&u.id) LS.set('muse_me',JSON.stringify(u)); }catch{}   /* bản lưu sẵn trong máy luôn là hồ sơ mới nhất */
   paintTheme(acc,u.bg,u.bg_url);
   $('#meAv').innerHTML=avU(u);
   paintLibTitle();
@@ -2407,7 +2408,8 @@ const pages={
       } };
     await renderFriendsPage();
   },
-  profile(m){
+  async profile(m){
+    try{ await window.__profSaveChain; }catch{}
     const skins=[['','Mặc định','linear-gradient(135deg,#1a1530,#07070b)'],['dark','Tối','#000'],['ocean','Biển','linear-gradient(135deg,#0f2027,#2c5364)'],['sunset','Hoàng hôn','linear-gradient(135deg,#42275a,#734b6d)'],['forest','Rừng','linear-gradient(135deg,#1d2b1f,#3b5d3a)'],['custom','Ảnh riêng','']];
     const D={status:me.status||'',accent:me.accent,bg:me.bg||'',bgUrl:me.bg_url||'',bgFile:null,bgPrev:'',bannerColor:me.banner_color||'',bannerFile:null,bannerPrev:'',bannerClear:false,avatarFile:null,avatarPrev:'',...cropOf(me)};
     m.innerHTML=`<h2>Hồ sơ</h2><div class="setL">
@@ -2483,12 +2485,16 @@ const pages={
       if(!r){ URL.revokeObjectURL(url); return; }
       if(D.avatarPrev) URL.revokeObjectURL(D.avatarPrev);
       D.avatarFile=f; D.avatarPrev=url; D.ax=r.x; D.ay=r.y; D.az=r.z; D.aa=r.ar; refresh(); };
-    $('#saveProfile').onclick=async()=>{ try{
-      $('#profMsg').textContent='Đang lưu…';
-      /* Tải ảnh và gửi hồ sơ chạy SONG SONG (trước đây nối đuôi nhau, mỗi bước thêm một vòng chờ mạng).
+    /* LƯU: các lần bấm Lưu được xếp hàng và chạy lần lượt (window.__profSaveChain), không bao giờ chồng nhau.
+       Trước đây bấm Lưu → thoát ra → đổi ảnh khác → Lưu: lần lưu cũ (còn đang chạy vì mạng chậm) về sau và đè lại ảnh cũ lên cả server lẫn máy.
+       Giờ lần lưu mới chờ lần cũ xong hẳn, và trang hồ sơ khi mở lại cũng chờ lần lưu đang chạy để lấy đúng dữ liệu mới nhất. */
+    const pmsg=t=>{ const el=$('#profMsg'); if(el) el.textContent=t; };
+    const runSave=async()=>{ try{
+      pmsg('Đang lưu…');
+      /* Tải ảnh và gửi hồ sơ chạy SONG SONG (mỗi bước nối đuôi sẽ thêm một vòng chờ mạng).
          Riêng ảnh nền riêng phải xong trước vì hồ sơ cần link của nó. */
       let avRes=null, banRes=null;
-      if(D.bg==='custom'&&D.bgFile){ const r=await api('/api/background',{body:D.bgFile}); D.bgUrl=r.bg_url; D.bgFile=null; $('#bgUrl').value=D.bgUrl; }
+      if(D.bg==='custom'&&D.bgFile){ const r=await api('/api/background',{body:D.bgFile}); D.bgUrl=r.bg_url; D.bgFile=null; const bu=$('#bgUrl'); if(bu) bu.value=D.bgUrl; }
       const avJob=D.avatarFile?api('/api/avatar',{body:D.avatarFile}).then(r=>{ avRes=r; D.avatarFile=null; }):null;
       const banJob=D.bannerFile?api('/api/banner',{body:D.bannerFile}).then(r=>{ banRes=r; D.bannerFile=null; })
         :(D.bannerClear&&me.banner?api('/api/banner',{method:'DELETE'}).then(r=>{ banRes=r; }):null);
@@ -2497,7 +2503,8 @@ const pages={
       const u={...pr}; if(avRes) u.avatar=avRes.avatar; if(banRes) u.banner=banRes.banner;   /* hồ sơ có thể về trước khi ảnh lưu xong → lấy avatar/banner từ phản hồi của chính lần tải ảnh */
       applyUser(u); appPrev=false;
       if(D.bannerPrev){ URL.revokeObjectURL(D.bannerPrev); D.bannerPrev=''; } D.bannerClear=false; if(D.avatarPrev){ URL.revokeObjectURL(D.avatarPrev); D.avatarPrev=''; } if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; }
-      refresh(); appPrev=false; $('#profMsg').textContent='Đã lưu ✔'; }catch(e){ $('#profMsg').textContent=e.message; } };
+      try{ refresh(); }catch{} appPrev=false; pmsg('Đã lưu ✔'); }catch(e){ pmsg(e.message); } };
+    $('#saveProfile').onclick=()=>{ pmsg('Đang lưu…'); window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave); };
     refresh();
   },
   async settings(m){
