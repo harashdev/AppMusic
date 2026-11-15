@@ -1526,6 +1526,13 @@ document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG'
   const src=i.src||''; if(/^data:/.test(src)) return; delete i.dataset.t;
   if(!imgOk&&!imgBest){ const v=/^https:\/\/wsrv\.nl\//.test(src)?'w':/duckduckgo\.com\/iu/.test(src)?'d':/images\.weserv\.nl/.test(src)?'v':src.indexOf('/api/img?')>=0?'p':'';
     if(v){ imgBest=v; LS.set('muse_imgvia',v+'@'+Date.now()); } } },true);
+/* YouTube không có ảnh hq720 thì trả về ảnh xám 120x90 (trạng thái vẫn "tải thành công" nên sự kiện lỗi không chạy) → bìa lớn hiện khung xám nhoè.
+   Nhận ra ảnh đó qua kích thước rồi hạ về mqdefault, hết cách thì đi tiếp chuỗi nguồn dự phòng. */
+document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||'';
+  if(!/^https?:\/\/(i\d?\.ytimg\.com|img\.youtube\.com)\/vi(_webp)?\/[\w-]{11}\/(hq720|maxresdefault|sddefault|hqdefault|mqdefault)\.jpg/.test(src)) return;
+  if(!(i.naturalWidth===120&&i.naturalHeight===90)) return;
+  if(/\/(hq720|maxresdefault|sddefault)\.jpg/.test(src)){ i.dataset.fi='0'; i.src=src.replace(/\/(hq720|maxresdefault|sddefault)\.jpg/,'/mqdefault.jpg'); return; }
+  imgNext(i); },true);
 document.addEventListener('error',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||''; if(!src||/^data:/.test(src)) return;
   if(!imgAdopt(i)) return; if(!i.dataset.o0.length) return;
   if(IMG_NET.test(src)&&!i.dataset.fi) imgBad++;
