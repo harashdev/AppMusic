@@ -110,9 +110,15 @@ jobs:
         run: |
           APK=muse-v0.5/muse/android/app/build/outputs/apk/debug/BBeat.apk
           TAG=android-latest
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
-            --title "BBeat - bản build mới nhất" --notes "APK tự build bởi GitHub Actions (cài thẳng được)."
-          gh release upload "$TAG" "$APK" --clobber
+          # Upload đôi khi trả 404 (Release bị xoá/tạo lại giữa chừng, ID cũ không còn): thử lại tối đa 4 lần, mỗi lần kiểm tra/tạo lại Release.
+          ok=0
+          for i in 1 2 3 4; do
+            gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
+              --title "BBeat - bản build mới nhất" --notes "APK tự build bởi GitHub Actions (cài thẳng được)." || true
+            if gh release upload "$TAG" "$APK" --clobber; then ok=1; break; fi
+            echo "Upload lần $i lỗi, thử lại sau $((i*10)) giây…"; sleep $((i*10))
+          done
+          [ "$ok" = 1 ] || { echo "Không đăng được APK lên Releases"; exit 1; }
           echo "APK: https://github.com/${{ github.repository }}/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload build reports (khi lỗi)
