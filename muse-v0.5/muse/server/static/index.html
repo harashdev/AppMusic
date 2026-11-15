@@ -970,6 +970,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
   <div class="row"><input id="aPass" type="password" placeholder="Mật khẩu (≥ 8 ký tự)" autocomplete="current-password"></div>
   <div id="authErr"></div>
   <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
+  <button id="aPairBtn" style="width:100%;padding:12px;margin-top:8px">Đăng nhập bằng mã</button>
   <button id="aGuest" style="width:100%;padding:12px;margin-top:8px">Dùng không cần đăng nhập</button>
   <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
 </div></div>
@@ -1720,6 +1721,16 @@ $('#aGo').onclick=async()=>{
   }catch(e){ $('#authErr').textContent=errTxt(e)||'Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”'; }
 };
 $('#aGuest').onclick=()=>{ LS.set('muse_guest','1'); try{ localStorage.removeItem('token'); }catch{} location.reload(); };
+// Đăng nhập bằng mã 6 số lấy từ chính máy chạy server (lệnh "Lấy mã" trong thư mục admin).
+// Mã chỉ dùng được 1 lần và hết hạn sau 5 phút, không cần gõ mật khẩu trên thiết bị này.
+$('#aPairBtn').onclick=async()=>{
+  const code=(prompt('Nhập mã 6 số lấy từ máy chạy server:')||'').trim();
+  if(!code) return;
+  try{
+    const r=await api('/api/pair/redeem',{json:{code}});
+    token=r.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; start(r.user);
+  }catch(e){ $('#authErr').textContent=errTxt(e)||'Mã sai hoặc đã hết hạn'; }
+};
 $('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
 async function logout(){ if(guest){ goLogin(); return; } try{ clearTimeout(syncTm); syncBusy=false; await syncNow(); }catch{} try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
 
