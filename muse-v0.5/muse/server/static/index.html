@@ -90,18 +90,18 @@ html{color-scheme:dark}
 *::-webkit-scrollbar-thumb:active{background:var(--accent);background-clip:content-box;filter:brightness(.85)}
 select option,select optgroup{background:#1c1f26;color:#f1f3f5}
 select option:checked,select option:hover{background:var(--accent);color:var(--on)}
-.dd{position:relative;display:inline-block;min-width:0}
-.dd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:linear-gradient(180deg,#433f56,#353245)!important;outline:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--text)}
-.dd-btn:hover{background:linear-gradient(180deg,#4b4761,#3c3850)!important}
-.dd-btn:focus-visible,.dd.open .dd-btn{outline:2px solid var(--accent)}
-.dd-btn .dd-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dd-btn svg{flex:none;width:16px;height:16px;opacity:.7;transition:transform .15s}
-.dd.open .dd-btn svg{transform:rotate(180deg)}
-.dd-menu{position:fixed;z-index:100000;box-sizing:border-box;max-height:260px;overflow:auto;padding:6px;background:#1c1a26;border:1px solid #ffffff22;border-radius:14px;box-shadow:0 14px 40px #000a;display:flex;flex-direction:column;gap:2px}
-.dd-opt{padding:9px 12px;border-radius:9px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap}
-.dd-opt:hover,.dd-opt.act{background:#ffffff1c}
-.dd-opt.sel{color:var(--accent);font-weight:600}
-.dd-opt.sel::after{content:"✓";font-size:13px}
+.mdd{position:relative;display:inline-block;min-width:0;background:none;border-radius:12px}
+.mdd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:linear-gradient(180deg,#433f56,#353245)!important;outline:1px solid #ffffff17;border:0;border-radius:12px;padding:10px 14px;color:#f3f0fa;font:inherit}
+.mdd-btn:hover{background:linear-gradient(180deg,#4b4761,#3c3850)!important}
+.mdd-btn:focus-visible,.mdd.open .mdd-btn{outline:2px solid #8ecbff}
+.mdd-btn .mdd-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdd-btn svg{flex:none;width:16px;height:16px;opacity:.7;transition:transform .15s}
+.mdd.open .mdd-btn svg{transform:rotate(180deg)}
+.mdd-menu{position:fixed;z-index:100000;box-sizing:border-box;max-height:260px;overflow:auto;padding:6px;background:#1c1a26;border:1px solid #ffffff22;border-radius:14px;box-shadow:0 14px 40px #000a;display:flex;flex-direction:column;gap:2px}
+.mdd-opt{padding:9px 12px;border-radius:9px;cursor:pointer;color:#f3f0fa;display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap}
+.mdd-opt:hover,.mdd-opt.act{background:#ffffff1c}
+.mdd-opt.sel{color:#8ecbff;font-weight:600}
+.mdd-opt.sel::after{content:"\2713";font-size:13px}
 input:focus{outline:2px solid var(--accent)}
 input[type=checkbox]{width:auto;accent-color:var(--accent);vertical-align:middle}
 img{display:block}
@@ -3796,24 +3796,24 @@ $('#npDis').onclick=()=>cur&&toggleDislike(cur);
   function closeMenu(){ if(!openDd) return; openDd.menu.remove(); openDd.wrap.classList.remove('open'); document.removeEventListener('mousedown',onDoc,true); window.removeEventListener('resize',closeMenu); openDd=null; }
   function onDoc(e){ if(openDd&&!openDd.menu.contains(e.target)&&!openDd.wrap.contains(e.target)) closeMenu(); }
   function enhance(sel){
-    if(sel.dataset.dd||sel.dataset.native!==undefined||sel.multiple||sel.size>1) return;
-    sel.dataset.dd='1';
+    if(sel.dataset.mdd||sel.dataset.native!==undefined||sel.multiple||sel.size>1) return;
+    sel.dataset.mdd='1';
     const cs=getComputedStyle(sel);
-    const wrap=document.createElement('div'); wrap.className='dd';
+    const wrap=document.createElement('div'); wrap.className='mdd';
     wrap.style.flex=cs.flex; wrap.style.width=sel.style.width||'100%'; if(sel.style.minWidth) wrap.style.minWidth=sel.style.minWidth;
-    const btn=document.createElement('button'); btn.type='button'; btn.className='dd-btn'; btn.setAttribute('aria-haspopup','listbox');
-    btn.innerHTML='<span class="dd-l"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+    const btn=document.createElement('button'); btn.type='button'; btn.className='mdd-btn'; btn.setAttribute('aria-haspopup','listbox');
+    btn.innerHTML='<span class="mdd-l"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
     wrap.appendChild(btn); sel.parentNode.insertBefore(wrap,sel); sel.style.display='none';
-    const lab=btn.querySelector('.dd-l');
+    const lab=btn.querySelector('.mdd-l');
     const refresh=()=>{ const o=sel.options[sel.selectedIndex]; lab.textContent=o?o.textContent:''; btn.disabled=sel.disabled; };
     Object.defineProperty(sel,'value',{get(){return vd.get.call(this)},set(v){vd.set.call(this,v); refresh();},configurable:true});
     refresh();
     function open(){
       if(openDd&&openDd.wrap===wrap){ closeMenu(); return; }
       closeMenu(); refresh();
-      const menu=document.createElement('div'); menu.className='dd-menu'; menu.setAttribute('role','listbox');
+      const menu=document.createElement('div'); menu.className='mdd-menu'; menu.setAttribute('role','listbox');
       const opts=[...sel.options]; let act=sel.selectedIndex;
-      opts.forEach((o,i)=>{ const d=document.createElement('div'); d.className='dd-opt'+(i===sel.selectedIndex?' sel':''); d.textContent=o.textContent; d.setAttribute('role','option');
+      opts.forEach((o,i)=>{ const d=document.createElement('div'); d.className='mdd-opt'+(i===sel.selectedIndex?' sel':''); d.textContent=o.textContent; d.setAttribute('role','option');
         d.onmousemove=()=>{ setAct(i); }; d.onclick=()=>choose(i); menu.appendChild(d); });
       const items=()=>[...menu.children];
       function setAct(i){ act=i; items().forEach((e,k)=>e.classList.toggle('act',k===i)); const e=items()[i]; if(e) e.scrollIntoView({block:'nearest'}); }
