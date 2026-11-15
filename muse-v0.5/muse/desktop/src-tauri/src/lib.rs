@@ -283,20 +283,13 @@ mod gateway {
         TcpStream::connect_timeout(&SocketAddr::from(([127, 0, 0, 1], PORT)), Duration::from_millis(250)).is_ok()
     }
 
-    /// Trả về (địa chỉ cổng nhà nếu dùng được, tiến trình do app tự bật để tắt khi thoát).
-    pub fn start(remote: &str) -> (Option<String>, Option<Child>) {
-        let url = format!("http://127.0.0.1:{PORT}");
-        if up() {
-            // Đã có cổng nhà chạy sẵn (app mở lần 2, hoặc bạn tự chạy start-gateway.bat): dùng luôn.
-            return (Some(url), None);
-        }
-        let Some(dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.to_path_buf())) else {
-            return (None, None);
-        };
+    /// Bật tiến trình muse-server (cổng nhà) cạnh file .exe. None nếu thiếu file hoặc không chạy được.
+    fn spawn(remote: &str) -> Option<Child> {
+        let dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.to_path_buf()))?;
         let exe = dir.join(if cfg!(windows) { "muse-server.exe" } else { "muse-server" });
         if !exe.exists() {
             eprintln!("Không thấy {} - mở thẳng server chính", exe.display());
-            return (None, None);
+            return None;
         }
         let mut cmd = Command::new(&exe);
         cmd.current_dir(&dir)
@@ -313,13 +306,44 @@ mod gateway {
             const CREATE_NO_WINDOW: u32 = 0x0800_0000;
             cmd.creation_flags(CREATE_NO_WINDOW);
         }
-        let mut child = match cmd.spawn() {
-            Ok(c) => c,
+        match cmd.spawn() {
+            Ok(c) => Some(c),
             Err(e) => {
                 eprintln!("Không chạy được cổng nhà: {e}");
-                return (None, None);
+                None
             }
-        };
+        }
+    }
+
+    /// Canh tiến trình cổng nhà (nó là nơi lấy nhạc): chết giữa chừng thì bật lại ngay, nhạc đang nghe không bị đứng luôn.
+    /// Dừng canh khi thoát app (lúc đó tiến trình đã được lấy ra để tắt) hoặc không bật lại được.
+    pub fn watch(handle: tauri::AppHandle, remote: String) {
+        use tauri::Manager;
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(2));
+            let Some(g) = handle.try_state::<GatewayChild>() else { continue };
+            let Ok(mut slot) = g.0.lock() else { continue };
+            let dead = match slot.as_mut() {
+                Some(ch) => matches!(ch.try_wait(), Ok(Some(_))),
+                None => return,
+            };
+            if dead {
+                *slot = spawn(&remote);
+                if slot.is_none() {
+                    return;
+                }
+            }
+        });
+    }
+
+    /// Trả về (địa chỉ cổng nhà nếu dùng được, tiến trình do app tự bật để tắt khi thoát).
+    pub fn start(remote: &str) -> (Option<String>, Option<Child>) {
+        let url = format!("http://127.0.0.1:{PORT}");
+        if up() {
+            // Đã có cổng nhà chạy sẵn (app mở lần 2, hoặc bạn tự chạy start-gateway.bat): dùng luôn.
+            return (Some(url), None);
+        }
+        let Some(mut child) = spawn(remote) else { return (None, None) };
         let t0 = Instant::now();
         while t0.elapsed() < Duration::from_secs(8) {
             if up() {
@@ -390,7 +414,12 @@ pub fn run() {
                     if let Some(u) = gw_url {
                         start_url = u;
                     }
+                    let ours = child.is_some();
                     app.manage(gateway::GatewayChild(Mutex::new(child)));
+                    // Cổng nhà do app tự bật thì canh luôn: chết giữa chừng là bật lại ngay (nhạc lấy qua nó).
+                    if ours {
+                        gateway::watch(app.handle().clone(), SERVER_URL.trim_end_matches('/').to_string());
+                    }
                 }
             }
             let url: tauri::Url = start_url.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;

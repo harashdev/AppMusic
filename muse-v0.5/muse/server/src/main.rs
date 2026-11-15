@@ -5355,14 +5355,20 @@ async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: us
     }
 }
 
-// Nhớ 10 phút nguồn nào đã bị chặn cho video này để khỏi thử lại ở mỗi yêu cầu đoạn.
+// Nhớ 90 giây nguồn nào đã bị chặn cho video này để khỏi thử lại ở mỗi yêu cầu đoạn.
+// (Trước đây 10 phút: một lượt lỗi thoáng qua lúc mạng còn nguội là cả bài bị từ chối rất lâu, thoát app vào lại mới hết.)
 static AUDIO_BAD: std::sync::OnceLock<Mutex<HashMap<(String, usize), u64>>> = std::sync::OnceLock::new();
+const AUDIO_BAD_SECS: u64 = 90;
 fn bad_map() -> &'static Mutex<HashMap<(String, usize), u64>> {
     AUDIO_BAD.get_or_init(|| Mutex::new(HashMap::new()))
 }
 fn audio_bad(id: &str, src: usize) -> bool {
     let m = bad_map().lock().unwrap();
-    m.get(&(id.to_string(), src)).map(|t| now_secs().saturating_sub(*t) < 600).unwrap_or(false)
+    m.get(&(id.to_string(), src)).map(|t| now_secs().saturating_sub(*t) < AUDIO_BAD_SECS).unwrap_or(false)
+}
+fn audio_clear_bad(id: &str) {
+    let mut m = bad_map().lock().unwrap();
+    m.retain(|(i, _), _| i.as_str() != id);
 }
 fn audio_mark_bad(id: &str, src: usize) {
     let mut m = bad_map().lock().unwrap();
@@ -5832,6 +5838,11 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
 
     // Thử lần lượt các nguồn (client YouTube -> yt-dlp -> Piped); nguồn nào bị chặn thì bỏ qua và thử nguồn kế tiếp.
     let order = audio_order();
+    // Mọi nguồn đều đang bị đánh dấu hỏng cho bài này (vd. mạng chưa sẵn sàng lúc mới mở app làm cả lượt thử đầu thất bại):
+    // quên hết đánh dấu và thử lại từ đầu, thay vì từ chối cả bài trong nhiều phút ("mọi nguồn âm thanh đang bị YouTube chặn").
+    if order.iter().all(|s| audio_bad(&id, *s)) {
+        audio_clear_bad(&id);
+    }
     let mut pos = 0usize;
     // Mỗi nguồn được thử lại 1 lần (lấy link mới) trước khi bị coi là hỏng: link googlevideo hay hết hạn / lỗi thoáng qua.
     let mut retried: HashSet<usize> = HashSet::new();

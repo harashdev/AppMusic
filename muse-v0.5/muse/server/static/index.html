@@ -1872,7 +1872,10 @@ function warmPump(){
 function warmList(list,n=3){
   const now=Date.now();
   for(let i=warmQ.length-1;i>=0;i--) if(now-warmQ[i].at>10000) warmQ.splice(i,1);
-  for(const t of (list||[]).slice(0,n)){ if(!t||warmQ.length>=12||warmQ.some(x=>x.t.id===t.id)) continue; warmQ.push({t,at:now}); }
+  // Android lấy sẵn bằng bộ lấy luồng native; desktop/web mỗi bài lấy sẵn là một lượt hỏi cả chục client YouTube qua cổng nhà,
+  // nên chỉ làm bài đầu của mỗi danh sách (tránh dồn dập làm YouTube chặn tạm thời).
+  const cap=(window.MuseNative&&typeof MuseNative.prefetch==='function')?n:1;
+  for(const t of (list||[]).slice(0,cap)){ if(!t||warmQ.length>=12||warmQ.some(x=>x.t.id===t.id)) continue; warmQ.push({t,at:now}); }
   if(warmQ.length&&!warmQTm) warmQTm=setTimeout(warmPump,0);
 }
 $('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
@@ -3354,7 +3357,7 @@ audYt.addEventListener('error',()=>{
     wdTries[t.id]=0; fxTried[t.id]=false; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
     failSkip(t);
     return; }
-  fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000;
+  fxFail[t.id]=true; if(!homeIpOn()) fxDownUntil=Date.now()+5*60000; /* dùng IP nhà: không cấm luồng 5 phút cho MỌI bài, chỉ bài này rơi về iframe */
   fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
     let real='';
     try{ const u=(audYt.currentSrc||audYt.src), r=await fetch(u,{headers:{Range:'bytes=0-65535'}}), b=new Uint8Array(await r.arrayBuffer());
