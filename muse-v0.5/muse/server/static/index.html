@@ -853,6 +853,16 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-cov{left:50%;width:min(70cqw,92cqh);aspect-ratio:1;transform:translate(-68%,-50%);object-fit:cover;box-shadow:0 12px 40px #000a;background:var(--surf2);z-index:1}
 .dd-disc{left:50%;width:min(70cqw,92cqh);aspect-ratio:1;transform:translate(-30%,-50%);border-radius:50%;z-index:0;
  background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 8px 24px #0008}
+/* Mặt đĩa mang hình bìa (cover vuông đè lên giữa đĩa nên chỉ lộ phần cung bên phải; đĩa quay thì hình quay theo).
+   Lớp ::after phủ rãnh đĩa mờ + vệt sáng + lỗ giữa để vẫn ra dáng đĩa than. */
+.dd-disc{overflow:hidden}
+.dd-dimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;filter:brightness(.62) contrast(1.08) saturate(.95)}
+.dd-disc::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+ background:radial-gradient(circle,#0c0c0c 0 4%,#cfcfcf 4% 8%,#111 8% 10%,transparent 10%),
+  radial-gradient(circle,#0000 0 58%,#000a 100%),
+  repeating-radial-gradient(circle,#0000 0 2px,#00000026 2px 4px),
+  conic-gradient(from 25deg,#fff0 0 8%,#ffffff22 13%,#fff0 19% 58%,#ffffff1a 63%,#fff0 69%);
+ box-shadow:inset 0 0 0 2px #0007,inset 0 0 30px #000b}
 .dd-playing .dd-disc{animation:ddspin 6s linear infinite}
 @keyframes ddspin{to{transform:translate(-30%,-50%) rotate(360deg)}}
 .dd-ft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:10px 20px 14px;border-top:1px solid var(--line);background:var(--surf2)}
@@ -3917,7 +3927,7 @@ function dlDetHtml(){
   return `<div class="dd-tabs"><button class="on">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr">Lời bài hát</button><button class="x" data-dd="close" title="Đóng">${ic('x')}</button></div>
   <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><div class="ar">${esc(t.artist||'')}</div><hr>
    <dl>${row('Codec',codec)}${row('Kênh','2.0 Stereo')}${row('Nguồn',sr+' kHz')}${row('Dữ liệu',(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''))}${row('Thời lượng',fmt(dur))}${row('Đã thêm',added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
-   <div class="dd-art"><div class="dd-disc"></div><img class="dd-cov" alt="" src="${esc(thumb(t.image,800))}"></div></div>
+   <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" src="${esc(thumb(t.image,800))}"></div><img class="dd-cov" alt="" src="${esc(thumb(t.image,800))}"></div></div>
   <div class="dd-ft"><div class="dd-now">${esc((t.artist?t.artist+' – ':'')+(t.title||''))}</div>
    <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"><span id="ddTm">0:00</span></div>
    <div class="dd-ctl"><button data-dd="stop" title="Dừng">${ic('stop','fill sm')}</button><button data-dd="prev" title="Bài trước">${ic('prev','fill sm')}</button><button data-dd="pp" id="ddPp"></button><button data-dd="next" title="Bài sau">${ic('next','fill sm')}</button><button data-dd="shuf" id="ddShuf" title="Ngẫu nhiên">${ic('shuffle','sm')}</button><button data-dd="vol" id="ddVol">${ic('vol','sm')}</button><input class="vol" id="ddVolR" type="range" min="0" max="100"></div></div>`;
@@ -3937,7 +3947,10 @@ function dlDetRender(){
   const m=$('#main'); if(!m||!cur) return;
   dlDetKey=key(cur); m.innerHTML='<div class="dd">'+dlDetHtml()+'</div>'; document.body.classList.add('dl-det');
   const dd=m.querySelector('.dd'), sk=$('#ddSeek'), vr=$('#ddVolR');
-  const cov=dd.querySelector('.dd-cov'); cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) cov.src=u; }); };
+  const cov=dd.querySelector('.dd-cov'), dimg=dd.querySelector('.dd-dimg');
+  // Cover (và hình trên mặt đĩa) lỗi tải thì lấy bản đã lưu offline; không có thì ẩn hình trên đĩa, đĩa trơn như cũ.
+  cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; } }); };
+  if(dimg) dimg.onerror=()=>{ dimg.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) dimg.src=u; else dimg.style.display='none'; }); };
   sk.onchange=()=>{ const d=getDur(); if(d){ seekTo(d*sk.value/1000); broadcastState(); } };
   vr.oninput=()=>{ vol=vr.value/100; LS.set('vol',vol); applyVol(); };
   dd.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b) return; const a=b.dataset.dd;
