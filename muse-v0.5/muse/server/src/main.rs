@@ -5993,7 +5993,7 @@ async fn ytdlp_video(vid: &str, use_proxy: bool) -> Result<(PathBuf, u64, String
         .ok()
         .and_then(|x| x.trim().parse::<u32>().ok())
         .filter(|n| *n >= 144 && *n <= 2160)
-        .unwrap_or(360); // 360p đủ nét cho khung video nhỏ và nhẹ hơn 480p ~40% nên tải nhanh hơn (đặt YT_VIDEO_HEIGHT để đổi)
+        .unwrap_or(240); // 240p (trước là 360p) đủ cho khung video nhỏ, file nhẹ hơn nên tải xong nhanh hơn; đặt YT_VIDEO_HEIGHT để đổi. Trước: 360p đủ nét cho khung video nhỏ và nhẹ hơn 480p ~40% nên tải nhanh hơn (đặt YT_VIDEO_HEIGHT để đổi)
     let fmt = format!("bv[height<={h}][ext=mp4][vcodec^=avc1]/bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
     let template = dir.join(format!("{vid}_v.%(ext)s"));
     let mut cmd = ytdlp_base(use_proxy);
