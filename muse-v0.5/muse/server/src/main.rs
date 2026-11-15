@@ -1346,8 +1346,8 @@ async fn optimize_gif_files(
     let fit = format!("{max_px}x{max_px}");
     let mut best_gif: Vec<u8> = body.to_vec();
     let mut webp_input = s;
-    let packed = run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O3", "--lossy=40", s, "-o", o]).await
-        || run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O3", s, "-o", o]).await;
+    let packed = run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O2", "--lossy=40", s, "-o", o]).await
+        || run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O2", s, "-o", o]).await;
     if packed {
         if let Ok(b) = tokio::fs::read(opt).await {
             if matches!(sniff_image(&b), Some("gif")) && b.len() < best_gif.len() {
@@ -1357,10 +1357,15 @@ async fn optimize_gif_files(
         }
     }
 
-    // 2) ffmpeg: video MP4 (H.264) tắt tiếng, tối đa 25 khung/giây. Điện thoại giải mã video bằng phần cứng nên nhẹ hơn ảnh động nhiều.
+    // 2) + 3) Video MP4 (ffmpeg) và WebP động (gif2webp) chỉ cùng đọc webp_input, không phụ thuộc nhau → chạy SONG SONG
+    //    thay vì nối đuôi (trước đây tổng thời gian = cộng hai bước, giờ chỉ còn bước lâu hơn).
+    //    Video: MP4 (H.264) tắt tiếng, tối đa 25 khung/giây, điện thoại giải mã bằng phần cứng nên nhẹ hơn ảnh động nhiều.
     //    Nền trong suốt của GIF sẽ thành màu đen. Thiếu ffmpeg thì bỏ qua bước này.
-    let mut video: Option<Vec<u8>> = None;
-    if want_video {
+    //    WebP: ảnh dự phòng khi video không phát được, và là ảnh dùng ở các chỗ không dùng video (danh sách, nền).
+    let make_video = async {
+        if !want_video {
+            return None;
+        }
         let made = run_tool(
             &ffmpeg,
             &[
@@ -1370,31 +1375,32 @@ async fn optimize_gif_files(
             ],
         )
         .await;
-        if made {
-            if let Ok(b) = tokio::fs::read(vid).await {
-                if b.len() > 12 && &b[4..8] == b"ftyp" {
-                    video = Some(b);
-                }
-            }
+        if !made {
+            return None;
         }
-    }
-
-    // 3) gif2webp: WebP động (mỗi khung chọn lossy/lossless), khung gốc dày hơn để giải mã nhanh trên điện thoại.
-    //    Đây là ảnh dự phòng khi video không phát được, và là ảnh dùng ở các chỗ không dùng video (danh sách, nền).
-    let mut image: Option<(Vec<u8>, &'static str)> = None;
-    let converted = run_tool(
-        &gif2webp,
-        &["-quiet", "-mixed", "-q", "80", "-m", "4", "-mt", "-kmin", "3", "-kmax", "5", webp_input, "-o", w],
-    )
-    .await;
-    if converted {
-        if let Ok(b) = tokio::fs::read(web).await {
+        match tokio::fs::read(vid).await {
+            Ok(b) if b.len() > 12 && &b[4..8] == b"ftyp" => Some(b),
+            _ => None,
+        }
+    };
+    let make_webp = async {
+        // -m 2 (thay vì 4): nén nhanh hơn nhiều, file chỉ nhỉnh hơn một chút.
+        let converted = run_tool(
+            &gif2webp,
+            &["-quiet", "-mixed", "-q", "80", "-m", "2", "-mt", "-kmin", "3", "-kmax", "5", webp_input, "-o", w],
+        )
+        .await;
+        if !converted {
+            return None;
+        }
+        match tokio::fs::read(web).await {
             // Chỉ dùng WebP khi hợp lệ và không to hơn GIF đã nén quá 1,5 lần
-            if matches!(sniff_image(&b), Some("webp")) && b.len() <= best_gif.len() + best_gif.len() / 2 {
-                image = Some((b, "webp"));
-            }
+            Ok(b) if matches!(sniff_image(&b), Some("webp")) && b.len() <= best_gif.len() + best_gif.len() / 2 => Some((b, "webp")),
+            _ => None,
         }
-    }
+    };
+    let (video, webp) = tokio::join!(make_video, make_webp);
+    let mut image: Option<(Vec<u8>, &'static str)> = webp;
     if image.is_none() && best_gif.len() < body.len() {
         image = Some((best_gif, "gif"));
     }
