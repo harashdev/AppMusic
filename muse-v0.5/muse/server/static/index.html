@@ -1024,6 +1024,27 @@ body.dl-det #main{padding:0!important;overflow:hidden}
   if(L==='vi') return;
 
   const EN_EXACT={
+    'Chi tiết':'Details',
+    'Danh sách':'List',
+    'Kênh':'Channels',
+    'Nguồn':'Sample rate',
+    'Dữ liệu':'Bitrate',
+    'Thời lượng':'Duration',
+    'Đã thêm':'Added',
+    'Nghe lần cuối':'Last played',
+    'Lượt nghe':'Plays',
+    'Xoá khỏi danh sách':'Remove from list',
+    'Tải nhạc':'Download',
+    'Không thích bài này':'Dislike this song',
+    'Về danh sách tải xuống':'Back to downloads',
+    'Dừng':'Stop',
+    'Không thể kết nối':"Can't connect",
+    'Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.':'Check your internet connection and try again, or listen to songs you have downloaded.',
+    'Thử lại':'Try again',
+    'Nghe những bài đã tải xuống':'Play downloaded songs',
+    'Đã tải xuống':'Downloaded',
+    'Nghe offline':'Available offline',
+    'Chưa có bài nào. Bấm nút tải xuống ở bài hát để lưu về nghe offline.':'Nothing yet. Tap the download button on a song to save it for offline listening.',
     'Nghệ sĩ nổi bật':'Best of artists','Tổng hợp những bài hát hàng đầu của một nghệ sĩ.':'Bringing together the top songs from an artist.','Danh sách phát công khai':'Public Playlist','Lưu thành danh sách phát':'Save as playlist','Đã lưu thành danh sách phát':'Saved as a playlist','Không tải được bài hát của nghệ sĩ này.':'Couldn’t load this artist’s songs.','Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.':'No artists to show yet. Try again later.',
     'Đăng nhập':'Log in','Đăng ký':'Sign up','Tên đăng nhập':'Username','Tên hiển thị':'Display name',
     'Mật khẩu (≥ 8 ký tự)':'Password (8+ characters)','Tạo tài khoản':'Create account',
@@ -1189,6 +1210,17 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 
   const plural=(n,a,b)=>n+' '+(+n===1?a:b);
   const EN_RULES=[
+    [/^Đang tải (\d+)%$/,(m)=>'Downloading '+m[1]+'%'],
+    [/^Xong · (.+)$/,(m)=>'Done · '+m[1]],
+    [/^Lỗi: (.+)$/,(m)=>'Error: '+(m[1]==='không rõ'?'unknown':m[1])],
+
+    [/^(\d+) bài nghe được offline$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' available offline'],
+    [/^(\d+) bài đã tải$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' downloaded'],
+    [/^Đang tải (\d+) bài…$/,(m)=>'Downloading '+m[1]+(m[1]==='1'?' song':' songs')+'…'],
+    [/^(\d+) bài · (\d+) bài nghe được khi không có mạng(.*)$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' · '+m[2]+' playable offline'+m[3]],
+    [/^(\d+) nghệ sĩ$/,(m)=>m[1]+(m[1]==='1'?' artist':' artists')],
+    [/^(\d{4}-\d\d-\d\d) \((\d+) ngày\)$/,(m)=>m[1]+' ('+m[2]+(m[2]==='1'?' day':' days')+' ago)'],
+
     [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. The essential tracks, all in one playlist.'],
     [/^(.+) • (\d+) bài hát, khoảng (\d+) giờ$/,(m)=>m[1]+' • '+m[2]+' songs, about '+m[3]+' hr'],
     [/^(.+) • (\d+) bài hát, (\d+) phút$/,(m)=>m[1]+' • '+m[2]+' songs, '+m[3]+' min'],
