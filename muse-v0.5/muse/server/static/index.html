@@ -3633,7 +3633,23 @@ function toggleDislike(t){ if(!t||!t.id) return; const o=disGet(), k=key(t), L=l
   if(cur&&key(cur)===k&&queue.length>1) nextTrack(false); }
 function playList(list,i,name){
   if(blocked(list[i])){ notify('Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe'); return; }
+  const want=list[i];
+  // Bấm lại đúng bài đang nghe: KHÔNG tải/phát lại từ đầu, chỉ cập nhật hàng đợi và (nếu đang tạm dừng) phát tiếp.
+  // Bài đang lỗi/chưa nạp được thì vẫn cho phát lại như cũ để người dùng thử lại.
+  if(want&&cur&&key(cur)===key(want)&&curHealthy()){
+    queue=list.slice(); qi=i; qname=name||'';
+    if(!playing){ setPlaying(true); broadcastState(); }
+    if(!npOpen) setNp(true,'play');
+    return;
+  }
   queue=list.slice(); qi=i; qname=name||''; userPlay(queue[qi]); if(!npOpen) setNp(true,'play');
+}
+function curHealthy(){
+  try{
+    if(eng==='fx') return !audYt.error&&!!(audYt.currentSrc||audYt.src)&&(audYt.readyState>=1||audYt.networkState===2);
+    if(eng==='yt') return !!ytReady&&!ytFail[cur.id];
+    return !aud.error&&!!aud.src&&(aud.readyState>=1||aud.networkState===2);
+  }catch{ return false; }
 }
 function nextTrack(auto){
   if(!queue.length) return;
