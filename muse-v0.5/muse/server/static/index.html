@@ -4113,7 +4113,7 @@ function dlDetHtml(){
   const added=x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—';
   const st=dlDetStats(t), sr=/webm/i.test(x.fmt||'')?'48':'44.1';
   const row=(a,b)=>`<dt>${a}</dt><dd>${esc(String(b))}</dd>`;
-  return `<div class="dd-nav"><button class="menu" data-dd="list" title="Về danh sách tải xuống"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Phóng to / thu nhỏ cửa sổ (F11: toàn màn hình)"><svg width="13" height="13" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
+  return `<div class="dd-nav"><button class="menu" data-dd="list" title="Về danh sách tải xuống"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Toàn màn hình (F11)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
   <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><div class="ar">${esc(t.artist||'')}</div><hr>
    <dl>${row('Codec',codec)}${row('Kênh','2.0 Stereo')}${row('Nguồn',sr+' kHz')}${row('Dữ liệu',(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''))}${row('Thời lượng',fmt(dur))}${row('Đã thêm',added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
    <div class="dd-lyr" id="ddLyr"></div>
@@ -4156,7 +4156,7 @@ function dlDetRender(){
     else if(a==='vol') $('#bVol').click();
     else if(a==='stop'){ setPlaying(false); seekTo(0); broadcastState(); }
     else if(a==='det'||a==='lyr') dlDetSetTab(dd,a)
-    else if(a==='max'){ const p=winCmd('win_toggle_max'); if(p) p.catch(()=>{}); else toggleBrowserFs(); } };
+    else if(a==='max'){ const p=winCmd('win_toggle_fullscreen'); if(p) p.catch(()=>{}); else toggleBrowserFs(); } };
   dd.classList.toggle('dd-tab-lyr',dlDetTab==='lyr');
   const lb=$('#ddLyr'); if(lb) lb.onclick=e=>{ const d=e.target.closest('[data-k]'); if(d&&lyrLines){ seekTo(lyrLines[+d.dataset.k].t); broadcastState(); } };
   if(dlDetTab==='lyr') dlDetLyrics();
