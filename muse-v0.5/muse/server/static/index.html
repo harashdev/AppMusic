@@ -258,8 +258,18 @@ body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubi
 body.np-max.has-np #np{position:fixed;left:12px;right:12px;top:12px;bottom:100px;width:auto;z-index:36;display:flex;transform:none;visibility:visible;box-shadow:0 18px 60px #000b}
 @media(max-width:700px){#npMax{display:none}}
 .nph{display:flex;align-items:center;gap:4px;padding:12px 12px 6px 16px;flex:none}
-.npTabs{display:flex;flex:1;min-width:0;background:color-mix(in srgb,var(--npfg) 13%,transparent);border-radius:999px;padding:3px}
-.npTabs button{flex:1;background:none;color:inherit;padding:7px 8px;font-size:13px;opacity:.78;white-space:nowrap}
+.npTabs{display:flex;flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:color-mix(in srgb,var(--npfg) 13%,transparent);border-radius:999px;padding:3px}
+.npTabs::-webkit-scrollbar{display:none}
+#np{container-type:inline-size;container-name:npc}
+/* Khung Đang phát hẹp (cửa sổ nhỏ / chưa phóng to): 3 nút icon lên hàng trên bên phải, các tab xuống hàng riêng, không bị đẩy ra ngoài khung */
+@container npc (max-width:490px){
+  .nph{flex-wrap:wrap;row-gap:6px}
+  .nph .ico{order:1}.nph #npMore{margin-left:auto}
+  .npTabs{order:2;flex:1 0 100%}
+  .npTabs button{padding:7px 6px;font-size:12.5px}
+}
+.npTabs button{flex:1 0 auto;background:none;color:inherit;padding:7px 10px;font-size:13px;opacity:.78;white-space:nowrap}
+.nph .ico{flex:none}
 .npTabs button:hover{background:color-mix(in srgb,var(--npfg) 10%,transparent);opacity:1}
 .npTabs button.on{background:color-mix(in srgb,var(--npfg) 26%,transparent);opacity:1;font-weight:600}
 #np button.ico{color:inherit}
@@ -4625,6 +4635,7 @@ function setNpMax(on){
 function showTab(){
   document.querySelectorAll('.npTabs [data-nt]').forEach(b=>{ const on=b.dataset.nt===npTab; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
   $('#vPlay').classList.toggle('show',npTab==='play'); $('#vLyr').classList.toggle('show',npTab==='lyr'); $('#vQ').classList.toggle('show',npTab==='q'); $('#vC').classList.toggle('show',npTab==='c');
+  try{ const on=document.querySelector('.npTabs .on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'nearest'}); }catch{}
   if(!npOpen) return;
   if(npTab==='lyr') openLyrics(); else if(npTab==='q') renderQueue(); else if(npTab==='c') renderComments();
 }
