@@ -1,3 +1,5 @@
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,6 +9,9 @@ plugins {
 val museUrl: String = (System.getenv("MUSE_URL")?.takeIf { it.isNotBlank() }
     ?: providers.gradleProperty("MUSE_URL").orNull
     ?: "https://appmusic-ur3z.onrender.com").trim().trimEnd('/')
+
+// Host của server, dùng cho intent-filter mở link thẻ (https://<host>/u/...) trong AndroidManifest.
+val museHost: String = runCatching { URI(museUrl).host }.getOrNull()?.takeIf { it.isNotBlank() } ?: "localhost"
 
 // Discord Social SDK (tùy chọn): CI giải nén SDK vào các thư mục này. Thiếu thì app vẫn build, chỉ không có tính năng.
 val sdkDir: String = (System.getenv("DISCORD_SDK_DIR") ?: "").trim()
@@ -24,7 +29,7 @@ android {
         targetSdk = 34
         versionCode = 8
         versionName = "0.8.2"
-        manifestPlaceholders["museHost"] = runCatching { java.net.URI(museUrl).host }.getOrNull() ?: "localhost"
+        manifestPlaceholders["museHost"] = museHost
         buildConfigField("String", "MUSE_URL", "\"${museUrl.replace("\"", "")}\"")
         if (hasSdk) {
             ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
