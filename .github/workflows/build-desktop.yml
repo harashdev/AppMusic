@@ -84,9 +84,14 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           TAG=desktop-latest
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
-            --title "Muse desktop - bản build mới nhất" --notes "File cài Windows tự build bởi GitHub Actions."
-          gh release upload "$TAG" muse-v0.5/muse/desktop/src-tauri/target/release/bundle/nsis/*.exe muse-v0.5/muse/desktop/src-tauri/target/release/bundle/msi/*.msi --clobber
+          ok=0
+          for i in 1 2 3 4; do
+            gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
+              --title "Muse desktop - bản build mới nhất" --notes "File cài Windows tự build bởi GitHub Actions." || true
+            if gh release upload "$TAG" muse-v0.5/muse/desktop/src-tauri/target/release/bundle/nsis/*.exe muse-v0.5/muse/desktop/src-tauri/target/release/bundle/msi/*.msi --clobber; then ok=1; break; fi
+            echo "Upload lần $i lỗi, thử lại sau $((i*10)) giây…"; sleep $((i*10))
+          done
+          [ "$ok" = 1 ] || { echo "Không đăng được file cài lên Releases"; exit 1; }
 
   build-server:
     runs-on: windows-latest
