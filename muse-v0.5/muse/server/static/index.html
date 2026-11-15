@@ -1872,14 +1872,14 @@ function openImgView(src,name){
    đứng ở khung hình đầu (không tốn pin), chuyển sang popup mới chạy. */
 const pcPool=new Map(); let pcHost=null;
 const pcFull=()=>LS.get('pc_full','1')==='1';
-const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.online===false]);
-const pcExtra=mine=>`<div class="pc-act"><button class="pri sm" data-x="card">Thẻ chia sẻ</button><button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
+const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
+const pcExtra=(mine,u)=>`<div class="pc-act">${(u&&u.supporter>0)?'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>':(mine?'<button class="out sm" data-x="card">Thẻ chia sẻ 🔒</button>':'')}<button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
   try{
     if(!u||guest&&!mine) return;
     const k=pcKey(u,mine); if(pcPool.has(k)) return;
     if(!pcHost){ pcHost=document.createElement('div'); pcHost.className='pcwarm'; pcHost.setAttribute('aria-hidden','true'); document.body.appendChild(pcHost); }
-    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine),full:pcFull()});
+    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull()});
     const pc=t.firstElementChild; if(!pc) return;
     pc.querySelectorAll('video').forEach(v=>{ v.removeAttribute('autoplay'); v.autoplay=false; });
     for(const [ok,o] of [...pcPool]){ if(pcSame(ok,u,mine)){ pcPool.delete(ok); o.remove(); } }   // bản cũ của chính người này (đổi avatar/banner...) bỏ đi
@@ -1892,8 +1892,11 @@ function warmProfile(u,mine){
 }
 function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]===!!mine; }catch{ return false; } }
 
-/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili): vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
+/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili) — chỉ dành cho người ủng hộ Ko-fi (u.supporter: 1 = thành viên nhỏ, 2 = thành viên lớn).
+   Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
+function supporterOnly(){ notify('Thẻ chia sẻ chỉ dành cho người ủng hộ qua Ko-fi. Khi ủng hộ, hãy ghi mã kết bạn hoặc tên đăng nhập của bạn vào lời nhắn.'); const du=(cfg&&cfg.donate_url)||ABOUT.supportUrl; if(du) setTimeout(()=>{ try{ openExt(du); }catch{} },1200); }
 function shareCard(u){
+  if(guest||!u||!(u.supporter>0)){ supporterOnly(); return; }
   const W=1200,H=520,ov=document.createElement('div'); ov.className='shc-ov';
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row"><button class="pri sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
@@ -1920,11 +1923,19 @@ function shareCard(u){
     g.restore(); g.lineWidth=4; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
     g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=10;
     g.fillStyle='#fff'; g.font='600 38px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>520&&nm.length>1) nm=nm.slice(0,-1); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+26,ay+ar+13);
-    g.fillStyle='#ffffffcc'; g.font='600 26px '+ft; g.fillText('MEMBER NO.',70,290);
-    g.fillStyle='#fff'; g.font='700 104px "SF Mono",Consolas,"Courier New",monospace'; g.fillText(no,64,385);
-    g.fillStyle='#ffffffcc'; g.font='600 24px '+ft; g.fillText('DATE',70,440);
-    g.fillStyle='#fff'; g.font='600 30px '+ft; g.fillText(date,70,482);
-    g.textAlign='right'; g.font='800 40px '+ft; g.fillText('Muse',W-56,86);
+    // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
+    const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
+    const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; for(const c of t){ g.fillText(c,cx,y); cx+=g.measureText(c).width+gap; } };
+    g.fillStyle='#ffffffcc'; g.font='600 26px '+ft; sp('FANS NO.',70,290,6);
+    g.fillStyle='#fff'; g.font='700 104px "SF Mono",Consolas,"Courier New",monospace'; sp(no,64,385,22);
+    g.fillStyle='#ffffffcc'; g.font='600 24px '+ft; sp('DATE',70,440,6);
+    g.fillStyle='#fff'; g.font='600 30px '+ft; sp(date,70,482,4);
+    g.fillStyle='#fff'; g.font='800 40px '+ft; sp('BBeat',W-56,86,3,true);
+    // hạng thành viên (donate Ko-fi)
+    const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
+    g.font='700 22px '+ft; const tw=spw(tier,4), bx=W-56-tw-36;
+    g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.24)'; rr(bx,112,tw+36,46,23); g.fill();
+    g.fillStyle='#fff'; sp(tier,bx+18,144,4);
   });
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
@@ -1932,7 +1943,7 @@ function shareCard(u){
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
-      if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='muse-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
+      if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
       else { try{ await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); notify('Đã chép ảnh thẻ'); }catch{ notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh'); } } },'image/png'); };
 }
 function showProfilePop(u,anchor,mine){
@@ -1940,7 +1951,7 @@ function showProfilePop(u,anchor,mine){
   const d=document.createElement('div'); d.className='pcpop';
   const wk=pcKey(u,mine), warm=pcPool.get(wk);
   if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
-  else d.innerHTML=profileCard(u,{extra:pcExtra(mine),full:pcFull()});
+  else d.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull()});
   const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?520:330)))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
@@ -1948,7 +1959,7 @@ function showProfilePop(u,anchor,mine){
       if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
       return; }
     const act=x.dataset.x;
-    if(act==='card'){ d.remove(); shareCard(u); return; }
+    if(act==='card'){ d.remove(); if(guest||!(u.supporter>0)) supporterOnly(); else shareCard(u); return; }
     if(act==='style'){ LS.set('pc_full',pcFull()?'0':'1'); d.remove(); warmProfile(u,mine); showProfilePop(u,anchor,mine); return; }
     d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
