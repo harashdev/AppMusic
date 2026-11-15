@@ -5483,10 +5483,14 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
     for (i, &ci) in cands.iter().enumerate() {
         let c = client.clone();
         let v = vid.to_string();
-        let wait = i as u64 * AUDIO_STAGGER_MS + if audio_client_late(ci) { AUDIO_LATE_DELAY_MS } else { 0 };
+        // yt-dlp (nguồn 90) bắt đầu sau ~1,2s: client nhanh (ANDROID_VR) thắng thì khỏi chạy yt-dlp; nếu không thì yt-dlp đã chạy sẵn.
+        let wait = if ci == 90 { 1200 } else { i as u64 * AUDIO_STAGGER_MS + if audio_client_late(ci) { AUDIO_LATE_DELAY_MS } else { 0 } };
         set.spawn(async move {
             if wait > 0 {
                 tokio::time::sleep(Duration::from_millis(wait)).await;
+            }
+            if ci == 90 {
+                return (ci, resolve_source(&c, &v, webm, 90, false).await);
             }
             (ci, resolve_audio(&c, &v, webm, ci).await)
         });
@@ -5548,8 +5552,24 @@ fn ytdlp_fmt(webm: bool) -> &'static str {
 }
 
 // Lệnh yt-dlp dùng chung (đường dẫn, Deno, cookies, proxy) cho cả lấy link lẫn tải file.
+// yt-dlp đi kèm app desktop (nằm cạnh muse-server): ưu tiên YTDLP_PATH, rồi file cạnh chương trình, cuối cùng mới là PATH.
+fn ytdlp_bundled() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let dir = exe.parent()?;
+    ["yt-dlp.exe", "yt-dlp"].iter().map(|n| dir.join(n)).find(|p| p.is_file())
+}
+
+// Có yt-dlp dùng được ngay không (YTDLP_PATH hoặc bản đi kèm app) → cho yt-dlp chạy song song với các client để nhạc lên nhanh.
+fn ytdlp_ready() -> bool {
+    std::env::var("YTDLP_PATH").map(|x| !x.trim().is_empty()).unwrap_or(false) || ytdlp_bundled().is_some()
+}
+
 fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
-    let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
+    let bin = std::env::var("YTDLP_PATH")
+        .ok()
+        .filter(|x| !x.trim().is_empty())
+        .or_else(|| ytdlp_bundled().map(|p| p.to_string_lossy().into_owned()))
+        .unwrap_or_else(|| "yt-dlp".to_string());
     let mut cmd = tokio::process::Command::new(&bin);
     cmd.arg("--no-playlist").arg("--no-warnings");
     // yt-dlp cần JS runtime (Deno) để giải mã YouTube: nếu deno.exe nằm cạnh server thì chỉ thẳng đường dẫn, khỏi phụ thuộc PATH.
@@ -5971,12 +5991,15 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 };
                 // Hỏi song song các client YouTube thay vì lần lượt: nhạc lên tiếng nhanh hơn khi client đầu bị chặn/chậm.
                 if res.is_none() && pos == 0 {
-                    let mut cands: Vec<usize> = order.iter().copied().filter(|s| *s < 90 && !audio_bad(&id, *s)).collect();
+                    // Có yt-dlp đi kèm (app desktop) thì cho nó chạy song song trong cuộc đua, không đợi các client chết hết rồi mới thử.
+                    let ytdlp_in_race = ytdlp_ready();
+                    let pick = |s: &usize| *s < 90 || (ytdlp_in_race && *s == 90);
+                    let mut cands: Vec<usize> = order.iter().copied().filter(|s| pick(s) && !audio_bad(&id, *s)).collect();
                     if cands.is_empty() {
                         // Mọi client đều từng lỗi ở bài này (có thể chỉ là lỗi thoáng qua): cho thử lại tất cả từ đầu
                         // thay vì báo "bị YouTube chặn" suốt 10 phút.
                         audio_clear_bad(&id);
-                        cands = order.iter().copied().filter(|s| *s < 90).collect();
+                        cands = order.iter().copied().filter(|s| pick(s)).collect();
                     }
                     if cands.len() > 1 {
                         match resolve_race(&client, &id, webm, &cands).await {
