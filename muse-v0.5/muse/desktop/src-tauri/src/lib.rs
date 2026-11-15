@@ -298,7 +298,26 @@ mod gateway {
             eprintln!("Không thấy {} - mở thẳng server chính", exe.display());
             return (None, None);
         }
+        // yt-dlp + deno đi kèm app (cạnh muse-server): lấy nhạc bằng IP máy này khi các client YouTube viết tay bị chặn / đòi PO token.
+        let ytdlp = dir.join(if cfg!(windows) { "yt-dlp.exe" } else { "yt-dlp" });
+        if ytdlp.is_file() {
+            // Tự cập nhật yt-dlp ngầm (YouTube đổi liên tục): chạy nền, lỗi mạng/không ghi được thì bỏ qua.
+            let up = ytdlp.clone();
+            std::thread::spawn(move || {
+                let mut c = Command::new(up);
+                c.arg("-U").stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+                #[cfg(windows)]
+                {
+                    use std::os::windows::process::CommandExt;
+                    c.creation_flags(0x0800_0000);
+                }
+                let _ = c.status();
+            });
+        }
         let mut cmd = Command::new(&exe);
+        if ytdlp.is_file() {
+            cmd.env("YTDLP_PATH", &ytdlp);
+        }
         cmd.current_dir(&dir)
             .env("GATEWAY_REMOTE", remote)
             .env("PORT", PORT.to_string())
