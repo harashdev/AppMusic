@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write   # để đăng bản server lên Releases
 
+# Hai lần push sát nhau không được chạy chồng lên nhau: lần này xoá/ghi đè file trên Release trong lúc lần kia đang tải lên => lỗi 404.
+concurrency:
+  group: build-server-release
+  cancel-in-progress: false
+
 jobs:
   build-server:
     runs-on: windows-latest
@@ -67,6 +72,12 @@ jobs:
         run: |
           powershell -NoProfile -Command "Compress-Archive -Path dist/* -DestinationPath muse-server-windows.zip -Force"
           TAG=server-latest
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
-            --title "Muse server - bản build mới nhất" --notes "Server Windows (kèm yt-dlp, deno) tự build bởi GitHub Actions."
-          gh release upload "$TAG" muse-server-windows.zip --clobber
+          # Thử tối đa 4 lần; mỗi lần đều kiểm tra lại Release còn tồn tại (nếu bị xoá thì tạo lại) vì upload đôi khi trả 404 thoáng qua.
+          ok=0
+          for i in 1 2 3 4; do
+            gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "${{ github.sha }}" \
+              --title "Muse server - bản build mới nhất" --notes "Server Windows (kèm yt-dlp, deno) tự build bởi GitHub Actions." || true
+            if gh release upload "$TAG" muse-server-windows.zip --clobber; then ok=1; break; fi
+            echo "Upload lần $i lỗi, thử lại sau $((i*10)) giây…"; sleep $((i*10))
+          done
+          [ "$ok" = 1 ] || { echo "Không đăng được server lên Releases"; exit 1; }
