@@ -421,6 +421,17 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-body{padding:12px 16px}.pc-body:empty{display:none}
 .pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
+/* Kiểu thẻ "toàn nền" (như trang cá nhân Bilibili): ảnh banner phủ cả thẻ, avatar + tên nằm dưới */
+.pc.full .pc-ban{aspect-ratio:3/4}
+.pc.full .pc-av{width:104px;height:104px}
+.pc.full .pc-name{font-size:23px}
+.pc.full .pc-badge{position:static;transform:none;display:inline-block;margin-top:6px}
+.pc.full .pc-av .pc-badge{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);margin:0}
+.pc-act .out.sm,.pc-act .pri.sm{padding:6px 12px;font-size:13px}
+.shc-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.shc-box{background:#17141f;border-radius:16px;padding:14px;max-width:min(720px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
+.shc-box canvas{width:100%;height:auto;border-radius:12px;display:block}
+.shc-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 /* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
    Ảnh vẫn được tải sẵn và giải mã bằng img.decode() trong warmProfile(), nên không cần cho nó nằm trong màn hình nữa. */
 .pcwarm{position:fixed;left:-9999px;top:0;width:340px;opacity:0;visibility:hidden;pointer-events:none;z-index:-1;contain:layout}
@@ -1799,7 +1810,7 @@ function warmBanners(users){
 function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
   const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
-  return `<div class="pc"><div class="pc-ban" style="background:${col}">${ban}
+  return `<div class="pc${o.full?' full':''}"><div class="pc-ban" style="background:${col}">${ban}
     <div class="pc-hd"><div class="pc-av">${avHtml(u.avatar,'',cropOf(u),true)}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
 }
@@ -1829,14 +1840,15 @@ function openImgView(src,name){
    lúc bấm vào chỉ việc chuyển thẻ đó sang popup → banner + avatar hiện ngay, không còn khoảng chớp icon. Video trong khung ẩn
    đứng ở khung hình đầu (không tốn pin), chuyển sang popup mới chạy. */
 const pcPool=new Map(); let pcHost=null;
-const pcKey=(u,mine)=>JSON.stringify([!!mine,u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.online===false]);
-const pcExtra=mine=>mine?`<div class="pc-act"><button class="pri" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out" data-x="out">Đăng xuất</button></div>`:'';
+const pcFull=()=>LS.get('pc_full','1')==='1';
+const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.online===false]);
+const pcExtra=mine=>`<div class="pc-act"><button class="pri sm" data-x="card">Thẻ chia sẻ</button><button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
   try{
     if(!u||guest&&!mine) return;
     const k=pcKey(u,mine); if(pcPool.has(k)) return;
     if(!pcHost){ pcHost=document.createElement('div'); pcHost.className='pcwarm'; pcHost.setAttribute('aria-hidden','true'); document.body.appendChild(pcHost); }
-    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine)});
+    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine),full:pcFull()});
     const pc=t.firstElementChild; if(!pc) return;
     pc.querySelectorAll('video').forEach(v=>{ v.removeAttribute('autoplay'); v.autoplay=false; });
     for(const [ok,o] of [...pcPool]){ if(pcSame(ok,u,mine)){ pcPool.delete(ok); o.remove(); } }   // bản cũ của chính người này (đổi avatar/banner...) bỏ đi
@@ -1847,20 +1859,67 @@ function warmProfile(u,mine){
     while(pcPool.size>16){ const [ok,o]=pcPool.entries().next().value; pcPool.delete(ok); o.remove(); }
   }catch{}
 }
-function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[1]===u.id&&a[0]===!!mine; }catch{ return false; } }
+function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]===!!mine; }catch{ return false; } }
+
+/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili): vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
+function shareCard(u){
+  const W=1200,H=520,ov=document.createElement('div'); ov.className='shc-ov';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row"><button class="pri sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  document.body.appendChild(ov);
+  const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
+  const load=src=>new Promise(res=>{ if(!src||!okImgUrl(src)) return res(null); const im=new Image(); if(/^https:/.test(src)) im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
+  const rr=(x,y,w,h,r)=>{ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); };
+  const cover=(im,x,y,w,h,cr)=>{ const ar=im.width/im.height, br=w/h; let sw=im.width,sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
+    const z=Math.max(1,cr.bz||1); sw/=z; sh/=z; const sx=Math.min(Math.max(0,(im.width-sw)*(cr.bx??50)/100),im.width-sw), sy=Math.min(Math.max(0,(im.height-sh)*(cr.by??50)/100),im.height-sh);
+    g.drawImage(im,sx,sy,sw,sh,x,y,w,h); };
+  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
+  const no=String(u.id||0).padStart(6,'0'), d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:'')]).then(([ban,av])=>{
+    g.save(); rr(0,0,W,H,36); g.clip();
+    g.fillStyle=col; g.fillRect(0,0,W,H);
+    if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
+    // lớp sáng bên trái để chữ trắng đọc được, ảnh lộ dần sang phải
+    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.55)'); lg.addColorStop(.55,'rgba(0,0,0,.18)'); lg.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=lg; g.fillRect(0,0,W,H);
+    g.restore();
+    // avatar + tên
+    const ax=70,ay=70,ar=44; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
+    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='64px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
+    g.restore(); g.lineWidth=4; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
+    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=10;
+    g.fillStyle='#fff'; g.font='600 38px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>520&&nm.length>1) nm=nm.slice(0,-1); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+26,ay+ar+13);
+    g.fillStyle='#ffffffcc'; g.font='600 26px '+ft; g.fillText('MEMBER NO.',70,290);
+    g.fillStyle='#fff'; g.font='700 104px "SF Mono",Consolas,"Courier New",monospace'; g.fillText(no,64,385);
+    g.fillStyle='#ffffffcc'; g.font='600 24px '+ft; g.fillText('DATE',70,440);
+    g.fillStyle='#fff'; g.font='600 30px '+ft; g.fillText(date,70,482);
+    g.textAlign='right'; g.font='800 40px '+ft; g.fillText('Muse',W-56,86);
+  });
+  const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
+  const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
+  document.addEventListener('keydown',esc_,true);
+  ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
+    if(!a) return;
+    cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
+      if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='muse-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
+      else { try{ await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); notify('Đã chép ảnh thẻ'); }catch{ notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh'); } } },'image/png'); };
+}
 function showProfilePop(u,anchor,mine){
   document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='pcpop';
   const wk=pcKey(u,mine), warm=pcPool.get(wk);
   if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
-  else d.innerHTML=profileCard(u,{extra:pcExtra(mine)});
-  const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-330))+'px';
+  else d.innerHTML=profileCard(u,{extra:pcExtra(mine),full:pcFull()});
+  const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?520:330)))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
       if(e.target.closest('.pc-av')){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
       if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
       return; }
-    d.remove(); if(x.dataset.x==='edit') go('profile'); else logout(); };
+    const act=x.dataset.x;
+    if(act==='card'){ d.remove(); shareCard(u); return; }
+    if(act==='style'){ LS.set('pc_full',pcFull()?'0':'1'); d.remove(); warmProfile(u,mine); showProfilePop(u,anchor,mine); return; }
+    d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
 }
 
