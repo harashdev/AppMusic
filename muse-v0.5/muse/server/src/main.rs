@@ -1143,6 +1143,9 @@ async fn main() {
         .route("/api/ws-ticket", post(ws_ticket))
         .route("/api/admin/pair-code", post(admin_pair_code))
         .route("/api/kofi/webhook", post(kofi_webhook))
+        .route("/api/qr/new", post(qr_new))
+        .route("/api/qr/poll/:id", get(qr_poll))
+        .route("/api/qr/approve", post(qr_approve))
         .route("/api/admin/supporter", post(admin_set_supporter))
         .route("/api/pair/redeem", post(pair_redeem))
         .route("/api/me", get(me))
@@ -2054,6 +2057,78 @@ fn is_loopback(addr: &std::net::SocketAddr) -> bool {
 #[derive(Deserialize)]
 struct PairRedeem {
     code: String,
+}
+
+// ---- Đăng nhập bằng QR ----
+// Thiết bị mới: POST /api/qr/new -> { id, url } rồi hiện QR chứa url, đồng thời hỏi GET /api/qr/poll/:id mỗi 2 giây.
+// Thiết bị đã đăng nhập (quét QR): POST /api/qr/approve { id } -> server tạo phiên mới cho tài khoản đó và giao cho thiết bị mới (một lần).
+struct QrEntry {
+    exp: u64,
+    done: Option<(String, User)>,
+}
+static QR_SESSIONS: std::sync::OnceLock<Mutex<HashMap<String, QrEntry>>> = std::sync::OnceLock::new();
+fn qr_map() -> &'static Mutex<HashMap<String, QrEntry>> {
+    QR_SESSIONS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+async fn qr_new(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
+    let ikey = format!("qrnew:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ikey, 30, 600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &ikey, 600);
+    let now = now_secs();
+    let id = uuid::Uuid::new_v4().simple().to_string();
+    {
+        let mut g = qr_map().lock().unwrap();
+        g.retain(|_, e| e.exp > now);
+        if g.len() >= 2000 {
+            return Err(too_many());
+        }
+        g.insert(id.clone(), QrEntry { exp: now + 180, done: None });
+    }
+    let base = std::env::var("PUBLIC_URL").unwrap_or_default();
+    Ok(Json(json!({ "id": id, "expires_in": 180, "base": base.trim().trim_end_matches('/') })))
+}
+async fn qr_poll(Path(id): Path<String>) -> R<Value> {
+    let now = now_secs();
+    let mut g = qr_map().lock().unwrap();
+    g.retain(|_, e| e.exp > now);
+    let Some(e) = g.get_mut(&id) else {
+        return Err((StatusCode::GONE, "Mã QR đã hết hạn".into()));
+    };
+    if let Some((token, user)) = e.done.take() {
+        g.remove(&id);
+        return Ok(Json(json!({ "status": "ok", "token": token, "user": user })));
+    }
+    Ok(Json(json!({ "status": "wait" })))
+}
+#[derive(Deserialize)]
+struct QrApproveReq {
+    id: String,
+}
+async fn qr_approve(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<QrApproveReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let now = now_secs();
+    {
+        let mut g = qr_map().lock().unwrap();
+        g.retain(|_, e| e.exp > now);
+        match g.get(r.id.trim()) {
+            Some(e) if e.done.is_none() => {}
+            _ => return Err((StatusCode::GONE, "Mã QR đã hết hạn hoặc đã được dùng".into())),
+        }
+    }
+    let token = new_token();
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), user.id]).map_err(|_| e500())?;
+    }
+    let name = user.display_name.clone();
+    let mut g = qr_map().lock().unwrap();
+    match g.get_mut(r.id.trim()) {
+        Some(e) if e.done.is_none() => e.done = Some((token, user)),
+        _ => return Err((StatusCode::GONE, "Mã QR đã hết hạn hoặc đã được dùng".into())),
+    }
+    Ok(Json(json!({ "ok": true, "name": name })))
 }
 
 // ---- Ủng hộ qua Ko-fi: webhook ghi nhận donate -> mở khoá "Thẻ chia sẻ" (FANS NO.) ----
