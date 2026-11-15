@@ -1147,6 +1147,7 @@ async fn main() {
         .route("/api/qr/poll/:id", get(qr_poll))
         .route("/api/qr/approve", post(qr_approve))
         .route("/api/admin/supporter", post(admin_set_supporter))
+        .route("/api/admin/users/reset-avatar", post(admin_reset_avatar))
         .route("/api/pair/redeem", post(pair_redeem))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
@@ -2234,6 +2235,39 @@ async fn admin_set_supporter(State(st): State<AppState>, h: HeaderMap, Json(r): 
 }
 
 
+#[derive(Deserialize)]
+struct AdminUserTarget {
+    username: String,
+}
+
+// Admin cảnh cáo avatar bậy bạ: trả avatar về mặc định (🎧), không đụng tài khoản/dữ liệu khác.
+// POST /api/admin/users/reset-avatar { username }
+async fn admin_reset_avatar(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<AdminUserTarget>) -> R<Value> {
+    let me = require(&st, &headers)?;
+    if !me.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin".into()));
+    }
+    let name = r.username.trim();
+    if name.is_empty() {
+        return Err(bad("Thiếu username"));
+    }
+    let (uid, old_avatar): (i64, String) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT id, avatar FROM users WHERE username=?1 COLLATE NOCASE", [name], |r| Ok((r.get(0)?, r.get(1)?)))
+            .map_err(|_| bad("Không có tài khoản này"))?
+    };
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("UPDATE users SET avatar='🎧' WHERE id=?1", [uid]).map_err(|_| e500())?;
+    }
+    if let Some(f) = old_avatar.strip_prefix("/avatars/") {
+        if !f.contains('/') && !f.contains("..") {
+            remove_upload_file(&st.avatar_dir, f).await;
+        }
+    }
+    Ok(Json(json!({ "ok": true })))
+}
+
 // POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
 async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>) -> R<Value> {
     if !is_loopback(&addr) {
@@ -2256,7 +2290,9 @@ async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectI
     let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
     let exp = now + 300;
     g.insert(code.clone(), (uid, exp));
-    Ok(Json(json!({ "code": code, "expires_in": 300 })))
+    // base: domain public (nếu có PUBLIC_URL) để link redeem dùng được từ máy khác, không chỉ trên localhost.
+    let base = std::env::var("PUBLIC_URL").unwrap_or_default().trim().trim_end_matches('/').to_string();
+    Ok(Json(json!({ "code": code, "expires_in": 300, "base": base })))
 }
 
 // POST /api/pair/redeem { code } -> { token, user }: dùng mã trên để đăng nhập, không cần mật khẩu. Dùng một lần.
