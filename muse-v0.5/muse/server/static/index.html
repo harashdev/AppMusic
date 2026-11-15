@@ -408,7 +408,9 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-body{padding:12px 16px}.pc-body:empty{display:none}
 .pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
-.pcwarm{position:fixed;left:0;top:0;width:340px;opacity:.01;pointer-events:none;z-index:1;contain:layout}
+/* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
+   Ảnh vẫn được tải sẵn và giải mã bằng img.decode() trong warmProfile(), nên không cần cho nó nằm trong màn hình nữa. */
+.pcwarm{position:fixed;left:-9999px;top:0;width:340px;opacity:0;visibility:hidden;pointer-events:none;z-index:-1;contain:layout}
 .set{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,390px);gap:20px;align-items:start}
 .setR{position:sticky;top:0}
 .setR h4{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -1695,6 +1697,7 @@ function warmProfile(u,mine){
     pc.dataset.mine=mine?'1':''; pc.dataset.uid=String(u.id);
     pcHost.appendChild(pc); pcPool.set(k,pc);
     pc.querySelectorAll('video').forEach(v=>{ try{ v.load(); }catch{} });
+    pc.querySelectorAll('img').forEach(i=>{ try{ if(i.decode) i.decode().catch(()=>{}); }catch{} });   /* giải mã sẵn dù khung đang ẩn → bấm vào thẻ vẫn hiện ảnh ngay */
     while(pcPool.size>16){ const [ok,o]=pcPool.entries().next().value; pcPool.delete(ok); o.remove(); }
   }catch{}
 }
