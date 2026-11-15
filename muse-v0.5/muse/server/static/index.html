@@ -1036,7 +1036,8 @@ body.dl-det #main{padding:0!important;overflow:hidden}
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
     'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
-    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
+    'Lời':'Lyrics','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
+    'Không có file âm thanh nào được chọn':'No audio files selected','Đang thêm nhạc, vui lòng chờ…':'Adding music, please wait…','File nhạc này không còn trong bộ nhớ của app – hãy thêm lại':'This music file is no longer in the app’s storage – please add it again','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
     'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
     'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
     'Bài sau':'Next','Lặp lại':'Repeat','Mở Đang phát bên phải':'Open Now playing panel','Bấm để xem đang phát':'Click to see what’s playing',
@@ -1196,6 +1197,8 @@ body.dl-det #main{padding:0!important;overflow:hidden}
     [/^(\d+) bài hát$/,(m)=>plural(m[1],'song','songs')],
     [/^(\d+) bài$/,(m)=>plural(m[1],'song','songs')],
     [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
+    [/^Đang thêm (\d+) file…$/,(m)=>'Adding '+plural(m[1],'file','files')+'…'],
+    [/^Đã thêm (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from your device'+(m[2]?' · '+m[2]+' already added':'')+(m[3]?' · '+plural(m[3],'file','files')+' failed':'')],
     [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
     [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
     [/^Giống (.+)$/,(m)=>'Similar to '+m[1]],
@@ -1390,6 +1393,7 @@ const IC={
  vol:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
  volx:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>',
  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
  chev:'<path d="m9 6 6 6-6 6"/>',
  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
  phones:'<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="2"/><rect x="17" y="14" width="4" height="7" rx="2"/>',
@@ -3275,7 +3279,9 @@ const OFF=(()=>{
   return { get:(s,k)=>req(s,'readonly',o=>o.get(k)), all:s=>req(s,'readonly',o=>o.getAll()), put:(s,k,v)=>req(s,'readwrite',o=>o.put(v,k)), del:(s,k)=>req(s,'readwrite',o=>o.delete(k)) };
 })();
 const offInit=OFF.all('m').then(ms=>{ (ms||[]).forEach(x=>offSet.add(x.k)); return ms||[]; }).catch(()=>[]);
-const useLocal=t=>!!t&&t.src==='yt'&&offSet.has(key(t))&&!offBad[t.id]&&(offlineNow()||MOBILE||fxNeeded()||!!ytFail[t.id]||(S.proxy&&cfg.proxy_available));
+// Nhạc người dùng tự thêm từ máy (nút folder ở Tải xuống): id bắt đầu bằng "loc_", chỉ có trong kho offline, không có trên YouTube → luôn phát từ kho.
+const isLoc=t=>!!t&&t.src==='yt'&&String(t.id).startsWith('loc_');
+const useLocal=t=>!!t&&t.src==='yt'&&offSet.has(key(t))&&!offBad[t.id]&&(isLoc(t)||offlineNow()||MOBILE||fxNeeded()||!!ytFail[t.id]||(S.proxy&&cfg.proxy_available));
 function offRevoke(id){ if(offUrl[id]){ try{ URL.revokeObjectURL(offUrl[id]); }catch{} delete offUrl[id]; } offOrder=offOrder.filter(x=>x!==id); }
 async function offOpen(t){
   const k=key(t);
@@ -3425,7 +3431,12 @@ function loadTrack(t,pos=0,play=true,ts=null){
   hoTok++; hoBusy=false; audYt.muted=false;
   if(useLocal(t)&&!offUrl[t.id]){
     cur=t; updateBar();
-    offOpen(t).then(ok=>{ if(!ok){ offBad[t.id]=true; offSet.delete(key(t)); } if(cur===t) loadTrack(t,pos,play,ts); });
+    offOpen(t).then(ok=>{
+      if(!ok){
+        if(isLoc(t)){ if(cur===t){ notify('File nhạc này không còn trong bộ nhớ của app – hãy thêm lại'); setPlaying(false); } return; } // không có trên YouTube để dự phòng
+        offBad[t.id]=true; offSet.delete(key(t));
+      }
+      if(cur===t) loadTrack(t,pos,play,ts); });
     return;
   }
   const loc=(t.src==='yt'&&useLocal(t))?offUrl[t.id]:'';
@@ -3796,7 +3807,7 @@ function dlStatus(x){
 }
 function dlRowHtml(x){
   const t=x.track, busy=x.status==='loading'||x.status==='converting', bar=(x.status==='loading'||x.status==='converting')?`<div class="dlbar"><i style="width:${x.status==='converting'?100:(x.pct||0)}%"></i></div>`:'';
-  const has=offSet.has(x.k), badge=x.status==='done'?(has?`<span class="offb">${ic('check','sm')} Nghe offline</span>`:`<span class="offb no">Chưa lưu offline</span>`):'';
+  const has=offSet.has(x.k), badge=x.status==='done'?(has?`<span class="offb">${ic('check','sm')} ${isLoc(t)?'Từ máy bạn':'Nghe offline'}</span>`:`<span class="offb no">Chưa lưu offline</span>`):'';
   const redo=x.status==='error'||(x.status==='done'&&!has&&t.src==='yt');
   return `<div class="dlr${x.status==='done'&&!has&&offlineNow()?' dim':''}" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" data-k="${esc(x.k)}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="dls ${x.status}">${esc(dlStatus(x))} ${badge}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${redo?`<button class="ico" data-a="retry" title="${x.status==='error'?'Thử lại':'Tải lại để nghe offline'}">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
 }
@@ -3807,6 +3818,79 @@ function dlRender(){
   const info=$('#dlInfo'); if(info) info.textContent=done.length?`${done.length} bài · ${offN} bài nghe được khi không có mạng${offB?' · '+dlSize(offB):''}`:'Chưa có bài nào. Bấm nút tải xuống ở bài hát để lưu về nghe offline.';
   box.innerHTML=dlItems.length?dlItems.map(dlRowHtml).join(''):'<p class="empty">Chưa có bài nào được tải.</p>';
   box.querySelectorAll('.dlr img[data-k]').forEach(img=>{ img.onerror=()=>{ img.onerror=null; offCoverUrl(img.dataset.k).then(u=>{ if(u) img.src=u; }); }; if(img.complete&&!img.naturalWidth) img.onerror&&img.onerror(); });
+}
+/* ===== Thêm nhạc có sẵn trên máy vào Tải xuống (nút folder) =====
+   File được chép vào cùng kho IndexedDB với bài đã tải (OFF), nên tự hiện trong danh sách, phát offline và xoá như bài khác.
+   MP3 đọc thẻ ID3 (tên, nghệ sĩ, ảnh bìa); file khác lấy tên theo tên file ("Nghệ sĩ - Tên bài"). */
+const AUD_EXT=/\.(mp3|m4a|aac|flac|wav|ogg|oga|opus|webm|wma|mka|mp4)$/i;
+const AUD_MIME={mp3:'audio/mpeg',m4a:'audio/mp4',mp4:'audio/mp4',aac:'audio/aac',flac:'audio/flac',wav:'audio/wav',ogg:'audio/ogg',oga:'audio/ogg',opus:'audio/ogg',webm:'audio/webm',wma:'audio/x-ms-wma',mka:'audio/x-matroska'};
+function locId(f){
+  const s=f.name+'|'+f.size+'|'+(f.lastModified||0); let a=5381,b=0;
+  for(let i=0;i<s.length;i++){ a=((a*33)^s.charCodeAt(i))>>>0; b=(b*31+s.charCodeAt(s.length-1-i))>>>0; }
+  return 'loc_'+a.toString(36)+b.toString(36); // cùng file thêm lại → cùng id → không bị trùng
+}
+function nameParts(fn){
+  const n=fn.replace(/\.[^.]+$/,'').replace(/_/g,' ').replace(/\s+/g,' ').trim(), m=n.match(/^(.+?)\s[-–—]\s(.+)$/);
+  return m?{artist:m[1].trim(),title:m[2].trim()}:{artist:'',title:n};
+}
+async function readTags(f){
+  const out={};
+  try{
+    const head=new Uint8Array(await f.slice(0,10).arrayBuffer());
+    if(head[0]!==0x49||head[1]!==0x44||head[2]!==0x33) return out; // không phải ID3v2
+    const ver=head[3], ss=(a,i)=>((a[i]&127)<<21)|((a[i+1]&127)<<14)|((a[i+2]&127)<<7)|(a[i+3]&127);
+    if(ver!==3&&ver!==4) return out;
+    const buf=new Uint8Array(await f.slice(10,10+Math.min(ss(head,6),8e6)).arrayBuffer());
+    const dec=(b,enc)=>{ try{ return new TextDecoder(enc===0?'latin1':enc===1?'utf-16':enc===2?'utf-16be':'utf-8').decode(b).replace(/\0+$/,'').trim(); }catch{ return ''; } };
+    let p=0;
+    while(p+10<=buf.length){
+      const id=String.fromCharCode(buf[p],buf[p+1],buf[p+2],buf[p+3]); if(!/^[A-Z0-9]{4}$/.test(id)) break;
+      const fs=ver===4?ss(buf,p+4):((buf[p+4]<<24)|(buf[p+5]<<16)|(buf[p+6]<<8)|buf[p+7])>>>0;
+      const body=buf.subarray(p+10,p+10+fs); p+=10+fs; if(!body.length) continue;
+      if(id==='TIT2') out.title=dec(body.subarray(1),body[0]);
+      else if(id==='TPE1') out.artist=dec(body.subarray(1),body[0]);
+      else if(id==='APIC'&&!out.cover){
+        const enc=body[0]; let i=1; while(i<body.length&&body[i]!==0) i++;
+        const mime=String.fromCharCode(...body.subarray(1,i)); i+=2; // bỏ byte 0 kết thúc mime + byte loại ảnh
+        if(enc===1||enc===2){ while(i+1<body.length&&!(body[i]===0&&body[i+1]===0)) i+=2; i+=2; } else { while(i<body.length&&body[i]!==0) i++; i++; }
+        const img=body.subarray(i); if(img.length>200) out.cover=new Blob([img],{type:/png/i.test(mime)?'image/png':'image/jpeg'});
+      }
+    }
+  }catch{}
+  return out;
+}
+function audioDur(url){
+  return new Promise(res=>{
+    const a=new Audio(); a.preload='metadata';
+    const done=v=>{ a.onloadedmetadata=a.onerror=null; try{ a.removeAttribute('src'); a.load(); }catch{} res(v); };
+    a.onloadedmetadata=()=>done(isFinite(a.duration)?Math.round(a.duration):0); a.onerror=()=>done(0);
+    setTimeout(()=>done(0),6000); a.src=url;
+  });
+}
+let dlAddBusy=false;
+async function dlAddFiles(files){
+  files=[...files].filter(f=>f&&(/^audio\//.test(f.type)||AUD_EXT.test(f.name)));
+  if(!files.length){ notify('Không có file âm thanh nào được chọn'); return; }
+  if(dlAddBusy){ notify('Đang thêm nhạc, vui lòng chờ…'); return; }
+  dlAddBusy=true; dlLoad(); let ok=0, dup=0, fail=0;
+  try{
+    notify('Đang thêm '+files.length+' file…');
+    for(const f of files){
+      try{
+        const id=locId(f), k='yt:'+id; // = key(t)
+        if(offSet.has(k)){ dup++; continue; }
+        const ext=((f.name.match(/\.([^.]+)$/)||[])[1]||'').toLowerCase(), mime=(f.type&&/^audio\//.test(f.type))?f.type:(AUD_MIME[ext]||'audio/mpeg');
+        const tg=await readTags(f), np=nameParts(f.name), u=URL.createObjectURL(f);
+        const dur=await audioDur(u); URL.revokeObjectURL(u);
+        const t={src:'yt',id,title:tg.title||np.title||f.name,artist:tg.artist||np.artist||'',image:'',url:'',dur,explicit:false};
+        await offSave(t,new Blob([f],{type:mime}),mime,ext);
+        if(tg.cover) await OFF.put('i',k,tg.cover).catch(()=>{});
+        ok++;
+      }catch(e){ fail++; }
+    }
+    await offSync(); dlSave();
+    notify('Đã thêm '+ok+' bài từ máy'+(dup?' · '+dup+' bài đã có':'')+(fail?' · '+fail+' file lỗi':''));
+  } finally{ dlAddBusy=false; }
 }
 function dlPump(){
   while(dlRunning<DL_PAR){
@@ -3960,6 +4044,7 @@ function dlDetRender(){
   // Cover (và hình trên mặt đĩa) lỗi tải thì lấy bản đã lưu offline; không có thì ẩn hình trên đĩa, đĩa trơn như cũ.
   cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; } }); };
   if(dimg) dimg.onerror=()=>{ dimg.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) dimg.src=u; else dimg.style.display='none'; }); };
+  if(isLoc(cur)&&!cur.image){ offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; } else if(dimg) dimg.style.display='none'; }); } // nhạc từ máy: bìa nằm trong kho offline
   sk.onchange=()=>{ const d=getDur(); if(d){ seekTo(d*sk.value/1000); broadcastState(); } };
   vr.oninput=()=>{ vol=vr.value/100; LS.set('vol',vol); applyVol(); };
   dd.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b) return; const a=b.dataset.dd;
@@ -3985,12 +4070,14 @@ pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><h2>Tải xuống</h2>
     <p class="dlInfo" id="dlInfo"></p>
-    <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button></div>
+    <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button><button class="out" id="dlAdd" title="Thêm file nhạc từ máy">${ic('folder','sm')} Thêm nhạc</button><input type="file" id="dlFile" accept="audio/*" multiple hidden></div>
     </div>
     <div id="dlList"></div>`;
   dlRender();
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
+  const dlFi=$('#dlFile'); $('#dlAdd').onclick=()=>dlFi.click();
+  dlFi.onchange=()=>{ const l=[...dlFi.files]; dlFi.value=''; dlAddFiles(l); };
   $('#dlList').onclick=e=>{
     const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
     const a=(e.target.closest('[data-a]')||{dataset:{}}).dataset.a;
