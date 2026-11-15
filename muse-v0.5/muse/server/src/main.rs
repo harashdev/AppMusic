@@ -749,6 +749,9 @@ async fn run_gateway(remote: String) {
         gateway: Some(Arc::new(Gateway { remote: remote.clone(), client: gateway_client(), explicit: Mutex::new(HashMap::new()) })),
     };
     let router = yt_routes()
+        .route("/api/local/open", post(local_open))
+        .route("/api/local/list", get(local_list))
+        .route("/api/local/file", get(local_file))
         .route("/ws/:room", get(gw_ws))
         .route("/ws-user", get(gw_ws))
         .fallback(gw_http)
@@ -764,6 +767,122 @@ async fn run_gateway(remote: String) {
     };
     println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
     axum::serve(listener, router.into_make_service()).await.unwrap();
+}
+
+// ===== Thư mục nhạc của app (chỉ có ở cổng nhà chạy trên máy người dùng) =====
+// "Thêm nhạc" mở thư mục này trong trình quản lý file; người dùng thả file nhạc vào, giao diện tự quét và thêm vào Tải xuống.
+// Mặc định: <Nhạc của người dùng>\BBeat (đặt MUSE_MUSIC_DIR để đổi). Chỉ nhận yêu cầu gọi tới 127.0.0.1/localhost.
+const LOCAL_AUDIO_EXT: &[&str] = &["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "webm", "wma", "mka", "mp4"];
+
+fn local_music_dir() -> PathBuf {
+    if let Ok(d) = std::env::var("MUSE_MUSIC_DIR") {
+        if !d.trim().is_empty() {
+            return PathBuf::from(d.trim());
+        }
+    }
+    let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).unwrap_or_else(|_| ".".into());
+    PathBuf::from(home).join("Music").join("BBeat")
+}
+
+fn local_host_ok(h: &HeaderMap) -> bool {
+    let host = h.get("host").and_then(|v| v.to_str().ok()).unwrap_or("");
+    ["127.0.0.1", "localhost", "[::1]"].iter().any(|p| host.strip_prefix(p).map(|r| r.is_empty() || r.starts_with(':')).unwrap_or(false))
+}
+
+fn local_ext_of(name: &str) -> Option<String> {
+    let e = name.rsplit_once('.')?.1.to_lowercase();
+    if LOCAL_AUDIO_EXT.contains(&e.as_str()) {
+        Some(e)
+    } else {
+        None
+    }
+}
+
+async fn local_open(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let dir = local_music_dir();
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
+    }
+    #[cfg(windows)]
+    let r = std::process::Command::new("explorer.exe").arg(&dir).spawn();
+    #[cfg(target_os = "macos")]
+    let r = std::process::Command::new("open").arg(&dir).spawn();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let r = std::process::Command::new("xdg-open").arg(&dir).spawn();
+    match r {
+        Ok(_) => Json(json!({ "dir": dir.to_string_lossy() })).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Không mở được thư mục: {e}")).into_response(),
+    }
+}
+
+// Danh sách file nhạc trong thư mục (đi sâu tối đa 3 cấp thư mục con): [{name, size, mtime(ms)}], name là đường dẫn tương đối dùng dấu /.
+async fn local_list(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let root = local_music_dir();
+    let out = tokio::task::spawn_blocking(move || {
+        let mut files: Vec<Value> = Vec::new();
+        let mut stack: Vec<(PathBuf, String, u8)> = vec![(root, String::new(), 0)];
+        while let Some((dir, rel, depth)) = stack.pop() {
+            let Ok(rd) = std::fs::read_dir(&dir) else { continue };
+            for ent in rd.flatten() {
+                let name = ent.file_name().to_string_lossy().into_owned();
+                let Ok(md) = ent.metadata() else { continue };
+                let relname = if rel.is_empty() { name.clone() } else { format!("{rel}/{name}") };
+                if md.is_dir() {
+                    if depth < 3 {
+                        stack.push((ent.path(), relname, depth + 1));
+                    }
+                } else if md.is_file() && local_ext_of(&name).is_some() {
+                    let mtime = md.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map(|d| d.as_millis() as u64).unwrap_or(0);
+                    files.push(json!({ "name": relname, "size": md.len(), "mtime": mtime }));
+                }
+            }
+        }
+        files.truncate(5000);
+        files
+    })
+    .await
+    .unwrap_or_default();
+    Json(Value::Array(out)).into_response()
+}
+
+#[derive(Deserialize)]
+struct LocalQ {
+    name: Option<String>,
+}
+
+async fn local_file(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    let Some(ext) = local_ext_of(&name) else { return StatusCode::BAD_REQUEST.into_response() };
+    if name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let root = local_music_dir();
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&name).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    if !path_c.starts_with(&root_c) || !path_c.is_file() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let Ok(bytes) = tokio::fs::read(&path_c).await else { return StatusCode::NOT_FOUND.into_response() };
+    let mime = match ext.as_str() {
+        "mp3" => "audio/mpeg",
+        "m4a" | "mp4" => "audio/mp4",
+        "aac" => "audio/aac",
+        "flac" => "audio/flac",
+        "wav" => "audio/wav",
+        "ogg" | "oga" | "opus" => "audio/ogg",
+        "webm" => "audio/webm",
+        "wma" => "audio/x-ms-wma",
+        _ => "audio/x-matroska",
+    };
+    ([(header::CONTENT_TYPE, mime), (header::CACHE_CONTROL, "no-store")], bytes).into_response()
 }
 
 fn gw_hop(name: &str) -> bool {
