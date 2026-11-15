@@ -839,7 +839,9 @@ img[src*="ytimg.com"],img[src*="googleusercontent.com"],img[src*="ggpht.com"],im
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='translate(5 2)'%3E%3Cpath fill='%233c3d42' d='M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z'/%3E%3C/g%3E%3C/svg%3E")!important}
 
 /* ===== PC: màn hình "Chi tiết" khi phát từ Tải xuống (kiểu foobar2000) ===== */
-body.dl-det #bar{display:none!important}
+body.dl-det #bar,body.dl-det #side,body.dl-det #top,body.dl-det #np{display:none!important}
+body.dl-det #app{display:block;height:100vh;padding:0;gap:0}
+body.dl-det #center{border-radius:0;height:100vh}
 body.dl-det #main{padding:0!important;overflow:hidden}
 .dd{--ddc:var(--npbg,#2f4f73);display:flex;flex-direction:column;height:100%;min-height:0;color:#fff;
  background:linear-gradient(160deg,color-mix(in srgb,var(--ddc) 92%,#000) 0%,color-mix(in srgb,var(--ddc) 62%,#000) 100%);transition:background .5s}
@@ -872,7 +874,16 @@ body.dl-det #main{padding:0!important;overflow:hidden}
   repeating-radial-gradient(circle,#0000 0 2px,#00000026 2px 4px),
   conic-gradient(from 25deg,#fff0 0 8%,#ffffff22 13%,#fff0 19% 58%,#ffffff1a 63%,#fff0 69%);
  box-shadow:inset 0 0 0 2px #0007,inset 0 0 30px #000b}
-.dd-playing .dd-disc{animation:ddspin 6s linear infinite}
+/* Đĩa luôn có animation nhưng tạm dừng khi không phát: dừng đúng góc đang quay, không về lại vị trí ban đầu. */
+.dd-disc{animation:ddspin 6s linear infinite paused}
+.dd-playing .dd-disc{animation-play-state:running}
+.dd-nav .wc{justify-self:end;display:flex;align-items:center;gap:2px}
+.dd-nav .wc button svg{display:block}
+.dd-lyr{display:none;grid-column:2;grid-row:1;overflow:auto;scrollbar-width:thin;min-height:0;padding:6px 18px 40vh 12px}
+.dd-tab-lyr .dd-lyr{display:block}.dd-tab-lyr .dd-art{display:none}
+.dd-lyr div[data-k]{padding:7px 0;font-size:21px;line-height:1.4;color:#ffffff80;cursor:pointer;transition:color .2s}
+.dd-lyr div[data-k]:hover{color:#ffffffcc}.dd-lyr .cur{color:#fff!important;font-weight:700}
+.dd-lyr .none,.dd-lyr .plain{color:#ffffffb3;font-size:16px;line-height:1.6}
 @keyframes ddspin{to{transform:translate(-30%,-50%) rotate(360deg)}}
 .dd-ft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:10px 20px 14px;background:#00000030}
 .dd-now{grid-column:1/-1;font-size:13px;color:#ffffffcc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -4061,7 +4072,32 @@ async function dlRun(it){
 }
 
 // ===== PC: "Chi tiết" kiểu foobar2000 khi bấm phát trong Tải xuống (Android giữ nguyên) =====
-let dlDetOn=false, dlDetTimer=0, dlDetKey='';
+let dlDetOn=false, dlDetTimer=0, dlDetKey='', dlDetTab='det', dlDetLyrKey='';
+const winCmd=c=>{ try{ if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP) return window.__TAURI__.core.invoke(c); }catch{} return null; };
+function toggleBrowserFs(){ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); }catch{} }
+// F11: phóng to toàn màn hình app desktop (trình duyệt thường đã tự có F11).
+document.addEventListener('keydown',e=>{ if(e.key==='F11'){ const p=winCmd('win_toggle_fullscreen'); if(p){ e.preventDefault(); p.catch(()=>{}); } } });
+async function dlDetLyrics(){
+  const box=$('#ddLyr'); if(!box||!cur) return; const t=cur, k=key(t);
+  if(dlDetLyrKey===k&&box.childElementCount) return;
+  dlDetLyrKey=k; box.innerHTML='<div class="none">Đang tải lời…</div>';
+  let txt=''; try{ txt=await getLyrics(t); }catch{}
+  if(cur!==t||!$('#ddLyr')||dlDetLyrKey!==k) return;
+  if(!txt){ box.innerHTML='<div class="none">Chưa tìm thấy lời bài này.</div>'; return; }
+  lyrLines=parseLrc(txt);
+  if(lyrLines) box.innerHTML=lyrLines.map((l,i)=>`<div data-k="${i}">${esc(l.s)}</div>`).join('');
+  else box.innerHTML='<div class="plain">'+esc(txt).replace(/\n/g,'<br>')+'</div>';
+}
+function dlDetHi(){
+  const box=$('#ddLyr'); if(!box||!lyrLines) return; const k=curLine(getTime()); if(k<0) return;
+  const old=box.querySelector('.cur'), el=box.querySelector(`[data-k="${k}"]`);
+  if(el&&el!==old){ old&&old.classList.remove('cur'); el.classList.add('cur'); box.scrollTop=el.offsetTop-box.clientHeight/2+el.offsetHeight/2; }
+}
+function dlDetSetTab(dd,tab){
+  dlDetTab=tab; dd.classList.toggle('dd-tab-lyr',tab==='lyr');
+  dd.querySelectorAll('.dd-nav .tabs [data-dd="det"],.dd-nav .tabs [data-dd="lyr"]').forEach(b=>b.classList.toggle('on',b.dataset.dd===tab));
+  if(tab==='lyr') dlDetLyrics().then(dlDetHi);
+}
 const dlDetOk=()=>!window.ANDROID_APP&&!window.UI_PC;
 function dlDetStats(t){
   const L=listenGet(), P=playsAll()[key(t)]||{};
@@ -4077,9 +4113,10 @@ function dlDetHtml(){
   const added=x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—';
   const st=dlDetStats(t), sr=/webm/i.test(x.fmt||'')?'48':'44.1';
   const row=(a,b)=>`<dt>${a}</dt><dd>${esc(String(b))}</dd>`;
-  return `<div class="dd-nav"><button class="menu" data-dd="list" title="Về danh sách tải xuống"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button class="on">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr">Lời bài hát</button></div><button class="x" data-dd="close" title="Đóng">&#10005;</button></div>
+  return `<div class="dd-nav"><button class="menu" data-dd="list" title="Về danh sách tải xuống"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Phóng to / thu nhỏ cửa sổ (F11: toàn màn hình)"><svg width="13" height="13" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
   <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><div class="ar">${esc(t.artist||'')}</div><hr>
    <dl>${row('Codec',codec)}${row('Kênh','2.0 Stereo')}${row('Nguồn',sr+' kHz')}${row('Dữ liệu',(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''))}${row('Thời lượng',fmt(dur))}${row('Đã thêm',added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
+   <div class="dd-lyr" id="ddLyr"></div>
    <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" src="${esc(thumb(t.image,800))}"></div><img class="dd-cov" alt="" src="${esc(thumb(t.image,800))}"></div></div>
   <div class="dd-ft"><div class="dd-now">${esc((t.artist?t.artist+' – ':'')+(t.title||''))}</div>
    <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"><span id="ddTm">0:00</span></div>
@@ -4096,6 +4133,7 @@ function dlDetTick(){
   setIc($('#ddPp'),playing?'pause':'play',true); dd.classList.toggle('dd-playing',!!playing);
   const sh=$('#ddShuf'); if(sh) sh.classList.toggle('on',!!shuf);
   const vr=$('#ddVolR'); if(vr&&document.activeElement!==vr) vr.value=Math.round(vol*100);
+  if(dlDetTab==='lyr') dlDetHi();
 }
 function dlDetRender(){
   const m=$('#main'); if(!m||!cur) return;
@@ -4117,7 +4155,11 @@ function dlDetRender(){
     else if(a==='shuf') $('#bShuf').click();
     else if(a==='vol') $('#bVol').click();
     else if(a==='stop'){ setPlaying(false); seekTo(0); broadcastState(); }
-    else if(a==='lyr'){ dlDetClose(true); setNp(true,'lyr'); } };
+    else if(a==='det'||a==='lyr') dlDetSetTab(dd,a)
+    else if(a==='max'){ const p=winCmd('win_toggle_max'); if(p) p.catch(()=>{}); else toggleBrowserFs(); } };
+  dd.classList.toggle('dd-tab-lyr',dlDetTab==='lyr');
+  const lb=$('#ddLyr'); if(lb) lb.onclick=e=>{ const d=e.target.closest('[data-k]'); if(d&&lyrLines){ seekTo(lyrLines[+d.dataset.k].t); broadcastState(); } };
+  if(dlDetTab==='lyr') dlDetLyrics();
   dlDetTick();
 }
 function dlDetOpen(){
