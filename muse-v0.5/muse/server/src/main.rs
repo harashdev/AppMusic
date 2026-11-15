@@ -311,6 +311,13 @@ fn init_db(path: &std::path::Path) -> Connection {
            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
            track_key TEXT NOT NULL, track_json TEXT NOT NULL,
            PRIMARY KEY(user_id, track_key));
+         CREATE TABLE IF NOT EXISTS comments(
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           track_key TEXT NOT NULL,
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           body TEXT NOT NULL,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+         CREATE INDEX IF NOT EXISTS idx_comments_track ON comments(track_key, id);
          CREATE TABLE IF NOT EXISTS playlists(
            id INTEGER PRIMARY KEY AUTOINCREMENT,
            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1117,6 +1124,8 @@ async fn main() {
         .route("/api/friends/:id", axum::routing::delete(remove_friend))
         .route("/api/favorites", get(fav_list).post(fav_toggle))
         .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
+        .route("/api/comments", get(comments_list).post(comments_add))
+        .route("/api/comments/:id", axum::routing::delete(comments_delete))
         .route("/api/sync", get(sync_get).post(sync_post))
         .route("/api/recommend", get(recommend))
         .route("/api/blend/:fid", get(blend))
@@ -2548,6 +2557,109 @@ async fn fav_toggle(State(st): State<AppState>, headers: HeaderMap, Json(t): Jso
     db.execute("INSERT INTO favorites(user_id,track_key,track_json) VALUES(?1,?2,?3)", params![u.id, k, s])
         .map_err(|_| e500())?;
     Ok(Json(json!({ "fav": true })))
+}
+
+// ===== Bình luận theo bài hát: chỉ lưu và hiển thị trong app này (không liên quan bình luận YouTube) =====
+#[derive(Deserialize)]
+struct CommentsQ {
+    key: String,
+}
+
+#[derive(Deserialize)]
+struct CommentReq {
+    key: String,
+    body: String,
+}
+
+fn valid_comment_key(k: &str) -> bool {
+    let ok_src = k.starts_with("yt:") || k.starts_with("jm:") || k.starts_with("au:") || k.starts_with("local:");
+    ok_src && k.len() <= 200 && !k.chars().any(|c| c.is_control())
+}
+
+fn comment_row(r: &rusqlite::Row, me: i64, admin: bool) -> rusqlite::Result<Value> {
+    let uid: i64 = r.get(1)?;
+    Ok(json!({
+        "id": r.get::<_, i64>(0)?,
+        "user_id": uid,
+        "body": r.get::<_, String>(2)?,
+        "created_at": r.get::<_, String>(3)?,
+        "display_name": r.get::<_, String>(4)?,
+        "avatar": r.get::<_, String>(5)?,
+        "accent": r.get::<_, String>(6)?,
+        "can_delete": uid == me || admin,
+    }))
+}
+
+const COMMENT_SQL: &str = "SELECT c.id, c.user_id, c.body, c.created_at, u.display_name, u.avatar, u.accent FROM comments c JOIN users u ON u.id=c.user_id";
+
+async fn comments_list(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<CommentsQ>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !valid_comment_key(&q.key) {
+        return Err(bad("Bài hát không hợp lệ"));
+    }
+    let db = st.db.lock().unwrap();
+    let total: i64 = db
+        .query_row("SELECT COUNT(*) FROM comments WHERE track_key=?1", [&q.key], |r| r.get(0))
+        .map_err(|_| e500())?;
+    let sql = format!("{COMMENT_SQL} WHERE c.track_key=?1 ORDER BY c.id DESC LIMIT 200");
+    let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+    let rows = stmt
+        .query_map([&q.key], |r| comment_row(r, user.id, user.is_admin))
+        .map_err(|_| e500())?;
+    let items: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
+    Ok(Json(json!({ "count": total, "items": items })))
+}
+
+async fn comments_add(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<CommentReq>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !valid_comment_key(&r.key) {
+        return Err(bad("Bài hát không hợp lệ"));
+    }
+    let body: String = r.body.trim().chars().take(500).collect();
+    if body.is_empty() {
+        return Err(bad("Bình luận không được trống"));
+    }
+    let db = st.db.lock().unwrap();
+    // chống spam: tối đa 5 bình luận / 30 giây / người
+    let recent: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM comments WHERE user_id=?1 AND created_at > datetime('now','-30 seconds')",
+            [user.id],
+            |r| r.get(0),
+        )
+        .map_err(|_| e500())?;
+    if recent >= 5 {
+        return Err(bad("Bạn bình luận hơi nhanh, đợi một chút nhé"));
+    }
+    db.execute(
+        "INSERT INTO comments(track_key,user_id,body) VALUES(?1,?2,?3)",
+        params![r.key, user.id, body],
+    )
+    .map_err(|_| e500())?;
+    let id = db.last_insert_rowid();
+    let sql = format!("{COMMENT_SQL} WHERE c.id=?1");
+    let item = db
+        .query_row(&sql, [id], |r| comment_row(r, user.id, user.is_admin))
+        .map_err(|_| e500())?;
+    let total: i64 = db
+        .query_row("SELECT COUNT(*) FROM comments WHERE track_key=?1", [&r.key], |r| r.get(0))
+        .map_err(|_| e500())?;
+    Ok(Json(json!({ "count": total, "item": item })))
+}
+
+async fn comments_delete(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let res = if user.is_admin {
+        db.execute("DELETE FROM comments WHERE id=?1", [id])
+    } else {
+        db.execute("DELETE FROM comments WHERE id=?1 AND user_id=?2", params![id, user.id])
+    };
+    let n = res.map_err(|_| e500())?;
+    if n == 0 {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy bình luận".into()));
+    }
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn hist_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
