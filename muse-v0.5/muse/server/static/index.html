@@ -4405,7 +4405,10 @@ function vidSync0(){
     // Chờ nhạc lên tiếng rồi mới xin video: yt-dlp tải video chạy song song với tải âm thanh nên làm bài vào chậm. Tối đa chờ 12 giây.
     if(vidWaitK!==cur.id){ vidWaitK=cur.id; vidWaitT=Date.now(); }
     if(!(playing&&getTime()>0.8)&&Date.now()-vidWaitT<12000){ vidEl.classList.remove('on'); if(!vidEl.paused) try{ vidEl.pause(); }catch{} return; }
-    vidId=cur.id; vidEl.classList.remove('on'); vidEl.src=vidUrl(cur.id); try{ vidEl.load(); }catch{} vidPrefetchNext(); return; }
+    vidId=cur.id; vidEl.classList.remove('on'); vidQ=vidWantH(); vidEl.src=vidUrl(cur.id,vidQ); try{ vidEl.load(); }catch{} vidPrefetchNext(); return; }
+  { const wh=vidWantH(), uk=cur.id+'_'+wh;
+    if(wh>vidQ&&!vidUp[uk]){ vidUp[uk]=1; const id=cur.id;
+      fetch(vidUrl(id,wh),{headers:{Range:'bytes=0-1'}}).then(r=>{ if(r.ok||r.status===206){ if(cur&&cur.id===id&&vidId===id&&wh>vidQ){ vidQ=wh; vidEl.src=vidUrl(id,wh); try{ vidEl.load(); }catch{} } } else setTimeout(()=>{ vidUp[uk]=0; },20000); }).catch(()=>{ setTimeout(()=>{ vidUp[uk]=0; },20000); }); } }
   if(vidEl.readyState<2) return;
   const t=getTime(), du=vidEl.duration||0; if(!(t>=0)) return;
   const tt=du?Math.min(t,du-0.05):t, d=tt-vidEl.currentTime, ad=Math.abs(d);
@@ -4418,11 +4421,14 @@ function vidSync0(){
   else { if(!vidEl.paused) vidEl.pause(); if(ad>0.2) vidEl.currentTime=tt; }
   if(ad<1.5) vidEl.classList.add('on');
 }
-function vidUrl(id){ return '/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token); }
+function vidUrl(id,h){ return '/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token)+(h?'&h='+h:''); }
+/* Độ phân giải video theo khung đang xem: khung nhỏ 360p, toàn màn hình 720p (240p/360p phóng ra toàn màn hình sẽ rất mờ). */
+function vidWantH(){ try{ const fe=document.fullscreenElement||document.webkitFullscreenElement; return (document.querySelector('.art.pfs')||(fe&&fe.classList&&fe.classList.contains('art')))?720:360; }catch{ return 360; } }
+var vidQ=360, vidUp={};
 var vidWarm={};
 function vidPrefetchNext(){ try{
   if(shuf||!queue||qi<0) return; const n=queue[qi+1]; if(!n||n.src!=='yt'||vidWarm[n.id]||vidFail[n.id]) return;
-  vidWarm[n.id]=1; fetch(vidUrl(n.id),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
+  vidWarm[n.id]=1; fetch(vidUrl(n.id,vidWantH()),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
 }catch{} }
 if(vidEl){ ['loadeddata','canplay','seeked'].forEach(ev=>vidEl.addEventListener(ev,vidSync)); }
 setInterval(vidSync,250);
