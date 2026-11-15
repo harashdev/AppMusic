@@ -52,6 +52,8 @@ body.skin-ocean{background:linear-gradient(135deg,#0f2027,#2c5364) fixed}
 body.skin-sunset{background:linear-gradient(135deg,#42275a,#734b6d) fixed}
 body.skin-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a) fixed}
 body.skin-custom{background:#000 center/cover fixed}
+body.night{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618;background:#000!important;background-image:none!important}
+#nightBtn.on{color:var(--accent)}
 body.side-min{--sw:76px}
 @media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
 *{box-sizing:border-box}
@@ -1008,6 +1010,8 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
       <button id="roomInfo" class="roompill" style="display:none"></button>
       <button id="donateBtn" class="pri" style="display:none">Ủng hộ</button>
       <button class="ico rb" id="newPl" title="Tạo playlist"><i data-ic="plus"></i></button>
+      <button class="ico rb" id="scanBtn" title="Quét QR"><i data-ic="scan"></i></button>
+      <button class="ico rb" id="nightBtn" title="Chế độ tối"><i data-ic="moon"></i></button>
       <button class="ico rb" id="gear" title="Cài đặt"><i data-ic="gear"></i></button>
     </header>
     <main id="main"></main>
@@ -1473,6 +1477,8 @@ const offSet=new Set(), offUrl={}, offBad={}; let offOrder=[], netDown=false;
 const offlineNow=()=>netDown||navigator.onLine===false;
 
 const IC={
+ scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+ moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
  radio:'<circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2"/>',
@@ -3222,7 +3228,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=520,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row"><button class="pri sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chia sẻ link</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
   const load=src=>new Promise(res=>{ if(!src||!okImgUrl(src)) return res(null); const im=new Image(); if(/^https:/.test(src)) im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
@@ -3269,8 +3275,31 @@ function shareCard(u){
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
+      if(a==='sh'){ if(me&&u.id===me.id) shareCardLink(u,b,no); return; }
       if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
       else { try{ await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); notify('Đã chép ảnh thẻ'); }catch{ notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh'); } } },'image/png'); };
+}
+/* CHIA SẺ THẺ BẰNG LINK: tải ảnh thẻ lên server → link /u/<tên> có thẻ xem trước (ảnh thẻ + tên) khi dán vào chat.
+   Trên Android bấm link sẽ mở thẳng vào app (intent-filter), app tự hiện thẻ hồ sơ của người đó. */
+async function shareCardLink(u,blob,no){
+  let r; try{ r=await api('/api/card',{method:'POST',headers:{'Content-Type':'image/png'},body:blob}); }
+  catch(e){ notify('Không tạo được liên kết: '+((e&&e.message)||'lỗi mạng')); return; }
+  const link=location.origin+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
+  try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
+  try{ if(navigator.share){ await navigator.share({title,text:title+' · FANS NO. '+no,url:link}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(link); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',link); }
+}
+async function openUserCard(name){
+  name=String(name||'').trim(); if(!/^[A-Za-z0-9_.\-]{1,64}$/.test(name)) return;
+  let u=null; try{ const r=await fetch('/api/u/'+encodeURIComponent(name)); if(r.ok) u=await r.json(); else { notify('Không tìm thấy thẻ này'); return; } }catch{ notify(NET_ERR); return; }
+  const mine=!!(me&&me.id&&me.id===u.id);
+  showProfilePop(mine?{...me,online:true}:u,$('#meAv'),mine);
+}
+window.museOpenUser=openUserCard;
+function openPendingUser(){
+  let n=''; try{ const q=new URLSearchParams(location.search).get('u')||''; if(q){ n=q; const x=new URL(location.href); x.searchParams.delete('u'); history.replaceState(null,'',x.pathname+(x.search||'')+x.hash); } }catch{}
+  try{ if(!n&&window.MuseNative&&typeof MuseNative.takePendingUser==='function') n=String(MuseNative.takePendingUser()||''); }catch{}
+  if(n) setTimeout(()=>openUserCard(n),600);
 }
 function showProfilePop(u,anchor,mine){
   document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
@@ -4376,6 +4405,9 @@ pages.library=function(m){
 };
 document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
 $('#gear').onclick=()=>go('settings');
+$('#scanBtn').onclick=()=>{ if(guest){ notify('Hãy đăng nhập để quét QR'); return; } qrScanDialog(); };
+{ const nb=$('#nightBtn'), setNight=on=>{ document.body.classList.toggle('night',on); nb.classList.toggle('on',on); try{ LS.set('night',on?'1':'0'); }catch{} };
+  setNight(LS.get('night','0')==='1'); nb.onclick=()=>setNight(!document.body.classList.contains('night')); }
 $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},$('#meAv'),true); };
 $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
@@ -6306,7 +6338,7 @@ async function start(u,offlineBoot,resume){
     netDown=true; bootedOffline=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
   if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);
   if(!resume){ applyVol(); restorePlayState(); }
-  go('home');
+  go('home'); try{ openPendingUser(); }catch{}
   { const dp=new URLSearchParams(location.search).get('discord');
     if(dp){ history.replaceState(null,'',location.pathname);
       if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
