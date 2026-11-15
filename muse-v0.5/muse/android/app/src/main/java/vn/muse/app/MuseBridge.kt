@@ -194,6 +194,10 @@ class MuseBridge(private val ctx: Context) {
         true
     } catch (e: Exception) { false }
 
+    // Tên người dùng từ link thẻ đã mở app (trả một lần rồi xoá).
+    @JavascriptInterface
+    fun takePendingUser(): String { val v = Deeplink.pending; Deeplink.pending = ""; return v }
+
     @JavascriptInterface
     fun sdkAvailable(): Boolean = MuseSdk.available
 
