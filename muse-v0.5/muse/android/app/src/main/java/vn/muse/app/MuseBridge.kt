@@ -116,33 +116,46 @@ class MuseBridge(private val ctx: Context) {
 
     @JavascriptInterface
     @Synchronized
+    /** Tạo file đích và mở luồng ghi. Trả "" nếu được, ngược lại là lý do (chưa có tiền tố "err:"). */
+    private fun openSave(safe: String, mime: String): String {
+        if (Build.VERSION.SDK_INT >= 29) {
+            val v = ContentValues().apply {
+                put(MediaStore.Audio.Media.DISPLAY_NAME, safe)
+                put(MediaStore.Audio.Media.MIME_TYPE, mime.ifBlank { "audio/mp4" })
+                put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/BBeat")
+                put(MediaStore.Audio.Media.IS_PENDING, 1)
+            }
+            val uri = ctx.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, v)
+                ?: return "không tạo được file trong Music/BBeat"
+            saveUri = uri
+            saveOut = ctx.contentResolver.openOutputStream(uri) ?: return "không mở được file để ghi"
+        } else {
+            val dir = File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "BBeat")
+            dir.mkdirs()
+            val f = File(dir, safe)
+            saveFile = f
+            saveOut = FileOutputStream(f)
+        }
+        return ""
+    }
+
+    @JavascriptInterface
+    @Synchronized
     fun saveBegin(name: String, mime: String): String {
         saveEnd(false)
-        return try {
-            val safe = name.filter { it >= ' ' }.replace(Regex("[\\/:*?\"<>|]"), "_").take(120).ifBlank { "bai-hat" }
-            if (Build.VERSION.SDK_INT >= 29) {
-                val v = ContentValues().apply {
-                    put(MediaStore.Audio.Media.DISPLAY_NAME, safe)
-                    put(MediaStore.Audio.Media.MIME_TYPE, mime.ifBlank { "audio/mp4" })
-                    put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/BBeat")
-                    put(MediaStore.Audio.Media.IS_PENDING, 1)
-                }
-                val uri = ctx.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, v)
-                    ?: return "err:không tạo được file trong Music/BBeat"
-                saveUri = uri
-                saveOut = ctx.contentResolver.openOutputStream(uri) ?: return "err:không mở được file để ghi"
-            } else {
-                val dir = File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "BBeat")
-                dir.mkdirs()
-                val f = File(dir, safe)
-                saveFile = f
-                saveOut = FileOutputStream(f)
-            }
-            ""
+        val safe = name.filter { it >= ' ' }.replace(Regex("[\\/:*?\"<>|]"), "_").take(120).ifBlank { "bai-hat" }
+        fun attempt(n: String): String = try {
+            openSave(n, mime).also { if (it.isNotEmpty()) saveEnd(false) }
         } catch (e: Exception) {
             saveEnd(false)
-            "err:" + (e.message ?: "lỗi tạo file")
+            e.javaClass.simpleName + ": " + (e.message ?: "lỗi tạo file")
         }
+        val first = attempt(safe)
+        if (first.isEmpty()) return ""
+        // Tên file có thể là nguyên nhân (ký tự lạ, trùng với file của bản cài trước, quá dài tính theo byte): thử lại bằng tên đơn giản.
+        val ext = safe.substringAfterLast('.', "").filter { it.isLetterOrDigit() }.take(5).ifEmpty { "m4a" }
+        val second = attempt("BBeat-" + System.currentTimeMillis() + "." + ext)
+        return if (second.isEmpty()) "" else "err:$first"
     }
 
     @JavascriptInterface

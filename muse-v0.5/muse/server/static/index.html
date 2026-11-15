@@ -3702,7 +3702,11 @@ function nativeChunk(id,fmt,start){
 }
 async function dlRun(it){
   const t=it.track;
-  const safe=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,120)||'bai-hat';
+  // Tên file hợp lệ: bỏ ký tự cấm, gộp nhiều dấu chấm, bỏ dấu chấm/khoảng trắng ở đầu-cuối (tên bài kết thúc bằng "." sẽ thành "ver..wav"),
+  // và cắt theo BYTE UTF-8 (chữ Nhật/Hàn/Trung 3 byte mỗi ký tự; hệ thống file chỉ cho 255 byte) chứ không theo số ký tự.
+  const safe=(()=>{ let s=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').replace(/\.{2,}/g,'.').replace(/\s+/g,' ').replace(/^[. ]+|[. ]+$/g,'');
+    const a=Array.from(s), enc=new TextEncoder(); while(a.length&&enc.encode(a.join('')).length>180) a.pop();
+    return a.join('').replace(/[. ]+$/g,'')||'bai-hat'; })();
   try{
     let blob, ext, offOk=false;
     if(t.src!=='yt'){
@@ -3756,7 +3760,7 @@ async function dlRun(it){
         }
       }
       try{ await dlSaveFile(safe+'.'+ext,blob,ext); it.name=safe+'.'+ext; }
-      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy, vẫn nghe offline trong app'; }
+      catch(e){ if(!offOk) throw e; it.note='không ghi được file ra máy ('+String(e&&e.message||e).slice(0,90)+'), vẫn nghe offline trong app'; }
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
