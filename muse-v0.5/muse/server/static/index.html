@@ -4055,7 +4055,7 @@ function dlDetRender(){
     else if(a==='shuf') $('#bShuf').click();
     else if(a==='vol') $('#bVol').click();
     else if(a==='stop'){ setPlaying(false); seekTo(0); broadcastState(); }
-    else if(a==='lyr'){ dlDetClose(false); setNp(true,'lyrics'); } };
+    else if(a==='lyr'){ dlDetClose(true); setNp(true,'lyr'); } };
   dlDetTick();
 }
 function dlDetOpen(){
