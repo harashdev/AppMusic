@@ -3198,7 +3198,7 @@ function openImgView(src,name){
 const pcPool=new Map(); let pcHost=null;
 const pcFull=()=>LS.get('pc_full','1')==='1';
 const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
-const pcExtra=(mine,u)=>`<div class="pc-act">${(u&&u.supporter>0)?'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>':(mine?'<button class="out sm" data-x="card">Thẻ chia sẻ 🔒</button>':'')}<button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
+const pcExtra=(mine,u)=>`<div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>'}<button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
   try{
     if(!u||guest&&!mine) return;
@@ -3217,11 +3217,10 @@ function warmProfile(u,mine){
 }
 function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]===!!mine; }catch{ return false; } }
 
-/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili) — chỉ dành cho người ủng hộ Ko-fi (u.supporter: 1 = thành viên nhỏ, 2 = thành viên lớn).
+/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili) — ai đã đăng nhập cũng dùng được; người ủng hộ Ko-fi (u.supporter: 1 = thành viên nhỏ, 2 = thành viên lớn) có thêm nhãn hạng trên thẻ.
    Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
-function supporterOnly(){ notify('Thẻ chia sẻ chỉ dành cho người ủng hộ qua Ko-fi. Khi ủng hộ, hãy ghi mã kết bạn hoặc tên đăng nhập của bạn vào lời nhắn.'); const du=(cfg&&cfg.donate_url)||ABOUT.supportUrl; if(du) setTimeout(()=>{ try{ openExt(du); }catch{} },1200); }
 function shareCard(u){
-  if(guest||!u||!(u.supporter>0)){ supporterOnly(); return; }
+  if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=520,ov=document.createElement('div'); ov.className='shc-ov';
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row"><button class="pri sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
@@ -3257,10 +3256,12 @@ function shareCard(u){
     g.fillStyle='#fff'; g.font='600 30px '+ft; sp(date,70,482,4);
     g.fillStyle='#fff'; g.font='800 40px '+ft; sp('BBeat',W-56,86,3,true);
     // hạng thành viên (donate Ko-fi)
-    const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
-    g.font='700 22px '+ft; const tw=spw(tier,4), bx=W-56-tw-36;
-    g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.24)'; rr(bx,112,tw+36,46,23); g.fill();
-    g.fillStyle='#fff'; sp(tier,bx+18,144,4);
+    if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
+      const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
+      g.font='700 22px '+ft; const tw=spw(tier,4), bx=W-56-tw-36;
+      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.24)'; rr(bx,112,tw+36,46,23); g.fill();
+      g.fillStyle='#fff'; sp(tier,bx+18,144,4);
+    }
   });
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
@@ -3284,7 +3285,7 @@ function showProfilePop(u,anchor,mine){
       if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
       return; }
     const act=x.dataset.x;
-    if(act==='card'){ d.remove(); if(guest||!(u.supporter>0)) supporterOnly(); else shareCard(u); return; }
+    if(act==='card'){ d.remove(); shareCard(u); return; }
     if(act==='style'){ LS.set('pc_full',pcFull()?'0':'1'); d.remove(); warmProfile(u,mine); showProfilePop(u,anchor,mine); return; }
     d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
