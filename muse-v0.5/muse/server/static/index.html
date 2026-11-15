@@ -885,7 +885,8 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .dd-disc{animation:ddspin 6s linear infinite paused}
 .dd-playing .dd-disc{animation-play-state:running}
 /* Nền: chính ảnh bìa làm mờ phủ toàn màn hình; panel trái và thanh dưới trong suốt/kính mờ nên cả hai bên đồng nhất */
-.dd-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;transform:scale(1.4);filter:blur(64px) saturate(1.6) brightness(.95) contrast(1.04);opacity:.9;pointer-events:none;user-select:none}
+.dd-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;transform:scale(1.4);filter:blur(64px) saturate(1.6) brightness(.95) contrast(1.04);opacity:0;transition:opacity .9s ease;pointer-events:none;user-select:none}
+.dd-bg.in,.dd-bg.old{opacity:.9}.dd-bg.old{transition:none}
 /* Nút Menu: mở thanh bên (Trang chủ / Mix / Tìm kiếm / Thư viện...) dạng ngăn kéo phủ lên màn hình Chi tiết */
 .dd-scrim{display:none}
 body.dl-det.dd-menu .dd-scrim{display:block;position:fixed;inset:0;z-index:55;background:#0005}
@@ -3885,8 +3886,8 @@ async function offSync(){
     const ms=await offInit.then(()=>OFF.all('m')); offSet.clear();
     for(const x of ms){ offSet.add(x.k);
       const ex=dlItems.find(i=>i.k===x.k&&i.status==='done');
-      if(ex){ ex.osize=x.size; }
-      else dlItems.push({uid:'o-'+x.k,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.size,fmt:String(x.fmt||'').toLowerCase(),name:''}); }
+      if(ex){ ex.osize=x.size; if(!ex.fmt&&x.fmt) ex.fmt=String(x.fmt).toLowerCase(); if(!ex.mime&&x.mime) ex.mime=x.mime; }
+      else dlItems.push({uid:'o-'+x.k,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.size,fmt:String(x.fmt||'').toLowerCase(),mime:x.mime||'',name:''}); }
     dlItems.sort((a,b)=>(b.at||0)-(a.at||0)); dlRender();
   }catch{}
 }
@@ -3965,6 +3966,26 @@ function audioDur(url){
     setTimeout(()=>done(0),6000); a.src=url;
   });
 }
+/* Thêm nhạc (app desktop): mở thư mục nhạc của app, người dùng thả file vào, app tự quét và thêm. Không có cổng nhà (web/Android) thì chọn file như cũ. */
+let locOn=false, locSyncBusy=false;
+async function locFolderSync(){
+  if(locSyncBusy||dlAddBusy) return;
+  locSyncBusy=true;
+  try{
+    const r=await fetch('/api/local/list',{cache:'no-store'}); if(!r.ok) return;
+    const list=await r.json(); if(!Array.isArray(list)) return; locOn=true;
+    await offInit; const files=[];
+    for(const it of list){
+      const base=String(it.name).split('/').pop(), lm=+it.mtime||0;
+      if(offSet.has('yt:'+locId({name:base,size:it.size,lastModified:lm}))) continue;
+      const fr=await fetch('/api/local/file?name='+encodeURIComponent(it.name),{cache:'no-store'}); if(!fr.ok) continue;
+      files.push(new File([await fr.blob()],base,{lastModified:lm}));
+    }
+    locSyncBusy=false; if(files.length) await dlAddFiles(files);
+  }catch{} finally{ locSyncBusy=false; }
+}
+setInterval(()=>{ if(locOn&&page==='downloads'&&!document.hidden) locFolderSync(); },4000);
+window.addEventListener('focus',()=>{ if(locOn&&page==='downloads') locFolderSync(); });
 let dlAddBusy=false;
 async function dlAddFiles(files){
   files=[...files].filter(f=>f&&(/^audio\//.test(f.type)||AUD_EXT.test(f.name)));
@@ -4099,7 +4120,7 @@ async function dlRun(it){
 }
 
 // ===== PC: "Chi tiết" kiểu foobar2000 khi bấm phát trong Tải xuống (Android giữ nguyên) =====
-let dlDetOn=false, dlDetTimer=0, dlDetKey='', dlDetTab='det', dlDetLyrKey='';
+let dlDetOn=false, dlDetTimer=0, dlDetKey='', dlDetTab='det', dlDetLyrKey='', dlDetLastBg='';
 const winCmd=c=>{ try{ if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP) return window.__TAURI__.core.invoke(c); }catch{} return null; };
 function toggleBrowserFs(){ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); }catch{} }
 // F11: phóng to toàn màn hình app desktop (trình duyệt thường đã tự có F11).
@@ -4132,18 +4153,46 @@ function dlDetStats(t){
   const d=ts=>{ if(!ts) return '—'; const o=new Date(ts); return o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')+'-'+String(o.getDate()).padStart(2,'0')+' '+String(o.getHours()).padStart(2,'0')+':'+String(o.getMinutes()).padStart(2,'0'); };
   return {last:d(last), n};
 }
-function dlDetHtml(){
-  const t=cur, x=dlItems.find(i=>i.k===key(t)||i.track&&key(i.track)===key(t))||{};
-  const codec=({m4a:'AAC (MPEG-4)',mp4:'AAC (MPEG-4)',webm:'Opus (WebM)',wav:'PCM (WAV)',mp3:'MP3',flac:'FLAC',ogg:'Vorbis (OGG)'})[String(x.fmt||'').toLowerCase()]||String(x.fmt||'—').toUpperCase();
-  const sz=x.osize||x.size||0, dur=getDur()||t.dur||0, kb=sz&&dur?Math.round(sz*8/1000/dur):0;
+const DD_CODEC={m4a:'AAC (MPEG-4)',mp4:'AAC (MPEG-4)',aac:'AAC',webm:'Opus (WebM)',opus:'Opus',wav:'PCM (WAV)',mp3:'MP3',flac:'FLAC',ogg:'Vorbis (OGG)',oga:'Vorbis (OGG)',wma:'WMA',mka:'Matroska'};
+const ddMime=m=>{ m=String(m||'').toLowerCase(); return /wav/.test(m)?'wav':/flac/.test(m)?'flac':/mpeg|mp3/.test(m)?'mp3':/webm/.test(m)?'webm':/ogg|opus/.test(m)?'ogg':/aac/.test(m)?'aac':/mp4|m4a/.test(m)?'m4a':''; };
+const ddMeta={}; // key -> {dur,sr,ch,kbps}: đọc thẳng từ file đã lưu, dùng khi trình phát chưa/không báo được thời lượng
+function dlDetInfo(t){
+  const k=key(t), x=dlItems.find(i=>i.k===k||i.track&&key(i.track)===k)||{}, mt=ddMeta[k]||{};
+  const fm=String(x.fmt||ddMime(x.mime)||'').toLowerCase(), sz=x.osize||x.size||0;
+  const gd=getDur(), dur=(isFinite(gd)&&gd>0?gd:0)||t.dur||(x.track&&x.track.dur)||mt.dur||0;
+  let kb=mt.kbps||0; if(!kb&&sz&&dur) kb=Math.round(sz*8/1000/dur);
+  const sr=mt.sr?String(+(mt.sr/1000).toFixed(1)):(fm==='webm'||fm==='opus'?'48':'44.1');
   const ageD=x.at?Math.max(0,Math.floor((Date.now()-x.at)/864e5)):0;
-  const added=x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—';
-  const st=dlDetStats(t), sr=/webm/i.test(x.fmt||'')?'48':'44.1';
-  const row=(a,b)=>`<dt>${a}</dt><dd>${esc(String(b))}</dd>`;
+  return {codec:DD_CODEC[fm]||(fm?fm.toUpperCase():'—'), ch:mt.ch===1?'1.0 Mono':'2.0 Stereo', sr, dur,
+    data:(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''),
+    added:x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—'};
+}
+async function dlDetMeta(t){
+  const k=key(t); if(ddMeta[k]) return; ddMeta[k]={};
+  try{
+    const b=await OFF.get('a',k); if(!b||!b.size) return;
+    const m={}, dv=new DataView(await b.slice(0,Math.min(b.size,65536)).arrayBuffer());
+    if(dv.byteLength>44&&dv.getUint32(0)===0x52494646&&dv.getUint32(8)===0x57415645){ // RIFF....WAVE: đọc thẳng header
+      let p=12, byteRate=0, dataSize=0;
+      while(p+8<=dv.byteLength){
+        const id=dv.getUint32(p), sz=dv.getUint32(p+4,true);
+        if(id===0x666d7420){ m.ch=dv.getUint16(p+10,true); m.sr=dv.getUint32(p+12,true); byteRate=dv.getUint32(p+16,true); }
+        else if(id===0x64617461){ dataSize=Math.min(sz,Math.max(0,b.size-p-8)); break; }
+        p+=8+sz+(sz&1);
+      }
+      if(byteRate){ m.kbps=Math.round(byteRate*8/1000); if(dataSize) m.dur=Math.round(dataSize/byteRate); }
+    }
+    if(!m.dur){ const u=URL.createObjectURL(b); m.dur=await audioDur(u); URL.revokeObjectURL(u); }
+    ddMeta[k]=m; if(m.dur&&cur&&key(cur)===k&&!cur.dur) cur.dur=m.dur;
+  }catch{}
+}
+function dlDetHtml(){
+  const t=cur, I=dlDetInfo(t), st=dlDetStats(t);
+  const row=(a,b,id)=>`<dt>${a}</dt><dd${id?' id="'+id+'"':''}>${esc(String(b))}</dd>`;
   const cimg=esc(thumb(t.image,800));
   return `<img class="dd-bg" alt="" aria-hidden="true" decoding="async" fetchpriority="low" src="${cimg}"><div class="dd-scrim" data-dd="menu-x"></div><div class="dd-nav"><button class="menu" data-dd="menu" title="Menu"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Toàn màn hình (F11)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
   <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><div class="ar">${esc(t.artist||'')}</div><hr>
-   <dl>${row('Codec',codec)}${row('Kênh','2.0 Stereo')}${row('Nguồn',sr+' kHz')}${row('Dữ liệu',(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''))}${row('Thời lượng',fmt(dur))}${row('Đã thêm',added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
+   <dl>${row('Codec',I.codec,'ddCodec')}${row('Kênh',I.ch,'ddCh')}${row('Nguồn',I.sr+' kHz','ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe',st.n||0)}</dl></div>
    <div class="dd-lyr" id="ddLyr"></div>
    <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" decoding="async" fetchpriority="low" src="${cimg}"></div><img class="dd-cov" alt="" decoding="async" fetchpriority="high" src="${cimg}"></div></div>
   <div class="dd-ft"><div class="dd-now">${t.artist?'<b>'+esc(t.artist)+'</b>':''}<span>${esc(t.title||'')}</span></div>
@@ -4159,6 +4208,8 @@ function dlDetTick(){
   if(sk&&d&&document.activeElement!==sk){ sk.value=1000*t/d; sk.style.setProperty('--p',(100*t/d)+'%'); }
   if(sk){ sk.style.setProperty('--b',(100*bufFrac())+'%'); }
   const tm=$('#ddTm'); if(tm) tm.textContent=fmt(t)+' / '+fmt(d);
+  { const I=dlDetInfo(cur), set=(id,v)=>{ const e=$('#'+id); if(e&&e.textContent!==v) e.textContent=v; };
+    set('ddCodec',I.codec); set('ddCh',I.ch); set('ddSr',I.sr+' kHz'); set('ddData',I.data); set('ddDur',fmt(I.dur)); }
   setIc($('#ddPp'),playing?'pause':'play',true); dd.classList.toggle('dd-playing',!!playing);
   const sh=$('#ddShuf'); if(sh) sh.classList.toggle('on',!!shuf);
   const vr=$('#ddVolR'); if(vr&&document.activeElement!==vr) vr.value=Math.round(vol*100);
@@ -4169,7 +4220,14 @@ function dlDetRender(){
   dlDetKey=key(cur); try{ npColor(cur); }catch{} m.innerHTML='<div class="dd">'+dlDetHtml()+'</div>'; document.body.classList.add('dl-det');
   const dd=m.querySelector('.dd'), sk=$('#ddSeek'), vr=$('#ddVolR');
   const cov=dd.querySelector('.dd-cov'), dimg=dd.querySelector('.dd-dimg'), bgi=dd.querySelector('.dd-bg');
-  if(bgi) bgi.onerror=()=>{ bgi.onerror=null; bgi.style.display='none'; };
+  if(bgi){
+    bgi.onerror=()=>{ bgi.onerror=null; bgi.style.display='none'; };
+    // Nền đổi theo bìa bài mới: giữ lớp nền của bài trước bên dưới, lớp mới mờ dần hiện lên trên (đổi màu mượt, không giật).
+    if(dlDetLastBg){ const o=document.createElement('img'); o.className='dd-bg old'; o.alt=''; o.setAttribute('aria-hidden','true'); o.src=dlDetLastBg; bgi.before(o); setTimeout(()=>o.remove(),1200); }
+    const bgShow=()=>{ dlDetLastBg=bgi.currentSrc||bgi.src; requestAnimationFrame(()=>bgi.classList.add('in')); };
+    bgi.addEventListener('load',bgShow); if(bgi.complete&&bgi.naturalWidth) bgShow();
+  }
+  dlDetMeta(cur);
   // Cover (và hình trên mặt đĩa) lỗi tải thì lấy bản đã lưu offline; không có thì ẩn hình trên đĩa, đĩa trơn như cũ.
   cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; if(bgi){ bgi.src=u; bgi.style.display=''; } } }); };
   if(dimg) dimg.onerror=()=>{ dimg.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) dimg.src=u; else dimg.style.display='none'; }); };
@@ -4227,7 +4285,12 @@ pages.downloads=function(m){
   dlRender();
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
-  const dlFi=$('#dlFile'); $('#dlAdd').onclick=()=>dlFi.click();
+  const dlFi=$('#dlFile');
+  $('#dlAdd').onclick=async()=>{
+    try{ const r=await fetch('/api/local/open',{method:'POST'}); if(r.ok){ await r.json(); locOn=true; notify('Đã mở thư mục nhạc – thả file nhạc vào đó, app sẽ tự thêm'); locFolderSync(); return; } }catch{}
+    dlFi.click();
+  };
+  locFolderSync();
   dlFi.onchange=()=>{ const l=[...dlFi.files]; dlFi.value=''; dlAddFiles(l); };
   $('#dlList').onclick=e=>{
     const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
