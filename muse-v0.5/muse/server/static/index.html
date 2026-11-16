@@ -3293,7 +3293,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
   const mine=!!(me&&me.id&&u.id===me.id);
@@ -3311,11 +3311,13 @@ function shareCard(u){
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
   const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
-  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP]).then(([ban,av,fn])=>{
-    no=String(fn||0);
+  let ban=null, av=null, custom=null;   // custom = hình nền do chính người dùng chọn cho thẻ (lưu trên máy này, key card_bg)
+  const paint=()=>{
+    g.clearRect(0,0,W,H); g.shadowColor='transparent'; g.shadowBlur=0; g.textAlign='left'; g.textBaseline='alphabetic';
     g.save(); rr(0,0,W,H,44); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
-    if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
+    const bg=custom||ban;
+    if(bg) cover(bg,0,0,W,H,custom?{bx:50,by:50,bz:1}:(cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1}));
     // lớp tối nhẹ phía trên + bên trái để chữ trắng đọc được, ảnh lộ dần
     const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.5)'); lg.addColorStop(.6,'rgba(0,0,0,.16)'); lg.addColorStop(1,'rgba(0,0,0,0)');
     g.fillStyle=lg; g.fillRect(0,0,W,H);
@@ -3343,8 +3345,33 @@ function shareCard(u){
       g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,84,tw+44,60,30); g.fill();
       g.fillStyle='#fff'; sp(tier,bx+22,124,5);
     }
+  };
+  const bgx=ov.querySelector('[data-a="bgx"]'), bgf=ov.querySelector('input[type=file]');
+  const loadCustom=()=>new Promise(res=>{ let d=''; try{ d=mine?LS.get('card_bg',''):''; }catch{} if(!/^data:image\/jpeg;base64,/.test(d)) return res(null); const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=d; });
+  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP,loadCustom()]).then(([b,a,fn,c])=>{
+    ban=b; av=a; custom=c; no=String(fn||0);
+    paint(); if(bgx&&custom) bgx.style.display='';
     if(mine) upload();
   });
+  // Đổi hình thẻ: chọn ảnh từ máy → cắt giữa theo khung 4:3, thu nhỏ còn 1200×900 (JPEG) rồi lưu trên máy; thẻ + link chia sẻ dùng hình này.
+  const setBg=async f=>{
+    if(!f) return;
+    if(!/^image\//.test(f.type)) return notify('Hãy chọn file ảnh');
+    if(f.size>10*1048576) return notify('Ảnh tối đa 10MB');
+    const url=URL.createObjectURL(f);
+    try{
+      const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('img')); i.src=url; });
+      const o=document.createElement('canvas'); o.width=W; o.height=H; const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,W,H);
+      const ar=im.width/im.height, br=W/H; let sw=im.width, sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
+      x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,0,0,W,H);
+      const d=o.toDataURL('image/jpeg',.85);
+      LS.set('card_bg',d); if(LS.get('card_bg','')!==d) return notify('Máy không đủ chỗ lưu hình này');
+      const c=new Image(); await new Promise(r=>{ c.onload=r; c.onerror=r; c.src=d; });
+      custom=c; upP=null; paint(); if(bgx) bgx.style.display=''; if(mine) upload();
+    }catch{ notify('Không đọc được ảnh này'); }
+    finally{ URL.revokeObjectURL(url); }
+  };
+  if(bgf) bgf.onchange=e=>{ const f=e.target.files[0]; e.target.value=''; setBg(f); };
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
   document.addEventListener('keydown',esc_,true);
@@ -3366,6 +3393,8 @@ function shareCard(u){
   };
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
+    if(a==='bg'){ if(bgf) bgf.click(); return; }
+    if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
     if(a==='sh'){ if(!mine) return; return doCopy(true); }
     if(a==='cp') return doCopy(false);
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
