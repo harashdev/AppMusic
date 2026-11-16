@@ -311,6 +311,7 @@ body:not(.vid) #vidEl{display:none}
 .pwEye,.pwEye:hover,.pwEye:active,.pwEye.on{position:absolute;right:8px;top:0;bottom:0;margin:auto 0;width:32px;height:32px;padding:0;background:none;color:var(--text);opacity:.6;border-radius:0;transform:none;transition:none;outline:0}
 .pwEye.on{opacity:1}
 .pwEye .i{width:20px;height:20px}
+input::-ms-reveal,input::-ms-clear{display:none}
 #vctl{position:absolute;inset:0;z-index:6;display:none;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 body.vid #vctl,body.vc #vctl{display:block}
 #vctl::before{content:"";position:absolute;inset:0;background:linear-gradient(#0008,#0000 30%,#0000 70%,#0006);opacity:0;transition:opacity .15s;pointer-events:none}
@@ -474,10 +475,15 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
 .bp-nm b{min-width:0;overflow-wrap:anywhere}
 .bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
-.bp-lv{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--sub)}
-.bp-lv i{font-style:normal;font-weight:800;color:#fff;padding:1px 7px;border-radius:5px;background:var(--c,#8b8f98)}
-.bp-lv .bar{width:110px;height:4px;border-radius:2px;background:var(--hover2);overflow:hidden}
-.bp-lv .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
+.bp-lv{display:inline-flex;vertical-align:middle}
+.bp-lvc{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;border:0;border-radius:999px;background:var(--hover2);color:var(--text);font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}
+.bp-lvc i{font-style:normal;font-weight:800;color:#fff;padding:1px 7px;border-radius:999px;background:var(--c,#8b8f98)}
+.bp-lvc .i{width:14px;height:14px;color:var(--sub);transition:transform .18s}
+.bp-lvc[aria-expanded=true] .i{transform:rotate(90deg)}
+.bp-lvd{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--sub)}
+.bp-lvd[hidden]{display:none}
+.bp-lvd .bar{width:110px;height:4px;border-radius:2px;background:var(--hover2);overflow:hidden}
+.bp-lvd .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
 .bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
 .bp-bio a{color:var(--pf-ac,var(--accent));cursor:pointer;flex:none}
 .bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
@@ -560,7 +566,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
   .bp-ebs{margin-top:0;flex:none}
   .bp-eb{flex:none;padding:9px 20px;white-space:nowrap}
   .bp-nm{font-size:28px}
-  .bp-lv .bar{width:170px}
+  .bp-lvd .bar{width:170px}
   .bp-bio{justify-content:flex-start;gap:16px}
   .bp-tabs{justify-content:flex-start;padding:0 20px;margin-top:22px}
   .bp-tab{flex:none;padding:14px 28px}
@@ -3682,8 +3688,8 @@ function openProfilePage(u,mine){
     <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         ${mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}</div>
-    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
-      <div class="bp-lv" id="bpLv"></div>
+    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
+      <div class="bp-lvd" id="bpLvD" hidden></div>
       <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
@@ -3737,9 +3743,11 @@ function openProfilePage(u,mine){
     if(mine){ set('bpS2',String(followGet().length)); set('bpS3',String(favs.size)); }
     api('/api/fans/'+u.id).then(r=>set('bpS1',String(+r.n||0)),()=>{});
     const s=await lvGet(u.id); if(s==null||!d.isConnected) return;
-    const L=lvOf(s), I=LV_INFO[L.l], box=d.querySelector('#bpLv'); if(!box) return;
-    box.style.setProperty('--c',I[1]);
-    box.innerHTML=`<i>LV${L.l}</i><span>${esc(I[0])}</span><span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
+    const L=lvOf(s), I=LV_INFO[L.l], box=d.querySelector('#bpLv'), det=d.querySelector('#bpLvD'); if(!box||!det) return;
+    box.style.setProperty('--c',I[1]); det.style.setProperty('--c',I[1]);
+    box.innerHTML=`<button type="button" class="bp-lvc" aria-expanded="false" aria-label="Chi tiết cấp độ"><i>LV${L.l}</i><span>${esc(I[0])}</span>${ic('chev')}</button>`;
+    det.innerHTML=`<span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
+    const btn=box.firstElementChild; btn.onclick=e=>{ e.stopPropagation(); const o=det.hidden; det.hidden=!o; btn.setAttribute('aria-expanded',o?'true':'false'); };
   })();
 }
 /* Chỉnh sửa hồ sơ (avatar, banner, nền, màu chủ đạo, trạng thái) mở ngay trong trang cá nhân */
