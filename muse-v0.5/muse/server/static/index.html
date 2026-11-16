@@ -496,17 +496,10 @@ button.bp-chip{cursor:pointer}
 button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--accent))}
 .bp-chip i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--pf-hover,rgba(255,255,255,.1));color:var(--pf-ac,var(--accent))}
 .bp-chip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-chip.m i{background:#4aa3ff33;color:#6cb6ff}
-.bp-chip.f i{background:#ff6fae33;color:#ff8fc0}
-.bp-chip.sec i{background:#b69cff33;color:#c9b6ff}
-.bp-chip.bd i{background:#ff7a7a2e;font-size:12px}
-.bp-chip.bd.now{border-color:#ffd166;box-shadow:0 0 14px #ffd16655;animation:bpBd 1.6s ease-in-out infinite}
-@keyframes bpBd{50%{box-shadow:0 0 22px #ffd166aa}}
 .bp-chip.uid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.4px;color:var(--pf-sub,var(--sub))}
 .bp-chip.add{border-style:dashed;background:transparent;color:var(--pf-sub,var(--sub));font-weight:500}
 .bp-chip.add i{background:transparent;border:1px dashed currentColor;color:inherit}
 .bp-q{position:relative;padding-left:14px;border-left:2px solid var(--pf-ac,var(--accent));font-style:italic;overflow-wrap:anywhere}
-@media (prefers-reduced-motion:reduce){.bp-chip.bd.now{animation:none}}
 .bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
 .bp-tab{flex:1;text-align:center;padding:12px 0;font-size:16px;color:var(--sub);cursor:pointer;position:relative;background:none;border:0}
 .bp-tab.on{color:var(--pf-ac,#fb7299)}
@@ -545,9 +538,6 @@ button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--a
 .bp-rw>span{flex:none}
 .bp-rw>em{flex:1;min-width:0;text-align:right;font-style:normal;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bp-rw>.i{flex:none;width:18px;height:18px;color:var(--sub)}
-.bp-opt{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.bp-opt button{padding:12px}
-.bp-opt button.on{background:var(--accent);color:var(--on)}
 
 /* ===== AVATAR: rê chuột → icon mờ đi + hiện cây bút. Icon emoji là chữ nên trước đây hiện con trỏ chữ I → tắt chọn chữ + ép con trỏ ===== */
 .av-pen{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;opacity:0;transform:scale(.8);transition:opacity .16s,transform .16s;pointer-events:none;filter:drop-shadow(0 1px 3px #000a)}
@@ -1175,12 +1165,17 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 /* ----- banner dài hơn để thêm ảnh thoải mái; avatar + tên + số liệu đứng giữa banner; sửa lỗi hẹp giao diện trên điện thoại ----- */
 .bp .bp-w{max-width:none}   /* trước đây bị khóa 640px nên màn 640–720px banner bị hở hai bên */
 .bp .bp-tab:focus,.bp .bp-tab:focus-visible,.bp .bp-eb:focus{outline:none}
-.bp .bp-hero{min-height:clamp(400px,50vw,560px);display:flex;flex-direction:column;justify-content:center}
-.bp .bp-head{padding-top:calc(24px + env(safe-area-inset-top));padding-bottom:24px;row-gap:16px;align-items:center}
+.bp .bp-hero{min-height:clamp(250px,68vw,380px);display:flex;flex-direction:column;justify-content:center}   /* thu nhỏ banner: tỉ lệ ~3:2 như ảnh mẫu Bilibili (trước đây 400–560px) */
+.bp .bp-head{padding-top:calc(52px + env(safe-area-inset-top));padding-bottom:14px;row-gap:10px;align-items:center}
 .bp .bp-head>.bp-hr{align-self:stretch}
 .bp .bp-ban::after{background:linear-gradient(to bottom,rgba(0,0,0,.4),rgba(0,0,0,.16) 35%,rgba(0,0,0,.24) 65%,rgba(0,0,0,.6))}
 /* Hồ sơ: banner to hơn (cấu trúc giữ nguyên) */
 .prhero{height:clamp(300px,40vw,360px)}
+/* Hàng tên: tên + bút + LV nằm CÙNG MỘT HÀNG như ảnh mẫu Bilibili (tên dài thì rút gọn ..., không đẩy bút/LV xuống dòng) */
+.bp .bp-nm{flex-wrap:nowrap;gap:6px;font-size:19px}
+.bp .bp-nm b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
+.bp .bp-nm .bp-pen,.bp .bp-nm .bp-tier,.bp .bp-nm .bp-lv{flex:none}
+@media(min-width:720px){ .bp .bp-nm{font-size:26px;gap:8px} }
 </style>
 </head>
 <body class="skin-default">
@@ -3707,9 +3702,6 @@ function showProfilePop(u,anchor,mine){
 }
 
 /* ===== TRANG HỒ SƠ (kiểu Bilibili) + CHỈNH SỬA THÔNG TIN ===== */
-const pfxGet=()=>{ try{ return JSON.parse(LS.get(uKey('muse_pfx'),'{}'))||{}; }catch{ return {}; } };   // giới tính + ngày sinh: lưu trên máy này
-const pfxSet=o=>LS.set(uKey('muse_pfx'),JSON.stringify({...pfxGet(),...o}));
-const GENDERS={male:'Nam',female:'Nữ',secret:'Bảo mật'};
 function profileRowsHtml(list,k){
   return '<div class="bp-trs">'+list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('')+'</div>';
 }
@@ -3771,24 +3763,10 @@ async function pfThemeApply(el,u,mine){
   if(fixed) return;
   for(const src of imgs){ const c=await pfImgColor(src); if(!el.isConnected) return; if(c){ pfApply(el,pfPalette(c,accH)); return; } }
 }
-// "Thẻ danh tính": giới tính, ngày sinh (cung hoàng đạo + đếm ngược sinh nhật), UID — dạng chip dưới tên
+// "Thẻ danh tính": UID — dạng chip dưới tên
 function pfIdChips(u,mine){
-  const px=mine?pfxGet():{}, ch=[];
+  const ch=[];
   const add=(cls,glyph,txt,x,tip)=>ch.push(`<${mine?'button':'span'} class="bp-chip ${cls}"${mine?` data-x="${x||'edit'}"`:''}${tip?` title="${esc(tip)}"`:''}><i>${glyph}</i><span>${esc(txt)}</span></${mine?'button':'span'}>`);
-  if(mine){
-    const g=px.gender;
-    if(g==='male') add('m','♂\uFE0E','Nam');
-    else if(g==='female') add('f','♀\uFE0E','Nữ');
-    else if(g==='secret') add('sec','✦','Bí ẩn','edit','Giới tính: bảo mật');
-    else add('add','+','Thêm giới tính');
-    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(px.birth||'');
-    if(m){
-      const Y=+m[1],M=+m[2],D=+m[3], now=new Date(), t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-      let nx=new Date(t0.getFullYear(),M-1,D); if(nx<t0) nx=new Date(t0.getFullYear()+1,M-1,D);
-      const left=Math.round((nx-t0)/864e5), age=nx.getFullYear()-Y-(left===0?0:1);
-      add('bd'+(left===0?' now':''),'🎂',left===0?'Hôm nay sinh nhật!':`${String(D).padStart(2,'0')}/${String(M).padStart(2,'0')}`+(left<=60?` · còn ${left} ngày`:'')+(age>0&&left!==0?` · ${age} tuổi`:''),'edit','Ngày sinh '+m[3]+'/'+m[2]+'/'+m[1]);
-    } else add('add','🎂','Thêm ngày sinh');
-  }
   const code=mine?me.code:(u.code||'');
   if(code) ch.push(`<button class="bp-chip uid" data-x="copyuid" data-c="${esc(code)}" title="Bấm để chép UID"><i>#</i><span>${esc(code)}</span></button>`);
   return ch.join('');
@@ -3905,12 +3883,9 @@ function openProfileEdit(parent){
   const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
   if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed'); for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); }
   const paint=()=>{
-    const px=pfxGet();
     d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
       <div class="bp-grp">
         <div class="bp-rw" data-x="name"><span>Biệt danh</span><em>${esc(me.display_name)}</em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="gender"><span>Giới tính</span><em>${esc(GENDERS[px.gender]||'Bảo mật')}</em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="birth"><span>Ngày sinh</span><em>${esc(px.birth?px.birth.split('-').reverse().join('/'):'Sẽ nhận được lời chúc vào ngày sinh nhật')}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Không có mô tả')}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="theme"><span>Banner &amp; nền hồ sơ</span><em></em>${ic('chev')}</div>
       </div>
@@ -3923,29 +3898,12 @@ function openProfileEdit(parent){
   const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); if(parent&&parent.dispatchEvent) parent.dispatchEvent(new Event('pfx')); };
   function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
-  const choose=(title,opts,cur)=>new Promise(res=>{
-    const ov=document.createElement('div'); ov.className='dlgov';
-    ov.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(title)}</h3><div class="bp-opt">${opts.map(([v,l])=>`<button data-v="${v}" class="${v===cur?'on':''}">${esc(l)}</button>`).join('')}</div><div class="dlgb"><button class="dlgc">Hủy</button></div></div>`;
-    document.body.appendChild(ov);
-    const done=v=>{ ov.remove(); res(v); };
-    ov.onclick=e=>{ const b=e.target.closest('[data-v]'); if(b) done(b.dataset.v); else if(e.target===ov||e.target.closest('.dlgc')) done(null); };
-  });
-  const dateDlg=cur=>new Promise(res=>{
-    const ov=document.createElement('div'); ov.className='dlgov';
-    ov.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><h3>Ngày sinh</h3><input type="date" value="${esc(cur||'')}" max="${new Date().toISOString().slice(0,10)}"><div class="dlgb"><button class="dlgx">Xóa</button><button class="dlgc">Hủy</button><button class="dlgo">Lưu</button></div></div>`;
-    document.body.appendChild(ov); const inp=ov.querySelector('input');
-    const done=v=>{ ov.remove(); res(v); };
-    ov.querySelector('.dlgo').onclick=()=>done(inp.value||''); ov.querySelector('.dlgx').onclick=()=>done('');
-    ov.querySelector('.dlgc').onclick=()=>done(null); ov.onclick=e=>{ if(e.target===ov) done(null); };
-  });
   d.onclick=async e=>{
     const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
     try{
       if(a==='back') return close();
       if(a==='name'){ const v=await askText('Biệt danh',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
         const u=await api('/api/account/name',{json:{display_name:v}}); applyUser(u); notify('Đã lưu biệt danh'); paint(); }
-      else if(a==='gender'){ const v=await choose('Giới tính',[['male','Nam'],['female','Nữ'],['secret','Bảo mật']],pfxGet().gender||'secret'); if(v){ pfxSet({gender:v}); paint(); } }
-      else if(a==='birth'){ const v=await dateDlg(pfxGet().birth||''); if(v!==null){ pfxSet({birth:v}); paint(); } }
       else if(a==='bio'){ const v=await askText('Chữ ký cá nhân',me.status||''); if(v==null) return;
         const c=cropOf(me); const u=await api('/api/profile',{json:{display_name:me.display_name,accent:me.accent,bg:me.bg||'',bg_url:me.bg==='custom'?(me.bg_url||''):'',banner_color:me.banner_color||'',status:v.trim().slice(0,60),crop:c}});
         if(u&&u.id) applyUser(u); else me.status=v.trim().slice(0,60); notify('Đã lưu chữ ký'); paint(); }
