@@ -1179,6 +1179,7 @@ async fn main() {
         .route("/app-icon.png", get(serve_icon))
         .route("/api/card", post(upload_card).layer(DefaultBodyLimit::max(3 * 1024 * 1024)))
         .route("/api/u/:username", get(card_user))
+        .route("/api/fans/:id", get(fans_get))
         .route("/api/listen", post(listen_post))
         .route("/api/lv/:id", get(level_get))
         .route("/u/:username", get(card_page))
@@ -3990,6 +3991,21 @@ async fn level_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Pat
     Ok(Json(json!({ "id": id, "secs": secs })))
 }
 
+// Số nghệ sĩ người dùng đã theo dõi (lấy từ dữ liệu đồng bộ "follow") — hiện trên thẻ "FANS NO.".
+fn follow_count(db: &rusqlite::Connection, id: i64) -> i64 {
+    db.query_row("SELECT v FROM user_sync WHERE user_id=?1 AND k='follow'", [id], |r| r.get::<_, String>(0))
+        .ok()
+        .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+        .and_then(|v| v.as_array().map(|a| a.len() as i64))
+        .unwrap_or(0)
+}
+
+async fn fans_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
+    require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    Ok(Json(json!({ "id": id, "n": follow_count(&db, id) })))
+}
+
 async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
     if !card_name_ok(&username) {
         return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
@@ -4065,7 +4081,8 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
     let page_url = format!("{base}/u/{uname}");
     let img = format!("{base}/cards/{}.jpg?v={v}", u.id);
     let title = format!("{} trên BBeat", u.display_name);
-    let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", u.id, u.display_name);
+    let fans = { let db = st.db.lock().unwrap(); follow_count(&db, u.id) };
+    let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", fans, u.display_name);
     let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
     let intent = format!("intent://u/{uname}#Intent;scheme=bbeat;package=vn.muse.app;S.browser_fallback_url={};end", enc(&format!("{page_url}?web=1")));
     // Người dùng Android bấm link (không phải bot xem trước, không phải ?web=1) → chuyển thẳng vào app, không hiện trang web.
