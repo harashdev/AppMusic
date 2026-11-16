@@ -3686,7 +3686,7 @@ function openProfilePage(u,mine){
   d.innerHTML=`<div class="bp-w">
     <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
     <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
-      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
+      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         ${mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}</div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
       <div class="bp-lvd" id="bpLvD" hidden></div>
