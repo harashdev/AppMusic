@@ -4035,12 +4035,12 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
 <meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
 <meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
-<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="520">
+<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="900">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
 <meta name="theme-color" content="#07070b">
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#07070b;color:#f3f0fa;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.w{width:min(560px,100%);padding:20px;text-align:center}.w img{width:100%;border-radius:18px;box-shadow:0 12px 40px #000a;background:#17141f;aspect-ratio:1200/520}
+.w{width:min(560px,100%);padding:20px;text-align:center}.w img{width:100%;border-radius:18px;box-shadow:0 12px 40px #000a;background:#17141f;aspect-ratio:1200/900}
 h1{font-size:22px;margin:18px 0 2px}p{margin:0 0 18px;color:#a8a3b6}
 .b{display:block;padding:13px;border-radius:999px;background:#8ecbff;color:#07131d;font-weight:700;text-decoration:none;margin-top:10px}.b.o{background:none;color:#f3f0fa;border:1px solid #ffffff2e}
 </style></head><body><div class="w"><img src="@IMG@" alt="Thẻ BBeat"><h1>@NAME@</h1><p>@DESC@</p>
@@ -4048,7 +4048,12 @@ h1{font-size:22px;margin:18px 0 2px}p{margin:0 0 18px;color:#a8a3b6}
 <script>(function(){try{if(/Android/i.test(navigator.userAgent||'')&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");}}catch(e){}})();</script>
 </body></html>"##;
 
-async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>) -> Response {
+#[derive(Deserialize)]
+struct CardQ {
+    web: Option<String>,
+}
+
+async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>, Query(q): Query<CardQ>) -> Response {
     let nf = || (StatusCode::NOT_FOUND, [(header::CONTENT_TYPE, "text/plain; charset=utf-8")], "Không tìm thấy thẻ BBeat này").into_response();
     if !card_name_ok(&username) {
         return nf();
@@ -4063,6 +4068,14 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
     let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", u.id, u.display_name);
     let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
     let intent = format!("intent://u/{uname}#Intent;scheme=bbeat;package=vn.muse.app;S.browser_fallback_url={};end", enc(&format!("{page_url}?web=1")));
+    // Người dùng Android bấm link (không phải bot xem trước, không phải ?web=1) → chuyển thẳng vào app, không hiện trang web.
+    let ua = headers.get(header::USER_AGENT).and_then(|v| v.to_str().ok()).unwrap_or("").to_lowercase();
+    let is_bot = ["bot", "crawler", "spider", "preview", "facebookexternalhit", "zalo", "slurp", "embed", "whatsapp", "telegram", "skype", "linkedin", "pinterest"]
+        .iter()
+        .any(|k| ua.contains(k));
+    if ua.contains("android") && !is_bot && !q.web.as_deref().map(|w| w == "1").unwrap_or(false) {
+        return (StatusCode::FOUND, [(header::LOCATION, intent.clone()), (header::CACHE_CONTROL, "no-store".to_string())]).into_response();
+    }
     let html = CARD_PAGE
         .replace("@INTENT_JS@", &intent) // chuỗi này chỉ chứa ký tự an toàn trong "..." (tên đã lọc, URL đã mã hoá)
         .replace("@INTENT@", &card_esc(&intent))
