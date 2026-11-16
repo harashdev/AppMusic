@@ -1143,7 +1143,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Giao diện':'Appearance','Ánh sáng nền lan tỏa theo màu ảnh bìa của bài đang phát trong khung Đang phát. Tắt nếu máy yếu bị giật.':'Soft background glow that follows the cover art of the current song in the Now playing panel. Turn off if your device lags.','Đang phát':'Now playing',
     'Dùng không cần đăng nhập':'Continue without signing in','Hiện mật khẩu':'Show password','Ẩn mật khẩu':'Hide password','Toàn màn hình':'Fullscreen','Thoát toàn màn hình':'Exit fullscreen','Lùi 5 giây':'Back 5 seconds','Tới 5 giây':'Forward 5 seconds','Tua':'Seek',
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
-    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập nhanh (QR / mã ghép)':'Quick sign-in (QR / pair code)','Đăng nhập nhanh':'Quick sign-in','Hoặc nhập mã ghép (6 số)':'Or enter a pair code (6 digits)','Vào':'Go','Mã ghép admin':'Admin pair code','Chỉ máy chạy server thấy được mã này':'Only the machine running the server can see this code','Chép mã':'Copy code','Mã mới':'New code','Đã chép mã ghép':'Pair code copied','Mã gồm 6 chữ số':'The code has 6 digits','Mã sai hoặc đã hết hạn':'Wrong or expired code','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest','Đăng nhập bằng QR':'Log in with QR','Quét QR đăng nhập':'Scan login QR','Tạo mã mới':'New code','Cho phép':'Allow','Từ chối':'Deny',
+    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập nhanh (QR / mã ghép)':'Quick sign-in (QR / pair code)','Đăng nhập nhanh':'Quick sign-in','Mã ghép đăng nhập':'Sign-in pair code','Tạo mã 6 số + QR để đăng nhập tài khoản này trên thiết bị khác. Cần nhập lại mật khẩu để xác nhận.':'Create a 6-digit code + QR to sign in to this account on another device. You must re-enter your password to confirm.','Tạo mã ghép đăng nhập':'Create sign-in pair code','Tạo mã':'Create code','Sai mật khẩu':'Wrong password','Hoặc nhập mã ghép (6 số)':'Or enter a pair code (6 digits)','Vào':'Go','Mã ghép admin':'Admin pair code','Chỉ máy chạy server thấy được mã này':'Only the machine running the server can see this code','Chép mã':'Copy code','Mã mới':'New code','Đã chép mã ghép':'Pair code copied','Mã gồm 6 chữ số':'The code has 6 digits','Mã sai hoặc đã hết hạn':'Wrong or expired code','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest','Đăng nhập bằng QR':'Log in with QR','Quét QR đăng nhập':'Scan login QR','Tạo mã mới':'New code','Cho phép':'Allow','Từ chối':'Deny',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
     'Lời':'Lyrics','Bình luận':'Comments','Viết bình luận…':'Write a comment…','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
     'Không có file âm thanh nào được chọn':'No audio files selected','Đang thêm nhạc, vui lòng chờ…':'Adding music, please wait…','File nhạc này không còn trong bộ nhớ của app – hãy thêm lại':'This music file is no longer in the app’s storage – please add it again','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
@@ -3048,6 +3048,35 @@ async function pairRedeem(code){
   const p=await pairFetch('/api/pair/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})});
   token=p.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; start(p.user);
 }
+/* TẠO MÃ GHÉP Ở CÀI ĐẶT: phải nhập lại mật khẩu mỗi lần tạo; mã 6 số + QR, dùng một lần, hết hạn sau 5 phút. */
+function pairMakeDialog(){
+  if(guest){ notify('Hãy đăng nhập để tạo mã ghép'); return; }
+  const ov=document.createElement('div'); ov.className='dlgov';
+  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Tạo mã ghép đăng nhập</h3><p class="pmTxt">Nhập lại mật khẩu để xác nhận. Mã 6 số dùng một lần, hết hạn sau 5 phút, cho phép một thiết bị khác vào tài khoản này mà không cần mật khẩu.</p><input class="pmPw" type="password" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><div class="pmOut" style="display:none"><div class="pmCode" style="font:700 36px/1.4 Consolas,monospace;letter-spacing:.12em;margin-top:14px"></div><canvas class="pmQr" style="width:180px;height:180px;margin:8px auto 0;display:block;border-radius:12px;image-rendering:pixelated;background:#fff"></canvas><p class="pmLeft" style="margin-top:8px"></p></div><p class="pmErr" style="color:#ff6b6b;min-height:1em;margin:8px 0 0"></p><div class="dlgb"><button class="pmCp" style="display:none">Chép mã</button><button class="pmGo pri">Tạo mã</button><button class="dlgc">Đóng</button></div></div>';
+  document.body.appendChild(ov);
+  const q=s=>ov.querySelector(s); let tm=0, code='';
+  const close=()=>{ clearInterval(tm); document.removeEventListener('keydown',onKey,true); ov.remove(); };
+  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
+  document.addEventListener('keydown',onKey,true);
+  q('.dlgc').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+  const pw=q('.pmPw'); pw.focus();
+  const go=async()=>{
+    const v=pw.value; if(!v){ q('.pmErr').textContent='Hãy nhập mật khẩu'; return; }
+    q('.pmErr').textContent=''; q('.pmGo').disabled=true;
+    try{
+      const r=await api('/api/pair/create',{json:{password:v}}); pw.value=''; code=r.code;
+      pw.style.display='none'; q('.pmTxt').textContent='Nhập mã này (hoặc quét QR) ở màn hình đăng nhập của thiết bị kia. Mã chỉ dùng được một lần.';
+      q('.pmOut').style.display=''; q('.pmCode').textContent=code.slice(0,3)+' '+code.slice(3);
+      qrDraw(q('.pmQr'),(r.base||location.origin)+'/?pair='+code);
+      q('.pmGo').style.display='none'; q('.pmCp').style.display='';
+      const end=Date.now()+(r.expires_in||300)*1000;
+      const tick=()=>{ const l=Math.max(0,Math.round((end-Date.now())/1000)); if(l<=0){ clearInterval(tm); q('.pmLeft').textContent='Mã đã hết hạn — đóng rồi tạo lại.'; q('.pmQr').style.opacity='.25'; return; } q('.pmLeft').textContent='Còn '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0'); };
+      tick(); tm=setInterval(tick,1000);
+    }catch(e){ q('.pmErr').textContent=(e&&e.message)||'Không tạo được mã'; q('.pmGo').disabled=false; }
+  };
+  q('.pmGo').onclick=go; pw.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
+  q('.pmCp').onclick=async()=>{ try{ await navigator.clipboard.writeText(code); notify('Đã chép mã ghép'); }catch{ notify('Mã ghép: '+code); } };
+}
 /* THÔNG BÁO MÃ GHÉP ADMIN: chỉ hiện khi mở giao diện bằng localhost/127.0.0.1 trên CHÍNH máy chạy server (server tự từ chối nếu không phải máy đó). */
 (function(){
   if(!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
@@ -3060,7 +3089,6 @@ async function pairRedeem(code){
   async function make(){
     clearInterval(tm); $$('.plMsg').textContent='Đang tạo mã…';
     let r; try{ r=await pairFetch('/api/admin/pair-code',{method:'POST'}); }catch(e){
-      if(e.status===403){ el.remove(); return; }             // không phải máy chạy server (qua proxy/tunnel…) → không hiện gì
       el.style.display='block'; $$('.plCode').textContent='—'; $$('.plQr').style.display='none'; $$('.plMsg').textContent=(e&&e.message)||'Không tạo được mã'; return; }
     code=r.code; end=Date.now()+(r.expires_in||300)*1000; el.style.display='block';
     $$('.plCode').textContent=code.slice(0,3)+' '+code.slice(3);
@@ -3368,7 +3396,7 @@ function startListenTimer(){
 /* CHIA SẺ THẺ BẰNG LINK: tải ảnh thẻ lên server → link /u/<tên> có thẻ xem trước (ảnh thẻ + tên) khi dán vào chat.
    Trên Android bấm link sẽ mở thẳng vào app (intent-filter), app tự hiện thẻ hồ sơ của người đó. */
 async function shareCardLink(u,r,no){
-  const link=location.origin+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
+  const pubBase=(r.base&&!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(r.base))?String(r.base).replace(/\/+$/,''):location.origin, link=pubBase+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
   try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
   try{ if(navigator.share){ await navigator.share({title,text:title+' · FANS NO. '+no,url:link}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
   try{ await navigator.clipboard.writeText(link); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',link); }
@@ -4207,6 +4235,7 @@ const pages={
     <div class="sgrp"><div class="sgh">Language / Ngôn ngữ</div><div class="scard">${row('Language / Ngôn ngữ','English · Tiếng Việt',langSel)}</div></div>
     <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Tài khoản</div><div class="scard">
       ${row('Quét QR đăng nhập','Đăng nhập BBeat trên thiết bị khác: quét mã QR hiện ở màn hình đăng nhập của nó.','','btn','qrScanBtn')}
+      ${row('Mã ghép đăng nhập','Tạo mã 6 số + QR để đăng nhập tài khoản này trên thiết bị khác. Cần nhập lại mật khẩu để xác nhận.','','btn','pairMakeBtn')}
       <div class="srow col"><div class="sx"><b>Tên hiển thị</b><small>Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.</small></div><div class="sinp"><input id="sName" value="${esc(me.display_name)}" maxlength="24" placeholder="Tên hiển thị"><button class="pri" id="sNameSave">Lưu</button></div><small id="sNameMsg" class="smsg"></small></div>
       <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
         <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
@@ -4406,6 +4435,7 @@ const pages={
       try{ const r=await api('/api/import',{json:j}); await refreshLib(); notify(`Đã nhập ${r.playlists} danh sách phát (${r.tracks} bài)`); }catch(er){ notify(er.message); } };
     act('outBtn',logout);
     if($('#qrScanBtn')) act('qrScanBtn',qrScanDialog);
+    if($('#pairMakeBtn')) act('pairMakeBtn',pairMakeDialog);
     $('#tAutoUpd').onchange=e=>LS.set('bb_autoupd',e.target.checked?'1':'0');
     act('chBtn',()=>{ if(ABOUT.repo) openExt('https://github.com/'+ABOUT.repo+'/releases'); else notify('Chưa gắn kho GitHub cho BBeat'); });
     act('updBtn',async()=>{ const el=$('#updTxt'); if(el) el.textContent='Đang kiểm tra…'; await checkUpdate(true); const e2=$('#updTxt'); if(e2){ const t=LS.get('bb_lastcheck',''); e2.textContent=t?'Lần kiểm tra cuối vào '+bbFmt(t):'Chưa kiểm tra lần nào'; } });
