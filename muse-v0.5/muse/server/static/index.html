@@ -59,7 +59,7 @@ body.night{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618;background:#0
 .lvpill{color:#fff;font-weight:800;font-size:12px;padding:2px 9px;border-radius:999px}
 .lvbar{height:6px;border-radius:99px;background:#ffffff1f;margin:8px 0 4px;overflow:hidden}.lvbar i{display:block;height:100%;border-radius:99px}
 .lvnx{color:var(--sub);font-size:12px}
-.lvbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.lvb{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:inset 0 0 0 2px #ffffff40}
+.lvbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.lvb{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;box-shadow:inset 0 0 0 2px #ffffff40}
 body.side-min{--sw:76px}
 @media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
 *{box-sizing:border-box}
@@ -3631,7 +3631,7 @@ function shareCard(u){
 }
 /* CẤP ĐỘ NGHE NHẠC: tổng thời gian nghe thật (server cộng dồn) → LV0..LV6, mỗi cấp mở một huy hiệu. */
 const LV_H=[0,2,10,40,120,300,800];   // số giờ cần để đạt LV0..LV6
-const LV_INFO=[['Mới nghe','#8b8f98','🎧'],['Tập sự','#43b581','🎵'],['Mê nhạc','#3ba5ff','🎶'],['Sành nghe','#9b6bff','🎤'],['Cao thủ','#ff9f1a','💿'],['Bậc thầy','#ff5c7a','🏆'],['Huyền thoại','#f5c518','👑']];
+const LV_INFO=[['Phàm Nhân','#8b8f98'],['Luyện Khí','#43b581'],['Trúc Cơ','#3ba5ff'],['Kim Đan','#9b6bff'],['Nguyên Anh','#ff9f1a'],['Độ Kiếp','#ff5c7a'],['Phi Thăng','#f5c518']];   // cảnh giới tu tiên (LV0 → LV6)
 function lvOf(secs){ const h=secs/3600; let l=0; for(let i=1;i<LV_H.length;i++) if(h>=LV_H[i]) l=i; const nx=l<LV_H.length-1?LV_H[l+1]:null;
   return {l,h,next:nx,pct:nx==null?1:Math.max(0,Math.min(1,(h-LV_H[l])/(nx-LV_H[l])))}; }
 const fmtListen=s=>s<3600?Math.floor(s/60)+' phút':(s/3600).toFixed(1)+' giờ';
@@ -3642,9 +3642,9 @@ async function fillLevel(d,u){
   const box=d.querySelector('.pc-lv'); if(!box||!u||!u.id) return;
   const s=await lvGet(u.id); if(s==null||!box.isConnected) return;
   const L=lvOf(s), I=LV_INFO[L.l];
-  const bs=LV_INFO.slice(1,L.l+1).map((x,i)=>`<span class="lvb" style="background:${x[1]}" title="LV${i+1} · ${esc(x[0])}">${x[2]}</span>`).join('');
+  const bs=LV_INFO.slice(1,L.l+1).map((x,i)=>`<span class="lvb" style="background:${x[1]}" title="LV${i+1} · ${esc(x[0])}">${i+1}</span>`).join('');
   box.innerHTML=`<div class="lvrow"><span class="lvpill" style="background:${I[1]}">LV${L.l}</span><b>${esc(I[0])}</b><small>Đã nghe ${fmtListen(s)}</small></div><div class="lvbar"><i style="width:${Math.round(L.pct*100)}%;background:${I[1]}"></i></div>`
-    +(L.next!=null?`<small class="lvnx">Còn ${Math.max(0.1,L.next-L.h).toFixed(1)} giờ nữa lên LV${L.l+1} · ${esc(LV_INFO[L.l+1][0])}</small>`:'<small class="lvnx">Đã đạt cấp cao nhất</small>')
+    +(L.next!=null?`<small class="lvnx">Còn ${Math.max(0.1,L.next-L.h).toFixed(1)} giờ nữa đột phá LV${L.l+1} · ${esc(LV_INFO[L.l+1][0])}</small>`:'<small class="lvnx">Đã đắc đạo — cảnh giới cao nhất</small>')
     +(bs?`<div class="lvbs">${bs}</div>`:'');
 }
 /* Đếm giờ nghe thật: cộng dồn khi đang phát, gửi lên server mỗi ~60 giây. */
@@ -3854,7 +3854,7 @@ function openProfilePage(u,mine){
     const L=lvOf(s), I=LV_INFO[L.l], box=d.querySelector('#bpLv'), det=d.querySelector('#bpLvD'); if(!box||!det) return;
     box.style.setProperty('--c',I[1]); det.style.setProperty('--c',I[1]);
     box.innerHTML=`<button type="button" class="bp-lvc" aria-expanded="false" aria-label="Chi tiết cấp độ"><i>LV${L.l}</i><span>${esc(I[0])}</span>${ic('chev')}</button>`;
-    det.innerHTML=`<span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
+    det.innerHTML=`<span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Đã đắc đạo'}</span>`;
     const btn=box.firstElementChild; btn.onclick=e=>{ e.stopPropagation(); const o=det.hidden; det.hidden=!o; btn.setAttribute('aria-expanded',o?'true':'false'); };
   })();
 }
