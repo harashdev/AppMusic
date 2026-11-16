@@ -1187,7 +1187,7 @@ async fn main() {
         .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/avatar", post(upload_avatar))
-        .route("/api/background", post(upload_bg).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
+        .route("/api/background", post(upload_bg).layer(DefaultBodyLimit::max(10_500_000)))
         .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
         .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
         .route("/app-icon.png", get(serve_icon))
@@ -3924,7 +3924,7 @@ async fn pl_remove(State(st): State<AppState>, headers: HeaderMap, Path((pid, ke
 // ---------- Ảnh nền (hỗ trợ GIF), icon app (admin) ----------
 async fn upload_bg(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
     let user = require(&st, &headers)?;
-    if body.len() > 10 * 1024 * 1024 {
+    if body.len() > 10_000_000 {
         return Err(bad("Ảnh nền tối đa 10MB"));
     }
     let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP"))?;
