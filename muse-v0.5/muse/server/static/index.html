@@ -6476,7 +6476,7 @@ function dlDetHtml(){
   setTimeout(()=>ddFillIcons(),0);
   return `<div class="dd-scrim" data-dd="menu-x"></div><div class="dd-nav"><button class="menu" data-dd="menu" title="Menu"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Toàn màn hình (F11)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
   <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><hr>
-   <dl>${row('Codec','','ddCodec')}${row('Kênh','','ddCh')}${row('Nguồn',I.src,'ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}${row('Lượt nghe','','ddPc')}</dl></div>
+   <dl>${row('Codec','','ddCodec')}${row('Kênh','','ddCh')}${row('Nguồn',I.src,'ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}</dl></div>
    <div class="dd-lyr" id="ddLyr"></div>
    <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" decoding="async" fetchpriority="low" src="${cimg}"></div><img class="dd-cov" alt="" decoding="async" fetchpriority="high" src="${cimg}"></div></div>
   <div class="dd-ft"><div class="dd-now">${t.artist?'<b>'+esc(t.artist)+'</b>':''}<span>${esc(t.title||'')}</span></div>
@@ -6486,10 +6486,10 @@ function dlDetHtml(){
 }
 let ddIconKey='';
 function ddFillIcons(){
-  if(!cur) return; const I=dlDetInfo(cur), n=(playsAll()[key(cur)]||{}).n||0, sig=[I.fm,I.ch,n].join('|');
-  const c=$('#ddCodec'), h=$('#ddCh'), p=$('#ddPc'); if(!c||!h||!p) return;
+  if(!cur) return; const I=dlDetInfo(cur), sig=[I.fm,I.ch].join('|');
+  const c=$('#ddCodec'), h=$('#ddCh'); if(!c||!h) return;
   if(c.dataset.sig===sig) return; c.dataset.sig=sig;
-  c.innerHTML=ddCodecHtml(I); h.innerHTML=ddChHtml(I); p.innerHTML=ddPlaysHtml(n);
+  c.innerHTML=ddCodecHtml(I); h.innerHTML=ddChHtml(I);
 }
 function dlDetTick(){
   const m=$('#main'); if(!dlDetOn||page!=='downloads'||!m){ dlDetClose(); return; }
