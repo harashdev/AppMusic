@@ -489,6 +489,25 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-lvd .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
 .bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
 .bp-bio a{color:var(--pf-ac,var(--accent));cursor:pointer;flex:none}
+.bp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.bp-chips:empty{display:none}
+.bp-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:4px 12px 4px 5px;border:1px solid var(--pf-line,rgba(255,255,255,.12));border-radius:999px;background:var(--pf-card,var(--hover2));color:var(--text);font:inherit;font-size:12.5px;font-weight:600;line-height:1.3;cursor:default;transition:transform .15s,border-color .15s,background .15s}
+button.bp-chip{cursor:pointer}
+button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--accent))}
+.bp-chip i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--pf-hover,rgba(255,255,255,.1));color:var(--pf-ac,var(--accent))}
+.bp-chip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-chip.m i{background:#4aa3ff33;color:#6cb6ff}
+.bp-chip.f i{background:#ff6fae33;color:#ff8fc0}
+.bp-chip.sec i{background:#b69cff33;color:#c9b6ff}
+.bp-chip.zod i{background:#ffd16633;color:#ffd166;font-size:15px}
+.bp-chip.bd i{background:#ff7a7a2e;font-size:12px}
+.bp-chip.bd.now{border-color:#ffd166;box-shadow:0 0 14px #ffd16655;animation:bpBd 1.6s ease-in-out infinite}
+@keyframes bpBd{50%{box-shadow:0 0 22px #ffd166aa}}
+.bp-chip.uid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.4px;color:var(--pf-sub,var(--sub))}
+.bp-chip.add{border-style:dashed;background:transparent;color:var(--pf-sub,var(--sub));font-weight:500}
+.bp-chip.add i{background:transparent;border:1px dashed currentColor;color:inherit}
+.bp-q{position:relative;padding-left:14px;border-left:2px solid var(--pf-ac,var(--accent));font-style:italic;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){.bp-chip.bd.now{animation:none}}
 .bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
 .bp-tab{flex:1;text-align:center;padding:12px 0;font-size:16px;color:var(--sub);cursor:pointer;position:relative;background:none;border:0}
 .bp-tab.on{color:var(--pf-ac,#fb7299)}
@@ -3680,6 +3699,32 @@ async function pfThemeApply(el,u,mine){
   if(fixed) return;
   for(const src of imgs){ const c=await pfImgColor(src); if(!el.isConnected) return; if(c){ pfApply(el,pfPalette(c,accH)); return; } }
 }
+const PF_ZOD=[[1,20,'♒','Bảo Bình'],[2,19,'♓','Song Ngư'],[3,21,'♈','Bạch Dương'],[4,20,'♉','Kim Ngưu'],[5,21,'♊','Song Tử'],[6,21,'♋','Cự Giải'],[7,23,'♌','Sư Tử'],[8,23,'♍','Xử Nữ'],[9,23,'♎','Thiên Bình'],[10,23,'♏','Bọ Cạp'],[11,22,'♐','Nhân Mã'],[12,22,'♑','Ma Kết']];
+const PF_ZHI=['Thân','Dậu','Tuất','Hợi','Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi'];
+// "Thẻ danh tính": giới tính, ngày sinh (cung hoàng đạo + đếm ngược sinh nhật), UID — dạng chip dưới tên
+function pfIdChips(u,mine){
+  const px=mine?pfxGet():{}, ch=[];
+  const add=(cls,glyph,txt,x,tip)=>ch.push(`<${mine?'button':'span'} class="bp-chip ${cls}"${mine?` data-x="${x||'edit'}"`:''}${tip?` title="${esc(tip)}"`:''}><i>${glyph}</i><span>${esc(txt)}</span></${mine?'button':'span'}>`);
+  if(mine){
+    const g=px.gender;
+    if(g==='male') add('m','♂\uFE0E','Nam');
+    else if(g==='female') add('f','♀\uFE0E','Nữ');
+    else if(g==='secret') add('sec','✦','Bí ẩn','edit','Giới tính: bảo mật');
+    else add('add','+','Thêm giới tính');
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(px.birth||'');
+    if(m){
+      const Y=+m[1],M=+m[2],D=+m[3], now=new Date(), t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      let z=PF_ZOD[11]; for(const q of PF_ZOD) if(M>q[0]||(M===q[0]&&D>=q[1])) z=q; if(M===1&&D<20) z=PF_ZOD[11];
+      let nx=new Date(t0.getFullYear(),M-1,D); if(nx<t0) nx=new Date(t0.getFullYear()+1,M-1,D);
+      const left=Math.round((nx-t0)/864e5), age=nx.getFullYear()-Y-(left===0?0:1);
+      add('zod',z[2]+'\uFE0E',z[3]+' · tuổi '+PF_ZHI[Y%12],'edit','Cung hoàng đạo & con giáp');
+      add('bd'+(left===0?' now':''),'🎂',left===0?'Hôm nay sinh nhật!':`${String(D).padStart(2,'0')}/${String(M).padStart(2,'0')}`+(left<=60?` · còn ${left} ngày`:'')+(age>0&&left!==0?` · ${age} tuổi`:''),'edit','Ngày sinh '+m[3]+'/'+m[2]+'/'+m[1]);
+    } else add('add','🎂','Thêm ngày sinh');
+  }
+  const code=mine?me.code:(u.code||'');
+  if(code) ch.push(`<button class="bp-chip uid" data-x="copyuid" data-c="${esc(code)}" title="Bấm để chép UID"><i>#</i><span>${esc(code)}</span></button>`);
+  return ch.join('');
+}
 function openProfilePage(u,mine){
   document.querySelectorAll('.pcpop,.pop,.bp,.bp-ed').forEach(x=>x.remove());
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
@@ -3693,10 +3738,13 @@ function openProfilePage(u,mine){
         ${mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}</div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
       <div class="bp-lvd" id="bpLvD" hidden></div>
-      <div class="bp-bio"><span>${esc(u.status||'Không có mô tả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
+      <div class="bp-chips" id="bpChips">${pfIdChips(u,mine)}</div>
+      <div class="bp-bio"><span class="bp-q">${esc(u.status||'Không có mô tả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
+  d.addEventListener('pfx',()=>{ const c=d.querySelector('#bpChips'); if(c) c.innerHTML=pfIdChips(u,mine);
+    if(mine){ const bs=d.querySelector('.bp-bio .bp-q'); if(bs) bs.textContent=me.status||'Không có mô tả'; const nb=d.querySelector('.bp-nm b'); if(nb) nb.textContent=me.display_name; } });
   const body=d.querySelector('#bpBody'); let favList=null, pls=null;
   const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
   function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.imgv,.shc-ov,.bp-ed')){ e.preventDefault(); close(); } }
@@ -3736,6 +3784,7 @@ function openProfilePage(u,mine){
     if(a==='av'){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
     if(a==='scan') return qrScanDialog();
     if(a==='edit') return openProfileEdit(d);
+    if(a==='copyuid'){ const c=x.dataset.c||''; try{ await navigator.clipboard.writeText(c); notify('Đã chép UID'); }catch{ await askText('UID',c); } return; }
     if(a==='rename'){ try{
       const v=await askText('Tên hiển thị',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
       const nu=await api('/api/account/name',{json:{display_name:v}}); applyUser(nu); u.display_name=me.display_name;
@@ -3799,7 +3848,7 @@ function openProfileEdit(parent){
       </div></div>`;
   };
   paint(); document.body.appendChild(d);
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); if(parent&&parent.dispatchEvent) parent.dispatchEvent(new Event('pfx')); };
   function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
   const choose=(title,opts,cur)=>new Promise(res=>{
