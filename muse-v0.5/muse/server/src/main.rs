@@ -351,6 +351,8 @@ fn init_db(path: &std::path::Path) -> Connection {
         "ALTER TABLE users ADD COLUMN discord_refresh TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_expires INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE users ADD COLUMN supporter INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN listen_secs INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN listen_at INTEGER NOT NULL DEFAULT 0",
     ] {
         let _ = db.execute(ddl, []);
     }
@@ -1177,6 +1179,8 @@ async fn main() {
         .route("/app-icon.png", get(serve_icon))
         .route("/api/card", post(upload_card).layer(DefaultBodyLimit::max(3 * 1024 * 1024)))
         .route("/api/u/:username", get(card_user))
+        .route("/api/listen", post(listen_post))
+        .route("/api/lv/:id", get(level_get))
         .route("/u/:username", get(card_page))
         .route("/.well-known/assetlinks.json", get(assetlinks))
         .merge(music_router)
@@ -3894,7 +3898,7 @@ async fn admin_icon_reset(State(st): State<AppState>, headers: HeaderMap) -> Res
 //   GET /api/u/<username>  thông tin công khai tối thiểu để app hiện thẻ hồ sơ khi mở link
 // Chỉ người đã tạo thẻ chia sẻ mới có trang công khai; chưa tạo thì trả 404 (không lộ tên/ảnh của người chưa chia sẻ).
 fn card_path(st: &AppState, id: i64) -> PathBuf {
-    st.card_dir.join(format!("{id}.png"))
+    st.card_dir.join(format!("{id}.jpg"))
 }
 
 async fn card_version(st: &AppState, id: i64) -> Option<u64> {
@@ -3948,12 +3952,42 @@ fn public_user_by_name(st: &AppState, username: &str) -> Option<PublicUser> {
 
 async fn upload_card(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> Result<Json<Value>, ApiErr> {
     let user = require(&st, &headers)?;
-    if body.len() > 3 * 1024 * 1024 || !body.starts_with(&[0x89, b'P', b'N', b'G']) {
-        return Err(bad("Ảnh thẻ phải là PNG, tối đa 3MB"));
+    if body.len() > 3 * 1024 * 1024 || !body.starts_with(&[0xFF, 0xD8, 0xFF]) {
+        return Err(bad("Ảnh thẻ phải là JPEG, tối đa 3MB"));
     }
     tokio::fs::write(card_path(&st, user.id), &body).await.map_err(|_| e500())?;
     let v = card_version(&st, user.id).await.unwrap_or(0);
     Ok(Json(json!({ "username": user.username, "path": format!("/u/{}", user.username), "v": v })))
+}
+
+// ---------- Cấp độ nghe nhạc ----------
+// App báo số giây thực sự đã nghe (gộp mỗi ~60 giây). Server chặn gian lận: mỗi lần tối đa bằng thời gian trôi qua từ lần báo trước (+15s), không quá 600s.
+// Cấp độ và huy hiệu tính ở giao diện từ tổng số giây (listen_secs).
+#[derive(Deserialize)]
+struct ListenReq {
+    secs: i64,
+}
+
+async fn listen_post(State(st): State<AppState>, headers: HeaderMap, Json(req): Json<ListenReq>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0);
+    let db = st.db.lock().unwrap();
+    let (cur, last): (i64, i64) = db
+        .query_row("SELECT listen_secs, listen_at FROM users WHERE id=?1", [user.id], |row| Ok((row.get(0)?, row.get(1)?)))
+        .map_err(|_| e500())?;
+    let cap = if last > 0 { (now - last + 15).clamp(0, 600) } else { 300 };
+    let total = cur + req.secs.clamp(0, cap);
+    db.execute("UPDATE users SET listen_secs=?1, listen_at=?2 WHERE id=?3", params![total, now, user.id]).map_err(|_| e500())?;
+    Ok(Json(json!({ "secs": total })))
+}
+
+async fn level_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
+    require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let secs: i64 = db
+        .query_row("SELECT listen_secs FROM users WHERE id=?1", [id], |row| row.get(0))
+        .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy".to_string()))?;
+    Ok(Json(json!({ "id": id, "secs": secs })))
 }
 
 async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
@@ -4001,7 +4035,7 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
 <meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
 <meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
-<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="520">
+<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="520">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
 <meta name="theme-color" content="#07070b">
 <style>
@@ -4024,7 +4058,7 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
     let base = card_base_url(&headers);
     let uname = u.username.clone(); // dạng chữ hoa/thường chuẩn trong DB; chỉ gồm [A-Za-z0-9_.-]
     let page_url = format!("{base}/u/{uname}");
-    let img = format!("{base}/cards/{}.png?v={v}", u.id);
+    let img = format!("{base}/cards/{}.jpg?v={v}", u.id);
     let title = format!("{} trên BBeat", u.display_name);
     let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", u.id, u.display_name);
     let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
