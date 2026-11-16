@@ -3329,7 +3329,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
    Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
-  const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
+  const W=1200,H=512,ov=document.createElement('div'); ov.className='shc-ov';
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
@@ -3351,36 +3351,36 @@ function shareCard(u){
   let ban=null, av=null, custom=null;   // custom = hình nền do chính người dùng chọn cho thẻ (lưu trên máy này, key card_bg)
   const paint=()=>{
     g.clearRect(0,0,W,H); g.shadowColor='transparent'; g.shadowBlur=0; g.textAlign='left'; g.textBaseline='alphabetic';
-    g.save(); rr(0,0,W,H,44); g.clip();
+    g.save(); rr(0,0,W,H,34); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     const bg=custom||ban;
     if(bg) cover(bg,0,0,W,H,custom?{bx:50,by:50,bz:1}:(cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1}));
     // lớp tối nhẹ phía trên + bên trái để chữ trắng đọc được, ảnh lộ dần
-    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.5)'); lg.addColorStop(.6,'rgba(0,0,0,.16)'); lg.addColorStop(1,'rgba(0,0,0,0)');
+    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.34)'); lg.addColorStop(.55,'rgba(0,0,0,.1)'); lg.addColorStop(1,'rgba(0,0,0,0)');
     g.fillStyle=lg; g.fillRect(0,0,W,H);
     g.restore();
     // avatar + tên
-    const ax=80,ay=80,ar=75; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
-    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='110px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+6); }
-    g.restore(); g.lineWidth=6; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
+    const ax=44,ay=44,ar=42; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
+    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='60px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
+    g.restore(); g.lineWidth=3; g.strokeStyle='#ffffffaa'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
     g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
     // chữ cao hơn: kéo giãn theo chiều dọc
     const SY=1.22;
-    g.fillStyle='#fff'; g.font='700 66px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
-    g.save(); g.translate(0,ay+ar+24); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+40,0); g.restore();
+    g.fillStyle='#fff'; g.font='600 34px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>640&&nm.length>1) nm=nm.slice(0,-1);
+    g.save(); g.translate(0,ay+ar+11); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+30,0); g.restore();
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
     const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
-    g.fillStyle='#ffffffcc'; g.font='600 36px '+ft; sp('FANS NO.',84,500,9);
-    g.fillStyle='#fff'; g.font='700 176px "SF Mono",Consolas,"Courier New",monospace'; sp(no,74,690,30);
-    g.fillStyle='#ffffffcc'; g.font='600 34px '+ft; sp('DATE',84,772,9);
-    g.fillStyle='#fff'; g.font='600 46px '+ft; sp(date,84,838,6);
+    g.fillStyle='#ffffffcc'; g.font='600 22px '+ft; sp('FANS NO.',60,226,6);
+    g.fillStyle='#fff'; g.font='700 64px "SF Mono",Consolas,"Courier New",monospace'; sp(no,56,316,12);
+    g.fillStyle='#ffffffcc'; g.font='600 20px '+ft; sp('DATE',60,404,5);
+    g.fillStyle='#fff'; g.font='600 28px '+ft; sp(date,60,466,4);
     // hạng thành viên (donate Ko-fi)
     if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
       const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
-      g.font='700 28px '+ft; const tw=spw(tier,5), bx=W-70-tw-44;
-      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,84,tw+44,60,30); g.fill();
-      g.fillStyle='#fff'; sp(tier,bx+22,124,5);
+      g.font='700 22px '+ft; const tw=spw(tier,4), bx=W-44-tw-40;
+      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,50,tw+40,46,23); g.fill();
+      g.fillStyle='#fff'; sp(tier,bx+20,81,4);
     }
   };
   const bgx=ov.querySelector('[data-a="bgx"]'), bgf=ov.querySelector('input[type=file]');
@@ -3390,7 +3390,7 @@ function shareCard(u){
     paint(); if(bgx&&custom) bgx.style.display='';
     if(mine) upload();
   });
-  // Đổi hình thẻ: chọn ảnh từ máy → cắt giữa theo khung 4:3, thu nhỏ còn 1200×900 (JPEG) rồi lưu trên máy; thẻ + link chia sẻ dùng hình này.
+  // Đổi hình thẻ: chọn ảnh từ máy → thu nhỏ (tối đa 1600px, JPEG) rồi lưu trên máy; khi vẽ thẻ ảnh được cắt giữa theo khung thẻ ngang; thẻ + link chia sẻ dùng hình này.
   const setBg=async f=>{
     if(!f) return;
     if(!/^image\//.test(f.type)) return notify('Hãy chọn file ảnh');
@@ -3398,9 +3398,8 @@ function shareCard(u){
     const url=URL.createObjectURL(f);
     try{
       const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('img')); i.src=url; });
-      const o=document.createElement('canvas'); o.width=W; o.height=H; const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,W,H);
-      const ar=im.width/im.height, br=W/H; let sw=im.width, sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
-      x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,0,0,W,H);
+      const k=Math.min(1,1600/Math.max(im.width,im.height)), o=document.createElement('canvas'); o.width=Math.max(1,Math.round(im.width*k)); o.height=Math.max(1,Math.round(im.height*k)); const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,o.width,o.height);
+      x.drawImage(im,0,0,o.width,o.height);
       const d=o.toDataURL('image/jpeg',.85);
       LS.set('card_bg',d); if(LS.get('card_bg','')!==d) return notify('Máy không đủ chỗ lưu hình này');
       const c=new Image(); await new Promise(r=>{ c.onload=r; c.onerror=r; c.src=d; });
