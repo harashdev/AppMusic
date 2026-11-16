@@ -1071,7 +1071,7 @@ body.dl-det #main{padding:0!important;overflow:hidden}
 .ddb-pc u s{display:block;width:2px;background:#ffffffd9;border-radius:1px}
 .dd-art{container-type:size;position:relative;min-width:0;min-height:0;overflow:hidden;margin:-14px -24px -16px -8px}
 /* Bìa to gần kín chiều cao, đĩa nhô ra sau và bị cắt ở mép phải (kiểu foobar2000) */
-.dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px;--s:min(98cqh,74cqw);--gap:14px}
+.dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px;--gap:14px;--edge:16px;/* đĩa nhô ra 0.5*s sau bìa => tổng bề ngang cần = gap + 1.5*s, phải nằm gọn trong khung */--s:min(98cqh,calc((100cqw - var(--gap) - var(--edge))/1.5))}
 .dd-cov{left:var(--gap);width:var(--s);aspect-ratio:1;transform:translateY(-50%);object-fit:cover;box-shadow:5px 0 12px -4px #0007;background:var(--surf2);z-index:1}
 .dd-disc{left:calc(var(--gap) + var(--s)*.5);width:var(--s);aspect-ratio:1;transform:translateY(-50%);border-radius:50%;z-index:0;
  background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 3px 12px #0004}
