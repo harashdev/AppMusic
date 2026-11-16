@@ -1248,6 +1248,23 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 }
 @media(min-width:1100px){.bp .bp-trs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}}
 @media(min-width:1700px){.bp .bp-trs{grid-template-columns:repeat(3,minmax(0,1fr))}.bp .bp-head{--avs:148px}}
+/* ===== CHỈNH SỬA HỒ SƠ (PC): banner full ngang như trang hồ sơ, cài đặt xếp bên dưới theo lưới ===== */
+@media(min-width:900px){
+  .pe{grid-template-columns:minmax(0,1fr);max-width:none;gap:18px}
+  .pe .pe-left{position:static}
+  .pe .pe-hero{height:clamp(300px,30vw,420px);border-radius:20px}
+  .pe .pe-hd{left:36px;right:36px;bottom:22px}
+  .pe .pe-av,.pe .pe-avc{width:120px;height:120px}
+  .pe .pe-avc .av.big{font-size:60px}
+  .pe .pe-r1{gap:22px}
+  .pe .pe-nm{font-size:28px}.pe .pe-un{font-size:14px}.pe .pe-bio{font-size:15px}
+  .pe .pe-st{margin-top:16px}.pe .pe-st b{font-size:22px}.pe .pe-st span{font-size:13px}
+  .pe .pe-top{top:16px;right:16px}
+  .pe .pe-hn{margin-top:10px}
+  .pe .pe-right{display:block;column-count:2;column-gap:20px}.pe .pe-sec{break-inside:avoid}
+  .pe .pe-bar{grid-column:auto}
+}
+@media(min-width:1700px){.pe .pe-right{column-count:3}}
 </style>
 </head>
 <body class="skin-default">
