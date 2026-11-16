@@ -3248,9 +3248,12 @@ function shareCard(u){
     const z=Math.max(1,cr.bz||1); sw/=z; sh/=z; const sx=Math.min(Math.max(0,(im.width-sw)*(cr.bx??50)/100),im.width-sw), sy=Math.min(Math.max(0,(im.height-sh)*(cr.by??50)/100),im.height-sh);
     g.drawImage(im,sx,sy,sw,sh,x,y,w,h); };
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
-  const no=String(u.id||0).padStart(6,'0'), d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  let no='000000'; const d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:'')]).then(([ban,av])=>{
+  // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
+  const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
+  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP]).then(([ban,av,fn])=>{
+    no=String(fn||0).padStart(6,'0');
     g.save(); rr(0,0,W,H,44); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
