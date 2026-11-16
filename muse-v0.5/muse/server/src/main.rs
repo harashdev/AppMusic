@@ -4098,15 +4098,24 @@ async fn fans_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     Ok(Json(json!({ "id": id, "n": follow_count(&db, id) })))
 }
 
-async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
+async fn card_user(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>) -> Result<Json<Value>, ApiErr> {
     if !card_name_ok(&username) {
-        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy hồ sơ".into()));
     }
-    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".to_string()))?;
-    if card_version(&st, u.id).await.is_none() {
-        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+    // Hồ sơ công khai: ai có link/QR cũng xem được (kể cả chưa đăng nhập, chưa từng tạo thẻ chia sẻ).
+    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy hồ sơ".to_string()))?;
+    let (fans, secs) = {
+        let db = st.db.lock().unwrap();
+        let secs: i64 = db.query_row("SELECT listen_secs FROM users WHERE id=?1", [u.id], |r| r.get(0)).unwrap_or(0);
+        (follow_count(&db, u.id), secs)
+    };
+    let mut v = serde_json::to_value(&u).map_err(|_| e500())?;
+    if let Some(o) = v.as_object_mut() {
+        o.insert("fans".into(), json!(fans));
+        o.insert("secs".into(), json!(secs));
+        o.insert("base".into(), json!(card_base_url(&headers)));
     }
-    Ok(Json(u))
+    Ok(Json(v))
 }
 
 fn card_esc(s: &str) -> String {
