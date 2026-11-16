@@ -1224,6 +1224,30 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
 .pe-bar .pe-b{padding:10px 22px}
 .pe-lock{max-width:460px}.pe-lock p{margin:8px 0 14px;color:var(--sub)}
+/* ===== ĐỀ XUẤT: PC dùng đúng bố cục điện thoại (xếp dọc), nhưng giãn full màn hình ===== */
+@media(min-width:720px){
+  .bp .bp-hero{min-height:clamp(300px,32vw,440px)}
+  .bp .bp-head{--avs:128px;padding-left:40px;padding-right:40px;column-gap:24px;row-gap:16px}
+  .bp .bp-nm{font-size:28px}
+  .bp .bp-bio{font-size:15px}
+  /* số liệu: trải đều toàn bề ngang như điện thoại */
+  .bp .bp-stats{flex:1 1 100%;justify-content:space-around}
+  .bp .bp-st{flex:1;padding:0 4px}
+  .bp .bp-st:first-child{padding-left:4px}
+  .bp .bp-st b{font-size:22px}.bp .bp-st span{font-size:13px}
+  /* hai nút chia đôi full bề ngang */
+  .bp .bp-ebs{padding:16px 40px 0;margin:0;gap:12px}
+  .bp .bp-eb{flex:1;padding:12px 8px;font-size:15px;border-radius:10px}
+  /* tab chia đôi, chữ giữa */
+  .bp .bp-tabs{justify-content:stretch;padding:0 40px;margin-top:14px}
+  .bp .bp-tab{flex:1;padding:14px 0;font-size:17px}
+  /* khối nội dung phẳng như điện thoại, lưới nhiều cột cho vừa màn rộng */
+  .bp .bp-sec{margin:0;padding:20px 40px 6px;border-radius:0;background:none;border:0}
+  .bp .bp-pls{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+  .bp .bp-pl{background:var(--card)}
+}
+@media(min-width:1100px){.bp .bp-trs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}}
+@media(min-width:1700px){.bp .bp-trs{grid-template-columns:repeat(3,minmax(0,1fr))}.bp .bp-head{--avs:148px}}
 </style>
 </head>
 <body class="skin-default">
