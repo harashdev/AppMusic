@@ -447,6 +447,74 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-body{padding:12px 16px}.pc-body:empty{display:none}
 .pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
+/* TRANG HỒ SƠ kiểu Bilibili: banner trên cùng, avatar + số liệu, tên + cấp độ, hai tab Trang chủ / Yêu thích */
+.bp{position:fixed;inset:0;z-index:56;background:var(--bg);color:var(--text);overflow-y:auto;overscroll-behavior:contain;animation:bpin .2s ease-out}
+@keyframes bpin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.bp-w{max-width:640px;margin:0 auto;min-height:100%;background:var(--bg)}
+.bp-ban{position:relative;height:210px;overflow:hidden;background:var(--surf2)}
+.bp-ban>img,.bp-ban>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
+.bp-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,0) 40%);pointer-events:none}
+.bp-top{position:absolute;z-index:2;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 10px 0}
+.bp-ib{width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.bp-ib .i{width:22px;height:22px}
+.bp-head{display:flex;gap:16px;padding:0 16px;margin-top:-46px;position:relative;z-index:3}
+.bp-av{flex:none;width:92px;height:92px;border-radius:50%;border:3px solid #fff;background:var(--surf2);cursor:pointer;overflow:hidden}
+.bp-av .av{width:100%;height:100%;font-size:44px}
+.bp-hr{flex:1;min-width:0;padding-top:48px}
+.bp-stats{display:flex;text-align:center}
+.bp-st{flex:1;min-width:0;padding:0 4px;border-left:1px solid var(--line)}
+.bp-st:first-child{border-left:0}
+.bp-st b{display:block;font-size:18px}
+.bp-st span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
+.bp-eb{display:block;width:100%;margin-top:12px;padding:8px;border-radius:8px;border:1px solid #fb7299;background:none;color:#fb7299;font-weight:600;cursor:pointer}
+.bp-eb.f{background:#fb7299;color:#fff}
+.bp-info{padding:14px 16px 4px}
+.bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
+.bp-nm b{min-width:0;overflow-wrap:anywhere}
+.bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
+.bp-lv{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--sub)}
+.bp-lv i{font-style:normal;font-weight:800;color:#fff;padding:1px 7px;border-radius:5px;background:var(--c,#8b8f98)}
+.bp-lv .bar{width:110px;height:4px;border-radius:2px;background:var(--hover2);overflow:hidden}
+.bp-lv .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
+.bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
+.bp-bio a{color:var(--accent);cursor:pointer;flex:none}
+.bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
+.bp-tab{flex:1;text-align:center;padding:12px 0;font-size:16px;color:var(--sub);cursor:pointer;position:relative;background:none;border:0}
+.bp-tab.on{color:#fb7299}
+.bp-tab.on::after{content:"";position:absolute;left:50%;bottom:0;width:24px;height:3px;margin-left:-12px;border-radius:2px;background:#fb7299}
+.bp-sec{padding:16px 16px 4px}
+.bp-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.bp-sh b{font-size:17px}.bp-sh small{color:var(--sub);margin-left:6px}
+.bp-sh a{color:var(--sub);font-size:14px;cursor:pointer}
+.bp-pls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.bp-pl{background:var(--card);border-radius:10px;overflow:hidden;cursor:pointer}
+.bp-pl .tile{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;background:var(--surf2);overflow:hidden}
+.bp-pl .tile .collage{width:100%;height:100%}
+.bp-pl .tile .collage img{object-fit:cover}
+.bp-pl .m{padding:8px 10px}.bp-pl .m b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-pl .m span{font-size:12px;color:var(--sub)}
+.bp-tr{display:grid;grid-template-columns:48px minmax(0,1fr) 34px;gap:12px;align-items:center;padding:6px 4px;border-radius:10px;cursor:pointer}
+.bp-tr:hover{background:var(--hover)}
+.bp-tr img{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--surf2)}
+.bp-tr .t1{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-tr .t2{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-tr button{width:34px;height:34px;border:0;background:none;color:var(--red);cursor:pointer}
+.bp-empty{color:var(--sub);text-align:center;padding:28px 0;font-size:14px}
+.bp-pad{height:calc(110px + env(safe-area-inset-bottom))}
+/* Trang chỉnh sửa thông tin */
+.bp-ed{position:fixed;inset:0;z-index:57;background:var(--bg);overflow-y:auto;animation:bpin .2s ease-out}
+.bp-edw{max-width:640px;margin:0 auto}
+.bp-edh{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;font-size:18px;font-weight:600}
+.bp-edh .bp-ib{background:none;color:var(--text)}
+.bp-grp{background:var(--surf2);margin:12px 12px 0;border-radius:14px;overflow:hidden}
+.bp-rw{display:flex;align-items:center;gap:12px;padding:16px;border-top:1px solid var(--line);cursor:pointer}
+.bp-rw:first-child{border-top:0}
+.bp-rw>span{flex:none}
+.bp-rw>em{flex:1;min-width:0;text-align:right;font-style:normal;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-rw>.i{flex:none;width:18px;height:18px;color:var(--sub)}
+.bp-opt{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.bp-opt button{padding:12px}
+.bp-opt button.on{background:var(--accent);color:var(--on)}
 /* Kiểu thẻ "toàn nền" (như trang cá nhân Bilibili): ảnh banner phủ cả thẻ, avatar + tên nằm dưới */
 .pc.full .pc-ban{aspect-ratio:3/4}
 .pc.full .pc-av{width:104px;height:104px}
@@ -3450,6 +3518,7 @@ function openPendingUser(){
   if(n) setTimeout(()=>openUserCard(n),600);
 }
 function showProfilePop(u,anchor,mine){
+  if(PROFILE_PAGE){ openProfilePage(u,mine); return; }
   document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='pcpop';
   const wk=pcKey(u,mine), warm=pcPool.get(wk);
@@ -3466,6 +3535,139 @@ function showProfilePop(u,anchor,mine){
     d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
   fillLevel(d,u);
+}
+
+/* ===== TRANG HỒ SƠ (kiểu Bilibili) + CHỈNH SỬA THÔNG TIN ===== */
+const PROFILE_PAGE=true;   // false = quay lại thẻ nhỏ cũ
+const pfxGet=()=>{ try{ return JSON.parse(LS.get(uKey('muse_pfx'),'{}'))||{}; }catch{ return {}; } };   // giới tính + ngày sinh: lưu trên máy này
+const pfxSet=o=>LS.set(uKey('muse_pfx'),JSON.stringify({...pfxGet(),...o}));
+const GENDERS={male:'Nam',female:'Nữ',secret:'Bảo mật'};
+function profileRowsHtml(list,k){
+  return list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('');
+}
+function openProfilePage(u,mine){
+  document.querySelectorAll('.pcpop,.pop,.bp,.bp-ed').forEach(x=>x.remove());
+  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
+  const ban=okImgUrl(u.banner)?gvHtml(u.banner,''):'';
+  const tier=u.supporter>=2?'Thành viên lớn':u.supporter>=1?'Thành viên nhỏ':'';
+  const d=document.createElement('div'); d.className='bp'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
+  d.innerHTML=`<div class="bp-w">
+    <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
+    <div class="bp-head"><div class="bp-av" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
+      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
+        ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div></div>
+    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
+      <div class="bp-lv" id="bpLv"></div>
+      <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div>
+    <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
+    <div id="bpBody"></div><div class="bp-pad"></div></div>`;
+  document.body.appendChild(d);
+  const body=d.querySelector('#bpBody'); let favList=null, pls=null;
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
+  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.imgv,.shc-ov,.bp-ed')){ e.preventDefault(); close(); } }
+  document.addEventListener('keydown',onKey,true);
+  const priv='<p class="bp-empty">Chỉ chủ hồ sơ mới xem được mục này.</p>';
+  async function showHome(){
+    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
+    body.innerHTML='<p class="bp-empty">Đang tải…</p>';
+    if(!pls) pls=await api('/api/playlists').catch(()=>playlists||[]);
+    if(!favList) favList=await api('/api/favorites').then(a=>Array.isArray(a)?a:[]).catch(()=>[]);
+    if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='home') return;
+    const recent=favList.slice(0,6), k=reg(recent,'Yêu thích');
+    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Playlist</b><small>${pls.length}</small></div></div>
+      ${pls.length?`<div class="bp-pls">${pls.slice(0,6).map(p=>`<div class="bp-pl" data-pl="${p.id}"><div class="tile">${plCover(p)}</div><div class="m"><b>${esc(p.name)}</b><span>${p.count||0} bài hát</span></div></div>`).join('')}</div>`:'<p class="bp-empty">Chưa có playlist nào.</p>'}</div>
+      <div class="bp-sec"><div class="bp-sh"><div><b>Nhạc gần đây đã thích</b></div>${favList.length>6?'<a data-t="fav">Thêm ›</a>':''}</div>
+      ${recent.length?profileRowsHtml(recent,k):'<p class="bp-empty">Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.</p>'}</div>`;
+  }
+  async function showFav(){
+    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
+    body.innerHTML='<p class="bp-empty">Đang tải…</p>';
+    if(!favList) favList=await api('/api/favorites').then(a=>Array.isArray(a)?a:[]).catch(()=>[]);
+    if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='fav') return;
+    const k=reg(favList,'Yêu thích');
+    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Nhạc đã thích</b><small>${favList.length}</small></div></div>${favList.length?profileRowsHtml(favList,k):'<p class="bp-empty">Bạn chưa thích bài nào.</p>'}</div>`;
+  }
+  const tab=t=>{ d.querySelectorAll('.bp-tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); (t==='fav'?showFav:showHome)(); };
+  d.onclick=async e=>{
+    const tb=e.target.closest('[data-t]'); if(tb){ tab(tb.dataset.t); return; }
+    const pl=e.target.closest('[data-pl]'); if(pl){ close(); go('playlist',+pl.dataset.pl||pl.dataset.pl); return; }
+    const tr=e.target.closest('.bp-tr');
+    if(tr){ const list=lists[tr.dataset.l], i=+tr.dataset.i, t=list&&list[i]; if(!t) return;
+      if(e.target.closest('[data-a=fav]')){ await toggleFav(t); if(!favs.has(key(t))){ tr.remove(); favList=favList&&favList.filter(x=>key(x)!==key(t)); const s=d.querySelector('#bpS3'); if(s) s.textContent=String(favs.size); } }
+      else playList(list,i,lnames[tr.dataset.l]);
+      return; }
+    const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
+    if(a==='back') return close();
+    if(a==='av'){ if(mine){ close(); return go('profile'); } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
+    if(a==='scan') return qrScanDialog();
+    if(a==='edit') return openProfileEdit(d);
+    if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
+  };
+  tab('home');
+  // Số liệu + cấp độ
+  (async()=>{
+    const set=(id,t)=>{ const el=d.querySelector('#'+id); if(el) el.textContent=t; };
+    if(mine){ set('bpS2',String(followGet().length)); set('bpS3',String(favs.size)); }
+    api('/api/fans/'+u.id).then(r=>set('bpS1',String(+r.n||0)),()=>{});
+    const s=await lvGet(u.id); if(s==null||!d.isConnected) return;
+    const L=lvOf(s), I=LV_INFO[L.l], box=d.querySelector('#bpLv'); if(!box) return;
+    box.style.setProperty('--c',I[1]);
+    box.innerHTML=`<i>LV${L.l}</i><span>${esc(I[0])}</span><span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
+  })();
+}
+function openProfileEdit(parent){
+  document.querySelectorAll('.bp-ed').forEach(x=>x.remove());
+  const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
+  const paint=()=>{
+    const px=pfxGet();
+    d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
+      <div class="bp-grp">
+        <div class="bp-rw" data-x="name"><span>Biệt danh</span><em>${esc(me.display_name)}</em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="gender"><span>Giới tính</span><em>${esc(GENDERS[px.gender]||'Bảo mật')}</em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="birth"><span>Ngày sinh</span><em>${esc(px.birth?px.birth.split('-').reverse().join('/'):'Sẽ nhận được lời chúc vào ngày sinh nhật')}</em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Người này rất bí ẩn, không viết gì cả')}</em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="theme"><span>Banner &amp; nền hồ sơ</span><em></em>${ic('chev')}</div>
+      </div>
+      <div class="bp-grp">
+        <div class="bp-rw" data-x="uid"><span>UID</span><em>${esc(me.code||'')}</em></div>
+        <div class="bp-rw" data-x="card"><span>Danh thiếp QR code</span><em></em>${ic('chev')}</div>
+      </div></div>`;
+  };
+  paint(); document.body.appendChild(d);
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
+  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
+  document.addEventListener('keydown',onKey,true);
+  const choose=(title,opts,cur)=>new Promise(res=>{
+    const ov=document.createElement('div'); ov.className='dlgov';
+    ov.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(title)}</h3><div class="bp-opt">${opts.map(([v,l])=>`<button data-v="${v}" class="${v===cur?'on':''}">${esc(l)}</button>`).join('')}</div><div class="dlgb"><button class="dlgc">Hủy</button></div></div>`;
+    document.body.appendChild(ov);
+    const done=v=>{ ov.remove(); res(v); };
+    ov.onclick=e=>{ const b=e.target.closest('[data-v]'); if(b) done(b.dataset.v); else if(e.target===ov||e.target.closest('.dlgc')) done(null); };
+  });
+  const dateDlg=cur=>new Promise(res=>{
+    const ov=document.createElement('div'); ov.className='dlgov';
+    ov.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><h3>Ngày sinh</h3><input type="date" value="${esc(cur||'')}" max="${new Date().toISOString().slice(0,10)}"><div class="dlgb"><button class="dlgx">Xóa</button><button class="dlgc">Hủy</button><button class="dlgo">Lưu</button></div></div>`;
+    document.body.appendChild(ov); const inp=ov.querySelector('input');
+    const done=v=>{ ov.remove(); res(v); };
+    ov.querySelector('.dlgo').onclick=()=>done(inp.value||''); ov.querySelector('.dlgx').onclick=()=>done('');
+    ov.querySelector('.dlgc').onclick=()=>done(null); ov.onclick=e=>{ if(e.target===ov) done(null); };
+  });
+  d.onclick=async e=>{
+    const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
+    try{
+      if(a==='back') return close();
+      if(a==='name'){ const v=await askText('Biệt danh',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
+        const u=await api('/api/account/name',{json:{display_name:v}}); applyUser(u); notify('Đã lưu biệt danh'); paint(); }
+      else if(a==='gender'){ const v=await choose('Giới tính',[['male','Nam'],['female','Nữ'],['secret','Bảo mật']],pfxGet().gender||'secret'); if(v){ pfxSet({gender:v}); paint(); } }
+      else if(a==='birth'){ const v=await dateDlg(pfxGet().birth||''); if(v!==null){ pfxSet({birth:v}); paint(); } }
+      else if(a==='bio'){ const v=await askText('Chữ ký cá nhân',me.status||''); if(v==null) return;
+        const c=cropOf(me); const u=await api('/api/profile',{json:{display_name:me.display_name,accent:me.accent,bg:me.bg||'',bg_url:me.bg==='custom'?(me.bg_url||''):'',banner_color:me.banner_color||'',status:v.trim().slice(0,60),crop:c}});
+        if(u&&u.id) applyUser(u); else me.status=v.trim().slice(0,60); notify('Đã lưu chữ ký'); paint(); }
+      else if(a==='theme'){ close(); document.querySelectorAll('.bp').forEach(p=>p.remove()); go('profile'); }
+      else if(a==='uid'){ try{ await navigator.clipboard.writeText(me.code||''); notify('Đã chép UID'); }catch{ await askText('UID',me.code||''); } }
+      else if(a==='card'){ shareCard({...me,online:true}); }
+    }catch(er){ notify((er&&er.message)||'Không lưu được'); }
+  };
 }
 
 const ytCache={};
