@@ -3509,7 +3509,7 @@ function showProfilePop(u,anchor,mine){
   fillLevel(d,u);
 }
 
-const PROFILE_PAGE=false;   // false = thẻ hồ sơ nhỏ với banner 2:1 như trước; true = trang toàn màn hình kiểu Bilibili
+const PROFILE_PAGE=true;   // true = trang hồ sơ toàn màn hình kiểu Bilibili; false = thẻ nhỏ banner 2:1
 /* Trang hồ sơ toàn màn hình (giống trang cá nhân Bilibili). Ai cũng xem được qua link /?u=<tên> hoặc quét QR hồ sơ, kể cả chưa đăng nhập. */
 function profileLink(u,base){ return String(base||location.origin).replace(/\/+$/,'')+'/?u='+encodeURIComponent(u.username||''); }
 function profileQrDialog(u,base){
