@@ -4633,7 +4633,7 @@ const pages={
       if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=f; D.bannerPrev=url; D.bannerClear=false; refresh(); };
     $('#banDel').onclick=e=>{ e.stopPropagation(); if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=null; D.bannerPrev=''; D.bannerClear=true; refresh(); };
     $('#bgBtn').onclick=()=>$('#bgFile').click();
-    $('#bgFile').onchange=e=>{ const f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); if(f){ if(D.bgPrev) URL.revokeObjectURL(D.bgPrev); D.bgFile=f; D.bgPrev=URL.createObjectURL(f); refresh(); } e.target.value=''; };
+    $('#bgFile').onchange=e=>{ let f=e.target.files[0]; if(f&&f.size>10000000){ pmsg('Ảnh nền '+(f.size/1e6).toFixed(1)+'MB vượt quá 10MB, không tải lên được'); f=null; } else if(f) pmsg(''); if(f){ if(D.bgPrev) URL.revokeObjectURL(D.bgPrev); D.bgFile=f; D.bgPrev=URL.createObjectURL(f); refresh(); } e.target.value=''; };
     $('#bgUrl').oninput=e=>{ D.bgUrl=e.target.value.trim(); D.bgFile=null; if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; } refresh(); };
     $('#avBtn').onclick=()=>$('#avFile').click();
     if(guest){
