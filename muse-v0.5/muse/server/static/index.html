@@ -1047,6 +1047,10 @@ body.dl-det #center{border-radius:0;height:100vh}
 body.dl-det #main{padding:0!important;overflow:hidden}
 .dd{--ddc:var(--npbg,#2f4f73);position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;height:100%;min-height:0;color:#fff;
  --dd1:#2f4f73;background:var(--dd1);transition:--dd1 1s ease}
+/* Không cho bôi đen / kéo chữ, đĩa, bìa trong màn hình Chi tiết (ô nhập vẫn dùng bình thường) */
+.dd,.dd *{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.dd input,.dd textarea{-webkit-user-select:text;user-select:text}
+.dd img,.dd-disc,.dd-cov{-webkit-user-drag:none;user-drag:none;pointer-events:none}
 .dd-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:40px;padding:0 14px;flex:none}
 .dd-nav button{background:none;border:0;color:#ffffffcc;font:inherit;font-size:13px;cursor:pointer;padding:5px 12px;border-radius:5px;letter-spacing:.2px}
 .dd-nav button:hover{background:#ffffff1f;color:#fff}
