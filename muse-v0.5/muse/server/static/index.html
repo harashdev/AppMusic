@@ -3267,7 +3267,7 @@ function openImgView(src,name){
    lúc bấm vào chỉ việc chuyển thẻ đó sang popup → banner + avatar hiện ngay, không còn khoảng chớp icon. Video trong khung ẩn
    đứng ở khung hình đầu (không tốn pin), chuyển sang popup mới chạy. */
 const pcPool=new Map(); let pcHost=null;
-const pcFull=()=>LS.get('pc_full','1')==='1';
+const pcFull=()=>false;   /* Nút 'Đổi kiểu thẻ' đã gỡ: luôn dùng banner thấp 2:1 như trước (kiểu toàn nền 3:4 làm thẻ quá cao, nhất là khi có khối LV). Muốn bật lại: trả về LS.get('pc_full','0')==='1' */
 const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
 const pcExtra=(mine,u)=>`<div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>'}${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
