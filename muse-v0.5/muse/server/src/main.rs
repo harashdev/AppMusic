@@ -695,7 +695,7 @@ fn gateway_client() -> reqwest::Client {
     reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(15))
-        .timeout(Duration::from_secs(90))
+        .timeout(Duration::from_secs(240))
         .user_agent("Muse-Gateway/0.5")
         .build()
         .expect("không tạo được HTTP client cho cổng nhà")
