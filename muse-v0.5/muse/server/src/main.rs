@@ -1039,7 +1039,13 @@ async fn gw_http(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std:
             if is_nav {
                 return gw_retry_page();
             }
-            (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} ({e})", g.remote)).into_response()
+            {
+                let kind = if e.is_timeout() { "quá thời gian chờ" } else if e.is_connect() { "không kết nối được (server Render đang ngủ/tắt?)" } else if e.is_request() { "lỗi khi gửi dữ liệu lên" } else { "lỗi khác" };
+                let mut chain = String::new();
+                let mut src = std::error::Error::source(&e);
+                while let Some(s) = src { chain.push_str(&format!(" → {s}")); src = s.source(); }
+                (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} [{kind}] ({e}){chain}", g.remote)).into_response()
+            }
         }
     }
 }
@@ -1830,7 +1836,11 @@ async fn optimize_upload(body: Bytes, ext: &'static str, max_px: u32, want_video
     let opt = dir.join(format!("muse-{id}-opt.gif"));
     let web = dir.join(format!("muse-{id}-out.webp"));
     let vid = dir.join(format!("muse-{id}-out.mp4"));
-    let result = optimize_gif_files(&body, &src, &opt, &web, &vid, max_px, want_video).await;
+    // Giới hạn tổng 40 giây cho việc nén (gifsicle + gif2webp có thể mỗi bước 90 giây trên Render yếu → vượt thời gian chờ của cổng nhà
+    // → 502). Quá 40 giây thì bỏ nén, lưu nguyên GIF gốc (vẫn chuyển động); kill_on_drop tự dừng các tiến trình nén còn dang dở.
+    let result = tokio::time::timeout(Duration::from_secs(40), optimize_gif_files(&body, &src, &opt, &web, &vid, max_px, want_video))
+        .await
+        .unwrap_or(None);
     for p in [&src, &opt, &web, &vid] {
         let _ = tokio::fs::remove_file(p).await;
     }
