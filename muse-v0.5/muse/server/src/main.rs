@@ -4146,14 +4146,10 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="900">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
 <meta name="theme-color" content="#07070b">
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#07070b;color:#f3f0fa;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.w{width:min(560px,100%);padding:20px;text-align:center}.w img{width:100%;border-radius:18px;box-shadow:0 12px 40px #000a;background:#17141f;aspect-ratio:1200/900}
-h1{font-size:22px;margin:18px 0 2px}p{margin:0 0 18px;color:#a8a3b6}
-.b{display:block;padding:13px;border-radius:999px;background:#8ecbff;color:#07131d;font-weight:700;text-decoration:none;margin-top:10px}.b.o{background:none;color:#f3f0fa;border:1px solid #ffffff2e}
-</style></head><body><div class="w"><img src="@IMGREL@" alt="Thẻ BBeat"><h1>@NAME@</h1><p>@DESC@</p>
-<a class="b" id="open" href="@INTENT@">Mở trong BBeat</a><a class="b o" href="@WEB@">Mở bản web</a></div>
-<script>(function(){try{if(!/Android/i.test(navigator.userAgent||"")){var o=document.getElementById("open");if(o)o.style.display="none";var w=document.querySelector(".b.o");if(w)w.className="b";}}catch(e){}try{if(/Android/i.test(navigator.userAgent||'')&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");}}catch(e){}})();</script>
+<style>html,body{margin:0;background:#07070b}</style>
+<noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
+</head><body>
+<script>(function(){try{if(/Android/i.test(navigator.userAgent||"")&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");return;}}catch(e){}location.replace("@WEB@");})();</script>
 </body></html>"##;
 
 #[derive(Deserialize)]
@@ -4174,7 +4170,7 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
     let img = format!("{base}/cards/{}.jpg?v={v}", u.id);
     let title = format!("{} trên BBeat", u.display_name);
     let fans = { let db = st.db.lock().unwrap(); follow_count(&db, u.id) };
-    let desc = format!("FANS NO. {:06} · Thẻ hồ sơ BBeat của {}", fans, u.display_name);
+    let desc = format!("FANS NO. {} · Thẻ hồ sơ BBeat của {}", fans, u.display_name);
     let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
     let intent = format!("intent://u/{uname}#Intent;scheme=bbeat;package=vn.muse.app;S.browser_fallback_url={};end", enc(&format!("{page_url}?web=1")));
     // Người dùng Android bấm link (không phải bot xem trước, không phải ?web=1) → chuyển thẳng vào app, không hiện trang web.
