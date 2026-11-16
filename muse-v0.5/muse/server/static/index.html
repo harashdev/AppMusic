@@ -455,7 +455,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc.full .pc-av .pc-badge{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);margin:0}
 .pc-act .out.sm,.pc-act .pri.sm{padding:6px 12px;font-size:13px}
 .shc-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
-.shc-box{background:#17141f;border-radius:16px;padding:14px;max-width:min(720px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
+.shc-box{background:#17141f;border-radius:16px;padding:14px;max-width:min(620px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
 .shc-box canvas{width:100%;height:auto;border-radius:12px;display:block}
 .shc-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 /* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
@@ -3233,7 +3233,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
    Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
-  const W=1200,H=520,ov=document.createElement('div'); ov.className='shc-ov';
+  const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chia sẻ link</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
@@ -3250,38 +3250,36 @@ function shareCard(u){
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
   const no=String(u.id||0).padStart(6,'0'), d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),lvGet(u.id)]).then(([ban,av,lvS])=>{
-    g.save(); rr(0,0,W,H,36); g.clip();
+  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:'')]).then(([ban,av])=>{
+    g.save(); rr(0,0,W,H,44); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
-    // lớp sáng bên trái để chữ trắng đọc được, ảnh lộ dần sang phải
-    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.55)'); lg.addColorStop(.55,'rgba(0,0,0,.18)'); lg.addColorStop(1,'rgba(0,0,0,0)');
+    // lớp tối nhẹ phía trên + bên trái để chữ trắng đọc được, ảnh lộ dần
+    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.5)'); lg.addColorStop(.6,'rgba(0,0,0,.16)'); lg.addColorStop(1,'rgba(0,0,0,0)');
     g.fillStyle=lg; g.fillRect(0,0,W,H);
     g.restore();
     // avatar + tên
-    const ax=70,ay=70,ar=44; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
-    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='64px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
-    g.restore(); g.lineWidth=4; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
-    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=10;
-    g.fillStyle='#fff'; g.font='600 38px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>520&&nm.length>1) nm=nm.slice(0,-1); const nmT=nm+(nm!==u.display_name?'…':''), nmX=ax+ar*2+26; g.fillText(nmT,nmX,ay+ar+13);
-    if(lvS!=null){ const L=lvOf(lvS), I=LV_INFO[L.l], nw=g.measureText(nmT).width; g.shadowColor='transparent';
-      g.font='800 24px '+ft; const pw=g.measureText('LV'+L.l).width+26, px=nmX+nw+16, py=ay+ar-18;
-      g.fillStyle=I[1]; rr(px,py,pw,36,18); g.fill(); g.fillStyle='#fff'; g.fillText('LV'+L.l,px+13,py+27);
-      g.font='600 24px '+ft; g.fillStyle='#ffffffe6'; g.fillText(I[2]+' '+I[0],nmX,ay+ar+50); g.shadowColor='rgba(0,0,0,.45)'; }
+    const ax=80,ay=80,ar=75; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
+    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='110px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+6); }
+    g.restore(); g.lineWidth=6; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
+    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
+    // chữ cao hơn: kéo giãn theo chiều dọc
+    const SY=1.22;
+    g.fillStyle='#fff'; g.font='700 66px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
+    g.save(); g.translate(0,ay+ar+24); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+40,0); g.restore();
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
-    const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; for(const c of t){ g.fillText(c,cx,y); cx+=g.measureText(c).width+gap; } };
-    g.fillStyle='#ffffffcc'; g.font='600 26px '+ft; sp('FANS NO.',70,290,6);
-    g.fillStyle='#fff'; g.font='700 104px "SF Mono",Consolas,"Courier New",monospace'; sp(no,64,385,22);
-    g.fillStyle='#ffffffcc'; g.font='600 24px '+ft; sp('DATE',70,440,6);
-    g.fillStyle='#fff'; g.font='600 30px '+ft; sp(date,70,482,4);
-    g.fillStyle='#fff'; g.font='800 40px '+ft; sp('BBeat',W-56,86,3,true);
+    const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
+    g.fillStyle='#ffffffcc'; g.font='600 36px '+ft; sp('FANS NO.',84,500,9);
+    g.fillStyle='#fff'; g.font='700 176px "SF Mono",Consolas,"Courier New",monospace'; sp(no,74,690,30);
+    g.fillStyle='#ffffffcc'; g.font='600 34px '+ft; sp('DATE',84,772,9);
+    g.fillStyle='#fff'; g.font='600 46px '+ft; sp(date,84,838,6);
     // hạng thành viên (donate Ko-fi)
     if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
       const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
-      g.font='700 22px '+ft; const tw=spw(tier,4), bx=W-56-tw-36;
-      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.24)'; rr(bx,112,tw+36,46,23); g.fill();
-      g.fillStyle='#fff'; sp(tier,bx+18,144,4);
+      g.font='700 28px '+ft; const tw=spw(tier,5), bx=W-70-tw-44;
+      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,84,tw+44,60,30); g.fill();
+      g.fillStyle='#fff'; sp(tier,bx+22,124,5);
     }
     if(mine) upload();
   });
