@@ -1813,7 +1813,10 @@ async function api(path,opt={}){
     if(!GUEST_NET.test(p)){ const ge=new Error('Cần đăng nhập để dùng tính năng này'); ge.guest=true; throw ge; } }
   const h=Object.assign({},opt.headers||{}); if(token) h.Authorization='Bearer '+token;
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
-  let r; try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body}); netDown=false; }catch(e){ netDown=true; try{ if(!offWatchTm){ offBar(true); offWatch(); } }catch{} const ne=new Error(NET_ERR); ne.net=true; throw ne; }
+  let r, ctl=null, tmo=0; if(opt.timeout){ ctl=new AbortController(); tmo=setTimeout(()=>ctl.abort(),opt.timeout); }
+  try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body,signal:ctl?ctl.signal:undefined}); netDown=false; clearTimeout(tmo); }catch(e){ clearTimeout(tmo);
+    if(ctl&&ctl.signal.aborted){ const te=new Error('Máy chủ phản hồi quá lâu, hãy bấm Lưu lại (ảnh GIF nặng có thể cần thu nhỏ trước)'); te.timeout=true; throw te; }
+    netDown=true; try{ if(!offWatchTm){ offBar(true); offWatch(); } }catch{} const ne=new Error(NET_ERR); ne.net=true; throw ne; }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
   if(!r.ok){ const detail=(await r.text()||'').trim(); if(r.status>=400&&r.status<500&&detail) throw new Error(detail); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
@@ -4652,23 +4655,25 @@ const pages={
     /* LƯU: các lần bấm Lưu được xếp hàng và chạy lần lượt (window.__profSaveChain), không bao giờ chồng nhau.
        Trước đây bấm Lưu → thoát ra → đổi ảnh khác → Lưu: lần lưu cũ (còn đang chạy vì mạng chậm) về sau và đè lại ảnh cũ lên cả server lẫn máy.
        Giờ lần lưu mới chờ lần cũ xong hẳn, và trang hồ sơ khi mở lại cũng chờ lần lưu đang chạy để lấy đúng dữ liệu mới nhất. */
+    const UP_TMO=150000;   /* ảnh GIF nặng phải qua gifsicle/ffmpeg trên server: cho tối đa 150s rồi báo lỗi thay vì treo vô hạn */
     const pmsg=t=>{ const el=$('#profMsg'); if(el) el.textContent=t; };
     const runSave=async()=>{ try{
       pmsg('Đang lưu…');
       /* Tải ảnh và gửi hồ sơ chạy SONG SONG (mỗi bước nối đuôi sẽ thêm một vòng chờ mạng).
          Riêng ảnh nền riêng phải xong trước vì hồ sơ cần link của nó. */
       let avRes=null, banRes=null;
-      if(D.bg==='custom'&&D.bgFile){ const r=await api('/api/background',{body:D.bgFile}); D.bgUrl=r.bg_url; D.bgFile=null; const bu=$('#bgUrl'); if(bu) bu.value=D.bgUrl; }
-      const avJob=D.avatarFile?api('/api/avatar',{body:D.avatarFile}).then(r=>{ avRes=r; D.avatarFile=null; }):null;
-      const banJob=D.bannerFile?api('/api/banner',{body:D.bannerFile}).then(r=>{ banRes=r; D.bannerFile=null; })
-        :(D.bannerClear&&me.banner?api('/api/banner',{method:'DELETE'}).then(r=>{ banRes=r; }):null);
-      const profJob=api('/api/profile',{json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa}}});
+      if(D.bg==='custom'&&D.bgFile){ pmsg('Đang tải ảnh nền…'); const r=await api('/api/background',{body:D.bgFile,timeout:UP_TMO}); D.bgUrl=r.bg_url; D.bgFile=null; const bu=$('#bgUrl'); if(bu) bu.value=D.bgUrl; }
+      const avJob=D.avatarFile?api('/api/avatar',{body:D.avatarFile,timeout:UP_TMO}).then(r=>{ avRes=r; D.avatarFile=null; }):null;
+      const banJob=D.bannerFile?api('/api/banner',{body:D.bannerFile,timeout:UP_TMO}).then(r=>{ banRes=r; D.bannerFile=null; })
+        :(D.bannerClear&&me.banner?api('/api/banner',{method:'DELETE',timeout:30000}).then(r=>{ banRes=r; }):null);
+      const profJob=api('/api/profile',{timeout:30000,json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa}}});
       const [pr]=await Promise.all([profJob,avJob,banJob]);
       const u={...pr}; if(avRes) u.avatar=avRes.avatar; if(banRes) u.banner=banRes.banner;   /* hồ sơ có thể về trước khi ảnh lưu xong → lấy avatar/banner từ phản hồi của chính lần tải ảnh */
       applyUser(u); appPrev=false;
       if(D.bannerPrev){ URL.revokeObjectURL(D.bannerPrev); D.bannerPrev=''; } D.bannerClear=false; if(D.avatarPrev){ URL.revokeObjectURL(D.avatarPrev); D.avatarPrev=''; } if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; }
       try{ refresh(); }catch{} appPrev=false; pmsg('Đã lưu ✔'); }catch(e){ pmsg(e.message); } };
-    $('#saveProfile').onclick=()=>{ pmsg('Đang lưu…'); window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave); };
+    $('#saveProfile').onclick=()=>{ const btn=$('#saveProfile'); if(btn.disabled) return; btn.disabled=true; pmsg('Đang lưu…');
+      window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave).finally(()=>{ btn.disabled=false; }); };
     refresh();
   },
   async settings(m){
