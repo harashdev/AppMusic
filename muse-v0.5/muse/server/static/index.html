@@ -614,14 +614,6 @@ button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--a
 .shx-c{border:1px solid var(--line,#2b2740);background:transparent;color:inherit;border-radius:99px;padding:5px 11px;font-size:12px;cursor:pointer}.shx-c.s{background:var(--accent,#8ecbff);border-color:transparent;color:#10202e;font-weight:700}
 .shx-r{display:flex;align-items:center;gap:10px}.shx-r>span{width:62px;color:var(--sub,#9a97ad);flex:none}.shx-r input[type=range]{flex:1;min-width:0;accent-color:var(--accent,#8ecbff)}.shx-r em{font-style:normal;min-width:54px;text-align:right;color:var(--sub,#9a97ad)}
 .shx-sw{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.shx-d{width:22px;height:22px;border-radius:50%;border:2px solid var(--line,#2b2740);cursor:pointer;padding:0}.shx-d.s{border-color:#fff;box-shadow:0 0 0 2px var(--accent,#8ecbff)}
-.shc-box button{transition:none}.shc-box button:active{transform:none}
-.shx-k{position:relative;flex:1;min-width:0;height:24px;display:flex;align-items:center}
-.shx-k::after{content:"";position:absolute;left:7px;right:7px;top:50%;height:12px;transform:translateY(-50%);pointer-events:none;background:repeating-linear-gradient(to right,#ffffff80 0 2px,transparent 0 calc((100% - 2px)/var(--n)))}
-.shx-k input[type=range]{position:relative;z-index:1;width:100%;margin:0;flex:none;touch-action:none;height:4px}
-.shx-k input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008;transition:none;cursor:grab}
-.shx-k input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008}
-.shx-k input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.15)}
-.shc-box canvas{contain:paint}.shx{contain:layout style}
 .shx-sw input[type=color]{width:32px;height:26px;padding:1px;border:1px solid var(--line,#2b2740);border-radius:8px;background:none;cursor:pointer}
 /* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
    Ảnh vẫn được tải sẵn và giải mã bằng img.decode() trong warmProfile(), nên không cần cho nó nằm trong màn hình nữa. */
@@ -930,7 +922,6 @@ body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custo
   -webkit-backdrop-filter:blur(2px);
   backdrop-filter:blur(2px);
 }
-body:has(.shc-ov) .pnl,body:has(.shc-ov) .stage .pc,body:has(.shc-ov) .stage .mini{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 button,[role="button"],#meAv,#gear,.rb,.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn{
   pointer-events:auto;
   touch-action:manipulation;
@@ -1192,9 +1183,6 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .bp .bp-nm b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
 .bp .bp-nm .bp-pen,.bp .bp-nm .bp-tier,.bp .bp-nm .bp-lv{flex:none}
 @media(min-width:720px){ .bp .bp-nm{font-size:26px;gap:8px} }
-/* Sửa lỗi tên bị cắt/vỡ nét: overflow:hidden của thẻ <b> cắt mất phần đổ bóng + chân chữ (g, y...) → thêm vùng đệm bù trừ bằng margin âm, giảm bóng cho gọn */
-.bp .bp-nm{line-height:1.25;align-items:center}
-.bp .bp-nm b{display:block;line-height:1.3;padding:.14em .35em .22em;margin:-.14em -.35em -.22em;font-weight:700;letter-spacing:0;text-shadow:0 1px 3px rgba(0,0,0,.5);-webkit-font-smoothing:antialiased}
 /* ===== TRANG HỒ SƠ (chỉnh sửa): khung xem trước giống trang hồ sơ kiểu Bilibili + thẻ nhóm + thanh Lưu dính đáy ===== */
 .pe{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding-bottom:88px;max-width:1100px}
 @media(min-width:900px){.pe{grid-template-columns:400px minmax(0,1fr);gap:20px 26px;align-items:start}.pe-left{position:sticky;top:8px}.pe-bar{grid-column:1/-1}}
@@ -3597,9 +3585,9 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button><button class="out sm" data-a="cp">Chép ảnh</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden><button class="out sm" data-a="tx">Chỉnh chữ</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div>'+((me&&me.id&&u.id===me.id)?'<div class="shx" style="display:none"><div class="shx-ch"></div><div class="shx-r"><span>Màu</span><div class="shx-sw"></div></div><div class="shx-r"><span>Shadow</span><div class="shx-k" style="--n:10"><input type="range" class="shx-s" min="0" max="10" step="1"></div><em class="shx-sn"></em></div><div class="shx-r"><span>Độ đậm</span><div class="shx-k" style="--n:4"><input type="range" class="shx-w" min="400" max="800" step="100"></div><em class="shx-wn"></em></div><div class="shx-r"><span>Độ rõ</span><div class="shx-k" style="--n:12"><input type="range" class="shx-o" min="40" max="100" step="5"></div><em class="shx-on"></em></div><div class="shx-r"><span>Cỡ chữ</span><div class="shx-k" style="--n:8"><input type="range" class="shx-z" min="85" max="125" step="5"></div><em class="shx-zn"></em></div><div class="shx-r" style="justify-content:center"><button class="out sm shx-rs" type="button">Đặt lại chữ này</button></div></div>':'')+'</div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button><button class="out sm" data-a="cp">Chép ảnh</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden><button class="out sm" data-a="tx">Chỉnh chữ</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div>'+((me&&me.id&&u.id===me.id)?'<div class="shx" style="display:none"><div class="shx-ch"></div><div class="shx-r"><span>Màu</span><div class="shx-sw"></div></div><div class="shx-r"><span>Shadow</span><input type="range" class="shx-s" min="0" max="10" step="1"><em class="shx-sn"></em></div><div class="shx-r"><span>Độ đậm</span><input type="range" class="shx-w" min="400" max="800" step="100"><em class="shx-wn"></em></div><div class="shx-r"><span>Độ rõ</span><input type="range" class="shx-o" min="40" max="100" step="5"><em class="shx-on"></em></div><div class="shx-r"><span>Cỡ chữ</span><input type="range" class="shx-z" min="85" max="125" step="5"><em class="shx-zn"></em></div><div class="shx-r" style="justify-content:center"><button class="out sm shx-rs" type="button">Đặt lại chữ này</button></div></div>':'')+'</div>';
   document.body.appendChild(ov);
-  const cv=ov.querySelector('canvas'); let g=cv.getContext('2d');
+  const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
   const mine=!!(me&&me.id&&u.id===me.id);
   // Tải ảnh thẻ (JPEG, nhẹ) lên ngay khi thẻ vẽ xong → lúc bấm Chia sẻ link thường đã xong, mở bảng chia sẻ ngay.
   let upP=null;
@@ -3622,9 +3610,8 @@ function shareCard(u){
   // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
   const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
   let ban=null, av=null, custom=null;   // custom = hình nền do chính người dùng chọn cho thẻ (lưu trên máy này, key card_bg)
-  const ax=80,ay=80,ar=75; let layer=null, raf=0;
-  /* Lớp tĩnh (nền + lớp tối + avatar) chỉ vẽ 1 lần, cache lại; kéo thanh chỉnh chỉ vẽ lại phần chữ → nhẹ hơn nhiều */
-  const buildLayer=()=>{ const L=document.createElement('canvas'); L.width=W; L.height=H; const g0=g; g=L.getContext('2d');
+  const paint=()=>{
+    g.clearRect(0,0,W,H); g.globalAlpha=1; g.shadowOffsetY=0; g.shadowColor='transparent'; g.shadowBlur=0; g.textAlign='left'; g.textBaseline='alphabetic';
     g.save(); rr(0,0,W,H,44); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     const bg=custom||ban;
@@ -3634,14 +3621,9 @@ function shareCard(u){
     g.fillStyle=lg; g.fillRect(0,0,W,H);
     g.restore();
     // avatar + tên
-    g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
+    const ax=80,ay=80,ar=75; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
     if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='110px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+6); }
     g.restore(); g.lineWidth=6; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
-    g=g0; return L; };
-  const paint=()=>{
-    if(!layer) layer=buildLayer();
-    g.clearRect(0,0,W,H); g.globalAlpha=1; g.shadowOffsetY=0; g.shadowColor='transparent'; g.shadowBlur=0; g.textAlign='left'; g.textBaseline='alphabetic';
-    g.drawImage(layer,0,0);
     g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
     // chữ cao hơn: kéo giãn theo chiều dọc
     const SY=1.22;
@@ -3662,7 +3644,6 @@ function shareCard(u){
       g.fillStyle='#fff'; sp(tier,bx+22,124,5);
     }
   };
-  const sched=()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; paint(); }); };
   const bgx=ov.querySelector('[data-a="bgx"]'), bgf=ov.querySelector('input[type=file]');
   const loadCustom=()=>new Promise(res=>{ let d=''; try{ d=mine?LS.get('card_bg',''):''; }catch{} if(!/^data:image\/jpeg;base64,/.test(d)) return res(null); const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=d; });
   Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP,loadCustom()]).then(([b,a,fn,c])=>{
@@ -3684,31 +3665,28 @@ function shareCard(u){
       const d=o.toDataURL('image/jpeg',.85);
       LS.set('card_bg',d); if(LS.get('card_bg','')!==d) return notify('Máy không đủ chỗ lưu hình này');
       const c=new Image(); await new Promise(r=>{ c.onload=r; c.onerror=r; c.src=d; });
-      custom=c; layer=null; upP=null; paint(); if(bgx) bgx.style.display=''; if(mine) upload();
+      custom=c; upP=null; paint(); if(bgx) bgx.style.display=''; if(mine) upload();
     }catch{ notify('Không đọc được ảnh này'); }
     finally{ URL.revokeObjectURL(url); }
   };
   if(bgf) bgf.onchange=e=>{ const f=e.target.files[0]; e.target.value=''; setBg(f); };
-  let saveT=0; const saveNow=()=>{ if(!saveT) return; clearTimeout(saveT); saveT=0; try{ LS.set(shKey,JSON.stringify(SH)); }catch{} };
   if(mine){
     const px=ov.querySelector('.shx'), q=x=>px.querySelector(x), COLS=['#ffffff','#ffd166','#7ee787','#ff7eb6','#c4b5fd','#111111']; let cur='nm', tmr=0;
     q('.shx-ch').innerHTML=SHK.map(([k,l])=>`<button type="button" class="shx-c" data-k="${k}">${l}</button>`).join('');
     q('.shx-sw').innerHTML=COLS.map(c=>`<button type="button" class="shx-d" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')+'<input type="color" class="shx-col" value="#ffffff" aria-label="Chọn màu chữ khác">';
-    const fl=()=>['s','w','o','z'].forEach(k=>{ const el=q('.shx-'+k); el.style.setProperty('--p',((el.value-el.min)/(el.max-el.min)*100)+'%'); });
     const ui=()=>{ const v=SH[cur];
       px.querySelectorAll('.shx-c').forEach(b=>b.classList.toggle('s',b.dataset.k===cur)); px.querySelectorAll('.shx-d').forEach(b=>b.classList.toggle('s',b.dataset.c===v.c));
       if(v.c) q('.shx-col').value=v.c; q('.shx-s').value=v.s; q('.shx-sn').textContent=v.s; q('.shx-w').value=v.w||400; q('.shx-wn').textContent=v.w||'mặc định';
-      q('.shx-o').value=v.o; q('.shx-on').textContent=v.o+'%'; const z=q('.shx-z'); z.max=cur==='fn'?110:125; z.parentNode.style.setProperty('--n',(z.max-z.min)/5); z.value=v.z; q('.shx-zn').textContent=v.z+'%'; fl(); };
-    const lab=()=>{ fl(); const v=SH[cur]; q('.shx-sn').textContent=v.s; q('.shx-wn').textContent=v.w||'mặc định'; q('.shx-on').textContent=v.o+'%'; q('.shx-zn').textContent=v.z+'%'; };
-    const chg=light=>{ if(light===true) lab(); else ui(); sched(); clearTimeout(saveT); saveT=setTimeout(saveNow,300); clearTimeout(tmr); tmr=setTimeout(()=>{ upP=null; upload(); },1200); };   /* ảnh thẻ gửi lên server chỉ làm lại sau khi ngừng chỉnh */
+      q('.shx-o').value=v.o; q('.shx-on').textContent=v.o+'%'; const z=q('.shx-z'); z.max=cur==='fn'?110:125; z.value=v.z; q('.shx-zn').textContent=v.z+'%'; };
+    const chg=()=>{ ui(); paint(); try{ LS.set(shKey,JSON.stringify(SH)); }catch{} clearTimeout(tmr); tmr=setTimeout(()=>{ upP=null; upload(); },900); };   /* ảnh thẻ gửi lên server chỉ làm lại sau khi ngừng chỉnh */
     px.addEventListener('click',e=>{ const c=e.target.closest('.shx-c'), d=e.target.closest('.shx-d');
       if(c){ cur=c.dataset.k; ui(); } else if(d){ SH[cur].c=d.dataset.c; chg(); } else if(e.target.closest('.shx-rs')){ SH[cur]={c:'',s:0,w:0,o:100,z:100}; chg(); } });
-    q('.shx-col').oninput=e=>{ SH[cur].c=e.target.value.toLowerCase(); chg(true); };
-    q('.shx-s').oninput=e=>{ SH[cur].s=+e.target.value; chg(true); }; q('.shx-w').oninput=e=>{ SH[cur].w=+e.target.value; chg(true); };
-    q('.shx-o').oninput=e=>{ SH[cur].o=+e.target.value; chg(true); }; q('.shx-z').oninput=e=>{ SH[cur].z=+e.target.value; chg(true); };
+    q('.shx-col').oninput=e=>{ SH[cur].c=e.target.value.toLowerCase(); chg(); };
+    q('.shx-s').oninput=e=>{ SH[cur].s=+e.target.value; chg(); }; q('.shx-w').oninput=e=>{ SH[cur].w=+e.target.value; chg(); };
+    q('.shx-o').oninput=e=>{ SH[cur].o=+e.target.value; chg(); }; q('.shx-z').oninput=e=>{ SH[cur].z=+e.target.value; chg(); };
     ui();
   }
-  const done=()=>{ saveNow(); cancelAnimationFrame(raf); document.removeEventListener('keydown',esc_,true); ov.remove(); };
+  const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
   document.addEventListener('keydown',esc_,true);
   // Chép: ảnh thẻ + (của mình) link hồ sơ vào clipboard cùng một lúc. Người nhận bấm link → vào thẳng hồ sơ trong app (Android) / trang hồ sơ (web), không qua trang trung gian.
@@ -3735,7 +3713,7 @@ function shareCard(u){
     if(!a) return;
     if(a==='bg'){ if(bgf) bgf.click(); return; }
     if(a==='tx'){ const px=ov.querySelector('.shx'); if(px) px.style.display=px.style.display==='none'?'':'none'; return; }
-    if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; layer=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
+    if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
     if(a==='sh'){ if(!mine) return; return copyLink(); }   // chỉ chép LINK: dán vào Discord ra khối xem trước (ảnh thẻ + tiêu đề bấm được), không bị tải ảnh lên như file đính kèm
     if(a==='cp') return doCopy(false);
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
