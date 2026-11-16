@@ -3279,7 +3279,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chia sẻ link</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
   const mine=!!(me&&me.id&&u.id===me.id);
@@ -3293,12 +3293,12 @@ function shareCard(u){
     const z=Math.max(1,cr.bz||1); sw/=z; sh/=z; const sx=Math.min(Math.max(0,(im.width-sw)*(cr.bx??50)/100),im.width-sw), sy=Math.min(Math.max(0,(im.height-sh)*(cr.by??50)/100),im.height-sh);
     g.drawImage(im,sx,sy,sw,sh,x,y,w,h); };
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
-  let no='000000'; const d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  let no='0'; const d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
   const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
   Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP]).then(([ban,av,fn])=>{
-    no=String(fn||0).padStart(6,'0');
+    no=String(fn||0);
     g.save(); rr(0,0,W,H,44); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
@@ -3334,12 +3334,28 @@ function shareCard(u){
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
   document.addEventListener('keydown',esc_,true);
+  // Chép: ảnh thẻ + (của mình) link hồ sơ vào clipboard cùng một lúc. Người nhận bấm link → vào thẳng hồ sơ trong app (Android) / trang hồ sơ (web), không qua trang trung gian.
+  const doCopy=async withLink=>{
+    const pngP=new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('png')),'image/png'));
+    const linkP=withLink?upload().then(r=>{ if(!r) throw new Error('nolink'); return cardLinkFrom(r); }):null;
+    if(linkP&&!upP) notify('Đang tạo link…');
+    try{
+      const items={'image/png':pngP};
+      if(linkP) items['text/plain']=linkP.then(l=>new Blob([l],{type:'text/plain'}));
+      await navigator.clipboard.write([new ClipboardItem(items)]);
+      notify(linkP?'Đã chép link + ảnh thẻ':'Đã chép ảnh thẻ'); return;
+    }catch(e){}
+    if(linkP){
+      try{ const l=await linkP; try{ await navigator.clipboard.writeText(l); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',l); } }
+      catch{ notify('Không tạo được link, thử lại nhé'); }
+    } else notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh');
+  };
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
-    if(a==='sh'){ if(!mine) return; if(!upP) notify('Đang tạo link…'); const r=await upload(); if(!r) return notify('Không tạo được link, thử lại nhé'); shareCardLink(u,r,no); return; }
+    if(a==='sh'){ if(!mine) return; return doCopy(true); }
+    if(a==='cp') return doCopy(false);
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
-      if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
-      else { try{ await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); notify('Đã chép ảnh thẻ'); }catch{ notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh'); } } },'image/png'); };
+      const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); },'image/png'); };
 }
 /* CẤP ĐỘ NGHE NHẠC: tổng thời gian nghe thật (server cộng dồn) → LV0..LV6, mỗi cấp mở một huy hiệu. */
 const LV_H=[0,2,10,40,120,300,800];   // số giờ cần để đạt LV0..LV6
@@ -3371,6 +3387,10 @@ function startListenTimer(){
 }
 /* CHIA SẺ THẺ BẰNG LINK: tải ảnh thẻ lên server → link /u/<tên> có thẻ xem trước (ảnh thẻ + tên) khi dán vào chat.
    Trên Android bấm link sẽ mở thẳng vào app (intent-filter), app tự hiện thẻ hồ sơ của người đó. */
+function cardLinkFrom(r){
+  const pubBase=(r.base&&!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(r.base))?String(r.base).replace(/\/+$/,''):location.origin;
+  return pubBase+r.path+'?v='+(r.v||Date.now());
+}
 async function shareCardLink(u,r,no){
   const pubBase=(r.base&&!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(r.base))?String(r.base).replace(/\/+$/,''):location.origin, link=pubBase+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
   try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
