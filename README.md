@@ -137,9 +137,4 @@ Cùng ô *Cài đặt → Nhập playlist từ app khác*: dán link playlist c�
 - Muốn bấm link trong chat mở **thẳng** vào app (không hỏi): đặt biến môi trường server `ANDROID_CERT_SHA256` = vân tay SHA-256 của chứng chỉ ký APK (nhiều giá trị cách nhau dấu phẩy). Server phục vụ `/.well-known/assetlinks.json`. Đặt `PUBLIC_URL` để link/ảnh xem trước luôn đúng tên miền.
 - API: `POST /api/card` (PNG ≤ 3MB, cần đăng nhập), `GET /api/u/:username` (thông tin công khai tối thiểu), `GET /u/:username` (trang xem trước).
 - Thanh trên cùng có 2 nút: **Quét QR** (đăng nhập thiết bị khác) và **Chế độ tối** (lưu trên máy này).
-
-## Cấp độ nghe nhạc (LV0–LV6) + huy hiệu
-- Giao diện đếm thời gian **nghe thật** (chỉ tính khi đang phát) và gửi `POST /api/listen {secs}` mỗi ~60 giây. Server chống gian lận: mỗi lần chỉ cộng tối đa bằng thời gian trôi qua từ lần báo trước, không quá 600 giây. Lưu ở cột `users.listen_secs` (DB cũ tự được thêm cột).
-- `GET /api/lv/:id` (cần đăng nhập) trả `{secs}`. Mốc giờ: LV1 2h · LV2 10h · LV3 40h · LV4 120h · LV5 300h · LV6 800h (sửa `LV_H` / `LV_INFO` trong `index.html`).
-- Thẻ hồ sơ hiện LV, thanh tiến độ và các huy hiệu đã mở; thẻ chia sẻ cũng vẽ LV + tên huy hiệu cạnh tên.
-- Ảnh thẻ chia sẻ nay là **JPEG** (`data/cards/<id>.jpg`) và được tải lên sẵn ngay khi mở thẻ, nên bấm *Chia sẻ link* gần như tức thì. Đã bỏ nút *Đổi kiểu thẻ*.
+- Ảnh thẻ chia sẻ là **JPEG** (`data/cards/<id>.jpg`) và được tải lên sẵn ngay khi mở thẻ, nên bấm *Chia sẻ link* gần như tức thì. Đã bỏ nút *Đổi kiểu thẻ*.
