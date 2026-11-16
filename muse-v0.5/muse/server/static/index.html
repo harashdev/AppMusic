@@ -1172,17 +1172,22 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .bp .bp-eb{border:0;background:var(--hover2);color:var(--text);text-shadow:none}
 .bp .bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
 @media(min-width:720px){ .bp .bp-ebs{padding:16px 28px 0;margin-left:0}.bp .bp-eb{flex:none;padding:9px 22px} }
-/* ----- đẩy avatar + thông tin lên cao hơn, canh giữa và cân đối trên desktop ----- */
-.bp .bp-head{padding-top:calc(clamp(58px,13vw,104px) + env(safe-area-inset-top));padding-bottom:12px}
-@media(min-width:720px){
-  .bp .bp-head{width:100%;max-width:1040px;margin:0 auto;box-sizing:border-box;padding-bottom:14px}
-  .bp .bp-stats{flex:1 1 100%;justify-content:space-between}
-  .bp .bp-st,.bp .bp-st:first-child{flex:1;padding:0 12px}
-  .bp .bp-hr{gap:0}
-  .bp .bp-ebs{max-width:1040px;margin:0 auto;box-sizing:border-box;justify-content:center;padding:18px 28px 0}
-  .bp .bp-tabs{justify-content:center;padding:0}
-  #bpBody{max-width:1040px;margin:0 auto}
-}
+/* ----- banner cao hơn, avatar canh giữa theo khối tên, màu chữ theo bảng màu hồ sơ, sửa lỗi hẹp giao diện trên điện thoại ----- */
+.bp .bp-w{max-width:none}   /* trước đây bị khóa 640px nên màn 640–720px (điện thoại ngang/cỡ lớn) banner bị hở hai bên, giao diện không phủ đủ */
+.bp .bp-tab:focus,.bp .bp-tab:focus-visible,.bp .bp-eb:focus{outline:none}
+.bp .bp-head{padding-top:calc(clamp(92px,23vw,176px) + env(safe-area-inset-top));padding-bottom:16px;align-items:center}
+.bp .bp-head>.bp-hr{align-self:stretch}
+/* Màu chữ lấy từ bảng màu hồ sơ (--pf-*) */
+.bp .bp-nm,.bp .bp-nm b{color:color-mix(in srgb,var(--pf-ac,#fff) 14%,#fff)}
+.bp .bp-bio{color:color-mix(in srgb,var(--pf-sub,#fff) 55%,#fff)}
+.bp .bp-bio a{color:var(--pf-ac,#fff)}
+.bp .bp-pen{color:var(--pf-ac,#fff)}
+.bp .bp-chip{color:color-mix(in srgb,var(--pf-ac,#fff) 22%,#fff)}
+.bp .bp-chip.uid{color:var(--pf-sub,#fff)}
+.bp .bp-st b{color:var(--pf-ac,#fff)}
+.bp .bp-st span{color:color-mix(in srgb,var(--pf-sub,#fff) 70%,#fff)}
+.bp .bp-eb{color:var(--pf-ac,var(--text))}
+@media(min-width:720px){ .bp .bp-head{padding-top:calc(clamp(110px,15vw,200px) + env(safe-area-inset-top))} }
 </style>
 </head>
 <body class="skin-default">
