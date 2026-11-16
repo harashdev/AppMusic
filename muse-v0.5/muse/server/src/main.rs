@@ -2388,6 +2388,34 @@ async fn pair_create(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<
         return Err(bad("Sai mật khẩu"));
     }
     rl_clear(&st, &ukey);
+    // Server chạy ở máy nhà (localhost) nhưng ứng dụng đăng nhập vào server chính: đặt PAIR_REMOTE=<địa chỉ server chính> và cùng ADMIN_PAIR_KEY
+    // ở hai nơi thì mã được xin THẲNG từ server chính (tài khoản ADMIN_USER của server chính), nên nhập ở ứng dụng là vào được.
+    // Chỉ admin của server này, hoặc người đang ngồi ở chính máy này (localhost), mới dùng được đường này.
+    if let (Ok(remote), Ok(key)) = (std::env::var("PAIR_REMOTE"), std::env::var("ADMIN_PAIR_KEY")) {
+        let (remote, key) = (remote.trim().trim_end_matches('/').to_string(), key.trim().to_string());
+        if !remote.is_empty() && key.len() >= 24 && (user.is_admin || is_local_request(&addr, &headers)) {
+            let resp = st
+                .http
+                .post(format!("{remote}/api/admin/pair-code"))
+                .header("x-pair-key", key)
+                .send()
+                .await
+                .map_err(|e| (StatusCode::BAD_GATEWAY, format!("Không nối được server chính {remote}: {e}")))?;
+            let status = resp.status();
+            if !status.is_success() {
+                let t = resp.text().await.unwrap_or_default();
+                return Err((StatusCode::BAD_GATEWAY, format!("Server chính từ chối ({}): {}", status.as_u16(), t.trim())));
+            }
+            let mut j = resp.json::<Value>().await.map_err(|_| (StatusCode::BAD_GATEWAY, "Server chính trả dữ liệu lạ".to_string()))?;
+            if let Some(o) = j.as_object_mut() {
+                let empty = o.get("base").and_then(|b| b.as_str()).map(|b| b.is_empty()).unwrap_or(true);
+                if empty {
+                    o.insert("base".into(), json!(remote));
+                }
+            }
+            return Ok(Json(j));
+        }
+    }
     let now = now_secs();
     let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
     {
@@ -4098,24 +4126,15 @@ async fn fans_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
     Ok(Json(json!({ "id": id, "n": follow_count(&db, id) })))
 }
 
-async fn card_user(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>) -> Result<Json<Value>, ApiErr> {
+async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
     if !card_name_ok(&username) {
-        return Err((StatusCode::NOT_FOUND, "Không tìm thấy hồ sơ".into()));
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
     }
-    // Hồ sơ công khai: ai có link/QR cũng xem được (kể cả chưa đăng nhập, chưa từng tạo thẻ chia sẻ).
-    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy hồ sơ".to_string()))?;
-    let (fans, secs) = {
-        let db = st.db.lock().unwrap();
-        let secs: i64 = db.query_row("SELECT listen_secs FROM users WHERE id=?1", [u.id], |r| r.get(0)).unwrap_or(0);
-        (follow_count(&db, u.id), secs)
-    };
-    let mut v = serde_json::to_value(&u).map_err(|_| e500())?;
-    if let Some(o) = v.as_object_mut() {
-        o.insert("fans".into(), json!(fans));
-        o.insert("secs".into(), json!(secs));
-        o.insert("base".into(), json!(card_base_url(&headers)));
+    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".to_string()))?;
+    if card_version(&st, u.id).await.is_none() {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
     }
-    Ok(Json(v))
+    Ok(Json(u))
 }
 
 fn card_esc(s: &str) -> String {
@@ -4152,7 +4171,7 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
 <meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
 <meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
-<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="512">
+<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="900">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
 <meta name="theme-color" content="#07070b">
 <style>html,body{margin:0;background:#07070b}</style>
