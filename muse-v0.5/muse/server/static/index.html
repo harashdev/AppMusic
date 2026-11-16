@@ -458,7 +458,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-ib{width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .bp-ib .i{width:22px;height:22px}
 .bp-head{display:flex;gap:16px;padding:0 16px;margin-top:-46px;position:relative;z-index:3}
-.bp-av{flex:none;width:92px;height:92px;border-radius:50%;border:3px solid #fff;background:var(--surf2);cursor:pointer;overflow:hidden}
+.bp-av{position:relative;flex:none;width:92px;height:92px;border-radius:50%;border:3px solid #fff;background:var(--surf2);overflow:hidden}
 .bp-av .av{width:100%;height:100%;font-size:44px}
 .bp-hr{flex:1;min-width:0;padding-top:48px}
 .bp-stats{display:flex;text-align:center}
@@ -466,8 +466,8 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-st:first-child{border-left:0}
 .bp-st b{display:block;font-size:18px}
 .bp-st span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
-.bp-eb{display:block;width:100%;margin-top:12px;padding:8px;border-radius:8px;border:1px solid #fb7299;background:none;color:#fb7299;font-weight:600;cursor:pointer}
-.bp-eb.f{background:#fb7299;color:#fff}
+.bp-eb{display:block;width:100%;margin-top:12px;padding:8px;border-radius:8px;border:1px solid var(--pf-ac,#fb7299);background:none;color:var(--pf-ac,#fb7299);font-weight:600;cursor:pointer}
+.bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
 .bp-info{padding:14px 16px 4px}
 .bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
 .bp-nm b{min-width:0;overflow-wrap:anywhere}
@@ -477,11 +477,11 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-lv .bar{width:110px;height:4px;border-radius:2px;background:var(--hover2);overflow:hidden}
 .bp-lv .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
 .bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
-.bp-bio a{color:var(--accent);cursor:pointer;flex:none}
+.bp-bio a{color:var(--pf-ac,var(--accent));cursor:pointer;flex:none}
 .bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
 .bp-tab{flex:1;text-align:center;padding:12px 0;font-size:16px;color:var(--sub);cursor:pointer;position:relative;background:none;border:0}
-.bp-tab.on{color:#fb7299}
-.bp-tab.on::after{content:"";position:absolute;left:50%;bottom:0;width:24px;height:3px;margin-left:-12px;border-radius:2px;background:#fb7299}
+.bp-tab.on{color:var(--pf-ac,#fb7299)}
+.bp-tab.on::after{content:"";position:absolute;left:50%;bottom:0;width:24px;height:3px;margin-left:-12px;border-radius:2px;background:var(--pf-ac,#fb7299)}
 .bp-sec{padding:16px 16px 4px}
 .bp-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 .bp-sh b{font-size:17px}.bp-sh small{color:var(--sub);margin-left:6px}
@@ -515,6 +515,30 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-opt{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .bp-opt button{padding:12px}
 .bp-opt button.on{background:var(--accent);color:var(--on)}
+
+/* ===== AVATAR: rê chuột → icon mờ đi + hiện cây bút. Icon emoji là chữ nên trước đây hiện con trỏ chữ I → tắt chọn chữ + ép con trỏ ===== */
+.av-pen{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;opacity:0;transform:scale(.8);transition:opacity .16s,transform .16s;pointer-events:none;filter:drop-shadow(0 1px 3px #000a)}
+.av-pen .i{width:38%;height:38%;min-width:16px;min-height:16px}
+.pc-av,.pc-av *,.bp-av,.bp-av *,#meAv,#meAv *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent}
+.pc-av,.pc-av *,.bp-av,.bp-av *{cursor:default}
+.pc-av.ed,.pc-av.ed *,.pc-av.zm,.pc-av.zm *,.bp-av.ed,.bp-av.ed *,.bp-av.zm,.bp-av.zm *,#meAv,#meAv *{cursor:pointer}
+.pc-av .av,.bp-av .av,#meAv .av{transition:opacity .16s}
+@media(hover:hover){
+  .pc-av.ed:hover .av,.bp-av.ed:hover .av,#meAv:hover .av{opacity:.3}
+  .pc-av.ed:hover .av-pen,.bp-av.ed:hover .av-pen,#meAv:hover .av-pen{opacity:1;transform:none}
+}
+.pc-av.ed:focus-visible .av-pen,.bp-av.ed:focus-visible .av-pen{opacity:1;transform:none}
+/* ===== TRANG HỒ SƠ ĐỔI MÀU THEO NỀN HỒ SƠ: chỉ dùng MÀU (không nhét ảnh). Biến --pf-* do JS (pfThemeApply) tính ra ===== */
+.bp.themed,.bp-ed.themed{
+  --card:var(--pf-card);--surf2:var(--pf-card);--hover:var(--pf-hover);--hover2:var(--pf-hover);--line:var(--pf-line);--sub:var(--pf-sub);
+  background:
+    radial-gradient(70% 38% at 12% 0%,var(--pf-glow),transparent 72%),
+    radial-gradient(60% 40% at 100% 34%,var(--pf-glow2),transparent 70%),
+    linear-gradient(180deg,var(--pf-top),var(--pf-mid) 46%,var(--pf-bot));
+}
+.bp.themed .bp-w{background:transparent}
+.bp.themed .bp-ban{-webkit-mask-image:linear-gradient(to bottom,#000 58%,transparent);mask-image:linear-gradient(to bottom,#000 58%,transparent)}
+.bp.themed .bp-tabs{background:color-mix(in srgb,var(--pf-mid) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 /* Kiểu thẻ "toàn nền" (như trang cá nhân Bilibili): ảnh banner phủ cả thẻ, avatar + tên nằm dưới */
 .pc.full .pc-ban{aspect-ratio:3/4}
 .pc.full .pc-av{width:104px;height:104px}
@@ -3211,7 +3235,7 @@ function applyUser(u){
   const acc=(!u.accent||u.accent.toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:u.accent; u.accent=acc; me=u;
   try{ if(!guest&&u.id) LS.set('muse_me',JSON.stringify(u)); }catch{}   /* bản lưu sẵn trong máy luôn là hồ sơ mới nhất */
   paintTheme(acc,u.bg,u.bg_url);
-  $('#meAv').innerHTML=avU(u);
+  $('#meAv').innerHTML=avU(u)+`<span class="av-pen">${ic('pen')}</span>`;
   paintLibTitle();
   warmProfile({...u,online:true},true);
 }
@@ -3303,7 +3327,7 @@ function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
   const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
   return `<div class="pc${o.full?' full':''}"><div class="pc-ban" style="background:${col}">${ban}
-    <div class="pc-hd"><div class="pc-av">${avHtml(u.avatar,'',cropOf(u),true)}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
+    <div class="pc-hd"><div class="pc-av${o.mine?' ed':(isImg(u.avatar)?' zm':'')}"${o.mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${o.mine?`<span class="av-pen">${ic('pen')}</span>`:''}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
 }
 function openImgView(src,name){
@@ -3340,7 +3364,7 @@ function warmProfile(u,mine){
     if(!u||guest&&!mine) return;
     const k=pcKey(u,mine); if(pcPool.has(k)) return;
     if(!pcHost){ pcHost=document.createElement('div'); pcHost.className='pcwarm'; pcHost.setAttribute('aria-hidden','true'); document.body.appendChild(pcHost); }
-    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull()});
+    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull(),mine});
     const pc=t.firstElementChild; if(!pc) return;
     pc.querySelectorAll('video').forEach(v=>{ v.removeAttribute('autoplay'); v.autoplay=false; });
     for(const [ok,o] of [...pcPool]){ if(pcSame(ok,u,mine)){ pcPool.delete(ok); o.remove(); } }   // bản cũ của chính người này (đổi avatar/banner...) bỏ đi
@@ -3522,11 +3546,11 @@ function showProfilePop(u,anchor,mine){
   const d=document.createElement('div'); d.className='pcpop';
   const wk=pcKey(u,mine), warm=pcPool.get(wk);
   if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
-  else d.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull()});
+  else d.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull(),mine});
   const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?620:430)))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
-      if(e.target.closest('.pc-av')){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
+      if(e.target.closest('.pc-av')){ if(mine){ d.remove(); go('profile'); return; } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
       if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
       return; }
     const act=x.dataset.x;
@@ -3544,15 +3568,73 @@ const GENDERS={male:'Nam',female:'Nữ',secret:'Bảo mật'};
 function profileRowsHtml(list,k){
   return list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('');
 }
+
+/* ===== MÀU TRANG HỒ SƠ =====
+   Lấy MÀU từ "Nền hồ sơ" (kiểu có sẵn hoặc ảnh riêng), rồi tới ảnh banner, rồi màu banner/màu chủ đạo. Tuyệt đối không dùng ảnh làm nền.
+   Màu thô từ ảnh người dùng có thể rất xấu (xám xịt, vàng rêu...) nên không dùng nguyên: chỉ giữ SẮC (hue), còn độ sáng/độ bão hòa
+   do mình dựng lại cho hợp nền tối; sắc rêu/vàng-xanh bị lệch về hổ phách hoặc xanh lá tươi; thêm vệt sáng thứ hai theo màu chủ đạo của tài khoản. */
+const PF_VARS=['--pf-top','--pf-mid','--pf-bot','--pf-glow','--pf-glow2','--pf-card','--pf-hover','--pf-line','--pf-ac','--pf-on','--pf-sub'];
+const PF_SKIN={ocean:{h:199,s:.5},sunset:{h:306,s:.42},forest:{h:122,s:.4}};
+const pfClamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const pfHex=x=>/^#[0-9a-f]{6}$/i.test(x||'');
+function pfRgb2Hsl(r,g,b){ r/=255; g/=255; b/=255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2; let h=0, s=0;
+  if(mx!==mn){ const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn); h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; } return [h,s,l]; }
+const pfHexHsl=x=>{ const n=parseInt(x.slice(1),16); return pfRgb2Hsl(n>>16&255,n>>8&255,n&255); };
+const pfImgCache=new Map();
+function pfImgColor(src){   // → {h,s} sắc chủ đạo của ảnh, hoặc null (ảnh xám/đen trắng, hoặc trình duyệt không cho đọc ảnh)
+  if(!src||!okImgUrl(src)) return Promise.resolve(null);
+  if(pfImgCache.has(src)) return pfImgCache.get(src);
+  const p=new Promise(res=>{
+    const im=new Image(); im.decoding='async'; if(/^https:/.test(src)) im.crossOrigin='anonymous';
+    im.onload=()=>{ try{
+      const W=40,H=40,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d',{willReadFrequently:true}); g.drawImage(im,0,0,W,H);
+      const d=g.getImageData(0,0,W,H).data, bins=new Array(24).fill(0), sat=new Array(24).fill(0); let tot=0;
+      for(let i=0;i<d.length;i+=4){ if(d[i+3]<128) continue; const [h,s,l]=pfRgb2Hsl(d[i],d[i+1],d[i+2]);
+        if(l<.1||l>.94||s<.14) continue;               // bỏ đen, trắng, xám
+        const w=s*(1-Math.abs(2*l-1)); const k=Math.floor(h/15)%24; bins[k]+=w; sat[k]+=s*w; tot+=w; }
+      if(tot<2.5) return res(null);                    // gần như không có màu
+      let best=0,bv=-1; for(let k=0;k<24;k++){ const v=bins[k]+.5*(bins[(k+23)%24]+bins[(k+1)%24]); if(v>bv){ bv=v; best=k; } }
+      const a=bins[(best+23)%24], b=bins[best], c2=bins[(best+1)%24], den=(a+b+c2)||1;
+      const h=((best*15+7.5+15*(c2-a)/den)%360+360)%360, s=(sat[best]+sat[(best+23)%24]+sat[(best+1)%24])/den;
+      res({h,s});
+    }catch{ res(null); } };
+    im.onerror=()=>res(null); im.src=src; });
+  pfImgCache.set(src,p); return p;
+}
+function pfPalette(c,accH){
+  let h=c.h, s=c.s;
+  if(h>=52&&h<=105) h=h<78?44:128;                       // vàng rêu → hổ phách hoặc xanh lá tươi
+  s=pfClamp(s,c.neutral?.1:.32,.78);
+  const dist=Math.min(Math.abs(accH-h),360-Math.abs(accH-h)), h2=dist>35?accH:h+34;   // vệt sáng thứ hai: màu chủ đạo của tài khoản (hoặc sắc kề bên)
+  const L=(l,sat,hh=h,a)=>`hsl(${Math.round(((hh%360)+360)%360)} ${Math.round(pfClamp(sat,0,1)*100)}% ${Math.round(l*100)}%${a==null?'':' / '+a})`;
+  return {
+    '--pf-top':L(.20,s*.62), '--pf-mid':L(.115,s*.5,h+8), '--pf-bot':L(.06,s*.4,h-8),
+    '--pf-glow':L(.46,s,h,.30), '--pf-glow2':L(.42,s*.9,h2,.20),
+    '--pf-card':L(.17,s*.4,h,.66), '--pf-hover':L(.62,s*.5,h,.14), '--pf-line':L(.6,s*.5,h,.18),
+    '--pf-ac':c.neutral?L(.72,.8,accH):L(.72,pfClamp(s+.2,.55,.92),h), '--pf-on':'#0b0a12', '--pf-sub':L(.78,s*.28,h,.78)
+  };
+}
+const pfApply=(el,pal)=>{ for(const k of PF_VARS) el.style.setProperty(k,pal[k]); };
+async function pfThemeApply(el,u,mine){
+  const A=pfHex(u.accent)?pfHexHsl(u.accent):[205,.8,.7], accH=A[0], bg=mine?(u.bg||''):'';
+  const fb=pfHex(u.banner_color)?pfHexHsl(u.banner_color):A;                  // đúng màu banner đang thấy khi chưa có ảnh
+  let fixed=null; const imgs=[];
+  if(bg==='dark') fixed={h:accH,s:.16,neutral:1};
+  else if(PF_SKIN[bg]) fixed=PF_SKIN[bg];
+  else { if(bg==='custom'&&okImgUrl(u.bg_url)) imgs.push(u.bg_url); if(okImgUrl(u.banner)) imgs.push(u.banner); }
+  pfApply(el,pfPalette(fixed||{h:fb[0],s:fb[1]},accH));                       // vẽ ngay bằng màu có sẵn, không chờ ảnh
+  if(fixed) return;
+  for(const src of imgs){ const c=await pfImgColor(src); if(!el.isConnected) return; if(c){ pfApply(el,pfPalette(c,accH)); return; } }
+}
 function openProfilePage(u,mine){
   document.querySelectorAll('.pcpop,.pop,.bp,.bp-ed').forEach(x=>x.remove());
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
   const ban=okImgUrl(u.banner)?gvHtml(u.banner,''):'';
   const tier=u.supporter>=2?'Thành viên lớn':u.supporter>=1?'Thành viên nhỏ':'';
-  const d=document.createElement('div'); d.className='bp'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
+  const d=document.createElement('div'); d.className='bp themed'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||'')); pfThemeApply(d,u,mine);
   d.innerHTML=`<div class="bp-w">
     <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
-    <div class="bp-head"><div class="bp-av" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
+    <div class="bp-head"><div class="bp-av${mine?' ed':(isImg(u.avatar)?' zm':'')}" data-x="av"${mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${mine?`<span class="av-pen">${ic('pen')}</span>`:''}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div></div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
@@ -3617,6 +3699,7 @@ function openProfilePage(u,mine){
 function openProfileEdit(parent){
   document.querySelectorAll('.bp-ed').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
+  if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed'); for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); }
   const paint=()=>{
     const px=pfxGet();
     d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
