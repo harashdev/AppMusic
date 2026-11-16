@@ -4181,7 +4181,7 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
 <meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
 <meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
-<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="900">
+<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="520">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
 <meta name="theme-color" content="#07070b">
 <style>html,body{margin:0;background:#07070b}</style>
