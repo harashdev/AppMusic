@@ -474,6 +474,9 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-info{grid-area:info;min-width:0;padding:14px 0 4px}
 .bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
 .bp-nm b{min-width:0;overflow-wrap:anywhere}
+.bp-pen{width:28px;height:28px;flex:none;border:0;border-radius:50%;background:var(--hover2);color:var(--sub);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:color .15s,background .15s}
+.bp-pen .i{width:15px;height:15px}
+.bp-pen:hover,.bp-pen:focus-visible{color:var(--pf-ac,var(--accent))}
 .bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
 .bp-lv{display:inline-flex;vertical-align:middle}
 .bp-lvc{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;border:0;border-radius:999px;background:var(--hover2);color:var(--text);font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}
@@ -3688,9 +3691,9 @@ function openProfilePage(u,mine){
     <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         ${mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}</div>
-    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
+    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
       <div class="bp-lvd" id="bpLvD" hidden></div>
-      <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
+      <div class="bp-bio"><span>${esc(u.status||'Không có mô tả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
@@ -3733,6 +3736,12 @@ function openProfilePage(u,mine){
     if(a==='av'){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
     if(a==='scan') return qrScanDialog();
     if(a==='edit') return openProfileEdit(d);
+    if(a==='rename'){ try{
+      const v=await askText('Tên hiển thị',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
+      const nu=await api('/api/account/name',{json:{display_name:v}}); applyUser(nu); u.display_name=me.display_name;
+      const nb=d.querySelector('.bp-nm b'); if(nb) nb.textContent=me.display_name; d.setAttribute('aria-label','Hồ sơ '+me.display_name);
+      notify('Đã lưu tên hiển thị');
+    }catch(er){ notify((er&&er.message)||'Không lưu được'); } return; }
     if(a==='edprof') return openProfileDesign(d);
     if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
   };
@@ -3781,7 +3790,7 @@ function openProfileEdit(parent){
         <div class="bp-rw" data-x="name"><span>Biệt danh</span><em>${esc(me.display_name)}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="gender"><span>Giới tính</span><em>${esc(GENDERS[px.gender]||'Bảo mật')}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="birth"><span>Ngày sinh</span><em>${esc(px.birth?px.birth.split('-').reverse().join('/'):'Sẽ nhận được lời chúc vào ngày sinh nhật')}</em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Người này rất bí ẩn, không viết gì cả')}</em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Không có mô tả')}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="theme"><span>Banner &amp; nền hồ sơ</span><em></em>${ic('chev')}</div>
       </div>
       <div class="bp-grp">
