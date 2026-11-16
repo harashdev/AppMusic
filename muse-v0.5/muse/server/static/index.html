@@ -3384,7 +3384,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button><button class="out sm" data-a="cp">Chép ảnh</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
   const mine=!!(me&&me.id&&u.id===me.id);
@@ -3482,11 +3482,15 @@ function shareCard(u){
       catch{ notify('Không tạo được link, thử lại nhé'); }
     } else notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh');
   };
+  const copyLink=async()=>{ if(!upP) notify('Đang tạo link…');
+    try{ const r=await upload(); if(!r) throw new Error('nolink'); const l=cardLinkFrom(r);
+      try{ await navigator.clipboard.writeText(l); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',l); } }
+    catch{ notify('Không tạo được link, thử lại nhé'); } };
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
     if(a==='bg'){ if(bgf) bgf.click(); return; }
     if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
-    if(a==='sh'){ if(!mine) return; return doCopy(true); }
+    if(a==='sh'){ if(!mine) return; return copyLink(); }   // chỉ chép LINK: dán vào Discord ra khối xem trước (ảnh thẻ + tiêu đề bấm được), không bị tải ảnh lên như file đính kèm
     if(a==='cp') return doCopy(false);
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
       const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); },'image/png'); };
