@@ -450,17 +450,17 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 /* TRANG HỒ SƠ kiểu Bilibili: banner trên cùng, avatar + số liệu, tên + cấp độ, hai tab Trang chủ / Yêu thích */
 .bp{position:fixed;inset:0;z-index:56;background:var(--bg);color:var(--text);overflow-y:auto;overscroll-behavior:contain;animation:bpin .2s ease-out}
 @keyframes bpin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.bp-w{max-width:640px;margin:0 auto;min-height:100%;background:var(--bg)}
+.bp-w{width:100%;max-width:640px;margin:0 auto;min-height:100%;background:var(--bg)}
 .bp-ban{position:relative;height:210px;overflow:hidden;background:var(--surf2)}
 .bp-ban>img,.bp-ban>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
 .bp-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,0) 40%);pointer-events:none}
 .bp-top{position:absolute;z-index:2;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 10px 0}
 .bp-ib{width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .bp-ib .i{width:22px;height:22px}
-.bp-head{display:flex;gap:16px;padding:0 16px;margin-top:-46px;position:relative;z-index:3}
-.bp-av{position:relative;flex:none;width:92px;height:92px;border-radius:50%;border:3px solid #fff;background:var(--surf2);overflow:hidden}
-.bp-av .av{width:100%;height:100%;font-size:44px}
-.bp-hr{flex:1;min-width:0;padding-top:48px}
+.bp-head{--avs:92px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"av hr" "info info";column-gap:16px;padding:0 16px;margin-top:calc(var(--avs) / -2);position:relative;z-index:3}
+.bp-av{grid-area:av;position:relative;flex:none;width:var(--avs);height:var(--avs);border-radius:50%;border:3px solid #fff;background:var(--surf2);overflow:hidden}
+.bp-av .av{width:100%;height:100%;font-size:calc(var(--avs) * .48)}
+.bp-hr{grid-area:hr;min-width:0;padding-top:calc(var(--avs) / 2 + 2px)}
 .bp-stats{display:flex;text-align:center}
 .bp-st{flex:1;min-width:0;padding:0 4px;border-left:1px solid var(--line)}
 .bp-st:first-child{border-left:0}
@@ -468,7 +468,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-st span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
 .bp-eb{display:block;width:100%;margin-top:12px;padding:8px;border-radius:8px;border:1px solid var(--pf-ac,#fb7299);background:none;color:var(--pf-ac,#fb7299);font-weight:600;cursor:pointer}
 .bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
-.bp-info{padding:14px 16px 4px}
+.bp-info{grid-area:info;min-width:0;padding:14px 0 4px}
 .bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
 .bp-nm b{min-width:0;overflow-wrap:anywhere}
 .bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
@@ -487,6 +487,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-sh b{font-size:17px}.bp-sh small{color:var(--sub);margin-left:6px}
 .bp-sh a{color:var(--sub);font-size:14px;cursor:pointer}
 .bp-pls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.bp-trs{display:grid;grid-template-columns:minmax(0,1fr)}
 .bp-pl{background:var(--card);border-radius:10px;overflow:hidden;cursor:pointer}
 .bp-pl .tile{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;background:var(--surf2);overflow:hidden}
 .bp-pl .tile .collage{width:100%;height:100%}
@@ -541,6 +542,38 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp.themed .bp-w{background:transparent}
 .bp.themed .bp-ban{-webkit-mask-image:linear-gradient(to bottom,#000 58%,transparent);mask-image:linear-gradient(to bottom,#000 58%,transparent)}
 .bp.themed .bp-tabs{background:color-mix(in srgb,var(--pf-mid) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+/* ===== TRANG HỒ SƠ CO GIÃN THEO MÀN HÌNH: điện thoại xếp dọc; màn rộng đặt avatar | tên + cấp độ + tiểu sử | số liệu + nút trên một hàng, tab canh trái, nội dung thành các khối kính + lưới nhiều cột ===== */
+@media(min-width:720px){
+  .bp-w{max-width:900px}
+  .bp-ban{height:clamp(210px,20vw,320px)}
+  .bp-head{--avs:128px;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av info hr";column-gap:26px;padding:0 28px;align-items:start}
+  .bp-info{padding:calc(var(--avs) / 2 + 10px) 0 0}
+  .bp-hr{padding-top:calc(var(--avs) / 2 + 10px);min-width:300px}
+  .bp-stats{justify-content:flex-end}
+  .bp-st{flex:none;padding:0 20px}
+  .bp-st b{font-size:20px}
+  .bp-eb{width:auto;margin:14px 0 0 auto;padding:9px 26px}
+  .bp-nm{font-size:28px}
+  .bp-lv .bar{width:170px}
+  .bp-bio{justify-content:flex-start;gap:16px}
+  .bp-tabs{justify-content:flex-start;padding:0 20px;margin-top:22px}
+  .bp-tab{flex:none;padding:14px 28px}
+  .bp-sec{margin:18px 20px 0;padding:18px 20px 12px;border-radius:18px;background:color-mix(in srgb,var(--card) 70%,transparent);border:1px solid var(--line)}
+  .bp-pls{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+  .bp-pl{background:var(--hover2)}
+}
+@media(min-width:1100px){
+  .bp-w{max-width:1100px}
+  .bp-trs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}
+  .bp-edw{max-width:760px}
+}
+@media(min-width:1700px){
+  .bp-w{max-width:1320px}
+  .bp-head{--avs:148px}
+  .bp-nm{font-size:32px}
+  .bp-trs{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:380px){ .bp-st span{font-size:11px} .bp-st b{font-size:16px} }
 /* Kiểu thẻ "toàn nền" (như trang cá nhân Bilibili): ảnh banner phủ cả thẻ, avatar + tên nằm dưới */
 .pc.full .pc-ban{aspect-ratio:3/4}
 .pc.full .pc-av{width:104px;height:104px}
@@ -3572,7 +3605,7 @@ const pfxGet=()=>{ try{ return JSON.parse(LS.get(uKey('muse_pfx'),'{}'))||{}; }c
 const pfxSet=o=>LS.set(uKey('muse_pfx'),JSON.stringify({...pfxGet(),...o}));
 const GENDERS={male:'Nam',female:'Nữ',secret:'Bảo mật'};
 function profileRowsHtml(list,k){
-  return list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('');
+  return '<div class="bp-trs">'+list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('')+'</div>';
 }
 
 /* ===== MÀU TRANG HỒ SƠ =====
@@ -3642,10 +3675,10 @@ function openProfilePage(u,mine){
     <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
     <div class="bp-head"><div class="bp-av${mine?' ed':(isImg(u.avatar)?' zm':'')}" data-x="av"${mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${mine?`<span class="av-pen">${ic('pen')}</span>`:''}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
-        ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div></div>
+        ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
       <div class="bp-lv" id="bpLv"></div>
-      <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div>
+      <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
