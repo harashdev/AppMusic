@@ -978,7 +978,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
   <div class="row"><input id="aPass" type="password" placeholder="Mật khẩu (≥ 8 ký tự)" autocomplete="current-password"></div>
   <div id="authErr"></div>
   <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
-  <button id="aPairBtn" style="width:100%;padding:12px;margin-top:8px">Đăng nhập bằng QR</button>
+  <button id="aPairBtn" style="width:100%;padding:12px;margin-top:8px">Đăng nhập nhanh (QR / mã ghép)</button>
   <button id="aGuest" style="width:100%;padding:12px;margin-top:8px">Dùng không cần đăng nhập</button>
   <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
 </div></div>
@@ -1143,7 +1143,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Giao diện':'Appearance','Ánh sáng nền lan tỏa theo màu ảnh bìa của bài đang phát trong khung Đang phát. Tắt nếu máy yếu bị giật.':'Soft background glow that follows the cover art of the current song in the Now playing panel. Turn off if your device lags.','Đang phát':'Now playing',
     'Dùng không cần đăng nhập':'Continue without signing in','Hiện mật khẩu':'Show password','Ẩn mật khẩu':'Hide password','Toàn màn hình':'Fullscreen','Thoát toàn màn hình':'Exit fullscreen','Lùi 5 giây':'Back 5 seconds','Tới 5 giây':'Forward 5 seconds','Tua':'Seek',
     'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
-    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest','Đăng nhập bằng QR':'Log in with QR','Quét QR đăng nhập':'Scan login QR','Tạo mã mới':'New code','Cho phép':'Allow','Từ chối':'Deny',
+    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập nhanh (QR / mã ghép)':'Quick sign-in (QR / pair code)','Đăng nhập nhanh':'Quick sign-in','Hoặc nhập mã ghép (6 số)':'Or enter a pair code (6 digits)','Vào':'Go','Mã ghép admin':'Admin pair code','Chỉ máy chạy server thấy được mã này':'Only the machine running the server can see this code','Chép mã':'Copy code','Mã mới':'New code','Đã chép mã ghép':'Pair code copied','Mã gồm 6 chữ số':'The code has 6 digits','Mã sai hoặc đã hết hạn':'Wrong or expired code','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest','Đăng nhập bằng QR':'Log in with QR','Quét QR đăng nhập':'Scan login QR','Tạo mã mới':'New code','Cho phép':'Allow','Từ chối':'Deny',
     'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
     'Lời':'Lyrics','Bình luận':'Comments','Viết bình luận…':'Write a comment…','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
     'Không có file âm thanh nào được chọn':'No audio files selected','Đang thêm nhạc, vui lòng chờ…':'Adding music, please wait…','File nhạc này không còn trong bộ nhớ của app – hãy thêm lại':'This music file is no longer in the app’s storage – please add it again','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
@@ -3003,7 +3003,7 @@ function qrDraw(cv,text){
 }
 function qrLoginDialog(){
   const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Đăng nhập bằng QR</h3><p>Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.</p><canvas style="width:240px;height:240px;margin:16px auto 0;display:block;border-radius:14px;image-rendering:pixelated;background:#fff"></canvas><p class="qrmsg" style="margin-top:12px">Đang tạo mã…</p><div class="dlgb"><button class="qrnew" style="display:none">Tạo mã mới</button><button class="dlgo">Đóng</button></div></div>';
+  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Đăng nhập nhanh</h3><p>Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.</p><canvas style="width:240px;height:240px;margin:16px auto 0;display:block;border-radius:14px;image-rendering:pixelated;background:#fff"></canvas><p class="qrmsg" style="margin-top:12px">Đang tạo mã…</p><div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><p style="margin:0">Hoặc nhập mã ghép (6 số)</p><div style="display:flex;gap:8px;margin-top:8px"><input class="pcIn" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code" style="margin-top:0;text-align:center;letter-spacing:.2em;font-size:18px"><button class="pri pcGo" style="padding:0 18px">Vào</button></div><p class="pcErr" style="color:#ff6b6b;margin:6px 0 0;min-height:1em"></p></div><div class="dlgb"><button class="qrnew" style="display:none">Tạo mã mới</button><button class="dlgo">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), msg=ov.querySelector('.qrmsg'), nb=ov.querySelector('.qrnew');
   let closed=false, tm=0;
@@ -3030,8 +3030,49 @@ function qrLoginDialog(){
     tm=setTimeout(poll,2000);
   }
   nb.onclick=make; make();
+  const pi=ov.querySelector('.pcIn'), pg=ov.querySelector('.pcGo'), pe=ov.querySelector('.pcErr');
+  pi.oninput=()=>{ const d=pi.value.replace(/\D/g,'').slice(0,6); pi.value=d.length>3?d.slice(0,3)+' '+d.slice(3):d; pe.textContent=''; };
+  const go=async()=>{ pe.textContent=''; pg.disabled=true; try{ await pairRedeem(pi.value); close(); }catch(e){ pe.textContent=(e&&e.message)||'Không đăng nhập được'; } pg.disabled=false; };
+  pg.onclick=go; pi.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
 }
 $('#aPairBtn').onclick=qrLoginDialog;
+/* MÃ GHÉP (pair code): mã 6 số dùng một lần do server cấp (hiện ở trang localhost của máy chạy server) → đăng nhập không cần mật khẩu.
+   Dùng fetch trực tiếp vì api() coi mọi 401 là "hết phiên" và bật lại màn hình đăng nhập. */
+async function pairFetch(path,opt){
+  const r=await fetch(path,opt); const t=await r.text();
+  if(!r.ok){ const e=new Error((t||'').trim()||('HTTP '+r.status)); e.status=r.status; throw e; }
+  try{ return JSON.parse(t); }catch{ return {}; }
+}
+async function pairRedeem(code){
+  const c=String(code||'').replace(/\D/g,''); if(c.length!==6) throw new Error('Mã gồm 6 chữ số');
+  const p=await pairFetch('/api/pair/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})});
+  token=p.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; start(p.user);
+}
+/* THÔNG BÁO MÃ GHÉP ADMIN: chỉ hiện khi mở giao diện bằng localhost/127.0.0.1 trên CHÍNH máy chạy server (server tự từ chối nếu không phải máy đó). */
+(function(){
+  if(!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+  const el=document.createElement('div'); el.id='pairLocal';
+  el.style.cssText='position:fixed;right:16px;bottom:16px;z-index:100001;width:min(300px,calc(100vw - 32px));background:#17141f;color:#f3f0fa;border:1px solid #ffffff22;border-radius:18px;padding:16px;box-shadow:0 12px 40px #000a;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center;display:none';
+  el.innerHTML='<div style="font-weight:700">Mã ghép admin</div><div style="font-size:12px;color:#a8a3b6">Chỉ máy chạy server thấy được mã này</div><div class="plCode" style="font:700 34px/1.3 Consolas,monospace;letter-spacing:.12em;margin:10px 0 2px"></div><canvas class="plQr" style="width:150px;height:150px;border-radius:10px;image-rendering:pixelated;background:#fff;margin:6px auto 0;display:none"></canvas><div class="plMsg" style="font-size:12px;color:#a8a3b6;margin-top:8px"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="plCp" style="flex:1;padding:9px">Chép mã</button><button class="plNew" style="flex:1;padding:9px">Mã mới</button><button class="plX" style="padding:9px 12px" aria-label="Đóng">✕</button></div>';
+  document.body.appendChild(el);
+  const $$=s=>el.querySelector(s); let tm=0, code='', end=0;
+  const tick=()=>{ const left=Math.max(0,Math.round((end-Date.now())/1000)); if(left<=0){ clearInterval(tm); $$('.plMsg').textContent='Mã đã hết hạn — bấm "Mã mới".'; $$('.plQr').style.opacity='.25'; return; } $$('.plMsg').textContent='Dùng một lần · còn '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0'); };
+  async function make(){
+    clearInterval(tm); $$('.plMsg').textContent='Đang tạo mã…';
+    let r; try{ r=await pairFetch('/api/admin/pair-code',{method:'POST'}); }catch(e){
+      if(e.status===403){ el.remove(); return; }             // không phải máy chạy server (qua proxy/tunnel…) → không hiện gì
+      el.style.display='block'; $$('.plCode').textContent='—'; $$('.plQr').style.display='none'; $$('.plMsg').textContent=(e&&e.message)||'Không tạo được mã'; return; }
+    code=r.code; end=Date.now()+(r.expires_in||300)*1000; el.style.display='block';
+    $$('.plCode').textContent=code.slice(0,3)+' '+code.slice(3);
+    const base=(r.base||'').trim(); const cv=$$('.plQr'); cv.style.display='block'; cv.style.opacity='1';
+    qrDraw(cv,(base||location.origin)+'/?pair='+code);
+    tick(); tm=setInterval(tick,1000);
+    if(!base) $$('.plMsg').title='Đặt biến môi trường PUBLIC_URL để mã QR mở được từ máy khác';
+  }
+  $$('.plNew').onclick=make; $$('.plX').onclick=()=>{ clearInterval(tm); el.remove(); };
+  $$('.plCp').onclick=async()=>{ if(!code) return; try{ await navigator.clipboard.writeText(code); notify('Đã chép mã ghép'); }catch{ notify('Mã ghép: '+code); } };
+  make();
+})();
 // Thiết bị đã đăng nhập: xác nhận cho thiết bị khác vào tài khoản này.
 function qrApprove(id){
   const ov=document.createElement('div'); ov.className='dlgov';
@@ -6397,6 +6438,10 @@ async function start(u,offlineBoot,resume){
   try{ qrHandleUrl(); }catch{}
 }
 (async()=>{
+  { // Mở link/QR có ?pair=<6 số> → đăng nhập luôn (chỉ khi máy này chưa đăng nhập, để không tiêu mã vô ích)
+    let pq=''; try{ const v=new URLSearchParams(location.search).get('pair')||''; if(v){ const u=new URL(location.href); u.searchParams.delete('pair'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); } pq=/^\d{6}$/.test(v)?v:''; }catch{}
+    if(pq&&(!token||guest)){ try{ await pairRedeem(pq); return; }catch(e){ setTimeout(()=>notify((e&&e.message)||'Mã ghép sai hoặc đã hết hạn'),500); } }
+  }
   if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
   let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
   if(c) warmBanners([c]); // hồ sơ đã lưu: bắt đầu tải banner/avatar NGAY, không chờ /api/me
