@@ -1172,6 +1172,17 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .bp .bp-eb{border:0;background:var(--hover2);color:var(--text);text-shadow:none}
 .bp .bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
 @media(min-width:720px){ .bp .bp-ebs{padding:16px 28px 0;margin-left:0}.bp .bp-eb{flex:none;padding:9px 22px} }
+/* ----- đẩy avatar + thông tin lên cao hơn, canh giữa và cân đối trên desktop ----- */
+.bp .bp-head{padding-top:calc(clamp(58px,13vw,104px) + env(safe-area-inset-top));padding-bottom:12px}
+@media(min-width:720px){
+  .bp .bp-head{width:100%;max-width:1040px;margin:0 auto;box-sizing:border-box;padding-bottom:14px}
+  .bp .bp-stats{flex:1 1 100%;justify-content:space-between}
+  .bp .bp-st,.bp .bp-st:first-child{flex:1;padding:0 12px}
+  .bp .bp-hr{gap:0}
+  .bp .bp-ebs{max-width:1040px;margin:0 auto;box-sizing:border-box;justify-content:center;padding:18px 28px 0}
+  .bp .bp-tabs{justify-content:center;padding:0}
+  #bpBody{max-width:1040px;margin:0 auto}
+}
 </style>
 </head>
 <body class="skin-default">
