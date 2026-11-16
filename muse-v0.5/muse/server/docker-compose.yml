@@ -31,6 +31,7 @@ services:
       - ADMIN_USER=${ADMIN_USER:-}
       - ADMIN_PASS=${ADMIN_PASS:-}
       - ADMIN_NAME=${ADMIN_NAME:-}
+      - ADMIN_PAIR_KEY=${ADMIN_PAIR_KEY:-}
     volumes:
       - ./data:/app/data
     expose:
