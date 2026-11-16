@@ -493,7 +493,8 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .shc-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
 .shc-box{background:#17141f;border-radius:16px;padding:14px;max-width:min(620px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
 .shc-box canvas{width:100%;height:auto;border-radius:12px;display:block}
-.shc-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.shc-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.shc-opt{font-size:13px;color:#e8e6f0}.shc-opt label{display:flex;align-items:center;gap:6px}.shc-opt input[type=range]{width:110px}
 /* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
    Ảnh vẫn được tải sẵn và giải mã bằng img.decode() trong warmProfile(), nên không cần cho nó nằm trong màn hình nữa. */
 .pcwarm{position:fixed;left:-9999px;top:0;width:340px;opacity:0;visibility:hidden;pointer-events:none;z-index:-1;contain:layout}
@@ -3330,9 +3331,12 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
   const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
+  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div>'+((me&&me.id&&u.id===me.id)?'<div class="shc-row shc-opt"><label>Độ tối <input type="range" min="0" max="80" step="5" data-o="dim"></label><button class="out sm" data-o="tc" data-v="#ffffff">Chữ trắng</button><button class="out sm" data-o="tc" data-v="#111111">Chữ đen</button><label><input type="checkbox" data-o="date"> Hiện ngày</label></div>':'')+'</div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
+  // Tùy chỉnh thẻ (lưu trên máy): độ tối lớp phủ, màu chữ, hiện/ẩn ngày
+  const opts={dim:50,tc:'#ffffff',date:true}; try{ Object.assign(opts,JSON.parse(LS.get('card_opts','{}'))||{}); }catch{}
+  if(!/^#[0-9a-f]{6}$/i.test(opts.tc)) opts.tc='#ffffff'; opts.dim=Math.min(80,Math.max(0,+opts.dim||0)); opts.date=opts.date!==false;
   const mine=!!(me&&me.id&&u.id===me.id);
   // Tải ảnh thẻ (JPEG, nhẹ) lên ngay khi thẻ vẽ xong → lúc bấm Chia sẻ link thường đã xong, mở bảng chia sẻ ngay.
   let upP=null;
@@ -3356,25 +3360,26 @@ function shareCard(u){
     const bg=custom||ban;
     if(bg) cover(bg,0,0,W,H,custom?{bx:50,by:50,bz:1}:(cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1}));
     // lớp tối nhẹ phía trên + bên trái để chữ trắng đọc được, ảnh lộ dần
-    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.5)'); lg.addColorStop(.6,'rgba(0,0,0,.16)'); lg.addColorStop(1,'rgba(0,0,0,0)');
+    const tc=opts.tc, tca=tc+'cc', dk=tc.toLowerCase()==='#ffffff', k=opts.dim/50, ov0=dk?'0,0,0':'255,255,255';
+    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba('+ov0+','+Math.min(1,.5*k)+')'); lg.addColorStop(.6,'rgba('+ov0+','+Math.min(1,.16*k)+')'); lg.addColorStop(1,'rgba('+ov0+',0)');
     g.fillStyle=lg; g.fillRect(0,0,W,H);
     g.restore();
     // avatar + tên
     const ax=80,ay=80,ar=75; g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
     if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='110px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+6); }
     g.restore(); g.lineWidth=6; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
-    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
+    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor=dk?'rgba(0,0,0,.45)':'rgba(255,255,255,.5)'; g.shadowBlur=12;
     // chữ cao hơn: kéo giãn theo chiều dọc
     const SY=1.22;
-    g.fillStyle='#fff'; g.font='700 66px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
+    g.fillStyle=tc; g.font='700 66px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
     g.save(); g.translate(0,ay+ar+24); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+40,0); g.restore();
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
     const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
-    g.fillStyle='#ffffffcc'; g.font='600 36px '+ft; sp('FANS NO.',84,500,9);
-    g.fillStyle='#fff'; g.font='700 176px "SF Mono",Consolas,"Courier New",monospace'; sp(no,74,690,30);
-    g.fillStyle='#ffffffcc'; g.font='600 34px '+ft; sp('DATE',84,772,9);
-    g.fillStyle='#fff'; g.font='600 46px '+ft; sp(date,84,838,6);
+    g.fillStyle=tca; g.font='600 36px '+ft; sp('FANS NO.',84,500,9);
+    g.fillStyle=tc; g.font='700 176px "SF Mono",Consolas,"Courier New",monospace'; sp(no,74,690,30);
+    if(opts.date){ g.fillStyle=tca; g.font='600 34px '+ft; sp('DATE',84,772,9);
+      g.fillStyle=tc; g.font='600 46px '+ft; sp(date,84,838,6); }
     // hạng thành viên (donate Ko-fi)
     if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
       const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
@@ -3408,6 +3413,12 @@ function shareCard(u){
     }catch{ notify('Không đọc được ảnh này'); }
     finally{ URL.revokeObjectURL(url); }
   };
+  const syncOpt=()=>{ const r=ov.querySelector('[data-o="dim"]'), c=ov.querySelector('[data-o="date"]'); if(r) r.value=opts.dim; if(c) c.checked=opts.date;
+    ov.querySelectorAll('[data-o="tc"]').forEach(b=>{ b.classList.toggle('pri',b.dataset.v===opts.tc); b.classList.toggle('out',b.dataset.v!==opts.tc); }); };
+  syncOpt();
+  let optTm=0;
+  const optChanged=()=>{ LS.set('card_opts',JSON.stringify(opts)); syncOpt(); paint(); upP=null; clearTimeout(optTm); if(mine) optTm=setTimeout(()=>{ if(ov.isConnected) upload(); },700); };
+  ov.addEventListener('input',e=>{ const o=e.target.dataset&&e.target.dataset.o; if(o==='dim'){ opts.dim=+e.target.value; optChanged(); } else if(o==='date'){ opts.date=e.target.checked; optChanged(); } });
   if(bgf) bgf.onchange=e=>{ const f=e.target.files[0]; e.target.value=''; setBg(f); };
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
@@ -3429,6 +3440,7 @@ function shareCard(u){
     } else notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh');
   };
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
+    const oo=e.target.dataset&&e.target.dataset.o; if(oo==='tc'){ opts.tc=e.target.dataset.v; optChanged(); return; }
     if(!a) return;
     if(a==='bg'){ if(bgf) bgf.click(); return; }
     if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
