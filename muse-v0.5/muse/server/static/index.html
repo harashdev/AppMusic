@@ -499,7 +499,6 @@ button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--a
 .bp-chip.m i{background:#4aa3ff33;color:#6cb6ff}
 .bp-chip.f i{background:#ff6fae33;color:#ff8fc0}
 .bp-chip.sec i{background:#b69cff33;color:#c9b6ff}
-.bp-chip.zod i{background:#ffd16633;color:#ffd166;font-size:15px}
 .bp-chip.bd i{background:#ff7a7a2e;font-size:12px}
 .bp-chip.bd.now{border-color:#ffd166;box-shadow:0 0 14px #ffd16655;animation:bpBd 1.6s ease-in-out infinite}
 @keyframes bpBd{50%{box-shadow:0 0 22px #ffd166aa}}
@@ -3699,8 +3698,6 @@ async function pfThemeApply(el,u,mine){
   if(fixed) return;
   for(const src of imgs){ const c=await pfImgColor(src); if(!el.isConnected) return; if(c){ pfApply(el,pfPalette(c,accH)); return; } }
 }
-const PF_ZOD=[[1,20,'♒','Bảo Bình'],[2,19,'♓','Song Ngư'],[3,21,'♈','Bạch Dương'],[4,20,'♉','Kim Ngưu'],[5,21,'♊','Song Tử'],[6,21,'♋','Cự Giải'],[7,23,'♌','Sư Tử'],[8,23,'♍','Xử Nữ'],[9,23,'♎','Thiên Bình'],[10,23,'♏','Bọ Cạp'],[11,22,'♐','Nhân Mã'],[12,22,'♑','Ma Kết']];
-const PF_ZHI=['Thân','Dậu','Tuất','Hợi','Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi'];
 // "Thẻ danh tính": giới tính, ngày sinh (cung hoàng đạo + đếm ngược sinh nhật), UID — dạng chip dưới tên
 function pfIdChips(u,mine){
   const px=mine?pfxGet():{}, ch=[];
@@ -3714,10 +3711,8 @@ function pfIdChips(u,mine){
     const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(px.birth||'');
     if(m){
       const Y=+m[1],M=+m[2],D=+m[3], now=new Date(), t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-      let z=PF_ZOD[11]; for(const q of PF_ZOD) if(M>q[0]||(M===q[0]&&D>=q[1])) z=q; if(M===1&&D<20) z=PF_ZOD[11];
       let nx=new Date(t0.getFullYear(),M-1,D); if(nx<t0) nx=new Date(t0.getFullYear()+1,M-1,D);
       const left=Math.round((nx-t0)/864e5), age=nx.getFullYear()-Y-(left===0?0:1);
-      add('zod',z[2]+'\uFE0E',z[3]+' · tuổi '+PF_ZHI[Y%12],'edit','Cung hoàng đạo & con giáp');
       add('bd'+(left===0?' now':''),'🎂',left===0?'Hôm nay sinh nhật!':`${String(D).padStart(2,'0')}/${String(M).padStart(2,'0')}`+(left<=60?` · còn ${left} ngày`:'')+(age>0&&left!==0?` · ${age} tuổi`:''),'edit','Ngày sinh '+m[3]+'/'+m[2]+'/'+m[1]);
     } else add('add','🎂','Thêm ngày sinh');
   }
