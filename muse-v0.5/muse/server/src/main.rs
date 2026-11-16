@@ -4196,7 +4196,7 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
     let uname = u.username.clone(); // dạng chữ hoa/thường chuẩn trong DB; chỉ gồm [A-Za-z0-9_.-]
     let page_url = format!("{base}/u/{uname}");
     let img = format!("{base}/cards/{}.jpg?v={v}", u.id);
-    let title = format!("{} trên BBeat", u.display_name);
+    let title = format!("{} · Bấm để xem hồ sơ trên BBeat", u.display_name);
     let fans = { let db = st.db.lock().unwrap(); follow_count(&db, u.id) };
     let desc = format!("FANS NO. {} · Thẻ hồ sơ BBeat của {}", fans, u.display_name);
     let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
