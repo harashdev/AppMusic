@@ -54,6 +54,12 @@ body.skin-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a) fixed}
 body.skin-custom{background:#000 center/cover fixed}
 body.night{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618;background:#000!important;background-image:none!important}
 #nightBtn.on{color:var(--accent)}
+.pc-lv{padding:2px 2px 10px}.pc-lv:empty{display:none}
+.lvrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lvrow small{margin-left:auto;color:var(--sub)}
+.lvpill{color:#fff;font-weight:800;font-size:12px;padding:2px 9px;border-radius:999px}
+.lvbar{height:6px;border-radius:99px;background:#ffffff1f;margin:8px 0 4px;overflow:hidden}.lvbar i{display:block;height:100%;border-radius:99px}
+.lvnx{color:var(--sub);font-size:12px}
+.lvbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.lvb{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:inset 0 0 0 2px #ffffff40}
 body.side-min{--sw:76px}
 @media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
 *{box-sizing:border-box}
@@ -3204,7 +3210,7 @@ function openImgView(src,name){
 const pcPool=new Map(); let pcHost=null;
 const pcFull=()=>LS.get('pc_full','1')==='1';
 const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
-const pcExtra=(mine,u)=>`<div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>'}<button class="out sm" data-x="style">Đổi kiểu thẻ</button>${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
+const pcExtra=(mine,u)=>`<div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button>'}${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
   try{
     if(!u||guest&&!mine) return;
@@ -3231,6 +3237,11 @@ function shareCard(u){
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chia sẻ link</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="cp">Chép ảnh</button><button class="out sm" data-a="x">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), g=cv.getContext('2d');
+  const mine=!!(me&&me.id&&u.id===me.id);
+  // Tải ảnh thẻ (JPEG, nhẹ) lên ngay khi thẻ vẽ xong → lúc bấm Chia sẻ link thường đã xong, mở bảng chia sẻ ngay.
+  let upP=null;
+  const upload=()=>{ if(upP) return upP; upP=new Promise(res=>{ const o=document.createElement('canvas'); o.width=W; o.height=H; const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,W,H); x.drawImage(cv,0,0);
+    o.toBlob(b=>{ if(!b){ upP=null; return res(null); } api('/api/card',{method:'POST',headers:{'Content-Type':'image/jpeg'},body:b}).then(res,()=>{ upP=null; res(null); }); },'image/jpeg',.86); }); return upP; };
   const load=src=>new Promise(res=>{ if(!src||!okImgUrl(src)) return res(null); const im=new Image(); if(/^https:/.test(src)) im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
   const rr=(x,y,w,h,r)=>{ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); };
   const cover=(im,x,y,w,h,cr)=>{ const ar=im.width/im.height, br=w/h; let sw=im.width,sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
@@ -3239,7 +3250,7 @@ function shareCard(u){
   const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
   const no=String(u.id||0).padStart(6,'0'), d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:'')]).then(([ban,av])=>{
+  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),lvGet(u.id)]).then(([ban,av,lvS])=>{
     g.save(); rr(0,0,W,H,36); g.clip();
     g.fillStyle=col; g.fillRect(0,0,W,H);
     if(ban) cover(ban,0,0,W,H,cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1});
@@ -3252,7 +3263,11 @@ function shareCard(u){
     if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='64px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
     g.restore(); g.lineWidth=4; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
     g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=10;
-    g.fillStyle='#fff'; g.font='600 38px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>520&&nm.length>1) nm=nm.slice(0,-1); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+26,ay+ar+13);
+    g.fillStyle='#fff'; g.font='600 38px '+ft; let nm=u.display_name||''; while(g.measureText(nm).width>520&&nm.length>1) nm=nm.slice(0,-1); const nmT=nm+(nm!==u.display_name?'…':''), nmX=ax+ar*2+26; g.fillText(nmT,nmX,ay+ar+13);
+    if(lvS!=null){ const L=lvOf(lvS), I=LV_INFO[L.l], nw=g.measureText(nmT).width; g.shadowColor='transparent';
+      g.font='800 24px '+ft; const pw=g.measureText('LV'+L.l).width+26, px=nmX+nw+16, py=ay+ar-18;
+      g.fillStyle=I[1]; rr(px,py,pw,36,18); g.fill(); g.fillStyle='#fff'; g.fillText('LV'+L.l,px+13,py+27);
+      g.font='600 24px '+ft; g.fillStyle='#ffffffe6'; g.fillText(I[2]+' '+I[0],nmX,ay+ar+50); g.shadowColor='rgba(0,0,0,.45)'; }
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
     const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; for(const c of t){ g.fillText(c,cx,y); cx+=g.measureText(c).width+gap; } };
@@ -3268,22 +3283,49 @@ function shareCard(u){
       g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.24)'; rr(bx,112,tw+36,46,23); g.fill();
       g.fillStyle='#fff'; sp(tier,bx+18,144,4);
     }
+    if(mine) upload();
   });
   const done=()=>{ document.removeEventListener('keydown',esc_,true); ov.remove(); };
   const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
   document.addEventListener('keydown',esc_,true);
   ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
     if(!a) return;
+    if(a==='sh'){ if(!mine) return; if(!upP) notify('Đang tạo link…'); const r=await upload(); if(!r) return notify('Không tạo được link, thử lại nhé'); shareCardLink(u,r,no); return; }
     cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
-      if(a==='sh'){ if(me&&u.id===me.id) shareCardLink(u,b,no); return; }
       if(a==='dl'){ const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); }
       else { try{ await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); notify('Đã chép ảnh thẻ'); }catch{ notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh'); } } },'image/png'); };
 }
+/* CẤP ĐỘ NGHE NHẠC: tổng thời gian nghe thật (server cộng dồn) → LV0..LV6, mỗi cấp mở một huy hiệu. */
+const LV_H=[0,2,10,40,120,300,800];   // số giờ cần để đạt LV0..LV6
+const LV_INFO=[['Mới nghe','#8b8f98','🎧'],['Tập sự','#43b581','🎵'],['Mê nhạc','#3ba5ff','🎶'],['Sành nghe','#9b6bff','🎤'],['Cao thủ','#ff9f1a','💿'],['Bậc thầy','#ff5c7a','🏆'],['Huyền thoại','#f5c518','👑']];
+function lvOf(secs){ const h=secs/3600; let l=0; for(let i=1;i<LV_H.length;i++) if(h>=LV_H[i]) l=i; const nx=l<LV_H.length-1?LV_H[l+1]:null;
+  return {l,h,next:nx,pct:nx==null?1:Math.max(0,Math.min(1,(h-LV_H[l])/(nx-LV_H[l])))}; }
+const fmtListen=s=>s<3600?Math.floor(s/60)+' phút':(s/3600).toFixed(1)+' giờ';
+const lvCache=new Map();
+async function lvGet(id){ const c=lvCache.get(id); if(c&&Date.now()-c.t<60000) return c.s;
+  try{ const r=await api('/api/lv/'+id); const s=+r.secs||0; lvCache.set(id,{s,t:Date.now()}); return s; }catch{ return null; } }
+async function fillLevel(d,u){
+  const box=d.querySelector('.pc-lv'); if(!box||!u||!u.id) return;
+  const s=await lvGet(u.id); if(s==null||!box.isConnected) return;
+  const L=lvOf(s), I=LV_INFO[L.l];
+  const bs=LV_INFO.slice(1,L.l+1).map((x,i)=>`<span class="lvb" style="background:${x[1]}" title="LV${i+1} · ${esc(x[0])}">${x[2]}</span>`).join('');
+  box.innerHTML=`<div class="lvrow"><span class="lvpill" style="background:${I[1]}">LV${L.l}</span><b>${esc(I[0])}</b><small>Đã nghe ${fmtListen(s)}</small></div><div class="lvbar"><i style="width:${Math.round(L.pct*100)}%;background:${I[1]}"></i></div>`
+    +(L.next!=null?`<small class="lvnx">Còn ${Math.max(0.1,L.next-L.h).toFixed(1)} giờ nữa lên LV${L.l+1} · ${esc(LV_INFO[L.l+1][0])}</small>`:'<small class="lvnx">Đã đạt cấp cao nhất</small>')
+    +(bs?`<div class="lvbs">${bs}</div>`:'');
+}
+/* Đếm giờ nghe thật: cộng dồn khi đang phát, gửi lên server mỗi ~60 giây. */
+let lsAcc=0, lsLast=0;
+function startListenTimer(){
+  lsLast=Date.now();
+  setInterval(async()=>{
+    const now=Date.now(), dt=Math.min(65,(now-lsLast)/1000); lsLast=now;
+    if(playing&&cur) lsAcc+=dt;
+    if(lsAcc>=60){ const n=Math.floor(lsAcc); try{ await api('/api/listen',{json:{secs:n}}); lsAcc-=n; if(me) lvCache.delete(me.id); }catch{ if(lsAcc>900) lsAcc=900; } }
+  },5000);
+}
 /* CHIA SẺ THẺ BẰNG LINK: tải ảnh thẻ lên server → link /u/<tên> có thẻ xem trước (ảnh thẻ + tên) khi dán vào chat.
    Trên Android bấm link sẽ mở thẳng vào app (intent-filter), app tự hiện thẻ hồ sơ của người đó. */
-async function shareCardLink(u,blob,no){
-  let r; try{ r=await api('/api/card',{method:'POST',headers:{'Content-Type':'image/png'},body:blob}); }
-  catch(e){ notify('Không tạo được liên kết: '+((e&&e.message)||'lỗi mạng')); return; }
+async function shareCardLink(u,r,no){
   const link=location.origin+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
   try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
   try{ if(navigator.share){ await navigator.share({title,text:title+' · FANS NO. '+no,url:link}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
@@ -3307,7 +3349,7 @@ function showProfilePop(u,anchor,mine){
   const wk=pcKey(u,mine), warm=pcPool.get(wk);
   if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
   else d.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull()});
-  const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?520:330)))+'px';
+  const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?620:430)))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
       if(e.target.closest('.pc-av')){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
@@ -3315,9 +3357,9 @@ function showProfilePop(u,anchor,mine){
       return; }
     const act=x.dataset.x;
     if(act==='card'){ d.remove(); shareCard(u); return; }
-    if(act==='style'){ LS.set('pc_full',pcFull()?'0':'1'); d.remove(); warmProfile(u,mine); showProfilePop(u,anchor,mine); return; }
     d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
+  fillLevel(d,u);
 }
 
 const ytCache={};
@@ -6347,7 +6389,7 @@ async function start(u,offlineBoot,resume){
     const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users')+'<span>Phòng</span>';
     return;
   }
-  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000);
+  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000); startListenTimer();
   setInterval(()=>syncClock(4),60000);
   setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
   setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
