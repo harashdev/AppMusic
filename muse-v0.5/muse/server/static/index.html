@@ -507,6 +507,9 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-edw{max-width:640px;margin:0 auto}
 .bp-edh{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;font-size:18px;font-weight:600}
 .bp-edh .bp-ib{background:none;color:var(--text)}
+.bp-ds{z-index:58}
+.bp-ds .bp-edw{max-width:780px;padding:0 12px 40px}
+.bp-ds h2{display:none}
 .bp-grp{background:var(--surf2);margin:12px 12px 0;border-radius:14px;overflow:hidden}
 .bp-rw{display:flex;align-items:center;gap:12px;padding:16px;border-top:1px solid var(--line);cursor:pointer}
 .bp-rw:first-child{border-top:0}
@@ -518,19 +521,13 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-opt button.on{background:var(--accent);color:var(--on)}
 
 /* ===== AVATAR: rê chuột → icon mờ đi + hiện cây bút. Icon emoji là chữ nên trước đây hiện con trỏ chữ I → tắt chọn chữ + ép con trỏ ===== */
-.av-pen{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;opacity:0;transform:scale(.8);transition:opacity .16s,transform .16s;pointer-events:none;filter:drop-shadow(0 1px 3px #000a)}
-.av-pen .i{width:38%;height:38%;min-width:16px;min-height:16px}
 .pc-av,.pc-av *,.bp-av,.bp-av *,#meAv,#meAv *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent}
 .pc-av,.pc-av *,.bp-av,.bp-av *{cursor:default}
-.pc-av.ed,.pc-av.ed *,.pc-av.zm,.pc-av.zm *,.bp-av.ed,.bp-av.ed *,.bp-av.zm,.bp-av.zm *,#meAv,#meAv *{cursor:pointer}
-.pc-av .av,.bp-av .av{transition:opacity .16s}
+.pc-av.zm,.pc-av.zm *,.bp-av.zm,.bp-av.zm *,#meAv,#meAv *{cursor:pointer}
 #meAv .av{transition:background .16s,box-shadow .16s}
 @media(hover:hover){
-  .pc-av.ed:hover .av,.bp-av.ed:hover .av{opacity:.3}
   #meAv:hover .av{background:#ffffff33;box-shadow:0 0 0 2px #ffffff40}
-  .pc-av.ed:hover .av-pen,.bp-av.ed:hover .av-pen{opacity:1;transform:none}
 }
-.pc-av.ed:focus-visible .av-pen,.bp-av.ed:focus-visible .av-pen{opacity:1;transform:none}
 /* ===== TRANG HỒ SƠ ĐỔI MÀU THEO NỀN HỒ SƠ: chỉ dùng MÀU (không nhét ảnh). Biến --pf-* do JS (pfThemeApply) tính ra ===== */
 .bp.themed,.bp-ed.themed{
   --card:var(--pf-card);--surf2:var(--pf-card);--hover:var(--pf-hover);--hover2:var(--pf-hover);--line:var(--pf-line);--sub:var(--pf-sub);
@@ -544,15 +541,15 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp.themed .bp-tabs{background:color-mix(in srgb,var(--pf-mid) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 /* ===== TRANG HỒ SƠ CO GIÃN THEO MÀN HÌNH: điện thoại xếp dọc; màn rộng đặt avatar | tên + cấp độ + tiểu sử | số liệu + nút trên một hàng, tab canh trái, nội dung thành các khối kính + lưới nhiều cột ===== */
 @media(min-width:720px){
-  .bp-w{max-width:900px}
+  .bp-w{max-width:none}
   .bp-ban{height:clamp(210px,20vw,320px)}
   .bp-head{--avs:128px;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av info hr";column-gap:26px;padding:0 28px;align-items:start}
   .bp-info{padding:calc(var(--avs) / 2 + 10px) 0 0}
-  .bp-hr{padding-top:calc(var(--avs) / 2 + 10px);min-width:300px}
+  .bp-hr{padding-top:calc(var(--avs) / 2 + 10px);display:flex;align-items:center;gap:18px}
   .bp-stats{justify-content:flex-end}
-  .bp-st{flex:none;padding:0 20px}
+  .bp-st{flex:none;padding:0 16px}
   .bp-st b{font-size:20px}
-  .bp-eb{width:auto;margin:14px 0 0 auto;padding:9px 26px}
+  .bp-eb{width:auto;margin:0;padding:9px 22px;white-space:nowrap;flex:none}
   .bp-nm{font-size:28px}
   .bp-lv .bar{width:170px}
   .bp-bio{justify-content:flex-start;gap:16px}
@@ -563,12 +560,12 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
   .bp-pl{background:var(--hover2)}
 }
 @media(min-width:1100px){
-  .bp-w{max-width:1100px}
+  .bp-w{max-width:none}
   .bp-trs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}
   .bp-edw{max-width:760px}
 }
 @media(min-width:1700px){
-  .bp-w{max-width:1320px}
+  .bp-w{max-width:none}
   .bp-head{--avs:148px}
   .bp-nm{font-size:32px}
   .bp-trs{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -3362,7 +3359,7 @@ function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
   const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
   return `<div class="pc${o.full?' full':''}"><div class="pc-ban" style="background:${col}">${ban}
-    <div class="pc-hd"><div class="pc-av${o.mine?' ed':(isImg(u.avatar)?' zm':'')}"${o.mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${o.mine?`<span class="av-pen">${ic('pen')}</span>`:''}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
+    <div class="pc-hd"><div class="pc-av${isImg(u.avatar)?' zm':''}">${avHtml(u.avatar,'',cropOf(u),true)}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
 }
 function openImgView(src,name){
@@ -3589,13 +3586,13 @@ function showProfilePop(u,anchor,mine){
   const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?620:430)))+'px';
   d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
     if(!x){
-      if(e.target.closest('.pc-av')){ if(mine){ d.remove(); go('profile'); return; } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
+      if(e.target.closest('.pc-av')){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
       if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
       return; }
     const act=x.dataset.x;
     if(act==='card'){ d.remove(); shareCard(u); return; }
     if(act==='page'){ d.remove(); openProfilePage(u,mine); return; }
-    d.remove(); if(act==='edit') go('profile'); else logout(); };
+    d.remove(); if(act==='edit'){ const pg=openProfilePage({...me,online:true},true); if(pg) openProfileEdit(pg); } else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
   fillLevel(d,u);
 }
@@ -3673,9 +3670,9 @@ function openProfilePage(u,mine){
   const d=document.createElement('div'); d.className='bp themed'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||'')); pfThemeApply(d,u,mine);
   d.innerHTML=`<div class="bp-w">
     <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
-    <div class="bp-head"><div class="bp-av${mine?' ed':(isImg(u.avatar)?' zm':'')}" data-x="av"${mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${mine?`<span class="av-pen">${ic('pen')}</span>`:''}</div>
+    <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Người hâm mộ</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
-        ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div>
+        ${mine?'<button class="bp-eb" data-x="edit">Chỉnh sửa hồ sơ</button>':(guest?'':'<button class="bp-eb f" data-x="friend">Kết bạn</button>')}</div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
       <div class="bp-lv" id="bpLv"></div>
       <div class="bp-bio"><span>${esc(u.status||'Người này rất bí ẩn, không viết gì cả')}</span>${mine?'<a data-x="edit">Chi tiết</a>':''}</div></div></div>
@@ -3718,7 +3715,7 @@ function openProfilePage(u,mine){
       return; }
     const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
     if(a==='back') return close();
-    if(a==='av'){ if(mine){ close(); return go('profile'); } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
+    if(a==='av'){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
     if(a==='scan') return qrScanDialog();
     if(a==='edit') return openProfileEdit(d);
     if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
@@ -3734,11 +3731,35 @@ function openProfilePage(u,mine){
     box.style.setProperty('--c',I[1]);
     box.innerHTML=`<i>LV${L.l}</i><span>${esc(I[0])}</span><span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
   })();
+  return d;
+}
+/* Màu nền (biến --pf-*) của lớp chỉnh sửa luôn đi theo trang bên dưới, kể cả khi trang đó tính màu từ ảnh xong muộn */
+function pfFollow(d,parent){
+  if(!(parent&&parent.classList&&parent.classList.contains('themed'))) return null;
+  d.classList.add('themed');
+  const sync=()=>{ for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); };
+  sync(); const mo=new MutationObserver(sync); mo.observe(parent,{attributes:true,attributeFilter:['style']}); return mo;
+}
+/* Avatar, banner, nền hồ sơ, màu chủ đạo: chỉnh ngay trong trang cá nhân (lớp phủ nằm trên "Thông tin tài khoản"), không chuyển sang trang riêng nữa */
+function openProfileDesign(parent){
+  document.querySelectorAll('.bp-ds').forEach(x=>x.remove());
+  const d=document.createElement('div'); d.className='bp-ed bp-ds'; d.setAttribute('role','dialog');
+  const mo=pfFollow(d,parent);
+  d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Banner &amp; nền hồ sơ</div><div class="bp-dsb"></div></div>`;
+  document.body.appendChild(d);
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); if(mo) mo.disconnect();
+    if(appPrev){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }   /* chưa bấm Lưu thì trả giao diện về như cũ */
+    d.remove(); };
+  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov,#cm')){ e.preventDefault(); e.stopImmediatePropagation(); close(); } }
+  document.addEventListener('keydown',onKey,true);
+  d.querySelector('[data-x=back]').onclick=close;
+  pages.profile(d.querySelector('.bp-dsb')).catch(er=>{ notify((er&&er.message)||'Không mở được'); close(); });
 }
 function openProfileEdit(parent){
   document.querySelectorAll('.bp-ed').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
-  if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed'); for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); }
+  const mo=pfFollow(d,parent);
+  const snap=()=>JSON.stringify([me.display_name,me.status,me.avatar,me.banner,me.banner_color,me.accent,me.bg,me.bg_url,me.crop]), before=snap();
   const paint=()=>{
     const px=pfxGet();
     d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
@@ -3755,8 +3776,9 @@ function openProfileEdit(parent){
       </div></div>`;
   };
   paint(); document.body.appendChild(d);
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
-  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
+  const close=()=>{ document.removeEventListener('keydown',onKey,true); if(mo) mo.disconnect(); d.remove();
+    if(parent&&parent.isConnected&&parent.classList.contains('bp')&&snap()!==before) openProfilePage({...me,online:true},true); };   /* hồ sơ đã đổi → vẽ lại trang cá nhân cho khớp */
+  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov,.bp-ds,#cm')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
   const choose=(title,opts,cur)=>new Promise(res=>{
     const ov=document.createElement('div'); ov.className='dlgov';
@@ -3784,7 +3806,7 @@ function openProfileEdit(parent){
       else if(a==='bio'){ const v=await askText('Chữ ký cá nhân',me.status||''); if(v==null) return;
         const c=cropOf(me); const u=await api('/api/profile',{json:{display_name:me.display_name,accent:me.accent,bg:me.bg||'',bg_url:me.bg==='custom'?(me.bg_url||''):'',banner_color:me.banner_color||'',status:v.trim().slice(0,60),crop:c}});
         if(u&&u.id) applyUser(u); else me.status=v.trim().slice(0,60); notify('Đã lưu chữ ký'); paint(); }
-      else if(a==='theme'){ close(); document.querySelectorAll('.bp').forEach(p=>p.remove()); go('profile'); }
+      else if(a==='theme'){ openProfileDesign(d); }
       else if(a==='uid'){ try{ await navigator.clipboard.writeText(me.code||''); notify('Đã chép UID'); }catch{ await askText('UID',me.code||''); } }
       else if(a==='card'){ shareCard({...me,online:true}); }
     }catch(er){ notify((er&&er.message)||'Không lưu được'); }
