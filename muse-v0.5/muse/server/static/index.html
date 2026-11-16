@@ -1179,6 +1179,8 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .bp .bp-head{padding-top:calc(24px + env(safe-area-inset-top));padding-bottom:24px;row-gap:16px;align-items:center}
 .bp .bp-head>.bp-hr{align-self:stretch}
 .bp .bp-ban::after{background:linear-gradient(to bottom,rgba(0,0,0,.4),rgba(0,0,0,.16) 35%,rgba(0,0,0,.24) 65%,rgba(0,0,0,.6))}
+/* Hồ sơ: banner to hơn (cấu trúc giữ nguyên) */
+.prhero{height:clamp(300px,40vw,360px)}
 </style>
 </head>
 <body class="skin-default">
@@ -3810,6 +3812,9 @@ function openProfilePage(u,mine){
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
+  { const hero=d.querySelector('.bp-hero'), cr=cropOf(u);   /* áp dụng X/Y/zoom đã chỉnh theo đúng tỉ lệ khung banner hiện tại */
+    const fit=()=>{ const m=d.querySelector('.bp-ban>img,.bp-ban>video'); if(!m||!hero.clientHeight) return; m.setAttribute('style',cropStyle(cr.bx,cr.by,cr.bz,cr.ba,hero.clientWidth/hero.clientHeight)); };
+    fit(); if(window.ResizeObserver) new ResizeObserver(fit).observe(hero); }
   d.addEventListener('pfx',()=>{ const c=d.querySelector('#bpChips'); if(c) c.innerHTML=pfIdChips(u,mine);
     if(mine){ const bs=d.querySelector('.bp-bio .bp-q'); if(bs) bs.textContent=me.status||'Không có mô tả'; const nb=d.querySelector('.bp-nm b'); if(nb) nb.textContent=me.display_name; } });
   const body=d.querySelector('#bpBody'); let favList=null, pls=null;
@@ -4667,7 +4672,9 @@ const pages={
       const P=pv(); $('#profAv').innerHTML=avU(P,'big');
       const cr=cropOf(P), bb=$('#banBg'), hasImg=okImgUrl(P.banner), col=/^#[0-9a-f]{6}$/i.test(P.banner_color||'')?P.banner_color:P.accent;
       bb.style.background=col;
-      bb.innerHTML=hasImg?`<img src="${esc(P.banner)}" alt="" style="object-position:${cr.bx}% ${cr.by}%;transform-origin:${cr.bx}% ${cr.by}%;transform:scale(${cr.bz})">`:'';
+      const bfa=()=>(bb.clientWidth||780)/Math.max(1,bb.clientHeight||300);   /* khung banner thật (tỉ lệ rộng/cao) – cắt ảnh theo đúng khung này nên kéo Y không còn bị hở/lệch */
+      bb.innerHTML=hasImg?`<img src="${esc(P.banner)}" alt="" style="${cropStyle(cr.bx,cr.by,cr.bz,cr.ba,bfa())}">`:'';
+      if(!bb._ro&&window.ResizeObserver){ bb._ro=new ResizeObserver(()=>{ const im=bb.querySelector('img'); if(!im) return; const c=cropOf(pv()); im.setAttribute('style',cropStyle(c.bx,c.by,c.bz,c.ba,bfa())); }); bb._ro.observe(bb); }
       $('#banDel').style.display=hasImg?'flex':'none';
       const bd=$('#prBadge'); bd.textContent=D.status.trim(); bd.style.display=D.status.trim()?'block':'none';
       appPrev=true; paintTheme(D.accent,D.bg,bgImg());
