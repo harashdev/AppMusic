@@ -3003,7 +3003,7 @@ function qrDraw(cv,text){
 }
 function qrLoginDialog(){
   const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Đăng nhập nhanh</h3><p>Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.</p><canvas style="width:240px;height:240px;margin:16px auto 0;display:block;border-radius:14px;image-rendering:pixelated;background:#fff"></canvas><p class="qrmsg" style="margin-top:12px">Đang tạo mã…</p><div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><p style="margin:0">Hoặc nhập mã ghép (6 số)</p><div style="display:flex;gap:8px;margin-top:8px"><input class="pcIn" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code" style="margin-top:0;text-align:center;letter-spacing:.2em;font-size:18px"><button class="pri pcGo" style="padding:0 18px">Vào</button></div><p class="pcErr" style="color:#ff6b6b;margin:6px 0 0;min-height:1em"></p></div><div class="dlgb"><button class="qrnew" style="display:none">Tạo mã mới</button><button class="dlgo">Đóng</button></div></div>';
+  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Đăng nhập nhanh</h3><p>Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.</p><canvas style="width:240px;height:240px;margin:16px auto 0;display:block;border-radius:14px;image-rendering:pixelated;background:#fff"></canvas><p class="qrmsg" style="margin-top:12px">Đang tạo mã…</p><div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><p style="margin:0">Hoặc nhập mã ghép (6 số)</p><div style="display:flex;gap:8px;margin-top:8px"><input class="pcIn" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code" style="margin-top:0;text-align:center;letter-spacing:.2em;font-size:18px"><button class="pri pcGo" style="padding:0 18px">Vào</button></div><p class="pcErr" style="color:#ff6b6b;margin:6px 0 0;min-height:1em"></p><button class="pcLocal" style="display:none;width:100%;margin-top:6px">Tạo mã ghép từ máy này (localhost)</button></div><div class="dlgb"><button class="qrnew" style="display:none">Tạo mã mới</button><button class="dlgo">Đóng</button></div></div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'), msg=ov.querySelector('.qrmsg'), nb=ov.querySelector('.qrnew');
   let closed=false, tm=0;
@@ -3034,6 +3034,20 @@ function qrLoginDialog(){
   pi.oninput=()=>{ const d=pi.value.replace(/\D/g,'').slice(0,6); pi.value=d.length>3?d.slice(0,3)+' '+d.slice(3):d; pe.textContent=''; };
   const go=async()=>{ pe.textContent=''; pg.disabled=true; try{ await pairRedeem(pi.value); close(); }catch(e){ pe.textContent=(e&&e.message)||'Không đăng nhập được'; } pg.disabled=false; };
   pg.onclick=go; pi.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
+  /* Chỉ hiện khi mở bằng localhost/127.0.0.1: xin mã admin (cổng nhà gắn ADMIN_PAIR_KEY khi chuyển lên server chính), rồi đổi mã ngay để vào. */
+  const pl=ov.querySelector('.pcLocal');
+  if(/^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname)){
+    pl.style.display='';
+    pl.onclick=async()=>{
+      pe.textContent=''; pl.disabled=true;
+      try{
+        const r=await pairFetch('/api/admin/pair-code',{method:'POST'});
+        pi.value=r.code.slice(0,3)+' '+r.code.slice(3);
+        await pairRedeem(r.code); close();
+      }catch(e){ pe.textContent=(e&&e.message)||'Không tạo được mã ghép'; }
+      pl.disabled=false;
+    };
+  }
 }
 $('#aPairBtn').onclick=qrLoginDialog;
 /* MÃ GHÉP (pair code): mã 6 số dùng một lần do server cấp (hiện ở trang localhost của máy chạy server) → đăng nhập không cần mật khẩu.
