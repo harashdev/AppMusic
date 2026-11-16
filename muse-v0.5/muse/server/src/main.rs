@@ -2067,8 +2067,21 @@ fn take_ws_ticket(st: &AppState, ticket: &str) -> Option<User> {
 // Mã ghép thiết bị dùng một lần: chỉ máy đang chạy server mới tạo được mã (loopback),
 // để đăng nhập nhanh tài khoản ADMIN_USER trên desktop/Android khác mà không cần gõ mật khẩu
 // và không bao giờ đóng mật khẩu/token vào các bản build phân phát chung.
-fn is_loopback(addr: &std::net::SocketAddr) -> bool {
-    addr.ip().is_loopback()
+// "Chính máy chạy server" = kết nối đến từ loopback, KHÔNG đi qua reverse proxy/tunnel (Caddy, nginx, cloudflared, ngrok... đều
+// kết nối từ 127.0.0.1 nhưng gắn header chuyển tiếp) và Host là localhost. Chỉ kiểm tra IP thì khi Caddy chạy cùng máy,
+// MỌI người trên internet đều bị coi là "localhost" và tự lấy được mã admin.
+fn is_local_request(addr: &std::net::SocketAddr, h: &HeaderMap) -> bool {
+    if !addr.ip().is_loopback() {
+        return false;
+    }
+    for k in ["x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip", "forwarded", "via", "cf-connecting-ip", "true-client-ip"] {
+        if h.contains_key(k) {
+            return false;
+        }
+    }
+    let host = h.get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_lowercase();
+    let name = if let Some(rest) = host.strip_prefix('[') { rest.split(']').next().unwrap_or("") } else { host.split(':').next().unwrap_or("") };
+    matches!(name, "localhost" | "127.0.0.1" | "::1")
 }
 
 #[derive(Deserialize)]
@@ -2285,8 +2298,8 @@ async fn admin_reset_avatar(State(st): State<AppState>, headers: HeaderMap, Json
 }
 
 // POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
-async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>) -> R<Value> {
-    if !is_loopback(&addr) {
+async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
+    if !is_local_request(&addr, &headers) {
         return Err((StatusCode::FORBIDDEN, "Chỉ tạo được mã từ chính máy chạy server".into()));
     }
     let Ok(admin_user) = std::env::var("ADMIN_USER") else {
@@ -2323,15 +2336,20 @@ async fn pair_redeem(
         return Err(too_many());
     }
     rl_hit(&st, &ikey, 600);
+    // Khoá toàn cục theo số lần SAI (không phụ thuộc IP/header, nên không né được bằng X-Forwarded-For giả).
+    if rl_blocked(&st, "pairfail:all", 20, 300) {
+        return Err(too_many());
+    }
     let code = r.code.trim();
     let now = now_secs();
-    let uid = {
+    let found = {
         let mut g = st.pair_codes.lock().unwrap();
         g.retain(|_, (_, exp)| *exp > now);
-        let Some((uid, _)) = g.remove(code) else {
-            return Err((StatusCode::UNAUTHORIZED, "Mã sai hoặc đã hết hạn".into()));
-        };
-        uid
+        g.remove(code)
+    };
+    let Some((uid, _)) = found else {
+        rl_hit(&st, "pairfail:all", 300);
+        return Err((StatusCode::UNAUTHORIZED, "Mã sai hoặc đã hết hạn".into()));
     };
     let db = st.db.lock().unwrap();
     let user = db
