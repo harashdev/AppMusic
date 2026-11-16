@@ -821,7 +821,7 @@ async fn run_gateway(remote: String) {
         }
     };
     println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
-    axum::serve(listener, router.into_make_service()).await.unwrap();
+    axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
 
 // ===== Thư mục nhạc của app (chỉ có ở cổng nhà chạy trên máy người dùng) =====
@@ -961,9 +961,14 @@ fn gw_retry_page() -> Response {
 }
 
 // Chuyển tiếp nguyên một yêu cầu HTTP lên server chính rồi trả lại phản hồi (không giải nén, không tự theo chuyển hướng).
-async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
+async fn gw_http(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, req: Request<Body>) -> Response {
     let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
     let (parts, body) = req.into_parts();
+    // Mã ghép admin: chỉ máy mở cổng nhà (127.0.0.1) mới xin được; cổng nhà gắn ADMIN_PAIR_KEY (env của máy này) khi chuyển lên server chính.
+    let is_pair = parts.method == axum::http::Method::POST && parts.uri.path() == "/api/admin/pair-code";
+    if is_pair && !is_local_request(&addr, &parts.headers) {
+        return (StatusCode::FORBIDDEN, "Chỉ tạo được mã ghép từ chính máy chạy cổng nhà (mở http://127.0.0.1)").into_response();
+    }
     if parts.method == axum::http::Method::GET && matches!(parts.uri.path(), "/" | "/index.html") && gw_local_ui() {
         return (
             [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-cache")],
@@ -987,10 +992,18 @@ async fn gw_http(State(st): State<AppState>, req: Request<Body>) -> Response {
     let mut rb = g.client.request(parts.method.clone(), &url);
     for (k, v) in parts.headers.iter() {
         let n = k.as_str();
-        if gw_hop(n) || n == "origin" || n == "referer" {
+        if gw_hop(n) || n == "origin" || n == "referer" || n == "x-pair-key" {
             continue;
         }
         rb = rb.header(k, v);
+    }
+    if is_pair {
+        if let Ok(k) = std::env::var("ADMIN_PAIR_KEY") {
+            let k = k.trim().to_string();
+            if !k.is_empty() {
+                rb = rb.header("x-pair-key", k);
+            }
+        }
     }
     if !bytes.is_empty() {
         rb = rb.body(bytes);
@@ -1157,6 +1170,7 @@ async fn main() {
         .route("/api/admin/supporter", post(admin_set_supporter))
         .route("/api/admin/users/reset-avatar", post(admin_reset_avatar))
         .route("/api/pair/redeem", post(pair_redeem))
+        .route("/api/pair/create", post(pair_create))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
         .route("/api/account/name", post(account_name))
@@ -2298,9 +2312,33 @@ async fn admin_reset_avatar(State(st): State<AppState>, headers: HeaderMap, Json
 }
 
 // POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
+fn ct_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().zip(b.iter()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
+// Hai cách được cấp mã admin: (1) gọi từ chính máy chạy server (loopback, không qua proxy); (2) kèm header x-pair-key khớp biến môi trường
+// ADMIN_PAIR_KEY (chuỗi ngẫu nhiên >= 24 ký tự, chỉ đặt trong env của server chính và của máy nhà chạy cổng nhà — KHÔNG đưa vào repo).
+// Cách (2) là đường của cổng nhà: giao diện mở ở http://127.0.0.1:PORT, cổng nhà tự kiểm tra là máy mình rồi gắn khoá khi chuyển tiếp lên server chính.
 async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
-    if !is_local_request(&addr, &headers) {
-        return Err((StatusCode::FORBIDDEN, "Chỉ tạo được mã từ chính máy chạy server".into()));
+    if rl_blocked(&st, "pairkey:all", 10, 600) {
+        return Err(too_many());
+    }
+    let key_ok = match (std::env::var("ADMIN_PAIR_KEY").ok(), headers.get("x-pair-key").and_then(|v| v.to_str().ok())) {
+        (Some(k), Some(v)) => {
+            let k = k.trim();
+            k.len() >= 24 && ct_eq(v.trim(), k)
+        }
+        _ => false,
+    };
+    if headers.contains_key("x-pair-key") && !key_ok {
+        rl_hit(&st, "pairkey:all", 600);
+    }
+    if !key_ok && !is_local_request(&addr, &headers) {
+        return Err((StatusCode::FORBIDDEN, "Server từ chối: chỉ tạo được mã ở chính máy chạy server, hoặc đặt cùng một ADMIN_PAIR_KEY (≥ 24 ký tự) ở server chính và ở máy chạy cổng nhà".into()));
     }
     let Ok(admin_user) = std::env::var("ADMIN_USER") else {
         return Err(bad("Chưa đặt ADMIN_USER"));
@@ -2322,6 +2360,42 @@ async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectI
     // base: domain public (nếu có PUBLIC_URL) để link redeem dùng được từ máy khác, không chỉ trên localhost.
     let base = std::env::var("PUBLIC_URL").unwrap_or_default().trim().trim_end_matches('/').to_string();
     Ok(Json(json!({ "code": code, "expires_in": 300, "base": base })))
+}
+
+#[derive(Deserialize)]
+struct PairCreateReq {
+    password: String,
+}
+
+// POST /api/pair/create { password } — đã đăng nhập VÀ nhập lại mật khẩu → mã ghép 6 số cho CHÍNH tài khoản này (dùng ở Cài đặt).
+async fn pair_create(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<PairCreateReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let ukey = format!("pc:{}", user.id);
+    let ikey = format!("pcip:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ukey, 5, 600) || rl_blocked(&st, &ikey, 20, 600) {
+        return Err(too_many());
+    }
+    let hash: String = {
+        let db = st.db.lock().unwrap();
+        let x = db.query_row("SELECT pass_hash FROM users WHERE id=?1", [user.id], |row| row.get::<_, String>(0)).map_err(|_| e500())?;
+        x
+    };
+    let pw = r.password.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
+    if !ok {
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
+        return Err(bad("Sai mật khẩu"));
+    }
+    rl_clear(&st, &ukey);
+    let now = now_secs();
+    let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
+    {
+        let mut g = st.pair_codes.lock().unwrap();
+        g.retain(|_, (u, exp)| *exp > now && *u != user.id);
+        g.insert(code.clone(), (user.id, now + 300));
+    }
+    Ok(Json(json!({ "code": code, "expires_in": 300, "base": card_base_url(&headers) })))
 }
 
 // POST /api/pair/redeem { code } -> { token, user }: dùng mã trên để đăng nhập, không cần mật khẩu. Dùng một lần.
@@ -3976,7 +4050,7 @@ async fn upload_card(State(st): State<AppState>, headers: HeaderMap, body: Bytes
     }
     tokio::fs::write(card_path(&st, user.id), &body).await.map_err(|_| e500())?;
     let v = card_version(&st, user.id).await.unwrap_or(0);
-    Ok(Json(json!({ "username": user.username, "path": format!("/u/{}", user.username), "v": v })))
+    Ok(Json(json!({ "username": user.username, "path": format!("/u/{}", user.username), "v": v, "base": card_base_url(&headers) })))
 }
 
 // ---------- Cấp độ nghe nhạc ----------
@@ -4077,9 +4151,9 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 .w{width:min(560px,100%);padding:20px;text-align:center}.w img{width:100%;border-radius:18px;box-shadow:0 12px 40px #000a;background:#17141f;aspect-ratio:1200/900}
 h1{font-size:22px;margin:18px 0 2px}p{margin:0 0 18px;color:#a8a3b6}
 .b{display:block;padding:13px;border-radius:999px;background:#8ecbff;color:#07131d;font-weight:700;text-decoration:none;margin-top:10px}.b.o{background:none;color:#f3f0fa;border:1px solid #ffffff2e}
-</style></head><body><div class="w"><img src="@IMG@" alt="Thẻ BBeat"><h1>@NAME@</h1><p>@DESC@</p>
+</style></head><body><div class="w"><img src="@IMGREL@" alt="Thẻ BBeat"><h1>@NAME@</h1><p>@DESC@</p>
 <a class="b" id="open" href="@INTENT@">Mở trong BBeat</a><a class="b o" href="@WEB@">Mở bản web</a></div>
-<script>(function(){try{if(/Android/i.test(navigator.userAgent||'')&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");}}catch(e){}})();</script>
+<script>(function(){try{if(!/Android/i.test(navigator.userAgent||"")){var o=document.getElementById("open");if(o)o.style.display="none";var w=document.querySelector(".b.o");if(w)w.className="b";}}catch(e){}try{if(/Android/i.test(navigator.userAgent||'')&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");}}catch(e){}})();</script>
 </body></html>"##;
 
 #[derive(Deserialize)]
@@ -4119,6 +4193,7 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
         .replace("@DESC@", &card_esc(&desc))
         .replace("@NAME@", &card_esc(&u.display_name))
         .replace("@URL@", &card_esc(&page_url))
+        .replace("@IMGREL@", &card_esc(&format!("/cards/{}.jpg?v={v}", u.id)))
         .replace("@IMG@", &card_esc(&img));
     ([(header::CONTENT_TYPE, "text/html; charset=utf-8"), (header::CACHE_CONTROL, "public, max-age=300")], html).into_response()
 }
