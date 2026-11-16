@@ -522,10 +522,12 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pc-av,.pc-av *,.bp-av,.bp-av *,#meAv,#meAv *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent}
 .pc-av,.pc-av *,.bp-av,.bp-av *{cursor:default}
 .pc-av.ed,.pc-av.ed *,.pc-av.zm,.pc-av.zm *,.bp-av.ed,.bp-av.ed *,.bp-av.zm,.bp-av.zm *,#meAv,#meAv *{cursor:pointer}
-.pc-av .av,.bp-av .av,#meAv .av{transition:opacity .16s}
+.pc-av .av,.bp-av .av{transition:opacity .16s}
+#meAv .av{transition:background .16s,box-shadow .16s}
 @media(hover:hover){
-  .pc-av.ed:hover .av,.bp-av.ed:hover .av,#meAv:hover .av{opacity:.3}
-  .pc-av.ed:hover .av-pen,.bp-av.ed:hover .av-pen,#meAv:hover .av-pen{opacity:1;transform:none}
+  .pc-av.ed:hover .av,.bp-av.ed:hover .av{opacity:.3}
+  #meAv:hover .av{background:#ffffff33;box-shadow:0 0 0 2px #ffffff40}
+  .pc-av.ed:hover .av-pen,.bp-av.ed:hover .av-pen{opacity:1;transform:none}
 }
 .pc-av.ed:focus-visible .av-pen,.bp-av.ed:focus-visible .av-pen{opacity:1;transform:none}
 /* ===== TRANG HỒ SƠ ĐỔI MÀU THEO NỀN HỒ SƠ: chỉ dùng MÀU (không nhét ảnh). Biến --pf-* do JS (pfThemeApply) tính ra ===== */
@@ -3235,7 +3237,7 @@ function applyUser(u){
   const acc=(!u.accent||u.accent.toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:u.accent; u.accent=acc; me=u;
   try{ if(!guest&&u.id) LS.set('muse_me',JSON.stringify(u)); }catch{}   /* bản lưu sẵn trong máy luôn là hồ sơ mới nhất */
   paintTheme(acc,u.bg,u.bg_url);
-  $('#meAv').innerHTML=avU(u)+`<span class="av-pen">${ic('pen')}</span>`;
+  $('#meAv').innerHTML=avU(u);
   paintLibTitle();
   warmProfile({...u,online:true},true);
 }
