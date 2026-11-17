@@ -1253,6 +1253,19 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
 .pe-bar .pe-b{padding:10px 22px}
 .pe-lock{max-width:460px}.pe-lock p{margin:8px 0 14px;color:var(--sub)}
+/* Bố cục trang Chỉnh sửa hồ sơ (màn rộng): banner xem trước trải ngang trên cùng, các mục cài đặt xếp 2 cột phía dưới */
+@media(min-width:900px){
+  .pe{grid-template-columns:minmax(0,1fr);max-width:none;gap:20px 26px}
+  .pe-left{position:static}
+  .pe-hero{height:clamp(340px,27.5vw,525px)}
+  .pe-hd{left:clamp(16px,2.8vw,44px);right:clamp(16px,2.8vw,44px)}
+  .pe-st{margin-top:14px}
+}
+@media(min-width:1200px){
+  .pe-right{columns:2;column-gap:26px}
+  .pe-right>*{break-inside:avoid}
+}
+.pe-av:focus:not(:focus-visible){outline:none}
 </style>
 </head>
 <body class="skin-default">
