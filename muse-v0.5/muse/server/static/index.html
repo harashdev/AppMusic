@@ -1268,6 +1268,27 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-av:focus:not(:focus-visible){outline:none}
 /* trạng thái nằm ngay dưới @username, thẳng hàng với tên (không còn tụt xuống dưới avatar) */
 .pe-id{flex:1 1 auto;min-width:0}.pe-bio{margin-top:6px;max-width:100%}
+
+/* ===== Đĩa than như mẫu: bìa vuông + đĩa đen thò ra bên phải, luôn hiện trọn vẹn ===== */
+/* Trước đây --s = min(98cqh,74cqw) nên bìa + nửa đĩa rộng 1.5×s vượt khung → đĩa bị cắt.
+   Giờ tính s sao cho (khoảng cách + 1.5×s) luôn nằm vừa trong khung. */
+.dd-disc,.dd-cov{
+  --s:min(96cqh,calc((100cqw - 40px) / 1.5));
+  --gap:14px;
+}
+/* Đĩa trơn đen như mẫu, không đặt hình bìa lên mặt đĩa */
+.dd-dimg{display:none!important}
+
+/* Không cho bôi đen / chọn / kéo chữ và đĩa ở màn hình Chi tiết */
+.dd,.dd *{
+  -webkit-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none;caret-color:transparent;
+}
+.dd *::selection{background:transparent!important;color:inherit!important}
+.dd img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+.dd button:focus,.dd button:focus-visible,.dd input:focus,.dd input:focus-visible,.dd [tabindex]:focus{outline:none!important}
+.dd-info,.dd-info *,.dd-art,.dd-art *,.dd-disc,.dd-cov{cursor:default}
+
 </style>
 </head>
 <body class="skin-default">
