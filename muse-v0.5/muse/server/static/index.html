@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
+<link rel="preconnect" href="https://www.youtube.com" crossorigin>
+<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+<link rel="preconnect" href="https://i.ytimg.com" crossorigin>
+<link rel="preconnect" href="https://googlevideo.com" crossorigin>
+<link rel="dns-prefetch" href="//www.youtube.com">
+<link rel="dns-prefetch" href="//i.ytimg.com">
 <script>
 (function(){
   try{ Object.defineProperty(navigator,'share',{value:undefined,configurable:true}); }catch(e){}
@@ -4931,8 +4937,8 @@ const pages={
     refresh(); peReady=true;
   },
   async settings(m){
-    try{ Object.assign(S,await api('/api/settings')); }catch{}
-    if(cfg.discord_login){ try{ dl=await api('/api/discord/status'); }catch{} }
+    // S và dl đã được nạp khi khởi động app; không chặn việc mở trang bằng request mạng lặp lại.
+    // Các thao tác thay đổi bên dưới vẫn đồng bộ lên server như trước.
     const useSdk=sdkOn(), canRpc=!!cfg.discord_app_id&&dl.linked&&(useSdk||DESK);
     const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
     const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
@@ -5957,9 +5963,12 @@ function noteJump(){
   const a=jumpGet().filter(x=>x.n!==qname); a.unshift({n:qname,tr,i,cov,t:Date.now()});
   LS.set(jumpKey(),JSON.stringify(a.slice(0,JUMP_MAX))); syncDirty('jump');
 }
-function userPlay0(t){ setTimeout(()=>{ try{ syncVid(); const n=queue&&queue[qi+1]; if(n&&n.src==='yt'&&!n.fromVid&&(n.alb||!isWide(n))) albFind(n).catch(()=>{}); }catch{} },0); const prev=cur, auto=autoAdv; autoAdv=false; tasteCache=null; try{ noteJump(); }catch{}
-  if(prev&&prev.id&&t&&key(prev)!==key(t)){ try{ noteListen(prev,getTime(),getDur(),auto); }catch{} }
-  countPlay(t); loadTrack(t,0,true); broadcastState(); if(S.track_history) api('/api/history',{json:slim(t)}).catch(()=>{}); }
+function userPlay0(t){ setTimeout(()=>{ try{ syncVid(); const n=queue&&queue[qi+1]; if(n&&n.src==='yt'&&!n.fromVid&&(n.alb||!isWide(n))) albFind(n).catch(()=>{}); }catch{} },0); const prev=cur, auto=autoAdv; autoAdv=false; tasteCache=null;
+  const prevPos=prev&&prev.id?getTime():0, prevDur=prev&&prev.id?getDur():0;
+  // Ưu tiên khởi chạy audio trước; thống kê và đồng bộ dữ liệu không chặn thao tác Phát.
+  loadTrack(t,0,true); broadcastState();
+  setTimeout(()=>{ try{ noteJump(); }catch{} try{ if(prev&&prev.id&&t&&key(prev)!==key(t)) noteListen(prev,prevPos,prevDur,auto); }catch{} try{ countPlay(t); }catch{} },0);
+  if(S.track_history) setTimeout(()=>api('/api/history',{json:slim(t)}).catch(()=>{}),0); }
 const blocked=t=>!!t&&!!t.explicit&&!S.explicit;
 const disGet=()=>{ try{ const o=JSON.parse(LS.get('muse_dislike_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
 const isDis=t=>!!t&&!!disGet()[key(t)];
