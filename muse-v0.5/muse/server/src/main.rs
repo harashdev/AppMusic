@@ -6171,7 +6171,7 @@ fn audio_race_timeout_secs() -> u64 {
     if wpc { 75 } else { AUDIO_RACE_TIMEOUT_SECS }
 }
 // So le giữa các client để không bắn cùng lúc (giống NativeYt.kt bên Android).
-const AUDIO_STAGGER_MS: u64 = 350;
+const AUDIO_STAGGER_MS: u64 = 200;
 // Client cần PO token (IOS, TV_SIMPLY) chỉ là dự phòng: chờ thêm để client không cần token kịp trả lời trước.
 const AUDIO_LATE_DELAY_MS: u64 = 2500;
 // YouTube cho tải ~1MB đầu của link thiếu PO token rồi trả 403 (nhạc "chạy được vài giây rồi dừng").
@@ -6197,13 +6197,6 @@ fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static st
             "1.65.10",
             "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
             vr(),
-        ),
-        (
-            "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
-            "85",
-            "2.0",
-            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
-            json!({}),
         ),
         (
             "IOS",
@@ -6280,16 +6273,20 @@ async fn verify_link(client: &reqwest::Client, url: &str, ua: &str, size_hint: u
         return Err("không biết dung lượng luồng".to_string());
     }
     // Link thiếu PO token qua được 1KB đầu nhưng chết ở sâu hơn: thử thêm một đoạn ở ~1.5MB và một đoạn gần cuối file.
-    for at in [AUDIO_DEEP_PROBE, size.saturating_sub(64 * 1024)] {
+    // Hai lần dò chạy SONG SONG (trước đây tuần tự, mỗi lần tới 8s×2 khi link chết → chờ rất lâu).
+    let chk = |at: u64| async move {
         if at <= 1024 || at + 16 >= size {
-            continue;
+            return Ok(());
         }
         match probe_range(client, url, ua, at, at + 15).await {
-            Some((m, _)) if m > 0 => {}
-            Some(_) => return Err(format!("link trả dữ liệu rỗng ở byte {at}")),
-            None => return Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
+            Some((m, _)) if m > 0 => Ok(()),
+            Some(_) => Err(format!("link trả dữ liệu rỗng ở byte {at}")),
+            None => Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
         }
-    }
+    };
+    let (r1, r2) = tokio::join!(chk(AUDIO_DEEP_PROBE), chk(size.saturating_sub(64 * 1024)));
+    r1?;
+    r2?;
     Ok(size)
 }
 
@@ -6329,7 +6326,11 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
         };
         let v: Value = match resp.json().await {
             Ok(v) => v,
-            Err(_) => continue,
+            Err(e) => {
+                last = format!("{name} {ver}: YouTube trả dữ liệu không đọc được ({e})");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
         };
         if v.pointer("/playabilityStatus/status").and_then(|x| x.as_str()) != Some("OK") {
             last = format!(
@@ -6373,7 +6374,11 @@ async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: us
                 best = Some((score, f));
             }
         }
-        let Some((_, f)) = best else { continue };
+        let Some((_, f)) = best else {
+            last = format!("{name} {ver}: không có luồng âm thanh nào có link trực tiếp (YouTube đòi PO token/SABR)");
+            eprintln!("[audio] {vid} {last}");
+            continue;
+        };
         let url = f.get("url").and_then(|x| x.as_str()).unwrap_or("").to_string();
         let size: u64 = f
             .get("contentLength")
@@ -6473,14 +6478,38 @@ fn audio_mark_bad(id: &str, src: usize) {
 // Trước đây thử lần lượt: client đầu bị lỗi là mất thêm 1-2 lượt gọi mạng trước khi nhạc lên tiếng.
 async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[usize]) -> Result<(String, u64, String, usize), String> {
     let mut set = tokio::task::JoinSet::new();
+    // Các client "chính" (không phải yt-dlp, không phải client cần PO token). Khi tất cả đều đã báo lỗi thì không cần chờ
+    // thêm nữa: client dự phòng và yt-dlp được thả chạy ngay (trước đây vẫn phải ngồi chờ 1,2s–2,5s vô ích).
+    let is_early = |ci: usize| ci != 90 && !audio_client_late(ci);
+    let early_total = cands.iter().filter(|&&ci| is_early(ci)).count();
+    let (go_tx, go_rx) = tokio::sync::watch::channel(early_total == 0);
+    let mut early_failed = 0usize;
     for (i, &ci) in cands.iter().enumerate() {
         let c = client.clone();
         let v = vid.to_string();
+        let mut rx = go_rx.clone();
+        let early = is_early(ci);
         // yt-dlp (nguồn 90) bắt đầu sau ~1,2s: client nhanh (ANDROID_VR) thắng thì khỏi chạy yt-dlp; nếu không thì yt-dlp đã chạy sẵn.
         let wait = if ci == 90 { 1200 } else { i as u64 * AUDIO_STAGGER_MS + if audio_client_late(ci) { AUDIO_LATE_DELAY_MS } else { 0 } };
         set.spawn(async move {
             if wait > 0 {
-                tokio::time::sleep(Duration::from_millis(wait)).await;
+                if early {
+                    tokio::time::sleep(Duration::from_millis(wait)).await;
+                } else {
+                    tokio::select! {
+                        _ = tokio::time::sleep(Duration::from_millis(wait)) => {}
+                        _ = async {
+                            loop {
+                                if *rx.borrow() {
+                                    break;
+                                }
+                                if rx.changed().await.is_err() {
+                                    break;
+                                }
+                            }
+                        } => {}
+                    }
+                }
             }
             if ci == 90 {
                 return (ci, resolve_source(&c, &v, webm, 90, false).await);
@@ -6503,6 +6532,12 @@ async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[
                     eprintln!("[audio] {vid} nguồn {ci}: {e}");
                     audio_mark_bad(vid, ci);
                     errs.push(e);
+                    if is_early(ci) {
+                        early_failed += 1;
+                        if early_failed >= early_total {
+                            let _ = go_tx.send(true);
+                        }
+                    }
                 }
                 Err(_) => {}
             },
