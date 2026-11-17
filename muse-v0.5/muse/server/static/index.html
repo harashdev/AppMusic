@@ -1266,6 +1266,8 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
   .pe-right>*{break-inside:avoid}
 }
 .pe-av:focus:not(:focus-visible){outline:none}
+/* trạng thái nằm ngay dưới @username, thẳng hàng với tên (không còn tụt xuống dưới avatar) */
+.pe-id{flex:1 1 auto;min-width:0}.pe-bio{margin-top:6px;max-width:100%}
 </style>
 </head>
 <body class="skin-default">
@@ -4745,9 +4747,9 @@ const pages={
       <div class="pe-ban" id="banBtn" role="button" tabindex="0" title="Đổi banner" aria-label="Đổi banner"><div class="banbg" id="banBg"></div></div>
       <div class="pe-top"><span class="pe-pill" id="banPick" role="button" tabindex="0">${ic('camera','sm')}Đổi banner</span><span class="pe-pill" id="banFit" role="button" tabindex="0">${ic('crop','sm')}Căn chỉnh</span></div>
       <div class="pe-hd"><div class="pe-r1"><div class="pe-av" id="avBtn" role="button" tabindex="0" title="Đổi avatar" aria-label="Đổi avatar"><div class="pe-avc"><span id="profAv">${avU(me,'big')}</span></div><span class="pe-cam">${ic('camera','sm')}</span></div>
-        <div class="pe-id"><div class="pe-nm"><b id="peName">${esc(me.display_name)}</b><button class="pe-pen" id="peRename" title="Đổi tên hiển thị" aria-label="Đổi tên hiển thị">${ic('pen','sm')}</button><span class="pe-lv" id="peLv"></span></div>
-        <div class="pe-un"><span>@${esc(me.username||'')}</span><button class="ico" id="cpUn" title="Chép tên đăng nhập">${ic('copy','sm')}</button></div></div></div>
-        <div class="pe-bio"><span id="peBio" role="button" tabindex="0"></span><u id="peBioEd" role="button" tabindex="0">Sửa</u></div>
+        <div class="pe-id"><div class="pe-nm"><b id="peName">${esc(me.display_name)}</b><button class="pe-pen" id="peRename" title="Đổi tên hiển thị" aria-label="Đổi tên hiển thị">${ic('pen','sm')}</button></div>
+        <div class="pe-un"><span>@${esc(me.username||'')}</span><button class="ico" id="cpUn" title="Chép tên đăng nhập">${ic('copy','sm')}</button></div>
+        <div class="pe-bio"><span id="peBio" role="button" tabindex="0"></span><u id="peBioEd" role="button" tabindex="0">Sửa</u></div></div></div>
         <div class="pe-st"><div><b id="peS1">–</b><span>Fan</span></div><div><b id="peS2">–</b><span>Theo dõi</span></div><div><b id="peS3">–</b><span>Lượt thích</span></div></div></div>
     </div><small class="hint pe-hn">Chạm vào banner, avatar, tên hoặc trạng thái để sửa trực tiếp</small></div>
     <input type="file" id="banFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input type="file" id="avFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
@@ -4788,7 +4790,7 @@ const pages={
     const editBio=async()=>{ const v=await askText('Trạng thái',D.status||''); if(v==null) return; D.status=v.trim().slice(0,60); refresh(); };
     $('#peBio').onclick=editBio; $('#peBioEd').onclick=editBio;
     $('#peRename').onclick=async()=>{ try{ const v=await askText('Tên hiển thị',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return; const u=await api('/api/account/name',{json:{display_name:v}}); applyUser(u); $('#peName').textContent=me.display_name; notify('Đã lưu tên hiển thị'); }catch(er){ notify((er&&er.message)||'Không lưu được'); } };
-    m.querySelectorAll('.pe-lv,.pe-pill,.pe-b,.dot,#peBio,#peBioEd').forEach(el=>el.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&el.tagName!=='BUTTON'){ e.preventDefault(); el.click(); } }));
+    m.querySelectorAll('.pe-pill,.pe-b,.dot,#peBio,#peBioEd').forEach(el=>el.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&el.tagName!=='BUTTON'){ e.preventDefault(); el.click(); } }));
     m.querySelectorAll('.dot').forEach(el=>el.onclick=()=>{ if(el.dataset.for==='swB'){ D.bannerColor=el.dataset.c; } else { D.accent=el.dataset.c; $('#accent').value=el.dataset.c; } refresh(); });
     $('#banPick').onclick=e=>{ e.stopPropagation(); $('#banFile').click(); }; $('#banPick2').onclick=()=>$('#banFile').click();
     const fitBanner=async()=>{ const P=pv(); if(!okImgUrl(P.banner)){ notify('Chưa có ảnh banner để căn chỉnh'); return; } if(await editBanner(P.banner)) refresh(); };
@@ -4796,7 +4798,7 @@ const pages={
     $('#peCancel').onclick=()=>{ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); pages.profile(m); };
     $('#cpUn').onclick=async e=>{ e.stopPropagation(); try{ await navigator.clipboard.writeText(me.username||''); notify('Đã chép tên đăng nhập'); }catch{ await askText('Tên đăng nhập',me.username||''); } };
     (async()=>{ const set=(id,t)=>{ const el=$('#'+id); if(el) el.textContent=t; }; set('peS2',String(followGet().length)); set('peS3',String(favs.size)); api('/api/fans/'+me.id).then(r=>set('peS1',String(+r.n||0)),()=>{});
-      const sec=await lvGet(me.id); if(sec==null) return; const L=lvOf(sec), I=LV_INFO[L.l], box=$('#peLv'); if(!box) return; box.style.setProperty('--c',I[1]); box.innerHTML=`<i>LV${L.l}</i>${esc(I[0])}`; })();
+      })();
     $('#accent').oninput=e=>{ D.accent=e.target.value; refresh(); };
     const cropFor=k=>({x:D[k+'x'],y:D[k+'y'],z:D[k+'z']});
     const bannerColor=()=>/^#[0-9a-f]{6}$/i.test(D.bannerColor)?D.bannerColor:D.accent;
@@ -4862,8 +4864,8 @@ const pages={
     $('#saveProfile').onclick=()=>{ const btn=$('#saveProfile'); if(btn.disabled) return; btn.disabled=true; pmsg('Đang lưu…');
       window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave).finally(()=>{ btn.disabled=false; }); };
     /* ===== Điều chỉnh chữ: mỗi chữ có màu + shadow riêng. Lưu theo tài khoản trong máy (LS), không đụng tới dữ liệu hồ sơ trên server. ===== */
-    const TX_K=[['name','Tên'],['un','@username'],['lv','Nhãn LV'],['st','Trạng thái'],['fan','Fan'],['fol','Theo dõi'],['like','Lượt thích']];
-    const TX_SEL={name:'#peName',un:'.pe-un>span',lv:'#peLv',st:'#peBio',fan:'#peS1',fol:'#peS2',like:'#peS3'};
+    const TX_K=[['name','Tên'],['un','@username'],['st','Trạng thái'],['fan','Fan'],['fol','Theo dõi'],['like','Lượt thích']];
+    const TX_SEL={name:'#peName',un:'.pe-un>span',st:'#peBio',fan:'#peS1',fol:'#peS2',like:'#peS3'};
     const TX_COLS=['#ffffff','#ffd166','#7ee787','#ff7eb6','#c4b5fd','#111111'];
     const txKey='muse_tx_'+(me.id||'');
     const txLoad=()=>{ let o={}; try{ o=JSON.parse(LS.get(txKey,'{}'))||{}; }catch{} const r={}; TX_K.forEach(([k])=>{ const v=o[k]||{}; const cl=(x,lo,hi,d)=>{ x=+x; return Number.isFinite(x)?Math.min(hi,Math.max(lo,x)):d; }; r[k]={c:/^#[0-9a-f]{6}$/i.test(v.c||'')?v.c.toLowerCase():'',s:cl(v.s,0,10,0),w:v.w?Math.round(cl(v.w,400,800,400)/100)*100:0,o:cl(v.o,40,100,100),z:cl(v.z,85,125,100)}; }); return r; };
