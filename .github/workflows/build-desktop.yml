@@ -35,6 +35,19 @@ jobs:
           mkdir -p ../desktop/src-tauri/binaries
           cp target/release/muse-server.exe ../desktop/src-tauri/binaries/muse-server-x86_64-pc-windows-msvc.exe
 
+      # yt-dlp + deno đi kèm app (Tauri chép cạnh file .exe, xem externalBin trong tauri.conf.json): khi các client YouTube viết tay bị chặn
+      # (lỗi "Không lấy được luồng âm thanh" / "YouTube is no longer supported...") server cổng nhà tự dùng yt-dlp bằng IP máy người dùng.
+      - name: Tải yt-dlp và deno (dự phòng lấy nhạc)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force binaries | Out-Null
+          Invoke-WebRequest "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile "binaries/yt-dlp-x86_64-pc-windows-msvc.exe"
+          Invoke-WebRequest "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip" -OutFile "deno.zip"
+          Expand-Archive -Force "deno.zip" -DestinationPath "deno-tmp"
+          Copy-Item "deno-tmp/deno.exe" "binaries/deno-x86_64-pc-windows-msvc.exe"
+          Remove-Item "deno.zip"
+          Remove-Item -Recurse -Force "deno-tmp"
+
       - name: Tải Discord Social SDK
         id: sdk
         shell: bash
