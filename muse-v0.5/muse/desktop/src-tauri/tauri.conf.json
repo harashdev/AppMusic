@@ -22,7 +22,9 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "binaries/muse-server"
+      "binaries/muse-server",
+      "binaries/yt-dlp",
+      "binaries/deno"
     ]
   }
 }
