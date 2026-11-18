@@ -4339,10 +4339,15 @@ function buildProfile(gc,ac,seen,n,skipKeys){
   const mx=arts.length?arts[0].c:1, artW={}; arts.forEach(a=>{ artW[a.n.toLowerCase()]=a.c/mx; });
   return {top,arts,artsAll,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc};
 }
+const TASTE_KEY='muse_taste3_dev';
+let tasteLast=null; // hồ sơ gần nhất đã tính xong (kể cả khi tasteCache đã bị xoá do vừa nghe bài)
+function tasteSaved(){ try{ const o=JSON.parse(LS.get(TASTE_KEY,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; }
+// Lấy hồ sơ gu nghe NGAY (đồng bộ, không chờ mạng) để vẽ Home tức thì; null nếu chưa có gì.
+function tasteQuick(){ return (tasteCache&&tasteCache.v)||tasteLast||tasteSaved(); }
 async function tasteProfile(){
   if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
-  const tk='muse_taste3_dev';
-  const saved=()=>{ try{ const o=JSON.parse(LS.get(tk,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; };
+  const tk=TASTE_KEY;
+  const saved=tasteSaved;
   const empty=buildProfile({},{},new Set(),0);
   const got=await Promise.race([
     Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
@@ -4373,7 +4378,7 @@ async function tasteProfile(){
     const gk=Object.entries(gc).sort((x,y)=>y[1]-x[1]), gs={}; gk.slice(0,12).concat(gk.slice(-3).filter(x=>x[1]<0)).forEach(([k,v])=>{ gs[k]=v; });
     LS.set(tk,JSON.stringify({gc:gs,ac:keep,n:all.length}));
   }catch{}
-  const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; return v;
+  const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; tasteLast=v; return v;
 }
 const strHash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
 const rngMake=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; };
@@ -4630,7 +4635,14 @@ const pages={
     tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeTg=''; homeCi=+b.dataset.m; go('home'); });
     const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
     let taste=buildProfile({},{},new Set(),0);
-    if(ci===0){ try{ taste=await tasteProfile(); }catch{} }
+    if(ci===0){
+      const q=tasteQuick();
+      if(q){ taste=q; tasteProfile().catch(()=>{}); } // đã có hồ sơ: vẽ Home ngay, cập nhật hồ sơ ngầm cho lần sau
+      else{ // lần đầu/chưa có hồ sơ: hiện khung chờ ngay thay vì để nguyên trang cũ
+        m.innerHTML='<section class="sec"><div class="sh"><div><h3>&nbsp;</h3></div></div>'+skel(7)+'</section><section class="sec"><div class="sh"><div><h3>&nbsp;</h3></div></div>'+skel(7)+'</section>';
+        try{ taste=await tasteProfile(); }catch{}
+      }
+    }
     if(page!=='home') return;
     homeTg='';
     const tgMode=false;
