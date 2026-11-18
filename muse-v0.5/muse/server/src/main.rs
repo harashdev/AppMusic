@@ -492,6 +492,10 @@ async fn run_audio_only() {
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
             .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
             .build()
             .expect("không tạo được HTTP client"),
         http_proxy: None,
@@ -794,6 +798,10 @@ async fn run_gateway(remote: String) {
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
             .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
             .build()
             .expect("không tạo được HTTP client"),
         http_proxy: None,
@@ -803,6 +811,11 @@ async fn run_gateway(remote: String) {
         pair_codes: Arc::new(Mutex::new(HashMap::new())),
         gateway: Some(Arc::new(Gateway { remote: remote.clone(), client: gateway_client(), explicit: Mutex::new(HashMap::new()) })),
     };
+    // Làm nóng kết nối tới YouTube ngay khi cổng nhà lên (DNS + TLS), để bài đầu tiên không phải trả thêm vài lượt bắt tay.
+    {
+        let c = st.http.clone();
+        tokio::spawn(async move { warm_youtube(&c).await });
+    }
     let router = yt_routes()
         .route("/api/local/open", post(local_open))
         .route("/api/local/list", get(local_list))
@@ -822,6 +835,14 @@ async fn run_gateway(remote: String) {
     };
     println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
     axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
+}
+
+// Mở sẵn kết nối tới các máy chủ YouTube dùng khi lấy nhạc; kết quả bỏ qua (lỗi mạng cũng không sao).
+async fn warm_youtube(c: &reqwest::Client) {
+    let one = |u: &'static str| async move {
+        let _ = c.get(u).timeout(Duration::from_secs(6)).send().await;
+    };
+    tokio::join!(one("https://youtubei.googleapis.com/generate_204"), one("https://www.youtube.com/generate_204"));
 }
 
 // ===== Thư mục nhạc của app (chỉ có ở cổng nhà chạy trên máy người dùng) =====
@@ -1128,6 +1149,10 @@ async fn main() {
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
             .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
             .build()
             .expect("không tạo được HTTP client"),
         http_proxy: std::env::var("YT_PROXY")
