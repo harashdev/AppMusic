@@ -279,6 +279,63 @@ mod gateway {
     pub const PORT: u16 = 38417;
     pub struct GatewayChild(pub Mutex<Option<Child>>);
 
+    // Provider PO token (bgutil-pot, tuỳ chọn): có file `bgutil-pot(.exe)` cạnh app thì tự bật ở 127.0.0.1:4416 để yt-dlp
+    // (khi các client YouTube viết tay bị chặn) có token và khỏi bị 403/"not a bot". Thiếu file thì bỏ qua, không ảnh hưởng gì.
+    // yt-dlp cần thêm plugin bgutil (thư mục `yt-dlp-plugins` cạnh yt-dlp.exe) thì mới dùng được token này.
+    pub const POT_PORT: u16 = 4416;
+    static POT_CHILD: Mutex<Option<Child>> = Mutex::new(None);
+
+    fn pot_up() -> bool {
+        TcpStream::connect_timeout(&SocketAddr::from(([127, 0, 0, 1], POT_PORT)), Duration::from_millis(250)).is_ok()
+    }
+
+    /// Trả về true nếu provider đang chạy (do app bật hoặc đã có sẵn).
+    fn start_pot(dir: &std::path::Path) -> bool {
+        if pot_up() {
+            return true;
+        }
+        let exe = dir.join(if cfg!(windows) { "bgutil-pot.exe" } else { "bgutil-pot" });
+        if !exe.is_file() {
+            return false;
+        }
+        let mut cmd = Command::new(&exe);
+        cmd.arg("server")
+            .arg("--host")
+            .arg("127.0.0.1")
+            .arg("--port")
+            .arg(POT_PORT.to_string())
+            .current_dir(dir)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x0800_0000);
+        }
+        let Ok(child) = cmd.spawn() else { return false };
+        if let Ok(mut g) = POT_CHILD.lock() {
+            *g = Some(child);
+        }
+        // Chờ tối đa ~2s cho provider mở cổng (không chặn lâu: nhạc vẫn phát bằng các client khác).
+        let t0 = Instant::now();
+        while t0.elapsed() < Duration::from_secs(2) {
+            if pot_up() {
+                return true;
+            }
+            std::thread::sleep(Duration::from_millis(100));
+        }
+        pot_up()
+    }
+
+    pub fn stop_pot() {
+        if let Ok(mut g) = POT_CHILD.lock() {
+            if let Some(mut c) = g.take() {
+                let _ = c.kill();
+            }
+        }
+    }
+
     fn up() -> bool {
         TcpStream::connect_timeout(&SocketAddr::from(([127, 0, 0, 1], PORT)), Duration::from_millis(250)).is_ok()
     }
@@ -317,6 +374,9 @@ mod gateway {
         let mut cmd = Command::new(&exe);
         if ytdlp.is_file() {
             cmd.env("YTDLP_PATH", &ytdlp);
+            if start_pot(&dir) {
+                cmd.env("YT_POT_URL", format!("http://127.0.0.1:{POT_PORT}"));
+            }
         }
         // Khoá mã ghép admin: ghi cùng một chuỗi (>= 24 ký tự) vào file admin-pair-key.txt cạnh app, và đặt ADMIN_PAIR_KEY y hệt ở server chính.
         if let Ok(k) = std::fs::read_to_string(dir.join("admin-pair-key.txt")) {
@@ -452,6 +512,7 @@ pub fn run() {
             #[cfg(desktop)]
             if let tauri::RunEvent::Exit = _event {
                 use tauri::Manager;
+                gateway::stop_pot();
                 if let Some(g) = _app.try_state::<gateway::GatewayChild>() {
                     if let Ok(mut c) = g.0.lock() {
                         if let Some(mut ch) = c.take() {
