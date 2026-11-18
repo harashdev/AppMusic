@@ -6258,33 +6258,56 @@ async fn probe_range(client: &reqwest::Client, url: &str, ua: &str, start: u64, 
     None
 }
 
+// Dò một đoạn nhỏ ở sâu trong file (link thiếu PO token thường chết ở đây).
+async fn deep_check(client: &reqwest::Client, url: &str, ua: &str, size: u64, at: u64) -> Result<(), String> {
+    if at <= 1024 || at + 16 >= size {
+        return Ok(());
+    }
+    match probe_range(client, url, ua, at, at + 15).await {
+        Some((m, _)) if m > 0 => Ok(()),
+        Some(_) => Err(format!("link trả dữ liệu rỗng ở byte {at}")),
+        None => Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
+    }
+}
+
 // Tải thử link trước khi tin nó (giống NativeYt.verified bên Android). Client cần PO token vẫn trả link nhưng link đó 403
 // khi tải, hoặc chỉ tải được ~1MB đầu rồi chết. Bản cũ tin link đó nên cuộc đua chọn nhầm client hỏng và nhạc dừng giữa chừng.
 // Trả về dung lượng thật của luồng (lấy từ Content-Range nếu client không báo).
 async fn verify_link(client: &reqwest::Client, url: &str, ua: &str, size_hint: u64) -> Result<u64, String> {
+    // YouTube thường báo sẵn contentLength: biết dung lượng rồi thì chạy CẢ 3 lần dò (đầu, sâu, cuối) cùng lúc
+    // thay vì dò đầu xong mới dò tiếp – bớt hẳn một lượt chờ mạng (đáng kể khi IP nhà ở xa máy chủ Google).
+    if size_hint > 0 {
+        let size = size_hint;
+        let (p0, r1, r2) = tokio::join!(
+            probe_range(client, url, ua, 0, 1023),
+            deep_check(client, url, ua, size, AUDIO_DEEP_PROBE),
+            deep_check(client, url, ua, size, size.saturating_sub(64 * 1024))
+        );
+        let Some((n, _)) = p0 else {
+            return Err("link không tải được (403/hết hạn/cần PO token)".to_string());
+        };
+        if n == 0 {
+            return Err("link trả dữ liệu rỗng".to_string());
+        }
+        r1?;
+        r2?;
+        return Ok(size);
+    }
+    // Không có dung lượng báo sẵn: dò đầu để lấy dung lượng từ Content-Range, rồi mới dò sâu (hai lần dò sau chạy song song).
     let Some((n, total)) = probe_range(client, url, ua, 0, 1023).await else {
         return Err("link không tải được (403/hết hạn/cần PO token)".to_string());
     };
     if n == 0 {
         return Err("link trả dữ liệu rỗng".to_string());
     }
-    let size = if size_hint > 0 { size_hint } else { total.unwrap_or(0) };
+    let size = total.unwrap_or(0);
     if size == 0 {
         return Err("không biết dung lượng luồng".to_string());
     }
-    // Link thiếu PO token qua được 1KB đầu nhưng chết ở sâu hơn: thử thêm một đoạn ở ~1.5MB và một đoạn gần cuối file.
-    // Hai lần dò chạy SONG SONG (trước đây tuần tự, mỗi lần tới 8s×2 khi link chết → chờ rất lâu).
-    let chk = |at: u64| async move {
-        if at <= 1024 || at + 16 >= size {
-            return Ok(());
-        }
-        match probe_range(client, url, ua, at, at + 15).await {
-            Some((m, _)) if m > 0 => Ok(()),
-            Some(_) => Err(format!("link trả dữ liệu rỗng ở byte {at}")),
-            None => Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
-        }
-    };
-    let (r1, r2) = tokio::join!(chk(AUDIO_DEEP_PROBE), chk(size.saturating_sub(64 * 1024)));
+    let (r1, r2) = tokio::join!(
+        deep_check(client, url, ua, size, AUDIO_DEEP_PROBE),
+        deep_check(client, url, ua, size, size.saturating_sub(64 * 1024))
+    );
     r1?;
     r2?;
     Ok(size)
