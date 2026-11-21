@@ -7186,7 +7186,7 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                 let is_warm = start == 0 && end_req == Some(1);
                 if let Some(age) = audio_dead_age(&id) {
                     // Bài vừa bị chặn ở mọi nguồn: báo lỗi ngay (tải trước: nhớ 10 phút; người dùng bấm thật: 15 giây rồi cho thử lại).
-                    let keep: u64 = if is_warm { 600 } else { 15 };
+                    let keep: u64 = if is_warm { 600 } else { 120 }; // bài vừa bị chặn: không hỏi lại YouTube trong 2 phút (mỗi lần hỏi là thêm 1 lượt bị gắn cờ)
                     if age < keep {
                         dbg_log(&format!("[AUDIO] id={id} bỏ_qua (vừa bị chặn {age}s trước) warm={is_warm}"));
                         return (StatusCode::BAD_GATEWAY, "Bài này đang bị YouTube chặn, thử lại sau ít phút".to_string()).into_response();
