@@ -1594,7 +1594,8 @@ async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std
     if username.len() < 3 || username.len() > 24 || !username.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
         return Err(bad("Tên đăng nhập 3-24 ký tự: chữ, số hoặc _"));
     }
-    if is_reserved_name(&username) || r.display_name.as_deref().map(is_reserved_name).unwrap_or(false) {
+    // Chỉ tên ĐĂNG NHẬP mới bị giữ chỗ / phải duy nhất; tên hiển thị thì ai cũng đặt trùng được.
+    if is_reserved_name(&username) {
         return Err((StatusCode::CONFLICT, "Tên đăng nhập đã tồn tại".into()));
     }
     if r.password.len() < 8 || r.password.len() > 128 {
@@ -1706,9 +1707,6 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
     let name: String = r.display_name.trim().chars().take(24).collect();
     if name.is_empty() {
         return Err(bad("Tên hiển thị không được trống"));
-    }
-    if !user.is_admin && is_reserved_name(&name) {
-        return Err((StatusCode::CONFLICT, "Tên hiển thị này đã được đặt trước".into()));
     }
     let a = &r.accent;
     if a.len() != 7 || !a.starts_with('#') || !a[1..].chars().all(|c| c.is_ascii_hexdigit()) {
@@ -2749,9 +2747,6 @@ async fn account_name(State(st): State<AppState>, headers: HeaderMap, Json(r): J
     let name: String = r.display_name.chars().filter(|c| !c.is_control()).collect::<String>().trim().chars().take(24).collect();
     if name.is_empty() {
         return Err(bad("Tên hiển thị không được trống"));
-    }
-    if !user.is_admin && is_reserved_name(&name) {
-        return Err((StatusCode::CONFLICT, "Tên hiển thị này đã được đặt trước".into()));
     }
     let db = st.db.lock().unwrap();
     db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, user.id]).map_err(|_| e500())?;
