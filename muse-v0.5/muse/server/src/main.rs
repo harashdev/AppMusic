@@ -725,6 +725,9 @@ async fn dbg_req_timing(req: Request<Body>, next: Next) -> Response {
     let t = std::time::Instant::now();
     let res = next.run(req).await;
     let ms = t.elapsed().as_millis();
+    if path == "/api/local/list" && ms < 1500 && res.status().is_success() {
+        return res; // giao diện hỏi mục này mỗi 4 giây: bỏ khỏi log cho đỡ rác
+    }
     let kind = if path.starts_with("/api/yt/") || path == "/api/img" { "yt" } else { "fwd" };
     dbg_log(&format!("[REQ] {kind} {method} {path} -> {} ttfb={ms}ms{}", res.status().as_u16(), if ms >= 1500 { "  <<< CHẬM" } else { "" }));
     res
@@ -6821,6 +6824,23 @@ async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_prox
 // Link yt-dlp trả về (-g) gắn với client / header / PO token của chính yt-dlp, nên khi server tự tải bằng reqwest
 // thì googlevideo hay trả 403. Cách chắc nhất: cho yt-dlp tải file âm thanh về thư mục tạm rồi phát từ file đó.
 static YTDLP_DL_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+// yt-dlp đang bận tải một bài khác? (dùng để yêu cầu "tải trước" không xếp hàng chen trước bài người dùng thật sự bấm)
+fn ytdlp_busy() -> bool {
+    YTDLP_DL_LOCK.get().map(|l| l.try_lock().is_err()).unwrap_or(false)
+}
+// Bài vừa bị YouTube chặn ở MỌI nguồn: nhớ lại để không thử đi thử lại (mỗi lần thử tốn 4-20 giây và giữ chỗ của yt-dlp).
+static AUDIO_DEAD: std::sync::OnceLock<Mutex<HashMap<String, u64>>> = std::sync::OnceLock::new();
+fn audio_dead_age(id: &str) -> Option<u64> {
+    let m = AUDIO_DEAD.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    m.get(id).map(|t| now_secs().saturating_sub(*t))
+}
+fn audio_dead_set(id: &str) {
+    let mut m = AUDIO_DEAD.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    if m.len() > 500 {
+        m.clear();
+    }
+    m.insert(id.to_string(), now_secs());
+}
 
 fn audio_cache_dir() -> PathBuf {
     std::env::temp_dir().join("muse-audio")
@@ -7162,6 +7182,20 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
         let (url, size, mime, ci) = match cached {
             Some((u, s, m, _, ci)) => (u, s, m, ci),
             None => {
+                // "Tải trước" của giao diện luôn là Range bytes=0-1; bài người dùng bấm phát thì không phải. Tải trước chỉ là tiện, không được làm chậm bài thật.
+                let is_warm = start == 0 && end_req == Some(1);
+                if let Some(age) = audio_dead_age(&id) {
+                    // Bài vừa bị chặn ở mọi nguồn: báo lỗi ngay (tải trước: nhớ 10 phút; người dùng bấm thật: 15 giây rồi cho thử lại).
+                    let keep: u64 = if is_warm { 600 } else { 15 };
+                    if age < keep {
+                        dbg_log(&format!("[AUDIO] id={id} bỏ_qua (vừa bị chặn {age}s trước) warm={is_warm}"));
+                        return (StatusCode::BAD_GATEWAY, "Bài này đang bị YouTube chặn, thử lại sau ít phút".to_string()).into_response();
+                    }
+                }
+                if is_warm && ytdlp_ready() && ytdlp_busy() {
+                    dbg_log(&format!("[AUDIO] id={id} bỏ_qua tải trước (yt-dlp đang bận)"));
+                    return StatusCode::SERVICE_UNAVAILABLE.into_response();
+                }
                 // Chỉ một yêu cầu cho mỗi bài đi lấy luồng; yêu cầu đến sau chờ rồi dùng luôn kết quả trong cache.
                 let gate = audio_gate(&ckey);
                 let _gate_guard = gate.lock().await;
@@ -7231,6 +7265,7 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                         if notes.is_empty() {
                             notes = "mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút".to_string();
                         }
+                        audio_dead_set(&id);
                         return (StatusCode::BAD_GATEWAY, notes).into_response();
                     }
                 }
