@@ -298,34 +298,54 @@ mod gateway {
         if !exe.is_file() {
             return false;
         }
-        let mut cmd = Command::new(&exe);
-        cmd.arg("server")
-            .arg("--host")
-            .arg("127.0.0.1")
-            .arg("--port")
-            .arg(POT_PORT.to_string())
-            .current_dir(dir)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null());
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            cmd.creation_flags(0x0800_0000);
-        }
-        let Ok(child) = cmd.spawn() else { return false };
-        if let Ok(mut g) = POT_CHILD.lock() {
-            *g = Some(child);
-        }
+        // Tuỳ bản bgutil-pot mà cờ --host có hay không: thử có --host (chỉ nghe 127.0.0.1) trước, không chạy được thì thử chỉ --port.
+        let mk = |with_host: bool| {
+            let mut cmd = Command::new(&exe);
+            cmd.arg("server");
+            if with_host {
+                cmd.arg("--host").arg("127.0.0.1");
+            }
+            cmd.arg("--port")
+                .arg(POT_PORT.to_string())
+                .current_dir(dir)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                cmd.creation_flags(0x0800_0000);
+            }
+            cmd
+        };
+        let mut cmd = mk(true);
+        let Ok(mut child) = cmd.spawn() else { return false };
         // Chờ tối đa ~2s cho provider mở cổng (không chặn lâu: nhạc vẫn phát bằng các client khác).
         let t0 = Instant::now();
-        while t0.elapsed() < Duration::from_secs(2) {
+        let mut retried = false;
+        while t0.elapsed() < Duration::from_secs(3) {
             if pot_up() {
-                return true;
+                break;
+            }
+            if !retried && matches!(child.try_wait(), Ok(Some(_))) {
+                // thoát ngay = có thể không hiểu --host → chạy lại chỉ với --port
+                retried = true;
+                match mk(false).spawn() {
+                    Ok(c) => child = c,
+                    Err(_) => return false,
+                }
             }
             std::thread::sleep(Duration::from_millis(100));
         }
-        pot_up()
+        let ok = pot_up();
+        if ok {
+            if let Ok(mut g) = POT_CHILD.lock() {
+                *g = Some(child);
+            }
+        } else {
+            let _ = child.kill();
+        }
+        ok
     }
 
     pub fn stop_pot() {
