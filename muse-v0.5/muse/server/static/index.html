@@ -5631,7 +5631,8 @@ function failSkip(t){
     adminNotify('Nguồn nhạc đang khởi động – thử lại bài này…');
     setTimeout(()=>{ if(cur===t&&!everPlayed) loadTrack(t,0,true); },Math.min(5000,1000*k)); return; }
   const n=Date.now(); failSkips=failSkips.filter(x=>n-x<90000); failSkips.push(n);
-  if(failSkips.length>3){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Nhiều bài liên tiếp không phát được nên đã dừng – kiểm tra mạng rồi bấm Phát'); return; }
+  // Chỉ tự nhảy qua 1 bài hỏng; bài kế cũng hỏng thì DỪNG (thường do YouTube chặn IP/đòi đăng nhập – nhảy tiếp chỉ làm app chạy loạn).
+  if(failSkips.length>1){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Không phát được bài này (YouTube đang chặn – cần đăng nhập/cookies cho yt-dlp). Đã dừng, không tự nhảy bài nữa.'); return; }
   if(queue.length>1) nextTrack(true); else setPlaying(false);
 }
 function ytHideNow(keep,hold){ if(hold) ytHold=Date.now()+hold; clearTimeout(ytLiveTm); ytLiveTm=0; if(!keep) ytSeen=false; const yb=document.getElementById('ytbox'); if(yb){ yb.style.transition='none'; yb.classList.remove('live'); void yb.offsetWidth; yb.style.transition=''; } }
@@ -5775,7 +5776,7 @@ audYt.addEventListener('ended',()=>{
   if(t&&d>15&&el.currentTime>1&&el.currentTime<d-5&&(earlyEnd[t.id]||0)<3){
     earlyEnd[t.id]=(earlyEnd[t.id]||0)+1; midAt[t.id]=el.currentTime; loadTrack(t,el.currentTime,true); return; }
   playing=false; onEnded(); });
-audYt.addEventListener('playing',()=>{ everPlayed=true; });
+audYt.addEventListener('playing',()=>{ everPlayed=true; failSkips=[]; });
 audYt.addEventListener('timeupdate',()=>{ const t=cur; if(!t||eng!=='fx') return; const m=midAt[t.id];
   if(m!==undefined&&audYt.currentTime>m+8){ delete midAt[t.id]; midTries[t.id]=0; earlyEnd[t.id]=0; } });
 aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } });
