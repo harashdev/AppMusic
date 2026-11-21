@@ -24,7 +24,11 @@
     "externalBin": [
       "binaries/muse-server",
       "binaries/yt-dlp",
-      "binaries/deno"
-    ]
+      "binaries/deno",
+      "binaries/bgutil-pot"
+    ],
+    "resources": {
+      "binaries/yt-dlp-plugins/": "yt-dlp-plugins/"
+    }
   }
 }
