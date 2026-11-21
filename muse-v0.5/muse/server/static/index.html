@@ -168,6 +168,12 @@ body.side-min .sbh,body.side-min .sbf button{display:none}
 .roompill{background:var(--hover2);font-size:13px}
 #meAv{cursor:pointer;flex:none;border-radius:50%}
 #top .rb{width:44px;height:44px;background:var(--hover2)}
+.roompill{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#top.tn{flex-wrap:wrap;row-gap:8px;gap:8px}
+#top.tn .sp{display:block;flex:1 1 0}
+#top.tn #topChips{order:5;flex:0 0 100%;width:100%;padding:2px 0}
+#top.tn .rb{width:40px;height:40px}
+#top.tn #meAv .av,#top.tn #meAv img{width:40px;height:40px}
 #main{flex:1;overflow:auto;padding:8px 24px 28px;scrollbar-width:thin}
 body.has-cur #main{padding-bottom:116px}
 #main h2{margin:6px 0 16px;font-size:30px;letter-spacing:-.01em}
@@ -1714,6 +1720,170 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     [/^(Thích|Không thích) (\d.*)$/,(m)=>(m[1]==='Thích'?'Likes ':'Dislikes ')+m[2]]
   ];
 
+  /* ===== Bổ sung bản dịch English còn thiếu (khớp cả câu; khoá dài ≥5 ký tự còn được dùng để thay từng cụm trong câu ghép) ===== */
+  const EN_EXTRA={
+    'Quét QR':'Scan QR','Chế độ tối':'Dark mode',
+    'Không mở được trình duyệt – đã chép link:':'Couldn’t open the browser – link copied:','Không mở được trình duyệt, link:':'Couldn’t open the browser, link:',
+    'tải thành công':'uploaded successfully','Yêu cầu không hợp lệ':'Invalid request',
+    'Máy chủ phản hồi quá lâu, hãy bấm Lưu lại (ảnh GIF nặng có thể cần thu nhỏ trước)':'The server took too long to respond, tap Save again (large GIFs may need to be resized first)',
+    'Máy chủ phản hồi quá lâu, hãy thử ảnh nhẹ hơn rồi bấm Lưu lại':'The server took too long to respond, try a smaller image and tap Save again',
+    'Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.':'On a device already signed in to BBeat, go to Settings → Scan login QR, then scan this code.',
+    'Đang tạo mã…':'Generating code…','Mã đã hết hạn.':'Code expired.','Không tạo được mã QR – kiểm tra mạng.':'Couldn’t generate the QR code – check your connection.',
+    'Đang chờ quét… (mã có hiệu lực 3 phút)':'Waiting for scan… (code valid for 3 minutes)',
+    'Không đăng nhập được admin':'Couldn’t log in as admin','Không đăng nhập được':'Couldn’t log in','Đang đăng nhập…':'Logging in…','hết phiên':'session expired',
+    'Hãy đăng nhập để tạo mã ghép':'Log in to create a pairing code',
+    'Nhập lại mật khẩu để xác nhận. Mã 6 số dùng một lần, hết hạn sau 5 phút, cho phép một thiết bị khác vào tài khoản này mà không cần mật khẩu.':'Re-enter your password to confirm. The 6-digit one-time code expires after 5 minutes and lets another device into this account without a password.',
+    'Hãy nhập mật khẩu':'Enter your password','Nhập mật khẩu để xác nhận':'Enter your password to confirm',
+    'Nhập mã này (hoặc quét QR) ở màn hình đăng nhập của thiết bị kia. Mã chỉ dùng được một lần.':'Enter this code (or scan the QR) on the other device’s login screen. The code can only be used once.',
+    'Mã đã hết hạn — đóng rồi tạo lại.':'Code expired — close and generate a new one.','Không tạo được mã':'Couldn’t generate the code',
+    'Đã chép mã ghép':'Pairing code copied','Mã ghép:':'Pairing code:','Đăng nhập thiết bị khác?':'Log in on another device?',
+    'Một thiết bị đang xin đăng nhập vào tài khoản “':'A device is asking to log in to the account “','”. Chỉ cho phép nếu chính bạn vừa mở mã QR đó.':'”. Only allow this if you just opened that QR code yourself.',
+    'Đã cho phép thiết bị kia đăng nhập':'The other device is now allowed to log in','Mã QR đã hết hạn, hãy tạo mã mới ở thiết bị kia':'The QR code expired, create a new one on the other device',
+    'Máy này chưa hỗ trợ quét QR trong app. Hãy dùng camera điện thoại quét mã rồi mở liên kết bằng BBeat.':'This device doesn’t support QR scanning in the app. Use your phone camera to scan the code, then open the link with BBeat.',
+    'Chưa cấp quyền camera cho BBeat':'Camera permission hasn’t been granted to BBeat','Đưa mã QR ở màn hình đăng nhập của thiết bị kia vào khung hình.':'Point the camera at the QR code on the other device’s login screen.',
+    'Hãy đăng nhập để quét QR':'Log in to scan a QR code',
+    'Chỉnh sửa hồ sơ':'Edit profile','Đổi kiểu thẻ':'Change card style','Hãy đăng nhập để dùng thẻ chia sẻ':'Log in to use the share card',
+    'Chép ảnh':'Copy image','Đổi hình':'Change image','Hình mặc định':'Default image','Chỉnh chữ':'Adjust text','Tải ảnh':'Download image','Màu':'Color','Độ đậm':'Weight','Độ rõ':'Opacity','Cỡ chữ':'Font size','Đặt lại chữ này':'Reset this text',
+    'Tên':'Name','Số':'Number','Ngày':'Date',
+    'THÀNH VIÊN LỚN':'PREMIUM MEMBER','THÀNH VIÊN NHỎ':'BASIC MEMBER','Thành viên lớn':'Premium member','Thành viên nhỏ':'Basic member',
+    'Hãy chọn file ảnh':'Please choose an image file','Ảnh tối đa 10MB':'Max image size 10MB','Máy không đủ chỗ lưu hình này':'Not enough storage on this device for this image','mặc định':'default',
+    'Đang tạo link…':'Creating link…','Đã chép link + ảnh thẻ':'Copied link + card image','Đã chép ảnh thẻ':'Copied card image','Đã chép link thẻ':'Copied card link','Link thẻ của bạn':'Your card link','Không tạo được link, thử lại nhé':'Couldn’t create the link, try again',
+    'Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh':'Your browser doesn’t allow copying images — tap Download image',
+    'Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.':'Couldn’t create the image (a background from another site blocks export). Use an uploaded banner instead.',
+    'Mới nghe':'Newcomer','Tập sự':'Apprentice','Mê nhạc':'Music lover','Sành nghe':'Connoisseur','Cao thủ':'Expert','Bậc thầy':'Master','Huyền thoại':'Legend',
+    'Đã nghe':'Listened','Đã đạt cấp cao nhất':'Max level reached','trên BBeat':'on BBeat','Không tìm thấy thẻ này':'Card not found','Thẻ danh tính':'ID card',
+    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
+    'Chưa có playlist nào.':'No playlists yet.','Thêm ›':'More ›','Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.':'You haven’t liked any songs yet. Tap ♡ on a song to add it here.','Nhạc đã thích':'Liked music',
+    'Đã chép UID':'UID copied','Đã lưu tên hiển thị':'Display name saved','Không lưu được':'Couldn’t save','Không gửi được lời mời':'Couldn’t send the invite','Không mở được':'Couldn’t open',
+    'Đăng nhập để chỉnh sửa hồ sơ':'Log in to edit your profile','Biệt danh':'Nickname','Đã lưu biệt danh':'Nickname saved','Chữ ký cá nhân':'Bio','Đã lưu chữ ký':'Bio saved',
+    'Anime opening hay nhất':'Best anime openings','Anime ending cảm xúc':'Emotional anime endings','Nhạc Nhật':'Japanese music','J-Pop thịnh hành':'Trending J-Pop','City Pop Nhật Bản':'Japanese City Pop','Rock Nhật':'Japanese rock',
+    'Nhạc Hoa hay nhất':'Best Chinese music','C-Pop thịnh hành':'Trending C-Pop','Nhạc Hoa lời Việt':'Chinese songs with Vietnamese lyrics','K-Pop thịnh hành':'Trending K-Pop','K-Pop thế hệ mới':'New-gen K-Pop',
+    'Chill buổi tối':'Evening chill','Bolero hay nhất':'Best Bolero','Nhạc vàng bất hủ':'Timeless “nhạc vàng”','Trữ tình quê hương':'Hometown ballads','Ballad / Buồn':'Ballad / Sad','Piano / Không lời':'Piano / Instrumental',
+    'Indie Việt':'Vietnamese indie','Nhạc xưa bất hủ':'Timeless oldies','Viral mạng xã hội':'Viral on social media','Pop Âu Mỹ':'Western pop','Jazz nhẹ nhàng':'Smooth jazz','Nhạc phim & OST':'Movie music & OST',
+    'Đã làm mới gợi ý':'Suggestions refreshed','Đang hòa trộn…':'Blending…','Thịnh hành hôm nay':'Trending today',
+    'Khách không thể chỉnh sửa hồ sơ. Đăng nhập (hoặc tạo tài khoản) để đổi avatar, banner, nền và màu chủ đạo.':'Guests can’t edit profiles. Log in (or create an account) to change your avatar, banner, background and accent color.',
+    'Đổi tên hiển thị':'Change display name','Chọn màu khác':'Pick another color','Chạm để thêm trạng thái':'Tap to add a status','Chưa lưu thay đổi':'Unsaved changes','Chưa có ảnh banner để căn chỉnh':'No banner image to adjust yet',
+    'Ảnh nền':'Background image','Không nhận video (mp4) làm avatar':'Videos (mp4) can’t be used as an avatar','Đang nén ảnh…':'Compressing image…','(máy chủ đang xử lý)':'(server is processing)','Lượt thích':'Likes',
+    'Đăng nhập BBeat trên thiết bị khác: quét mã QR hiện ở màn hình đăng nhập của nó.':'Sign in to BBeat on another device: scan the QR code shown on its login screen.',
+    'Hiệu năng':'Performance','Ảnh động (GIF)':'Animated images (GIF)',
+    'Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định bật; máy yếu bị giật thì tắt ở đây.':'Lets GIF avatars, banners and backgrounds animate. Turn off to save battery and avoid lag (the first frame is shown; tap the image to still see the animation). On by default; turn it off here if your device stutters.',
+    'Nguồn nhạc':'Music source','Đang dùng IP riêng của máy này':'Using this device’s own IP',
+    'Tìm kiếm, album và luồng nhạc YouTube đi thẳng từ máy bạn (cổng nhà 127.0.0.1:38417); server chính chỉ lưu tài khoản, bạn bè, avatar và banner.':'Search, albums and YouTube audio go straight from your device (home gateway 127.0.0.1:38417); the main server only stores accounts, friends, avatars and banners.',
+    'IP nhà':'Home IP','Phát bằng luồng IP riêng':'Play via own-IP stream',
+    'Giống app Android: phát qua luồng âm thanh của máy thay vì player YouTube. Luồng lỗi thì tự quay về player YouTube. Tắt nếu muốn luôn dùng player YouTube.':'Like the Android app: plays through your device’s audio stream instead of the YouTube player. If the stream fails it falls back to the YouTube player. Turn off to always use the YouTube player.',
+    'Phát video của nhạc':'Play music videos',
+    'Bật để tự động hiện video YouTube của mọi bài hát thay cho ảnh bìa. Tắt (mặc định) thì chỉ nghe âm thanh; muốn xem video của một bài thì bấm dấu ba chấm → Hiện video (video không hiện khi đang dùng Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy)':'Turn on to automatically show the YouTube video of every song instead of the cover art. When off (default) you only hear audio; to watch a song’s video tap the three dots → Show video (video isn’t shown while using the Equalizer, Delay, Reverb or Proxy)',
+    'Quản trị':'Admin','Bài kế tiếp sẽ phát bằng luồng IP riêng':'The next song will play via the own-IP stream','Bài kế tiếp sẽ phát bằng player YouTube':'The next song will play via the YouTube player',
+    'Link này không chứa danh sách phát (thiếu list=…)':'This link doesn’t contain a playlist (missing list=…)',
+    'Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…':'This is a YouTube auto-generated Mix (list=RD…) and can’t be imported. Use a link like youtube.com/playlist?list=PL…',
+    'Đang kiểm tra link và yêu cầu YouTube…':'Checking the link and asking YouTube…','Đang đọc playlist và tìm từng bài trên YouTube Music… (có thể mất vài chục giây)':'Reading the playlist and finding each song on YouTube Music… (may take a few dozen seconds)',
+    'bài không tìm thấy trên YouTube Music, rê chuột vào đây để xem)':'songs not found on YouTube Music, hover here to see)','Chỉ nhập 300 bài đầu tiên.':'Only the first 300 songs were imported.',
+    'Không khớp:':'No match:','Nhập thất bại:':'Import failed:','Máy chủ không trả về nội dung lỗi.':'The server returned no error details.','(Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)':'(Open the console / server log for details if needed)',
+    'Đã mở trình duyệt – đăng nhập Discord xong thì quay lại app':'Browser opened – finish logging in to Discord, then come back to the app','Đã liên kết Discord':'Discord linked','Đã kết nối:':'Connected:',
+    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again',
+    'Xóa vĩnh viễn tài khoản “':'Permanently delete account “','"? Toàn bộ dữ liệu sẽ mất và không khôi phục được.':'"? All data will be lost and can’t be recovered.','Xóa':'Delete',
+    'Nghe không cần mạng':'Listen without internet','Đang tìm video…':'Looking for video…',
+    'không có video – phát âm thanh':'has no video – playing audio','Không tìm thấy video cho bài này – phát âm thanh':'No video found for this song – playing audio','không có video':'has no video',
+    'Album này không có video – sẽ phát âm thanh':'This album has no video – audio will play','Đang tìm video cho album…':'Looking for videos for this album…',
+    'Có video cho':'Video found for','bấm phát để xem video, bài nào không có video sẽ phát âm thanh':'tap play to watch the video; songs without a video will play audio',
+    'Kết quả cho “':'Results for “','Hãy đăng nhập để lưu danh sách phát':'Log in to save playlists','khoảng':'about',
+    'đã vào phòng':'joined the room','đã thoát phòng':'left the room','lời mời mới':'new invites','gửi lời mời kết bạn':'sent a friend request','đã chấp nhận lời mời kết bạn':'accepted your friend request','mời bạn nghe nhạc chung':'invited you to listen together',
+    'Đã ẩn “':'Hid “','bài này':'this song','” vì không phát được (đang ẩn':'” because it can’t be played (hiding','bài, tự hiện lại sau 12 giờ)':'songs, they reappear after 12 hours)',
+    'Nguồn nhạc đang khởi động – thử lại bài này…':'The music source is starting up – retrying this song…',
+    'Không phát được bài này (YouTube đang chặn – cần đăng nhập/cookies cho yt-dlp). Đã dừng, không tự nhảy bài nữa.':'Couldn’t play this song (YouTube is blocking it – yt-dlp needs login/cookies). Stopped; not skipping to the next song automatically.',
+    'Player YouTube không phát được bài này – chuyển sang luồng của server':'The YouTube player couldn’t play this song – switching to the server stream',
+    'Không phát được “':'Couldn’t play “','” – chuyển bài kế tiếp':'” – skipping to the next song',
+    'IndexedDB không khả dụng':'IndexedDB isn’t available','IndexedDB lỗi':'IndexedDB error',
+    'Bản lưu offline bị lỗi – hãy tải lại bài này':'The offline copy is corrupted – download this song again',
+    'Nhạc bị đứng – đang tải lại…':'Playback stalled – reloading…','Nhạc bị đứng – thử lại…':'Playback stalled – retrying…',
+    'Luồng server bị đứng – chuyển sang player YouTube':'The server stream stalled – switching to the YouTube player','Player YouTube bị đứng – chuyển sang luồng của server':'The YouTube player stalled – switching to the server stream',
+    'Không bật được hiệu ứng âm thanh cho bài này':'Couldn’t enable audio effects for this song','Đã bỏ theo dõi':'Unfollowed','Bỏ theo dõi':'Unfollow',
+    'Chưa có dữ liệu. Nghe vài bài rồi quay lại đây nhé.':'No data yet. Listen to a few songs, then come back.','Phát nhiều nhất':'Most played',
+    'Chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You’re not following any artists. While music is playing, tap “Follow” under the artist’s name.',
+    'Đã bỏ "không thích"':'Dislike removed','Đã ghi nhận: không thích bài này – sẽ ít gợi ý bài tương tự':'Noted: you dislike this song – fewer similar songs will be suggested',
+    'Đang tải':'Downloading','Đang đổi sang WAV…':'Converting to WAV…','Lỗi:':'Error:','không rõ':'unknown','Chưa lưu offline':'Not saved offline','Chưa có bài nào được tải.':'No songs downloaded yet.','Nghệ sĩ - Tên bài':'Artist - Song title',
+    'Đang thêm':'Adding','Bài này đang trong danh sách tải':'This song is already in the download list','Đã thêm vào danh sách tải:':'Added to the download list:','Bài này không có file để tải':'This song has no file to download',
+    'quá thời gian chờ khi lấy nhạc trên máy':'timed out while fetching music on the device','Không lấy được nhạc bằng IP điện thoại:':'Couldn’t fetch the music using the phone’s IP:','không rõ nguyên nhân':'unknown cause',
+    'Đứt kết nối khi đang tải (đã được':'Connection dropped while downloading (got','KB, đã thử lại':'KB, retried','lần)':'times)','Trên máy:':'On device:','Nhận dữ liệu rỗng (HTTP':'Received empty data (HTTP','không có content-range':'no content-range',
+    'không lưu được bản offline trong app (hết bộ nhớ?)':'couldn’t save the offline copy in the app (out of storage?)','quá dài nên giữ định dạng gốc':'too long, keeping the original format','không đổi được sang WAV, đã lưu bản gốc':'couldn’t convert to WAV, saved the original',
+    'Đã tải xong:':'Downloaded:','Không tải được:':'Couldn’t download:','Toàn màn hình (F11)':'Full screen (F11)','Đóng':'Close',
+    'Chưa có bài nào nghe được lúc này':'No playable songs right now','Đã mở thư mục nhạc – thả file nhạc vào đó, app sẽ tự thêm':'Music folder opened – drop music files into it and the app will add them automatically',
+    'Cần có mạng để tải lại':'An internet connection is needed to download again','Bài này chưa lưu offline – hãy tải lại khi có mạng':'This song isn’t saved offline – download it again when you’re online',
+    'Tải về':'Download','về máy?':'to this device?','danh sách':'list','Đã tải xong':'Finished downloading','bài lỗi)':'failed)',
+    'Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album':'The server doesn’t have yt-dlp installed, or yt-dlp failed – keeping the album art','Không phát được video:':'Couldn’t play the video:','định dạng không đọc được':'unreadable format',
+    'server chưa có /api/yt/video (cần dùng main.rs mới)':'the server doesn’t have /api/yt/video yet (use the new main.rs)','Không phát được video: không kết nối được server':'Couldn’t play the video: can’t connect to the server',
+    'vừa xong':'just now','Hãy phát một bài để xem bình luận.':'Play a song to see comments.','Đăng nhập để xem và viết bình luận.':'Log in to view and write comments.','Chưa có bình luận nào cho bài này. Hãy là người đầu tiên!':'No comments on this song yet. Be the first!',
+    'Không gửi được bình luận':'Couldn’t post the comment','Không xoá được':'Couldn’t delete','Đang tải bình luận…':'Loading comments…','Không tải được bình luận.':'Couldn’t load comments.','Tiếp theo ·':'Up next ·',
+    'Không kết nối được Discord:':'Couldn’t connect to Discord:','Đã liên kết Discord:':'Discord linked:','Mã ghép sai hoặc đã hết hạn':'The pairing code is wrong or has expired',
+    'Không kết nối được YouTube Music. Hãy thử lại sau.':'Couldn’t connect to YouTube Music. Please try again later.',
+    'Không kiểm tra được cập nhật:':'Couldn’t check for updates:','Lần kiểm tra cuối vào':'Last checked','Đã gửi lời mời tới':'Invite sent to','khỏi danh sách bạn bè?':'from your friends?',
+    'bài yêu thích,':'favorite songs,'
+  };
+  Object.keys(EN_EXTRA).forEach(k=>{ if(EN_EXACT[k]===undefined) EN_EXACT[k]=EN_EXTRA[k]; });
+  const EN_EXTRA_KEYS=Object.keys(EN_EXTRA).filter(k=>k.length>=5).sort((a,b)=>b.length-a.length);
+  const isLN=c=>!!c&&/[\p{L}\p{N}]/u.test(c);
+  EN_RULES.push(
+    [/^Thư viện của (.+)$/,(m)=>m[1]+'’s library'],
+    [/^Tuyển tập (.+)$/,(m)=>m[1]+' collection'],
+    [/^Bạn & (.+)$/,(m)=>'You & '+m[1]],
+    [/^Hoà trộn gu · (\d+) bài chung$/,(m)=>'Taste blend · '+plural(m[1],'song','songs')+' in common'],
+    [/^Hoà trộn: (.+)$/,(m)=>'Blend: '+m[1]],
+    [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
+    [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you often listen to '+m[1]],
+    [/^Vì bạn nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
+    [/^Dành cho người hâm mộ (.+)$/,(m)=>'For fans of '+m[1]],
+    [/^Nếu bạn thích (.+)$/,(m)=>'If you like '+m[1]],
+    [/^Cùng gu với (.+)$/,(m)=>'Similar to '+m[1]],
+    [/^Fan (.+) cũng nghe$/,(m)=>'Fans of '+m[1]+' also listen to'],
+    [/^(.+) · bài mới$/,(m)=>m[1]+' · new songs'],
+    [/^Mới từ (.+)$/,(m)=>'New from '+m[1]],
+    [/^Khám phá (.+)$/,(m)=>'Discover '+m[1]],
+    [/^Mới ra mắt tháng (\d+)$/,(m)=>'New releases · month '+m[1]],
+    [/^Ảnh nền ([\d.]+)MB vượt quá 10MB, không tải lên được$/,(m)=>'Background image '+m[1]+'MB exceeds 10MB and can’t be uploaded'],
+    [/^Đang lưu… (\d+%)$/,(m)=>'Saving… '+m[1]],
+    [/^Đã lưu ✔ (\d+%)$/,(m)=>'Saved ✔ '+m[1]],
+    [/^Đã nghe ([\d.]+) (phút|giờ)$/,(m)=>'Listened '+m[1]+(m[2]==='phút'?' min':' h')],
+    [/^Còn ([\d.]+) giờ nữa lên (LV\d+) · (.+)$/,(m)=>m[1]+' h left to reach '+m[2]+' · '+tr(m[3])],
+    [/^Đã nhập (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from this device'+(m[2]?' · '+m[2]+' already in the list':'')+(m[3]?' · '+plural(m[3],'bad file','bad files'):'')],
+    [/^Đã thêm (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from this device'+(m[2]?' · '+m[2]+' already in the list':'')+(m[3]?' · '+plural(m[3],'bad file','bad files'):'')],
+    [/^Đang tải (\d+) bài…$/,(m)=>'Downloading '+plural(m[1],'song','songs')+'…'],
+    [/^(\d+) bài nghe được offline$/,(m)=>plural(m[1],'song','songs')+' available offline'],
+    [/^(\d+) bài đã tải$/,(m)=>plural(m[1],'song','songs')+' downloaded'],
+    [/^(\d+) bài · (\d+) bài nghe được khi không có mạng(.*)$/,(m)=>plural(m[1],'song','songs')+' · '+plural(m[2],'song','songs')+' available without internet'+m[3]],
+    [/^Đã thêm (\d+) bài vào danh sách tải xuống$/,(m)=>'Added '+plural(m[1],'song','songs')+' to the download list'],
+    [/^Đã tải xong (\d+)\/(\d+) bài(?: \((\d+) bài lỗi\))?$/,(m)=>'Downloaded '+m[1]+'/'+plural(m[2],'song','songs')+(m[3]?' ('+m[3]+' failed)':'')],
+    [/^Tải (\d+) bài trong "(.*)" về máy\?$/,(m)=>'Download '+plural(m[1],'song','songs')+' in "'+tr(m[2])+'" to this device?'],
+    [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
+    [/^Xóa vĩnh viễn tài khoản "(.+)"\? Toàn bộ dữ liệu sẽ mất và không khôi phục được\.$/,(m)=>'Permanently delete account "'+m[1]+'"? All data will be lost and can’t be recovered.'],
+    [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
+    [/^Có video cho (\d+)\/(\d+) bài – .*$/,(m)=>'Video found for '+m[1]+'/'+m[2]+' songs – tap play to watch the video; songs without a video will play audio'],
+    [/^Đang tìm video cho album… (\d+)\/(\d+)$/,(m)=>'Looking for videos for this album… '+m[1]+'/'+m[2]],
+    [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. Their very best songs, all in one playlist.'],
+    [/^Album "(.+)" không có video – phát âm thanh$/,(m)=>'Album "'+m[1]+'" has no video – playing audio'],
+    [/^Album "(.+)" không có video$/,(m)=>'Album "'+m[1]+'" has no video']
+  );
+  /* Thay từng cụm đã biết trong câu ghép + các số đếm (N bài, N phút, N giờ, N ngày, N nghệ sĩ) */
+  function bbSub(s){
+    let out=s;
+    for(const k of EN_EXTRA_KEYS){
+      let i=out.indexOf(k);
+      while(i!==-1){
+        const a=out[i-1], b=out[i+k.length];
+        if((!isLN(k[0])||!isLN(a))&&(!isLN(k[k.length-1])||!isLN(b))){ const v=EN_EXTRA[k]; out=out.slice(0,i)+v+out.slice(i+k.length); i=out.indexOf(k,i+v.length); }
+        else i=out.indexOf(k,i+1);
+      }
+    }
+    out=out.replace(/(\d+) bài hát/g,(_,n)=>plural(n,'song','songs'))
+           .replace(/(\d+) bài(?![\p{L}])/gu,(_,n)=>plural(n,'song','songs'))
+           .replace(/(\d+) nghệ sĩ/g,(_,n)=>plural(n,'artist','artists'))
+           .replace(/(\d+) phút trước/g,(_,n)=>n+' min ago')
+           .replace(/(\d+) giờ trước/g,(_,n)=>n+' h ago')
+           .replace(/(\d+) ngày trước/g,(_,n)=>n+(+n===1?' day ago':' days ago'))
+           .replace(/([\d.]+) giờ/g,(_,n)=>n+' h').replace(/(\d+) phút/g,(_,n)=>n+' min').replace(/(\d+) ngày\)/g,(_,n)=>n+' days)')
+           .replace(/(\d+) lần\)/g,(_,n)=>n+' times)');
+    return out;
+  }
+
   const VI=/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ]/;
   function tr(s){
     if(!s||!VI.test(s)) return s;
@@ -1721,6 +1891,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     if(!core) return s;
     const e=EN_EXACT[core]; if(e!==undefined) return lead+e+tail;
     for(const [re,fn] of EN_RULES){ const x=re.exec(core); if(x) return lead+fn(x)+tail; }
+    const r2=bbSub(core); if(r2!==core) return lead+r2+tail;
     return s;
   }
   window.bbTr=tr;
@@ -4248,6 +4419,36 @@ function bindChipsWheel(){
   },{passive:false});
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMoodPop(); });
+/* Thanh trên cùng: nếu các nút không đủ chỗ (cửa sổ desktop nhỏ) thì chip "All"/tâm trạng xuống hàng riêng, giống bản điện thoại */
+(function(){
+  const top=document.getElementById('top'); if(!top||!window.ResizeObserver) return;
+  let busy=false, raf=0;
+  function fit(){
+    if(busy) return; busy=true;
+    try{
+      const was=top.classList.contains('tn');
+      top.classList.remove('tn');
+      const cs=getComputedStyle(top), gap=parseFloat(cs.columnGap)||10;
+      const avail=top.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
+      let need=0, n=0;
+      for(const c of top.children){
+        if(c.id==='topChips'||c.classList.contains('sp')) continue;
+        if(getComputedStyle(c).display==='none') continue;
+        need+=c.getBoundingClientRect().width; n++;
+      }
+      need+=n*gap;
+      const MINCHIPS=150;
+      const narrow=need+MINCHIPS>avail;
+      if(narrow) top.classList.add('tn'); else top.classList.remove('tn');
+      void was;
+    }finally{ busy=false; }
+  }
+  const sched=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; fit(); }); };
+  new ResizeObserver(sched).observe(top);
+  const cen=document.getElementById('center'); if(cen) new ResizeObserver(sched).observe(cen);
+  new MutationObserver(sched).observe(top,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style','class','hidden']});
+  window.addEventListener('resize',sched); sched();
+})();
 function fillQuick(list){
   const q=$('#qp'); if(!q) return; const k=reg(list,'Chọn nhanh');
   const row=(t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" decoding="async" ${j<8?'fetchpriority="high"':'loading="lazy"'} alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
@@ -4703,7 +4904,7 @@ const pages={
       api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
     }
-    const shown=new Set();
+    const shown=new Set(); let homeFail=0;
     const qpIdx=ci===0?secs.findIndex(s=>!s[4]):-1;
     secs.forEach(async([name,q,,kind,art,byName],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
       let nm=name;
@@ -4720,7 +4921,8 @@ const pages={
       if(ci===0&&!tgMode&&i===qpIdx&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
       el2.innerHTML=gridHtml(items,nm);
       const a=el2.closest('.sec').querySelector('.more[hidden]'); if(a){ a.dataset.hp=Object.keys(lists).pop(); a.dataset.sh='0'; a.hidden=false; }
-      markNow(); }catch(e){ if(el) el.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; } });
+      markNow(); }catch(e){ homeFail++; const sc=el&&el.closest('.sec'); if(sc) sc.remove(); else if(el) el.remove();
+        if(homeFail>=secs.length&&!document.querySelector('#main .sec .grid')){ const mm=$('#main'); if(mm&&!mm.querySelector('#homeOff')) mm.insertAdjacentHTML('beforeend','<p class="empty" id="homeOff">Không kết nối được YouTube Music. Hãy thử lại sau.</p>'); } } });
   },
   async mix(m){
     const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','nhạc việt hot','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi chill beats','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','top global hits','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm party hits','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
