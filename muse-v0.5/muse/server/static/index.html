@@ -3653,7 +3653,7 @@ function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]=
    Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
 function shareCard(u){
   if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
-  const W=1200,H=900,ov=document.createElement('div'); ov.className='shc-ov';
+  const W=1200,H=548,ov=document.createElement('div'); ov.className='shc-ov';
   ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button><button class="out sm" data-a="cp">Chép ảnh</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden><button class="out sm" data-a="tx">Chỉnh chữ</button>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div>'+((me&&me.id&&u.id===me.id)?'<div class="shx" style="display:none"><div class="shx-ch"></div><div class="shx-r"><span>Màu</span><div class="shx-sw"></div></div><div class="shx-r"><span>Shadow</span><div class="shx-k" style="--n:10"><input type="range" class="shx-s" min="0" max="10" step="1"></div><em class="shx-sn"></em></div><div class="shx-r"><span>Độ đậm</span><div class="shx-k" style="--n:4"><input type="range" class="shx-w" min="400" max="800" step="100"></div><em class="shx-wn"></em></div><div class="shx-r"><span>Độ rõ</span><div class="shx-k" style="--n:12"><input type="range" class="shx-o" min="40" max="100" step="5"></div><em class="shx-on"></em></div><div class="shx-r"><span>Cỡ chữ</span><div class="shx-k" style="--n:8"><input type="range" class="shx-z" min="85" max="125" step="5"></div><em class="shx-zn"></em></div><div class="shx-r" style="justify-content:center"><button class="out sm shx-rs" type="button">Đặt lại chữ này</button></div></div>':'')+'</div>';
   document.body.appendChild(ov);
   const cv=ov.querySelector('canvas'); let g=cv.getContext('2d');
@@ -3679,7 +3679,7 @@ function shareCard(u){
   // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
   const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
   let ban=null, av=null, custom=null;   // custom = hình nền do chính người dùng chọn cho thẻ (lưu trên máy này, key card_bg)
-  const ax=80,ay=80,ar=75; let layer=null, raf=0;
+  const ax=56,ay=44,ar=58; let layer=null, raf=0;
   /* Lớp tĩnh (nền + lớp tối + avatar) chỉ vẽ 1 lần, cache lại; kéo thanh chỉnh chỉ vẽ lại phần chữ → nhẹ hơn nhiều */
   const buildLayer=()=>{ const L=document.createElement('canvas'); L.width=W; L.height=H; const g0=g; g=L.getContext('2d');
     g.save(); rr(0,0,W,H,44); g.clip();
@@ -3692,8 +3692,8 @@ function shareCard(u){
     g.restore();
     // avatar + tên
     g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
-    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='110px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+6); }
-    g.restore(); g.lineWidth=6; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
+    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='84px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
+    g.restore(); g.lineWidth=5; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
     g=g0; return L; };
   const paint=()=>{
     if(!layer) layer=buildLayer();
@@ -3702,21 +3702,21 @@ function shareCard(u){
     g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
     // chữ cao hơn: kéo giãn theo chiều dọc
     const SY=1.22;
-    shSet('nm','#fff',700,66,ft); let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
-    g.save(); g.translate(0,ay+ar+24); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+40,0); g.restore(); g.globalAlpha=1;
+    shSet('nm','#fff',700,56,ft); let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
+    g.save(); g.translate(0,ay+ar+20); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+32,0); g.restore(); g.globalAlpha=1;
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
     const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
-    shSet('fl','#ffffffcc',600,36,ft); sp('FANS NO.',84,500,9); g.globalAlpha=1;
-    shSet('fn','#fff',700,176,'"SF Mono",Consolas,"Courier New",monospace'); sp(no,74,690,30); g.globalAlpha=1;
-    shSet('dl','#ffffffcc',600,34,ft); sp('DATE',84,772,9); g.globalAlpha=1;
-    shSet('dv','#fff',600,46,ft); sp(date,84,838,6); g.globalAlpha=1;
+    shSet('fl','#ffffffcc',600,28,ft); sp('FANS NO.',60,288,8); g.globalAlpha=1;
+    shSet('fn','#fff',700,120,'"SF Mono",Consolas,"Courier New",monospace'); sp(no,54,402,24); g.globalAlpha=1;
+    shSet('dl','#ffffffcc',600,26,ft); sp('DATE',60,462,8); g.globalAlpha=1;
+    shSet('dv','#fff',600,36,ft); sp(date,60,510,5); g.globalAlpha=1;
     // hạng thành viên (donate Ko-fi)
     if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
       const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
       g.font='700 28px '+ft; const tw=spw(tier,5), bx=W-70-tw-44;
-      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,84,tw+44,60,30); g.fill();
-      g.fillStyle='#fff'; sp(tier,bx+22,124,5);
+      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,50,tw+44,52,26); g.fill();
+      g.fillStyle='#fff'; sp(tier,bx+22,86,5);
     }
   };
   const sched=()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; paint(); }); };
@@ -3727,7 +3727,7 @@ function shareCard(u){
     paint(); if(bgx&&custom) bgx.style.display='';
     if(mine) upload();
   });
-  // Đổi hình thẻ: chọn ảnh từ máy → cắt giữa theo khung 4:3, thu nhỏ còn 1200×900 (JPEG) rồi lưu trên máy; thẻ + link chia sẻ dùng hình này.
+  // Đổi hình thẻ: chọn ảnh từ máy → cắt giữa theo khung dài, thu nhỏ còn 1200×548 (JPEG) rồi lưu trên máy; thẻ + link chia sẻ dùng hình này.
   const setBg=async f=>{
     if(!f) return;
     if(!/^image\//.test(f.type)) return notify('Hãy chọn file ảnh');
