@@ -484,15 +484,6 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-pen .i{width:15px;height:15px}
 .bp-pen:hover,.bp-pen:focus-visible{color:var(--pf-ac,var(--accent))}
 .bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
-.bp-lv{display:inline-flex;vertical-align:middle}
-.bp-lvc{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;border:0;border-radius:999px;background:var(--hover2);color:var(--text);font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}
-.bp-lvc i{font-style:normal;font-weight:800;color:#fff;padding:1px 7px;border-radius:999px;background:var(--c,#8b8f98)}
-.bp-lvc .i{width:14px;height:14px;color:var(--sub);transition:transform .18s}
-.bp-lvc[aria-expanded=true] .i{transform:rotate(90deg)}
-.bp-lvd{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--sub)}
-.bp-lvd[hidden]{display:none}
-.bp-lvd .bar{width:110px;height:4px;border-radius:2px;background:var(--hover2);overflow:hidden}
-.bp-lvd .bar u{display:block;height:100%;background:var(--c,#8b8f98)}
 .bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
 .bp-bio a{color:var(--pf-ac,var(--accent));cursor:pointer;flex:none}
 .bp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -583,7 +574,6 @@ button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--a
   .bp-ebs{margin-top:0;flex:none}
   .bp-eb{flex:none;padding:9px 20px;white-space:nowrap}
   .bp-nm{font-size:28px}
-  .bp-lvd .bar{width:170px}
   .bp-bio{justify-content:flex-start;gap:16px}
   .bp-tabs{justify-content:flex-start;padding:0 20px;margin-top:22px}
   .bp-tab{flex:none;padding:14px 28px}
@@ -1149,9 +1139,6 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .bp .bp-bio{color:rgba(255,255,255,.94)}
 .bp .bp-bio a{color:#fff;text-decoration:underline}
 .bp .bp-pen{background:rgba(255,255,255,.22);color:#fff}
-.bp .bp-lvc{background:rgba(0,0,0,.38);color:#fff}
-.bp .bp-lvd{color:rgba(255,255,255,.9)}
-.bp .bp-lvd .bar{background:rgba(255,255,255,.28)}
 .bp .bp-chip{background:rgba(0,0,0,.36);border-color:rgba(255,255,255,.28);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:none}
 .bp .bp-chip.uid{color:rgba(255,255,255,.88)}
 .bp .bp-chip.add{background:transparent;color:rgba(255,255,255,.8)}
@@ -1196,7 +1183,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 /* Hàng tên: tên + bút + LV nằm CÙNG MỘT HÀNG như ảnh mẫu Bilibili (tên dài thì rút gọn ..., không đẩy bút/LV xuống dòng) */
 .bp .bp-nm{flex-wrap:nowrap;gap:6px;font-size:19px}
 .bp .bp-nm b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
-.bp .bp-nm .bp-pen,.bp .bp-nm .bp-tier,.bp .bp-nm .bp-lv{flex:none}
+.bp .bp-nm .bp-pen,.bp .bp-nm .bp-tier{flex:none}
 @media(min-width:720px){ .bp .bp-nm{font-size:26px;gap:8px} }
 /* Sửa lỗi tên bị cắt/vỡ nét: overflow:hidden của thẻ <b> cắt mất phần đổ bóng + chân chữ (g, y...) → thêm vùng đệm bù trừ bằng margin âm, giảm bóng cho gọn */
 .bp .bp-nm{line-height:1.25;align-items:center}
@@ -1222,15 +1209,14 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-cam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center;border:2px solid #14141c;text-shadow:none}
 .pe-id{min-width:0;padding-bottom:4px}
 .pe-nm{display:flex;align-items:center;gap:6px;font-size:21px;font-weight:700;min-width:0}
-.pe-nm b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pe-nm b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;padding:.35em .7em .5em;margin:-.35em -.7em -.5em}  /* vùng đệm để bóng chữ (text-shadow) không bị overflow:hidden cắt mất */
 .pe-pen{width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.22);color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none;text-shadow:none}
 .pe-pen .i{width:14px;height:14px}
-.pe-lv{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 3px;border-radius:99px;background:rgba(0,0,0,.4);font-size:12px;font-weight:600;flex:none;text-shadow:none}
-.pe-lv:empty{display:none}.pe-lv i{font-style:normal;font-weight:800;padding:1px 7px;border-radius:99px;background:var(--c,#8b8f98)}
+.pe-un>span{line-height:1.4;padding:.3em .5em .4em;margin:-.3em -.5em -.4em}
 .pe-un{display:flex;align-items:center;gap:2px;margin-top:2px;font-size:13px;color:rgba(255,255,255,.85)}
 .pe-un .ico{width:28px;height:28px;padding:6px;color:inherit}
 .pe-bio{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-style:italic;color:rgba(255,255,255,.95)}
-.pe-bio span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.pe-bio span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;padding:.4em .7em .55em;margin:-.4em -.7em -.55em}
 .pe-bio u{text-decoration:none;font-style:normal;font-size:11px;padding:2px 9px;border-radius:99px;border:1px dashed rgba(255,255,255,.65);cursor:pointer;flex:none}
 .pe-st{display:flex;text-align:center;margin-top:10px}.pe-st>div{flex:1}.pe-st b{display:block;font-size:17px}.pe-st span{font-size:12px;opacity:.88}
 .pe-hn{text-align:center;margin-top:8px}
@@ -1256,7 +1242,17 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-chips{display:flex;gap:7px;flex-wrap:wrap}.pe-chip{border:1px solid var(--line);background:transparent;color:inherit;border-radius:99px;padding:6px 13px;font-size:12.5px;cursor:pointer}.pe-chip.s{background:var(--accent,#8ecbff);border-color:transparent;color:#10202e;font-weight:700}
 .pe-tsw{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.tdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer;display:block;padding:0}.tdot.s{border-color:#fff;box-shadow:0 0 0 2px var(--accent,#8ecbff)}
 .pe-tsw input[type=color]{width:34px;height:28px;padding:1px;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
-.pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
+.pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}
+/* Thanh trượt hai chiều: vạch giữa = giá trị mặc định của chữ đang chọn; nửa nào không còn chỗ chỉnh thì mờ đi và không kéo vào được */
+.pe-rw input[type=range].pe-bi{flex:0 1 170px;height:6px;border-radius:3px;
+  background:
+   linear-gradient(to right,transparent var(--a,50%),var(--accent,#8ecbff) var(--a,50%),var(--accent,#8ecbff) var(--z,50%),transparent var(--z,50%)) 0 0/100% 100% no-repeat,
+   linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 50%/2px 12px no-repeat,
+   linear-gradient(to right,rgba(255,255,255,.06) var(--dl,0%),rgba(255,255,255,.22) var(--dl,0%),rgba(255,255,255,.22) var(--dr,100%),rgba(255,255,255,.06) var(--dr,100%)) 0 0/100% 100% no-repeat}
+.pe-rw input[type=range].pe-bi::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008;transition:none;cursor:grab}
+.pe-rw input[type=range].pe-bi:hover::-webkit-slider-thumb{width:16px}
+.pe-rw input[type=range].pe-bi::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008}
+.pe-tn.dflt{opacity:.7}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
 .pe-bar .pe-b{padding:10px 22px}
 .pe-lock{max-width:460px}.pe-lock p{margin:8px 0 14px;color:var(--sub)}
 /* Bố cục trang Chỉnh sửa hồ sơ (màn rộng): banner xem trước trải ngang trên cùng, các mục cài đặt xếp 2 cột phía dưới */
@@ -3962,8 +3958,7 @@ function openProfilePage(u,mine){
     <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
       <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         </div>
-    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine&&!guest?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}<span class="bp-lv" id="bpLv"></span></div>
-      <div class="bp-lvd" id="bpLvD" hidden></div>
+    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine&&!guest?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
       <div class="bp-chips" id="bpChips">${pfIdChips(u,mine)}</div>
       <div class="bp-bio"><span class="bp-q">${esc(u.status||'Không có mô tả')}</span>${mine&&!guest?'<a data-x="edit">Chi tiết</a>':''}</div></div></div></div>
     ${mine&&guest?'':mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}
@@ -4025,17 +4020,11 @@ function openProfilePage(u,mine){
     if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
   };
   tab('home');
-  // Số liệu + cấp độ
+  // Số liệu
   (async()=>{
     const set=(id,t)=>{ const el=d.querySelector('#'+id); if(el) el.textContent=t; };
     if(mine){ set('bpS2',String(followGet().length)); set('bpS3',String(favs.size)); }
     api('/api/fans/'+u.id).then(r=>set('bpS1',String(+r.n||0)),()=>{});
-    const s=await lvGet(u.id); if(s==null||!d.isConnected) return;
-    const L=lvOf(s), I=LV_INFO[L.l], box=d.querySelector('#bpLv'), det=d.querySelector('#bpLvD'); if(!box||!det) return;
-    box.style.setProperty('--c',I[1]); det.style.setProperty('--c',I[1]);
-    box.innerHTML=`<button type="button" class="bp-lvc" aria-expanded="false" aria-label="Chi tiết cấp độ"><i>LV${L.l}</i><span>${esc(I[0])}</span>${ic('chev')}</button>`;
-    det.innerHTML=`<span class="bar"><u style="width:${Math.round(L.pct*100)}%"></u></span><span>${L.next!=null?Math.floor(L.h*10)/10+'/'+L.next+' giờ':'Cấp cao nhất'}</span>`;
-    const btn=box.firstElementChild; btn.onclick=e=>{ e.stopPropagation(); const o=det.hidden; det.hidden=!o; btn.setAttribute('aria-expanded',o?'true':'false'); };
   })();
 }
 /* Chỉnh sửa hồ sơ (avatar, banner, nền, màu chủ đạo, trạng thái) mở ngay trong trang cá nhân */
@@ -4839,10 +4828,10 @@ const pages={
       <div class="pe-sec"><div class="pe-card"><div class="pe-rw"><b>Màu chủ đạo</b><div class="pe-sw" id="swA">${dots(swA,'swA',me.accent||'')}<input type="color" id="accent" value="${esc(me.accent)}" aria-label="Chọn màu khác"></div></div></div></div>
       <div class="pe-sec"><h4>Điều chỉnh chữ</h4><div class="pe-card"><div class="pe-rw"><div class="pe-chips" id="txChips"></div></div>
         <div class="pe-rw"><b>Màu chữ</b><div class="pe-tsw" id="txSw"></div></div>
-        <div class="pe-rw"><b>Shadow</b><input type="range" id="txS" min="0" max="10" step="1" value="0" aria-label="Shadow"><span class="pe-tn" id="txN">0</span><button class="pe-b" id="txRs">Đặt lại</button></div>
-        <div class="pe-rw"><b>Độ đậm</b><input type="range" id="txW" min="400" max="800" step="100" value="400" aria-label="Độ đậm"><span class="pe-tn" id="txWn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Độ rõ</b><input type="range" id="txO" min="40" max="100" step="5" value="100" aria-label="Độ rõ"><span class="pe-tn" id="txOn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Cỡ chữ</b><input type="range" id="txZ" min="85" max="125" step="5" value="100" aria-label="Cỡ chữ"><span class="pe-tn" id="txZn" style="min-width:56px"></span></div></div></div>
+        <div class="pe-rw"><b>Shadow</b><input type="range" class="pe-bi" id="txS" min="-100" max="100" step="1" value="0" aria-label="Shadow"><span class="pe-tn" id="txN" style="min-width:64px"></span><button class="pe-b" id="txRs">Đặt lại</button></div>
+        <div class="pe-rw"><b>Độ đậm</b><input type="range" class="pe-bi" id="txW" min="-100" max="100" step="1" value="0" aria-label="Độ đậm"><span class="pe-tn" id="txWn" style="min-width:56px"></span></div>
+        <div class="pe-rw"><b>Độ rõ</b><input type="range" class="pe-bi" id="txO" min="-100" max="100" step="1" value="0" aria-label="Độ rõ"><span class="pe-tn" id="txOn" style="min-width:56px"></span></div>
+        <div class="pe-rw"><b>Cỡ chữ</b><input type="range" class="pe-bi" id="txZ" min="-100" max="100" step="1" value="0" aria-label="Cỡ chữ"><span class="pe-tn" id="txZn" style="min-width:56px"></span></div></div></div>
     </div>
     <div class="pe-bar"><small id="profMsg"></small><button class="pe-b" id="peCancel">Hủy</button><button class="pe-b p" id="saveProfile">Lưu</button></div>
     </div>`;
@@ -4945,17 +4934,42 @@ const pages={
     const TX_K=[['name','Tên'],['un','@username'],['st','Trạng thái'],['fan','Fan'],['fol','Theo dõi'],['like','Lượt thích']];
     const TX_SEL={name:'#peName',un:'.pe-un>span',st:'#peBio',fan:'#peS1',fol:'#peS2',like:'#peS3'};
     const TX_COLS=['#ffffff','#ffd166','#7ee787','#ff7eb6','#c4b5fd','#111111'];
-    const txKey='muse_tx_'+(me.id||'');
-    const txLoad=()=>{ let o={}; try{ o=JSON.parse(LS.get(txKey,'{}'))||{}; }catch{} const r={}; TX_K.forEach(([k])=>{ const v=o[k]||{}; const cl=(x,lo,hi,d)=>{ x=+x; return Number.isFinite(x)?Math.min(hi,Math.max(lo,x)):d; }; r[k]={c:/^#[0-9a-f]{6}$/i.test(v.c||'')?v.c.toLowerCase():'',s:cl(v.s,0,10,0),w:v.w?Math.round(cl(v.w,400,800,400)/100)*100:0,o:cl(v.o,40,100,100),z:cl(v.z,85,125,100)}; }); return r; };
+    const txKey='muse_tx2_'+(me.id||'');
+    /* Mỗi thuộc tính lưu dưới dạng ĐỘ LỆCH so với mặc định của chính chữ đó: 0 = giữ nguyên (nằm giữa thanh trượt).
+       s: mức bóng (±5 quanh mức 5 mặc định) · w: bậc đậm (×100) · o: độ rõ (điểm %) · z: cỡ chữ (điểm %) */
+    const txLoad=()=>{ let o={}; try{ o=JSON.parse(LS.get(txKey,'{}'))||{}; }catch{} const r={}; TX_K.forEach(([k])=>{ const v=o[k]||{}; const cl=(x,lo,hi)=>{ x=Math.round(+x); return Number.isFinite(x)?Math.min(hi,Math.max(lo,x)):0; }; r[k]={c:/^#[0-9a-f]{6}$/i.test(v.c||'')?v.c.toLowerCase():'',s:cl(v.s,-5,5),w:cl(v.w,-5,5),o:cl(v.o,-60,0),z:cl(v.z,-30,40)}; }); return r; };
     let TX=txLoad(), txCur='name';
-    const txShadow=n=>n?`0 ${(n*.25).toFixed(2)}px ${(n*.9).toFixed(1)}px rgba(0,0,0,${(.12+n*.035).toFixed(2)})`:'';
+    const TXB={};   /* mặc định đo được của từng chữ (độ đậm gốc) để biết còn bao nhiêu chỗ chỉnh mỗi phía */
+    const TX_U={s:1,w:1,o:5,z:5};
+    const TX_DEF=()=>({c:'',s:0,w:0,o:0,z:0});
+    const txShadow=n=>n<=0?'none':`0 ${(n*.2).toFixed(2)}px ${(n*1.2).toFixed(1)}px rgba(0,0,0,${Math.min(.95,.1+n*.12).toFixed(2)})`;   /* n=5 ≈ bóng mặc định của khung hồ sơ */
+    /* Còn bao nhiêu chỗ chỉnh về bên trái (giảm) và bên phải (tăng) so với mặc định, tùy từng thuộc tính và từng chữ */
+    const txRoom=(p,k)=>{ const w=(TXB[k]&&TXB[k].w)||400;
+      if(p==='s') return [5,5];
+      if(p==='w') return [Math.max(0,Math.floor((w-300)/100)),Math.max(0,Math.floor((900-w)/100))];
+      if(p==='o') return [60,0];          /* đã rõ 100% thì chỉ có thể mờ đi */
+      return [30,40]; };                  /* cỡ chữ 70% … 140% */
+    const d2t=(p,k,d)=>{ const [L,R]=txRoom(p,k); return d<0?(L?d/L*100:0):(R?d/R*100:0); };
+    const t2d=(p,k,t)=>{ const [L,R]=txRoom(p,k), u=TX_U[p]; if(t<0) return L?-Math.round(-t/100*L/u)*u:0; return R?Math.round(t/100*R/u)*u:0; };
     const txApply=()=>{ TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(!el) return; const st=/^peS\d$/.test(el.id), v=TX[k], box=st?el.parentElement:el, tg=st?[...box.children]:[el];
-      box.style.opacity=v.o<100?(v.o/100):'';   /* độ rõ tối thiểu 40% nên chữ không bao giờ biến mất */
-      tg.forEach(t=>{ t.style.color=v.c; t.style.textShadow=txShadow(v.s); t.style.fontWeight=v.w||''; t.style.fontSize=''; if(v.z!==100){ const b=parseFloat(getComputedStyle(t).fontSize); if(b) t.style.fontSize=(b*v.z/100).toFixed(1)+'px'; } }); }); };
-    const txUi=()=>{ const v=TX[txCur];
+      box.style.opacity=''; tg.forEach(t=>{ t.style.color=''; t.style.textShadow=''; t.style.fontWeight=''; t.style.fontSize=''; });   /* gỡ chỉnh sửa để đo mặc định thật */
+      const base=tg.map(t=>{ const cs=getComputedStyle(t); return {w:parseInt(cs.fontWeight,10)||400,z:parseFloat(cs.fontSize)||0}; });
+      TXB[k]={w:base[0].w};
+      const dw=Math.max(-txRoom('w',k)[0],Math.min(txRoom('w',k)[1],v.w));
+      if(v.o) box.style.opacity=((100+v.o)/100).toFixed(2);
+      tg.forEach((t,i)=>{ if(v.c) t.style.color=v.c; if(v.s) t.style.textShadow=txShadow(5+v.s);
+        if(dw) t.style.fontWeight=Math.max(300,Math.min(900,base[i].w+dw*100));
+        if(v.z&&base[i].z) t.style.fontSize=(base[i].z*(100+v.z)/100).toFixed(1)+'px'; }); }); };
+    const txPaint=(id,p)=>{ const inp=$('#'+id), d=TX[txCur][p], [L,R]=txRoom(p,txCur), t=d2t(p,txCur,d), pc=(t+100)/2;
+      inp.value=Math.round(t); inp.style.setProperty('--a',Math.min(pc,50)+'%'); inp.style.setProperty('--z',Math.max(pc,50)+'%');
+      inp.style.setProperty('--dl',(L?0:50)+'%'); inp.style.setProperty('--dr',(R?100:50)+'%'); };
+    const txLbl=(id,txt,d)=>{ const el=$('#'+id); el.textContent=d?txt:'Mặc định'; el.classList.toggle('dflt',!d); };
+    const txUi=()=>{ const v=TX[txCur], w0=(TXB[txCur]&&TXB[txCur].w)||400;
       m.querySelectorAll('#txChips .pe-chip').forEach(b=>b.classList.toggle('s',b.dataset.k===txCur));
       m.querySelectorAll('#txSw .tdot').forEach(b=>b.classList.toggle('s',b.dataset.c===v.c));
-      if(v.c) $('#txCol').value=v.c; $('#txS').value=v.s; $('#txN').textContent=v.s; $('#txW').value=v.w||400; $('#txWn').textContent=v.w?v.w:'mặc định'; $('#txO').value=v.o; $('#txOn').textContent=v.o+'%'; $('#txZ').value=v.z; $('#txZn').textContent=v.z+'%'; };
+      if(v.c) $('#txCol').value=v.c;
+      txPaint('txS','s'); txPaint('txW','w'); txPaint('txO','o'); txPaint('txZ','z');
+      txLbl('txN',(v.s>0?'+':'−')+Math.abs(v.s),v.s); txLbl('txWn',String(Math.max(300,Math.min(900,w0+v.w*100))),v.w); txLbl('txOn',(100+v.o)+'%',v.o); txLbl('txZn',(100+v.z)+'%',v.z); };
     const txChanged=()=>{ txApply(); txUi(); if(peReady) pmsg('Chưa lưu thay đổi'); };
     const txSave=()=>{ try{ LS.set(txKey,JSON.stringify(TX)); }catch{} };
     $('#txChips').innerHTML=TX_K.map(([k,l])=>`<button type="button" class="pe-chip" data-k="${k}">${l}</button>`).join('');
@@ -4963,11 +4977,8 @@ const pages={
     $('#txChips').onclick=e=>{ const b=e.target.closest('.pe-chip'); if(!b) return; txCur=b.dataset.k; txUi(); };
     $('#txSw').onclick=e=>{ const b=e.target.closest('.tdot'); if(!b) return; TX[txCur].c=b.dataset.c; txChanged(); };
     $('#txCol').oninput=e=>{ TX[txCur].c=e.target.value.toLowerCase(); txChanged(); };
-    $('#txS').oninput=e=>{ TX[txCur].s=+e.target.value; txChanged(); };
-    $('#txW').oninput=e=>{ TX[txCur].w=+e.target.value; txChanged(); };
-    $('#txO').oninput=e=>{ TX[txCur].o=+e.target.value; txChanged(); };
-    $('#txZ').oninput=e=>{ TX[txCur].z=+e.target.value; txChanged(); };
-    $('#txRs').onclick=()=>{ TX[txCur]={c:'',s:0,w:0,o:100,z:100}; txChanged(); };
+    [['txS','s'],['txW','w'],['txO','o'],['txZ','z']].forEach(([id,p])=>{ $('#'+id).oninput=e=>{ TX[txCur][p]=t2d(p,txCur,+e.target.value); txChanged(); }; });   /* kéo sang phải = tăng, sang trái = giảm; chạm giữa = về mặc định; nửa hết chỗ chỉnh thì thanh bị chặn */
+    $('#txRs').onclick=()=>{ TX[txCur]=TX_DEF(); txChanged(); };
     TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(el) el.addEventListener('click',()=>{ txCur=k; txUi(); },true); });   /* bấm chữ trên thẻ → chọn đúng chữ đó để chỉnh (không chặn việc sửa tên/trạng thái có sẵn) */
     txApply(); txUi();
     refresh(); peReady=true;
