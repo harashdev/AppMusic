@@ -378,6 +378,24 @@ mod gateway {
                 cmd.env("YT_POT_URL", format!("http://127.0.0.1:{POT_PORT}"));
             }
         }
+        // Đăng nhập YouTube cho yt-dlp để khỏi bị "Sign in to confirm you're not a bot" (mỗi bài lỗi tốn ~22 giây).
+        // Ưu tiên: biến môi trường YT_COOKIES / YT_BROWSER do người dùng tự đặt > file cookies.txt cạnh app
+        // > file yt-browser.txt (ghi tên trình duyệt: firefox / edge / chrome / brave) > tự tìm Firefox trên máy.
+        if std::env::var("YT_COOKIES").map(|v| v.trim().is_empty()).unwrap_or(true)
+            && std::env::var("YT_BROWSER").map(|v| v.trim().is_empty()).unwrap_or(true)
+        {
+            let ck = dir.join("cookies.txt");
+            if ck.is_file() {
+                cmd.env("YT_COOKIES", &ck);
+            } else if let Some(b) = std::fs::read_to_string(dir.join("yt-browser.txt")).ok().map(|x| x.trim().to_string()).filter(|x| !x.is_empty()) {
+                cmd.env("YT_BROWSER", b);
+            } else {
+                let fx = std::env::var_os("APPDATA").map(|a| std::path::PathBuf::from(a).join("Mozilla").join("Firefox").join("Profiles"));
+                if fx.map(|d| d.is_dir()).unwrap_or(false) {
+                    cmd.env("YT_BROWSER", "firefox");
+                }
+            }
+        }
         // Khoá mã ghép admin: ghi cùng một chuỗi (>= 24 ký tự) vào file admin-pair-key.txt cạnh app, và đặt ADMIN_PAIR_KEY y hệt ở server chính.
         if let Ok(k) = std::fs::read_to_string(dir.join("admin-pair-key.txt")) {
             let k = k.trim();
