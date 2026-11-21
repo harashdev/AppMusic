@@ -3808,7 +3808,7 @@ function openImgView(src,name){
 const pcPool=new Map(); let pcHost=null;
 const pcFull=()=>false;   /* Nút 'Đổi kiểu thẻ' đã gỡ: luôn dùng banner thấp 2:1 như trước (kiểu toàn nền 3:4 làm thẻ quá cao, nhất là khi có khối LV). Muốn bật lại: trả về LS.get('pc_full','0')==='1' */
 const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
-const pcExtra=(mine,u)=>`<div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button><button class="out sm" data-x="page">Trang cá nhân</button>'}${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
+const pcExtra=(mine,u)=>`<div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button><button class="out sm" data-x="page">Trang cá nhân</button>'}${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
 function warmProfile(u,mine){
   try{
     if(!u||guest&&!mine) return;
@@ -4045,7 +4045,6 @@ function showProfilePop(u,anchor,mine){
     if(act==='page'){ d.remove(); openProfilePage(u,mine); return; }
     d.remove(); if(act==='edit') go('profile'); else logout(); };
   document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
-  fillLevel(d,u);
 }
 
 /* ===== TRANG HỒ SƠ (kiểu Bilibili) + CHỈNH SỬA THÔNG TIN ===== */
