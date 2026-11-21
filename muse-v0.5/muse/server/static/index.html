@@ -3489,7 +3489,17 @@ async function qrScanDialog(){
   loop();
 }
 $('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
-async function logout(){ if(guest){ goLogin(); return; } try{ clearTimeout(syncTm); syncBusy=false; await syncNow(); }catch{} try{await api('/api/logout',{method:'POST'})}catch{} try{localStorage.removeItem('token')}catch{} token=''; location.reload(); }
+async function logout(){
+  if(guest){ goLogin(); return; }
+  /* Đăng xuất phải luôn chạy được dù mạng / server chính chậm: đồng bộ chờ tối đa 2,5s, xoá token trên máy ngay,
+     còn báo server huỷ phiên thì chạy nền (không chờ, không để kẹt nút). */
+  const old=token;
+  try{ clearTimeout(syncTm); syncBusy=false; await Promise.race([syncNow(),new Promise(r=>setTimeout(r,2500))]); }catch{}
+  try{ localStorage.removeItem('token'); localStorage.setItem('muse_guest','0'); }catch{}
+  token='';
+  try{ if(old) fetch('/api/logout',{method:'POST',headers:{Authorization:'Bearer '+old},keepalive:true}).catch(()=>{}); }catch{}
+  setTimeout(()=>location.reload(),150);
+}
 
 const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
 function paintTheme(acc,bg,url){
