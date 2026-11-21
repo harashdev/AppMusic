@@ -505,11 +505,12 @@ async fn run_audio_only() {
         pair_codes: Arc::new(Mutex::new(HashMap::new())),
         gateway: gateway_from_env(),
     };
-    let router = yt_routes().with_state(st);
+    let router = yt_routes().layer(middleware::from_fn(dbg_req_timing)).with_state(st);
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
     // Chỉ nhận kết nối từ chính máy này, không bao giờ mở ra mạng.
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{port}")).await.unwrap();
     println!("Muse audio-only: http://127.0.0.1:{port}");
+    dbg_log(&format!("[START] audio-only 127.0.0.1:{port} | file log: {}", dbg_log_path().display()));
     axum::serve(listener, router.into_make_service()).await.unwrap();
 }
 
@@ -695,6 +696,40 @@ async fn music_off() -> Response {
     (StatusCode::GONE, "Server này chỉ lưu dữ liệu người dùng; nhạc do app tự lấy (đặt SERVE_MUSIC=1 nếu muốn bật lại nguồn nhạc trên server)").into_response()
 }
 
+// ===== LOG CHẨN ĐOÁN TẠM (xoá được: tìm "dbg_" trong file này) =====
+// App desktop chạy server với stdout/stderr tắt, nên ghi thêm ra file. Mặc định: <thư mục tạm>/bbeat-debug.log (đặt BBEAT_LOG=đường_dẫn để đổi).
+fn dbg_log_path() -> PathBuf {
+    std::env::var("BBEAT_LOG").ok().filter(|x| !x.trim().is_empty()).map(PathBuf::from).unwrap_or_else(|| std::env::temp_dir().join("bbeat-debug.log"))
+}
+fn dbg_log(line: &str) {
+    use std::io::Write;
+    let ms = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+    let txt = format!("{}.{:03} {line}", ms / 1000, ms % 1000);
+    eprintln!("{txt}");
+    let path = dbg_log_path();
+    if std::fs::metadata(&path).map(|m| m.len() > 2_000_000).unwrap_or(false) {
+        let _ = std::fs::remove_file(&path);
+    }
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+        let _ = writeln!(f, "{txt}");
+    }
+}
+// Đo thời gian mọi yêu cầu qua cổng nhà / audio-only: thời gian tới khi có header phản hồi (luồng nhạc thì là lúc bắt đầu phát).
+// Các yêu cầu bị chuyển tiếp lên server chính (đăng nhập, giao diện, avatar...) cũng được đo ở đây → thấy Render chậm hay YouTube chậm.
+async fn dbg_req_timing(req: Request<Body>, next: Next) -> Response {
+    let path = req.uri().path().to_string();
+    if path.starts_with("/ws") {
+        return next.run(req).await;
+    }
+    let method = req.method().clone();
+    let t = std::time::Instant::now();
+    let res = next.run(req).await;
+    let ms = t.elapsed().as_millis();
+    let kind = if path.starts_with("/api/yt/") || path == "/api/img" { "yt" } else { "fwd" };
+    dbg_log(&format!("[REQ] {kind} {method} {path} -> {} ttfb={ms}ms{}", res.status().as_u16(), if ms >= 1500 { "  <<< CHẬM" } else { "" }));
+    res
+}
+
 fn gateway_client() -> reqwest::Client {
     reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -823,6 +858,7 @@ async fn run_gateway(remote: String) {
         .route("/ws/:room", get(gw_ws))
         .route("/ws-user", get(gw_ws))
         .fallback(gw_http)
+        .layer(middleware::from_fn(dbg_req_timing))
         .with_state(st);
     let port = std::env::var("PORT").unwrap_or_else(|_| "38417".into());
     let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "127.0.0.1".into());
@@ -834,6 +870,7 @@ async fn run_gateway(remote: String) {
         }
     };
     println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
+    dbg_log(&format!("[START] cổng nhà {bind}:{port} -> {remote} | file log: {}", dbg_log_path().display()));
     axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
 
@@ -4636,8 +4673,11 @@ fn pick_client(st: &AppState, use_proxy: bool) -> reqwest::Client {
 }
 
 async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtQ>) -> R<Value> {
+    let dbg_t0 = std::time::Instant::now();
+    let dbg_src = if st.gateway.is_some() { "gateway" } else { "server" };
     // Không bắt buộc đăng nhập: khách (không có token) vẫn tìm nhạc được với cài đặt mặc định.
     let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let dbg_prefs = dbg_t0.elapsed().as_millis();
     let client = pick_client(&st, use_proxy);
     let text: String = q.q.unwrap_or_default().trim().chars().take(100).collect();
     if text.is_empty() {
@@ -4650,6 +4690,7 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
     let ckey = format!("{}|{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8, filt.clone().unwrap_or_default());
     if let Some((t, v)) = search_cache().lock().unwrap().get(&ckey) {
         if now_secs().saturating_sub(*t) < 600 {
+            dbg_log(&format!("[SEARCH] query={text:?} f={} source={dbg_src} cache=HIT(RAM) prefs={dbg_prefs}ms total={}ms", filt.clone().unwrap_or_default(), dbg_t0.elapsed().as_millis()));
             return Ok(Json(v.clone()));
         }
     }
@@ -4666,6 +4707,8 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
             }
         }
     }
+    let dbg_f = filt.clone().unwrap_or_default();
+    let dbg_t1 = std::time::Instant::now();
     let resp = client
         .post("https://music.youtube.com/youtubei/v1/search?prettyPrint=false")
         .header("origin", "https://music.youtube.com")
@@ -4673,11 +4716,21 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
         .json(&body)
         .send()
         .await
-        .map_err(|_| fail("Không kết nối được YouTube Music"))?;
+        .map_err(|e| {
+            dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS LỖI_KẾT_NỐI prefs={dbg_prefs}ms after={}ms err={e}", dbg_t1.elapsed().as_millis()));
+            fail("Không kết nối được YouTube Music")
+        })?;
+    let dbg_hdr = dbg_t1.elapsed().as_millis();
     if !resp.status().is_success() {
+        dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS YOUTUBE_TRẢ_LỖI status={} prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms", resp.status().as_u16()));
         return Err(fail("YouTube Music trả về lỗi"));
     }
-    let v: Value = resp.json().await.map_err(|_| fail("YouTube Music trả dữ liệu lạ"))?;
+    let v: Value = resp.json().await.map_err(|e| {
+        dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS LỖI_ĐỌC_JSON prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms err={e}"));
+        fail("YouTube Music trả dữ liệu lạ")
+    })?;
+    let dbg_body = dbg_t1.elapsed().as_millis() - dbg_hdr;
+    let dbg_t2 = std::time::Instant::now();
     let mut out: Vec<Value> = Vec::new();
     let mut ents: Vec<Value> = Vec::new();
     if filt.is_some() {
@@ -4685,6 +4738,9 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
     } else {
         yt_collect(&v, &mut out);
     }
+    let dbg_raw = out.len();
+    let dbg_parse = dbg_t2.elapsed().as_millis();
+    let dbg_t3 = std::time::Instant::now();
     if !allow_explicit {
         out.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
     }
@@ -4698,6 +4754,14 @@ async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Que
     }
     out.truncate(30);
     ents.truncate(30);
+    dbg_log(&format!(
+        "[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms youtube_body={dbg_body}ms json_parse={dbg_parse}ms filter={}ms total={}ms raw_tracks={dbg_raw} kept_tracks={} entities={}{}",
+        dbg_t3.elapsed().as_millis(),
+        dbg_t0.elapsed().as_millis(),
+        out.len(),
+        ents.len(),
+        if dbg_raw > 0 && out.is_empty() { "  <<< LỌC MẤT HẾT KẾT QUẢ" } else { "" }
+    ));
     let val = if filt.is_some() {
         json!({ "tracks": out, "entities": ents })
     } else {
@@ -7105,7 +7169,13 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                         cands = order.iter().copied().filter(|s| pick(s)).collect();
                     }
                     if cands.len() > 1 {
-                        match resolve_race(&client, &id, webm, &cands).await {
+                        let dbg_tr = std::time::Instant::now();
+                        let dbg_r = resolve_race(&client, &id, webm, &cands).await;
+                        match &dbg_r {
+                            Ok(x) => dbg_log(&format!("[AUDIO] id={id} cache=MISS race_ok nguồn_thắng={} resolve={}ms ứng_viên={:?}", x.3, dbg_tr.elapsed().as_millis(), cands)),
+                            Err(e) => dbg_log(&format!("[AUDIO] id={id} cache=MISS race_FAIL resolve={}ms ứng_viên={:?} lỗi={e}", dbg_tr.elapsed().as_millis(), cands)),
+                        }
+                        match dbg_r {
                             Ok(x) => res = Some(x),
                             Err(e) => {
                                 notes.push_str(&format!("[{e}] "));
@@ -7120,13 +7190,15 @@ async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path
                         pos += 1;
                         continue;
                     }
+                    let dbg_ts = std::time::Instant::now();
                     match resolve_source(&client, &id, webm, src, use_proxy).await {
                         Ok(x) => {
+                            dbg_log(&format!("[AUDIO] id={id} nguồn={src} ok resolve={}ms", dbg_ts.elapsed().as_millis()));
                             res = Some(x);
                             break;
                         }
                         Err(e) => {
-                            eprintln!("[audio] {id} nguồn {src}: {e}");
+                            dbg_log(&format!("[AUDIO] id={id} nguồn={src} LỖI resolve={}ms {e}", dbg_ts.elapsed().as_millis()));
                             notes.push_str(&format!("[{e}] "));
                             audio_mark_bad(&id, src);
                             pos += 1;
