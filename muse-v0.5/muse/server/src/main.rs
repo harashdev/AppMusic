@@ -854,6 +854,7 @@ async fn run_gateway(remote: String) {
     let router = yt_routes()
         .route("/api/local/open", post(local_open))
         .route("/api/local/list", get(local_list))
+        .route("/api/local/log", get(local_log))
         .route("/api/local/file", get(local_file))
         .route("/ws/:room", get(gw_ws))
         .route("/ws-user", get(gw_ws))
@@ -932,6 +933,23 @@ async fn local_open(headers: HeaderMap) -> Response {
 }
 
 // Danh sách file nhạc trong thư mục (đi sâu tối đa 3 cấp thư mục con): [{name, size, mtime(ms)}], name là đường dẫn tương đối dùng dấu /.
+// Xem log chẩn đoán ngay trong trình duyệt: mở http://127.0.0.1:38417/api/local/log (chỉ máy này; trả 40KB cuối của file log).
+// Mở được trang này = đang chạy đúng bản server có log; nếu trang báo lỗi / 404 thì app vẫn đang chạy bản server cũ.
+async fn local_log(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let path = dbg_log_path();
+    let txt = match std::fs::read(&path) {
+        Ok(b) => {
+            let from = b.len().saturating_sub(40_000);
+            format!("# file: {}\n# {} byte, hiện phần cuối\n{}", path.display(), b.len(), String::from_utf8_lossy(&b[from..]))
+        }
+        Err(e) => format!("# chưa có log tại {} ({e})\n# server đang chạy đúng bản mới; hãy dùng app vài thao tác rồi tải lại trang này.", path.display()),
+    };
+    ([(header::CONTENT_TYPE, "text/plain; charset=utf-8"), (header::CACHE_CONTROL, "no-store")], txt).into_response()
+}
+
 async fn local_list(headers: HeaderMap) -> Response {
     if !local_host_ok(&headers) {
         return StatusCode::FORBIDDEN.into_response();
