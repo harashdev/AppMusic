@@ -2001,7 +2001,8 @@ async function api(path,opt={}){
   const h=Object.assign({},opt.headers||{}); if(token) h.Authorization='Bearer '+token;
   let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
   let r, ctl=null, tmo=0; if(opt.timeout){ ctl=new AbortController(); tmo=setTimeout(()=>ctl.abort(),opt.timeout); }
-  try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body,signal:ctl?ctl.signal:undefined}); netDown=false; clearTimeout(tmo); }catch(e){ clearTimeout(tmo);
+  try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body,signal:opt.signal||(ctl?ctl.signal:undefined)}); netDown=false; clearTimeout(tmo); }catch(e){ clearTimeout(tmo);
+    if(opt.signal&&opt.signal.aborted){ const ae=new Error('aborted'); ae.name='AbortError'; ae.aborted=true; throw ae; }
     if(ctl&&ctl.signal.aborted){ const te=new Error('Máy chủ phản hồi quá lâu, hãy bấm Lưu lại (ảnh GIF nặng có thể cần thu nhỏ trước)'); te.timeout=true; throw te; }
     netDown=true; try{ if(!offWatchTm){ offBar(true); offWatch(); } }catch{} const ne=new Error(NET_ERR); ne.net=true; throw ne; }
   if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
@@ -4195,11 +4196,23 @@ $('#main').addEventListener('click',e=>{
   else playList(list,i,lnames[el.dataset.l]);
 });
 const warmed={};
+/* Làm nóng luồng nhạc KHÔNG được chiếm kết nối: WebView chỉ mở ~6 kết nối/host, nếu YouTube chặn (502, ~22 s/lượt) thì các lượt
+   làm nóng treo hết kết nối và làm tìm kiếm phải xếp hàng. Nên: tối đa 2 lượt cùng lúc, tự huỷ sau 5 s, lỗi thì nghỉ 5 phút,
+   và huỷ hết khi người dùng bắt đầu tìm kiếm. */
+const WARM_MAX=2, WARM_TMO=5000, WARM_COOL=300000;
+const warmCtl=new Set(); let warmFailAt=0, searchBusyUntil=0;
+function warmAbortAll(){ for(const c of [...warmCtl]){ try{ c.abort(); }catch{} } warmCtl.clear(); }
 function warmTrack(t){
   try{
-    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return; warmed[t.id]=Date.now();
+    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return;
+    if(Date.now()-warmFailAt<WARM_COOL||Date.now()<searchBusyUntil||warmCtl.size>=WARM_MAX) return;
+    warmed[t.id]=Date.now();
     if(window.MuseNative&&typeof MuseNative.prefetch==='function'){ MuseNative.prefetch(String(t.id),fxFmt); return; } // Android: lấy sẵn link bằng IP máy
-    fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
+    const c=new AbortController(); warmCtl.add(c); const tm=setTimeout(()=>{ try{ c.abort(); }catch{} },WARM_TMO);
+    fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'},signal:c.signal})
+      .then(r=>{ if(!r.ok){ warmFailAt=Date.now(); delete warmed[t.id]; } try{ c.abort(); }catch{} }) // đã có header là đủ, bỏ phần thân
+      .catch(()=>{ if(c.signal.aborted&&warmCtl.has(c)&&Date.now()<searchBusyUntil) delete warmed[t.id]; else if(c.signal.aborted) warmFailAt=Date.now(); })
+      .finally(()=>{ clearTimeout(tm); warmCtl.delete(c); });
   }catch{}
 }
 /* Làm sẵn cho các bài đang hiện trên màn hình (như SimpMusic): lấy trước luồng nhạc + cover cỡ lớn (màn hình Đang phát) để
@@ -5260,14 +5273,14 @@ $('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},
 $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
 
-let sTok=0, appPrev=false;
+let sTok=0, appPrev=false, sCtl=null, lastSQ='';
 function browseTiles(){
   const t=[['Nhạc Việt','nhạc việt hot','#e8553a'],['Lofi','lofi chill beats','#6a5acd'],['K-Pop','kpop hits','#e0368f'],['EDM','edm party hits','#8e2de2'],['Rap Việt','rap việt hay nhất','#c9822b'],['Acoustic','acoustic chill songs','#2f9e8f'],['Piano','relaxing piano music','#3f6fd1'],['Workout','workout motivation songs','#c0392b'],['Anime','anime opening songs','#d64f9e'],['Game OST','game soundtrack','#4a7a3d'],['Cổ điển','classical study music','#7a5c3d'],['Nhạc Hoa','nhạc hoa hay nhất','#b8322f']];
   $('#sres').innerHTML=`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
 }
 const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['albums','Albums'],['artists','Nghệ sĩ'],['playlists','Danh sách phát'],['featured','Danh sách phát nổi bật'],['podcasts','Podcasts']];
 let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
-const ytSearchF=(q,f)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f)
+const ytSearchF=(q,f,signal)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f,signal?{signal}:{})
   .then(r=>(r&&Array.isArray(r.tracks))?{tracks:r.tracks,entities:Array.isArray(r.entities)?r.entities:[]}:{tracks:Array.isArray(r)?r:[],entities:[]})
   .then(x=>{ warmImgs(x.tracks,96); warmImgs(x.entities,360,8); return x; })
   .catch(e=>{ delete ytCache[k]; throw e; })); };
@@ -5321,16 +5334,21 @@ function entCards(list){ const k=reg(list,'');
 async function runSearch(q,fill){
   const inp=$('#sq'); if(fill&&inp) inp.value=q;
   lastQ=q; const my=++sTok; const box=$('#sres'); if(!box) return;
+  if(sCtl){ try{ sCtl.abort(); }catch{} sCtl=null; delete ytCache['f:'+sFilter+'|'+lastSQ]; } // huỷ tìm kiếm cũ để không chiếm kết nối
+  if(q){ searchBusyUntil=Date.now()+8000; warmAbortAll(); warmQ.length=0; }
   const ch=$('#sChips'); if(ch){ ch.hidden=!q; ch.innerHTML=q?SFILT.map(([k,n])=>`<button class="chip${k===sFilter?' on':''}" data-sf="${k}">${n}</button>`).join(''):''; }
   if(!q){ browseTiles(); return; }
   box.innerHTML='<p class="empty">Đang tìm…</p>';
   const f=sFilter; let out=[], ents=[]; const id=ytId(q);
   if(id) out.push(await ytInfo(id));
   if(!id||q.length>11){
-    try{ const r=await ytSearchF(q,f); out=out.concat(r.tracks); ents=r.entities; }
-    catch(e){ if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; return; } }
+    const ctl=new AbortController(); sCtl=ctl; lastSQ=q;
+    try{ const r=await ytSearchF(q,f,ctl.signal); out=out.concat(r.tracks); ents=r.entities; }
+    catch(e){ if(e&&e.aborted) return; if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; return; } }
   }
+  if(sCtl&&my===sTok) sCtl=null;
   if(my!==sTok||!$('#sres')) return;
+  searchBusyUntil=0;
   const trackMode=f==='all'||f==='songs'||f==='videos', entMode=f!=='songs'&&f!=='videos';
   let html='';
   if(trackMode&&out.length) html+=(f==='all'?`<div class="sres-h">Bài hát</div>`:'')+tracksHtml(out,false,q);
