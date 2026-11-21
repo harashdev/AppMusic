@@ -4218,7 +4218,7 @@ function warmTrack(t){
 /* Làm sẵn cho các bài đang hiện trên màn hình (như SimpMusic): lấy trước luồng nhạc + cover cỡ lớn (màn hình Đang phát) để
    bấm vào là có cover và nhạc ngay. Xếp hàng, mỗi 450ms làm 1 bài – không bắn cả chục cuộc lấy luồng cùng lúc làm chậm bài đang bấm. */
 const warmQ=[]; let warmQTm=0;
-function warmTrackFull(t){ warmTrack(t); warmImgs([t],800,1); warmImgs([t],96,1); }
+function warmTrackFull(t){ /* KHÔNG gọi warmTrack: không lấy luồng nhạc trước cho bài chỉ đang hiển thị/rê chuột (mỗi lượt là 1 request YouTube → dễ bị gắn cờ bot). Chỉ nạp ảnh. */ warmImgs([t],800,1); warmImgs([t],96,1); }
 function warmPump(){
   warmQTm=0; const now=Date.now();
   while(warmQ.length){ const x=warmQ.shift(); if(now-x.at>10000) continue; try{ warmTrackFull(x.t); }catch{} break; }
@@ -4239,7 +4239,7 @@ function warmNext(){
   warmNextTm=setTimeout(()=>{ try{
     if(!cur||!queue.length||queue.length<2) return;
     if(shuf){ return; }
-    for(let k=1;k<=2;k++){ const t=queue[(qi+k)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); }
+    if(everPlayed&&playing){ const t=queue[(qi+1)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); } // chỉ 1 bài kế, và chỉ khi bài hiện tại đã phát được
     // Nạp sẵn cover album của 2 bài kế (đúng kích thước thanh nhạc và màn hình Đang phát) → chuyển bài là cover hiện ngay.
     const nx=[queue[(qi+1)%queue.length],queue[(qi+2)%queue.length]].filter(t=>t&&t!==cur&&!blocked(t));
     warmImgs(nx,800,2); warmImgs(nx,96,2);
@@ -5626,7 +5626,7 @@ let failSkips=[], ytResume=[], everPlayed=false; const coldRetry={};
 function failSkip(t){
   // Từ lúc mở app chưa phát được bài nào = nguồn nhạc còn "nguội" (kết nối YouTube lần đầu có thể mất vài chục giây).
   // Lúc này KHÔNG nhảy bài (bài kế cũng nguội y như vậy): thử lại đúng bài này vài lần, bài sau mới tính.
-  if(!everPlayed&&t&&cur===t&&(coldRetry[t.id]||0)<8){
+  if(!everPlayed&&t&&cur===t&&(coldRetry[t.id]||0)<2){
     const k=coldRetry[t.id]=(coldRetry[t.id]||0)+1; wdTries[t.id]=0; fxTried[t.id]=false;
     adminNotify('Nguồn nhạc đang khởi động – thử lại bài này…');
     setTimeout(()=>{ if(cur===t&&!everPlayed) loadTrack(t,0,true); },Math.min(5000,1000*k)); return; }
