@@ -4157,6 +4157,7 @@ function collage(list){
   return `<div class="collage one">${ic('note','lg')}</div>`;
 }
 function tracksHtml(list,inPl,name,col){
+  if(!inPl&&list.some(isUnplay)) list=list.filter(t=>!isUnplay(t)||(cur&&key(cur)===key(t))); // trong playlist của bạn vẫn hiện (chỉ mờ đi), không xoá
   if(!list.length) return '<p class="empty">Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.</p>';
   const k=reg(list,name);
   return list.map((t,i)=>{ const kk=key(t), f=favs.has(kk);
@@ -5623,6 +5624,27 @@ async function syncClock(n){
 let ytLiveTm=0, ytSeen=false, ytHold=0;
 /* Bài lỗi thì chuyển bài kế, nhưng tối đa 3 lần trong 90 giây: mất mạng/server chết không được làm nhạc "nhảy" hết cả danh sách. */
 let failSkips=[], ytResume=[], everPlayed=false; const coldRetry={};
+/* Bài không phát được (YouTube chặn/lỗi) → ẨN khỏi danh sách chứ không xoá khỏi thư viện/playlist/yêu thích.
+   Lưu {khoá: thời điểm} trong LS, tự hiện lại sau UNPLAY_TTL (YouTube hay chỉ chặn tạm), và hiện lại ngay khi bài đó phát được. */
+const UNPLAY_TTL=12*3600*1000; let unplay={};
+try{ unplay=JSON.parse(LS.get('muse_unplay','{}'))||{}; const n0=Date.now(); for(const k in unplay) if(n0-unplay[k]>UNPLAY_TTL) delete unplay[k]; }catch{ unplay={}; }
+const isUnplay=t=>!!t&&t.src==='yt'&&unplay[key(t)]!==undefined&&Date.now()-unplay[key(t)]<UNPLAY_TTL;
+const unplaySave=()=>{ try{ LS.set('muse_unplay',JSON.stringify(unplay)); }catch{} };
+function hideUnplay(root){
+  const keys=Object.keys(unplay); if(!keys.length) return;
+  const r=root||document.getElementById('main'); if(!r) return;
+  r.querySelectorAll('[data-l][data-i]').forEach(el=>{ const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t&&isUnplay(t)&&!(cur&&key(cur)===key(t))) el.style.display='none'; });
+}
+let unplayTm=0; const unplayHideSoon=()=>{ clearTimeout(unplayTm); unplayTm=setTimeout(()=>{ try{ hideUnplay(); }catch{} },120); };
+function unplayMark(t){
+  if(!t||t.src!=='yt'||netDown||(typeof navigator!=='undefined'&&navigator.onLine===false)) return;
+  unplay[key(t)]=Date.now(); unplaySave();
+  const qi0=queue.indexOf(cur); // bỏ khỏi hàng đợi hiện tại (giữ đúng vị trí đang phát)
+  for(let i=queue.length-1;i>=0;i--) if(queue[i]!==t&&key(queue[i])===key(t)){ queue.splice(i,1); if(i<qi) qi--; }
+  void qi0; hideUnplay();
+  const n=Object.keys(unplay).length; notify('Đã ẩn “'+(t.title||'bài này')+'” vì không phát được (đang ẩn '+n+' bài, tự hiện lại sau 12 giờ)');
+}
+try{ new MutationObserver(unplayHideSoon).observe(document.getElementById('main'),{childList:true,subtree:true}); }catch{}
 function failSkip(t){
   // Từ lúc mở app chưa phát được bài nào = nguồn nhạc còn "nguội" (kết nối YouTube lần đầu có thể mất vài chục giây).
   // Lúc này KHÔNG nhảy bài (bài kế cũng nguội y như vậy): thử lại đúng bài này vài lần, bài sau mới tính.
@@ -5630,6 +5652,7 @@ function failSkip(t){
     const k=coldRetry[t.id]=(coldRetry[t.id]||0)+1; wdTries[t.id]=0; fxTried[t.id]=false;
     adminNotify('Nguồn nhạc đang khởi động – thử lại bài này…');
     setTimeout(()=>{ if(cur===t&&!everPlayed) loadTrack(t,0,true); },Math.min(5000,1000*k)); return; }
+  unplayMark(t);
   const n=Date.now(); failSkips=failSkips.filter(x=>n-x<90000); failSkips.push(n);
   // Chỉ tự nhảy qua 1 bài hỏng; bài kế cũng hỏng thì DỪNG (thường do YouTube chặn IP/đòi đăng nhập – nhảy tiếp chỉ làm app chạy loạn).
   if(failSkips.length>1){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Không phát được bài này (YouTube đang chặn – cần đăng nhập/cookies cho yt-dlp). Đã dừng, không tự nhảy bài nữa.'); return; }
@@ -5776,7 +5799,7 @@ audYt.addEventListener('ended',()=>{
   if(t&&d>15&&el.currentTime>1&&el.currentTime<d-5&&(earlyEnd[t.id]||0)<3){
     earlyEnd[t.id]=(earlyEnd[t.id]||0)+1; midAt[t.id]=el.currentTime; loadTrack(t,el.currentTime,true); return; }
   playing=false; onEnded(); });
-audYt.addEventListener('playing',()=>{ everPlayed=true; failSkips=[]; });
+audYt.addEventListener('playing',()=>{ everPlayed=true; failSkips=[]; try{ if(cur&&unplay[key(cur)]!==undefined){ delete unplay[key(cur)]; unplaySave(); } }catch{} });
 audYt.addEventListener('timeupdate',()=>{ const t=cur; if(!t||eng!=='fx') return; const m=midAt[t.id];
   if(m!==undefined&&audYt.currentTime>m+8){ delete midAt[t.id]; midTries[t.id]=0; earlyEnd[t.id]=0; } });
 aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } });
@@ -6048,8 +6071,8 @@ function nextTrack(auto){
     if(shuf&&queue.length>1){ do{ i=Math.floor(Math.random()*queue.length) }while(i===qi); }
     else { i=qi+1; if(i>=queue.length){ if(rep===1||!auto) i=0; else { setPlaying(false); broadcastState(); return; } } }
     qi=i; tries++;
-  }while((blocked(queue[qi])||isDis(queue[qi]))&&tries<queue.length);
-  if(blocked(queue[qi])||isDis(queue[qi])){ setPlaying(false); return; }
+  }while((blocked(queue[qi])||isDis(queue[qi])||isUnplay(queue[qi]))&&tries<queue.length);
+  if(blocked(queue[qi])||isDis(queue[qi])||isUnplay(queue[qi])){ setPlaying(false); return; }
   autoAdv=!!auto;
   userPlay(queue[qi]);
 }
