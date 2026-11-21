@@ -48,6 +48,34 @@ jobs:
           Remove-Item "deno.zip"
           Remove-Item -Recurse -Force "deno-tmp"
 
+      # PO token (bgutil): cho client IOS / TV của yt-dlp có token hợp lệ → bớt "Sign in to confirm you're not a bot" / 403 mà KHÔNG cần đăng nhập.
+      # bgutil-pot.exe (server token, lib.rs tự bật ở cổng 4416) + plugin yt-dlp (thư mục yt-dlp-plugins cạnh yt-dlp.exe).
+      # Tải lỗi thì vẫn build được (file giữ chỗ rỗng) – app chỉ chạy không có PO token như trước.
+      - name: Tải bgutil PO token provider
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p binaries/yt-dlp-plugins pot-tmp
+          gh release download -R jim60105/bgutil-ytdlp-pot-provider-rs -D pot-tmp --clobber || echo "Không tải được release bgutil"
+          ls -la pot-tmp || true
+          EXE=""
+          for f in pot-tmp/*; do
+            [ -f "$f" ] || continue
+            n=$(basename "$f" | tr 'A-Z' 'a-z')
+            case "$n" in
+              *aarch64*|*arm64*|*linux*|*darwin*|*macos*|*apple*) continue ;;
+              *.exe) case "$n" in *pot*) EXE="$f" ;; esac ;;
+              *.zip)
+                mkdir -p "pot-tmp/x-$n"; unzip -q -o "$f" -d "pot-tmp/x-$n" || continue
+                if ls pot-tmp/x-$n/*.exe >/dev/null 2>&1 && case "$n" in *windows*|*win*) true ;; *) false ;; esac; then EXE=$(ls pot-tmp/x-$n/*.exe | head -1)
+                else cp -r pot-tmp/x-$n/. binaries/yt-dlp-plugins/; fi ;;
+            esac
+          done
+          if [ -n "$EXE" ]; then cp "$EXE" binaries/bgutil-pot-x86_64-pc-windows-msvc.exe; echo "bgutil-pot: OK"; else : > binaries/bgutil-pot-x86_64-pc-windows-msvc.exe; echo "bgutil-pot: KHÔNG có (dùng file giữ chỗ)"; fi
+          [ -n "$(ls -A binaries/yt-dlp-plugins)" ] || echo "Plugin trống" > binaries/yt-dlp-plugins/README.txt
+          find binaries -maxdepth 3 | head -50
+
       - name: Tải Discord Social SDK
         id: sdk
         shell: bash
