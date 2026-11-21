@@ -394,7 +394,12 @@ mod gateway {
         let mut cmd = Command::new(&exe);
         if ytdlp.is_file() {
             cmd.env("YTDLP_PATH", &ytdlp);
-            if start_pot(&dir) {
+            // Bật dịch vụ PO token ở NỀN: không được làm chậm việc mở cổng nhà (cổng nhà không lên kịp thì app quay về server Render).
+            let pot_dir = dir.clone();
+            std::thread::spawn(move || {
+                let _ = start_pot(&pot_dir);
+            });
+            if dir.join(if cfg!(windows) { "bgutil-pot.exe" } else { "bgutil-pot" }).is_file() {
                 cmd.env("YT_POT_URL", format!("http://127.0.0.1:{POT_PORT}"));
             }
         }
@@ -445,7 +450,8 @@ mod gateway {
             }
         };
         let t0 = Instant::now();
-        while t0.elapsed() < Duration::from_secs(8) {
+        // Lần mở đầu sau khi cài, Windows có thể quét file mới khá lâu → cho chờ tới 25 giây (trước là 8).
+        while t0.elapsed() < Duration::from_secs(25) {
             if up() {
                 return (Some(url), Some(child));
             }
