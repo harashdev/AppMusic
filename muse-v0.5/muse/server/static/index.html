@@ -1301,6 +1301,21 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     conic-gradient(from 25deg,#fff0 0 8%,#ffffff26 14%,#fff0 21% 56%,#ffffff1c 63%,#fff0 70%);
   box-shadow:inset 0 0 0 1px #00000040,inset 0 0 10px #0004}
 
+/* ===== Lịch sử tìm kiếm (giao diện riêng của app, không dùng gợi ý của trình duyệt) ===== */
+.sbox{position:relative}
+.shist{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;background:var(--surf);border-radius:18px;padding:8px;box-shadow:0 12px 40px #0008,inset 0 0 0 1px var(--line);max-height:min(360px,60vh);overflow:auto}
+.shist[hidden]{display:none}
+.shi{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;cursor:pointer}
+.shi:hover{background:var(--hover)}
+.shi>.i,.hchip>.i{opacity:.7;flex:none}
+.shi>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shx{flex:none;width:26px;height:26px;border:0;background:none;color:inherit;border-radius:50%;opacity:.55;cursor:pointer;display:grid;place-items:center;padding:0}
+.shx:hover{background:var(--hover2);opacity:1}
+.hchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.hchip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:6px 6px 6px 14px;border-radius:999px;background:var(--hover2);cursor:pointer;font-weight:500}
+.hchip:hover{background:var(--hover)}
+.hchip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
+
 /* Không cho bôi đen / chọn / kéo chữ và đĩa ở màn hình Chi tiết */
 .dd,.dd *{
   -webkit-user-select:none!important;user-select:none!important;
@@ -1554,6 +1569,8 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Mix nhạc Việt':'Vietnamese mix','Mix quốc tế':'International mix','Bấm vào một mix để nghe ngẫu nhiên.':'Tap a mix to listen on shuffle.','Phát ngẫu nhiên':'Shuffle play',
     'Việt Nam':'Vietnam','Quốc tế':'International','Đang tải…':'Loading…',
     'Tìm bài hát, nghệ sĩ… hoặc dán link YouTube':'Search songs, artists… or paste a YouTube link',
+    'Tìm kiếm gần đây':'Recent searches','Xóa tất cả':'Clear all','Xóa khỏi lịch sử':'Remove from history','Đang chuẩn bị mix…':'Preparing your mix…',
+    'Chưa tải được mix này, hãy thử lại sau ít phút.':'Couldn’t load this mix – please try again in a few minutes.','Chưa có bài yêu thích để tạo mix này.':'No favorites yet to build this mix.',
     'Đang offline – hiển thị bản đã lưu':'Offline – showing the saved copy','Xoá playlist':'Delete playlist','Xoá playlist này?':'Delete this playlist?','Xoá':'Delete',
     'Phòng hiện tại':'Current room','Mã phòng:':'Room code:','– mọi người trong phòng nghe đồng bộ và cùng điều khiển.':'– everyone in the room listens in sync and shares control.',
     'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Chia sẻ nhạc':'Share song','Đã chép link bài hát để chia sẻ':'Song link copied','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
@@ -4358,7 +4375,9 @@ $('#main').addEventListener('click',e=>{
   if(nv){ const g=nv.closest('.sec').querySelector('.grid'); if(g) g.scrollBy({left:+nv.dataset.nv*g.clientWidth*.8}); return; }
   const go_=e.target.closest('[data-go]'); if(go_){ go(go_.dataset.go); return; }
   const gs_=e.target.closest('[data-gs]'); if(gs_){ go('search',gs_.dataset.gs); return; }
-  const tile=e.target.closest('[data-q]'); if(tile){ runSearch(tile.dataset.q,true); return; }
+  if(e.target.closest('#sHist')) return;
+  if(shAct(e)) return;
+  const tile=e.target.closest('[data-q]'); if(tile){ shSave(tile.dataset.q); runSearch(tile.dataset.q,true); return; }
   const mx=e.target.closest('[data-mix]'); if(mx){ startMix(mx.dataset.mix,mx.dataset.name); return; }
   const el=e.target.closest('[data-l]'); if(!el) return;
   const list=lists[el.dataset.l], i=+el.dataset.i, t=list&&list[i]; if(!t) return;
@@ -4938,7 +4957,7 @@ const pages={
         if(homeFail>=secs.length&&!document.querySelector('#main .sec .grid')){ const mm=$('#main'); if(mm&&!mm.querySelector('#homeOff')) mm.insertAdjacentHTML('beforeend','<p class="empty" id="homeOff">Không kết nối được YouTube Music. Hãy thử lại sau.</p>'); } } });
   },
   async mix(m){
-    const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','nhạc việt hot','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi chill beats','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','top global hits','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm party hits','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
+    const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','viet','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','intl','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
     m.innerHTML=`<h2>Mix</h2><p class="sub" style="margin-top:-8px">Bấm vào một mix để nghe ngẫu nhiên.</p><div class="tiles">${mixes.map(([n,q,bg,i])=>`<div class="tl" data-mix="${esc(q)}" data-name="${esc(n)}" style="background:${bg};height:130px" tabindex="0">${esc(n)}<small>Phát ngẫu nhiên</small>${ic(i)}</div>`).join('')}</div>`;
   },
   async charts(m,idx=0){
@@ -4949,11 +4968,13 @@ const pages={
     try{ $('#rows').innerHTML=tracksHtml(await ytSearch(tabs[idx][1]),false,'Thịnh hành · '+tabs[idx][0]); markNow(); }catch(e){ $('#rows').innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
   },
   async search(m,q=''){
-    m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"></div><div class="schips" id="sChips" hidden></div><div id="sres"></div>`;
+    m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"><div class="shist" id="sHist" hidden></div></div><div class="schips" id="sChips" hidden></div><div id="sres"></div>`;
     $('#sChips').onclick=e=>{ const b=e.target.closest('[data-sf]'); if(!b) return; sFilter=b.dataset.sf; LS.set('sfilter',sFilter); runSearch($('#sq').value.trim()); };
     const inp=$('#sq'); let tm;
-    inp.onkeydown=e=>{ if(e.key==='Enter'){ clearTimeout(tm); runSearch(inp.value.trim()); } };
-    inp.oninput=()=>{ clearTimeout(tm); tm=setTimeout(()=>runSearch(inp.value.trim()),600); };
+    inp.onkeydown=e=>{ if(e.key==='Enter'){ clearTimeout(tm); shHide(); const v=inp.value.trim(); shSave(v); runSearch(v); } else if(e.key==='Escape') shHide(); };
+    inp.oninput=()=>{ clearTimeout(tm); shRender(); tm=setTimeout(()=>runSearch(inp.value.trim()),600); };
+    inp.onblur=()=>setTimeout(shHide,150);
+    $('#sHist').onmousedown=e=>{ if(shAct(e)) return; e.preventDefault(); };
     inp.focus(); if(q) runSearch(q); else browseTiles();
   },
   async favs(m){
@@ -5501,9 +5522,29 @@ $('#roomInfo').onclick=()=>go('together');
 $('#roomBar').onclick=()=>go('together');
 
 let sTok=0, appPrev=false, sCtl=null, lastSQ='';
+/* Lịch sử tìm kiếm: lưu riêng theo từng tài khoản trên máy này (tối đa 20 mục, mới nhất lên đầu) */
+const SH_MAX=20, shKey=()=>'muse_shist_'+((me&&me.id)||'guest');
+function shGet(){ try{ const a=JSON.parse(LS.get(shKey(),'[]')); return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x):[]; }catch{ return []; } }
+function shSet(a){ LS.set(shKey(),JSON.stringify(a.slice(0,SH_MAX))); }
+function shSave(q){ q=String(q||'').trim().slice(0,120); if(q.length<2||/https?:\/\//i.test(q)||ytId(q)&&q.length<=11) return; shSet([q].concat(shGet().filter(x=>x.toLowerCase()!==q.toLowerCase()))); }
+const shRow=x=>`<div class="shi" data-shq="${esc(x)}" tabindex="0">${ic('clock','sm')}<span>${esc(x)}</span><button type="button" class="shx" data-shd="${esc(x)}" title="Xóa khỏi lịch sử">${ic('x','sm')}</button></div>`;
+function shRender(){ /* gợi ý từ lịch sử khi đang gõ */
+  const box=$('#sHist'), inp=$('#sq'); if(!box||!inp) return;
+  const v=inp.value.trim().toLowerCase();
+  const l=v?shGet().filter(x=>x.toLowerCase().includes(v)&&x.toLowerCase()!==v).slice(0,6):[];
+  box.innerHTML=l.map(shRow).join(''); box.hidden=!l.length;
+}
+function shHide(){ const b=$('#sHist'); if(b) b.hidden=true; }
+function shAct(e){ /* xử lý bấm vào mục lịch sử (dùng chung cho dropdown và danh sách "Tìm kiếm gần đây") */
+  const d=e.target.closest('[data-shd]'); if(d){ e.preventDefault(); e.stopPropagation(); shSet(shGet().filter(x=>x!==d.dataset.shd)); shRender(); if($('#sres')&&!lastQ) browseTiles(); return true; }
+  const c=e.target.closest('[data-shc]'); if(c){ e.preventDefault(); shSet([]); shHide(); if($('#sres')&&!lastQ) browseTiles(); return true; }
+  const r=e.target.closest('[data-shq]'); if(r){ e.preventDefault(); const q=r.dataset.shq; shHide(); runSearch(q,true); shSave(q); return true; }
+  return false;
+}
 function browseTiles(){
   const t=[['Nhạc Việt','nhạc việt hot','#e8553a'],['Lofi','lofi chill beats','#6a5acd'],['K-Pop','kpop hits','#e0368f'],['EDM','edm party hits','#8e2de2'],['Rap Việt','rap việt hay nhất','#c9822b'],['Acoustic','acoustic chill songs','#2f9e8f'],['Piano','relaxing piano music','#3f6fd1'],['Workout','workout motivation songs','#c0392b'],['Anime','anime opening songs','#d64f9e'],['Game OST','game soundtrack','#4a7a3d'],['Cổ điển','classical study music','#7a5c3d'],['Nhạc Hoa','nhạc hoa hay nhất','#b8322f']];
-  $('#sres').innerHTML=`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
+  const hs=shGet(), hh=hs.length?`<div class="sh"><h3>Tìm kiếm gần đây</h3><a class="more" data-shc role="button" tabindex="0">Xóa tất cả</a></div><div class="hchips">${hs.slice(0,12).map(x=>`<div class="hchip" data-shq="${esc(x)}" tabindex="0">${ic('clock','sm')}<span>${esc(x)}</span><button type="button" class="shx" data-shd="${esc(x)}" title="Xóa khỏi lịch sử">${ic('x','sm')}</button></div>`).join('')}</div>`:'';
+  $('#sres').innerHTML=hh+`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
 }
 const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['albums','Albums'],['artists','Nghệ sĩ'],['playlists','Danh sách phát'],['featured','Danh sách phát nổi bật'],['podcasts','Podcasts']];
 let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
@@ -5647,10 +5688,94 @@ pages.thisis=async function(m,x){
     catch(e){ notify(errTxt(e)); } finally{ sv.disabled=false; } };
   if(x.auto) playList(tr,0,name);
 };
+/* ===== MIX: gợi ý đúng thể loại + nạp từ từ để YouTube không gắn cờ bot =====
+   - Mỗi mix có bộ từ khoá + bộ lọc riêng (đúng thể loại, đúng độ dài một bài hát, bỏ liên khúc/1 giờ/livestream).
+   - Mix yêu thích = bài yêu thích + bài giống nghệ sĩ bạn hay thả tim; Mix nghe lại = lịch sử nghe của bạn.
+   - Chỉ gửi MỘT yêu cầu mỗi lần, cách nhau vài giây (có ngẫu nhiên). Có sẵn đủ bài phía trước thì nghỉ, chưa cần nạp thêm.
+   - Yêu cầu nào lỗi (nghi bị bắt là bot…) thì bỏ qua, nghỉ lâu hơn rồi tiếp tục nạp chậm; lỗi liên tiếp nhiều lần thì dừng hẳn. */
+const MIX_GAP=4500, MIX_JIT=3000, MIX_AHEAD=40, MIX_MAX=150, MIX_PER_Q=16;
+const MIX_BAD=/(?:\b\d{1,2}\s*(?:hours?|hrs?|giờ)\b|full album|non[\s-]?stop|liên khúc|24\/7|live\s?stream|podcast|compilation|playlist)/i;
+const VN_RE=/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+const isVn=t=>VN_RE.test((t.title||'')+' '+(t.artist||''));
+const MIXES={
+  viet:{qs:['nhạc việt hot','v-pop hits mới nhất','nhạc trẻ hay nhất','ballad việt hay nhất','rap việt hay nhất'],ok:isVn},
+  lofi:{qs:['lofi chill beats','lofi hip hop songs','chill lofi study songs','lofi jazz chill','lofi anime songs'],max:420},
+  intl:{qs:['top global hits','top pop songs this year','billboard hot 100 songs','global top 50 songs'],ok:t=>!isVn(t)},
+  edm:{qs:['edm party hits','edm festival hits','best house music songs','electro house hits','future bass songs'],max:420}
+};
+let mixTok=0, mixLastAt=0;
+const mixSleep=ms=>new Promise(r=>setTimeout(r,ms));
+const mixSig=t=>nz(t.title)+'|'+nz(String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?/i)[0]);
+function mixClean(list,spec,seen){
+  const out=[], mx=(spec&&spec.max)||480;
+  for(const t of list||[]){
+    if(!t||!t.id||blocked(t)||isUnplay(t)) continue;
+    if(t.dur&&(t.dur<60||t.dur>mx)) continue;
+    if(MIX_BAD.test(t.title||'')) continue;
+    const sg=mixSig(t); if(seen.has(sg)) continue;
+    out.push(t);
+  }
+  if(spec&&spec.ok){ const f=out.filter(spec.ok); if(f.length>=6) return f; }
+  return out;
+}
+async function mixFetch(q,tok){
+  const cached=!!ytCache[q]||!!LS.get(ycKey(q),null);
+  if(!cached){
+    const wait=mixLastAt+MIX_GAP+Math.random()*MIX_JIT-Date.now();
+    if(wait>0) await mixSleep(wait);
+    if(tok!==mixTok) return null;
+    mixLastAt=Date.now();
+  }
+  return ytSearch(q,true);
+}
+function mixSeeds(favs_){
+  const c=new Map();
+  for(const t of favs_){ const a=String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?/i)[0].trim(); if(!a||/^youtube$/i.test(a)||/ - topic$/i.test(a)&&a.length<9) continue; c.set(a,(c.get(a)||0)+1); }
+  return [...c.entries()].sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>'sim:'+x[0]);
+}
 async function startMix(sp,name){
-  try{ let l=sp==='fav'?await api('/api/favorites'):sp==='hist'?await api('/api/history'):await ytSearch(sp);
-    if(!l.length){ notify('Chưa có bài nào để tạo mix này.'); return; } playList(shuffled(l),0,name); }
-  catch(e){ notify(e.message); }
+  const tok=++mixTok; mixLastAt=Math.max(mixLastAt,0);
+  try{
+    const seen=new Set(); let first, qs=[], spec=MIXES[sp];
+    if(sp==='fav'||sp==='hist'){
+      const l=await api(sp==='fav'?'/api/favorites':'/api/history');
+      if(!Array.isArray(l)||!l.length){ notify(sp==='fav'?'Chưa có bài yêu thích để tạo mix này.':'Chưa có bài nào để tạo mix này.'); return; }
+      first=shuffled(l.filter(t=>!blocked(t))).slice(0,40); first.forEach(t=>seen.add(mixSig(t)));
+      if(sp==='fav') qs=mixSeeds(l);
+      spec=null; var favKeys=new Set(l.map(key));
+    } else {
+      if(!spec){ spec={qs:[sp]}; } // tương thích kiểu cũ: truyền thẳng từ khoá
+      qs=shuffled(spec.qs);
+    }
+    // --- Bài đầu tiên: yêu thích/lịch sử có sẵn thì phát ngay; mix thể loại thì chờ kết quả đầu tiên ---
+    if(first){ playList(first,0,name); }
+    else notify('Đang chuẩn bị mix…');
+    let fails=0, retry=[], started=!!first, fed=0;
+    const alive=()=>tok===mixTok&&(!started||qname===name);
+    const run=async q=>{
+      if(!alive()) return 'stop';
+      while(started&&alive()&&queue.length-qi>=MIX_AHEAD) await mixSleep(6000);     // còn nhiều bài phía trước thì nghỉ
+      if(!alive()) return 'stop';
+      let r; try{ r=await mixFetch(q,tok); }catch{ return 'fail'; }
+      if(r===null||!alive()) return 'stop';
+      let fresh=mixClean(r,spec,seen); if(favKeys) fresh=fresh.filter(t=>!favKeys.has(key(t)));
+      fresh=shuffled(fresh).slice(0,MIX_PER_Q); fresh.forEach(t=>seen.add(mixSig(t)));
+      if(!fresh.length) return 'ok';
+      if(!started){ started=true; playList(fresh,0,name); }
+      else { for(const t of fresh){ if(queue.length>=MIX_MAX) break; const lo=Math.min(queue.length,qi+2); queue.splice(lo+Math.floor(Math.random()*(queue.length-lo+1)),0,t); } }
+      fed+=fresh.length; return 'ok';
+    };
+    for(const q of qs){
+      const st=await run(q);
+      if(st==='stop') return;
+      if(st==='fail'){ fails++; retry.push(q); if(fails>=4) break; await mixSleep(Math.min(60000,10000*Math.pow(2,fails-1))); }   // bỏ yêu cầu lỗi, nghỉ lâu hơn rồi đi tiếp
+      else { fails=0; }
+      if(queue.length>=MIX_MAX&&started) return;
+    }
+    // Thử lại đúng một lần các yêu cầu đã lỗi, sau khi nghỉ đủ lâu
+    if(retry.length&&fails<4&&alive()){ await mixSleep(30000); for(const q of retry){ if((await run(q))==='stop') return; } }
+    if(!started&&tok===mixTok) notify('Chưa tải được mix này, hãy thử lại sau ít phút.');
+  }catch(e){ if(tok===mixTok) notify(e.message); }
 }
 
 async function loadPlaylists(){
