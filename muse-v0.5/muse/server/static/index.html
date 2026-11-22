@@ -1783,7 +1783,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.':'Couldn’t create the image (a background from another site blocks export). Use an uploaded banner instead.',
     'Mới nghe':'Newcomer','Tập sự':'Apprentice','Mê nhạc':'Music lover','Sành nghe':'Connoisseur','Cao thủ':'Expert','Bậc thầy':'Master','Huyền thoại':'Legend',
     'Đã nghe':'Listened','Đã đạt cấp cao nhất':'Max level reached','trên BBeat':'on BBeat','Không tìm thấy thẻ này':'Card not found','Thẻ danh tính':'ID card',
-    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
+    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
     'Chưa có playlist nào.':'No playlists yet.','Thêm ›':'More ›','Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.':'You haven’t liked any songs yet. Tap ♡ on a song to add it here.','Nhạc đã thích':'Liked music',
     'Đã chép UID':'UID copied','Đã lưu tên hiển thị':'Display name saved','Không lưu được':'Couldn’t save','Không gửi được lời mời':'Couldn’t send the invite','Không mở được':'Couldn’t open',
     'Đăng nhập để chỉnh sửa hồ sơ':'Log in to edit your profile','Biệt danh':'Nickname','Đã lưu biệt danh':'Nickname saved','Chữ ký cá nhân':'Bio','Đã lưu chữ ký':'Bio saved',
@@ -4079,8 +4079,8 @@ function showProfilePop(u,anchor,mine){
 }
 
 /* ===== TRANG HỒ SƠ (kiểu Bilibili) + CHỈNH SỬA THÔNG TIN ===== */
-function profileRowsHtml(list,k){
-  return '<div class="bp-trs">'+list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button></div>`).join('')+'</div>';
+function profileRowsHtml(list,k,ro){
+  return '<div class="bp-trs">'+list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div>${ro?'':`<button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button>`}</div>`).join('')+'</div>';
 }
 
 /* ===== MÀU TRANG HỒ SƠ =====
@@ -4162,7 +4162,7 @@ function openProfilePage(u,mine){
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine&&!guest?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
       <div class="bp-chips" id="bpChips">${pfIdChips(u,mine)}</div>
       <div class="bp-bio"><span class="bp-q">${esc(u.status||'Không có mô tả')}</span>${mine&&!guest?'<a data-x="edit">Chi tiết</a>':''}</div></div></div></div>
-    ${mine&&guest?'':mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}
+    ${mine&&guest?'':mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs" id="bpFr" style="display:none"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}
     <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
@@ -4176,8 +4176,21 @@ function openProfilePage(u,mine){
   function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.imgv,.shc-ov,.bp-ed')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
   const priv='<p class="bp-empty">Chỉ chủ hồ sơ mới xem được mục này.</p>';
+  let other=null;   /* người khác: {friend, public, playlists, likes} — Trang chủ công khai mặc định, chủ hồ sơ có thể chuyển riêng tư */
+  const loadOther=()=>other?Promise.resolve(other):api('/api/users/'+u.id+'/home').then(r=>other=r).catch(()=>null);
+  if(!mine&&!guest){ loadOther().then(r=>{ const fr=d.querySelector('#bpFr'); if(fr&&!(r&&r.friend)) fr.style.display=''; }); }   /* đã là bạn bè → không hiện nút Kết bạn */
   async function showHome(){
-    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
+    if(!mine){
+      body.innerHTML='<p class="bp-empty">Đang tải…</p>';
+      const r=guest?null:await loadOther();
+      if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='home') return;
+      if(!r||r.public===false){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
+      const pl=r.playlists||[], recent=r.likes||[], k=recent.length?reg(recent,'Yêu thích'):0;
+      body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Playlist</b><small>${pl.length}</small></div></div>
+        ${pl.length?`<div class="bp-pls">${pl.map(p=>`<div class="bp-pl"><div class="tile">${plCover(p)}</div><div class="m"><b>${esc(p.name)}</b><span>${p.count||0} bài hát</span></div></div>`).join('')}</div>`:'<p class="bp-empty">Chưa có playlist nào.</p>'}</div>
+        <div class="bp-sec"><div class="bp-sh"><div><b>Nhạc gần đây đã thích</b></div></div>
+        ${recent.length?profileRowsHtml(recent,k,true):'<p class="bp-empty">Chưa thích bài nào.</p>'}</div>`;
+      return; }
     body.innerHTML='<p class="bp-empty">Đang tải…</p>';
     if(!pls) pls=await api('/api/playlists').catch(()=>playlists||[]);
     if(!favList) favList=await api('/api/favorites').then(a=>Array.isArray(a)?a:[]).catch(()=>[]);
@@ -4253,12 +4266,14 @@ function openProfileEdit(parent){
   document.querySelectorAll('.bp-ed').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
   if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed'); for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); }
+  let homePub=null;   /* null = đang tải; true = công khai (mặc định); false = riêng tư */
   const paint=()=>{
     d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
       <div class="bp-grp">
         <div class="bp-rw" data-x="name"><span>Biệt danh</span><em>${esc(me.display_name)}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Không có mô tả')}</em>${ic('chev')}</div>
         <div class="bp-rw" data-x="theme"><span>Banner &amp; nền hồ sơ</span><em></em>${ic('chev')}</div>
+        <div class="bp-rw" data-x="homepriv"><span>Trang chủ hồ sơ</span><em>${homePub==null?'…':homePub?'Công khai':'Riêng tư'}</em>${ic('chev')}</div>
       </div>
       <div class="bp-grp">
         <div class="bp-rw" data-x="uid"><span>UID</span><em>${esc(me.code||'')}</em></div>
@@ -4266,6 +4281,7 @@ function openProfileEdit(parent){
       </div></div>`;
   };
   paint(); document.body.appendChild(d);
+  api('/api/profile/privacy').then(r=>{ homePub=!(r&&r.home_public===false); if(d.isConnected) paint(); }).catch(()=>{ homePub=true; if(d.isConnected) paint(); });
   const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); if(parent&&parent.dispatchEvent) parent.dispatchEvent(new Event('pfx')); };
   function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
@@ -4278,6 +4294,9 @@ function openProfileEdit(parent){
       else if(a==='bio'){ const v=await askText('Chữ ký cá nhân',me.status||''); if(v==null) return;
         const c=cropOf(me); const u=await api('/api/profile',{json:{display_name:me.display_name,accent:me.accent,bg:me.bg||'',bg_url:me.bg==='custom'?(me.bg_url||''):'',banner_color:me.banner_color||'',status:v.trim().slice(0,60),crop:c}});
         if(u&&u.id) applyUser(u); else me.status=v.trim().slice(0,60); notify('Đã lưu chữ ký'); paint(); }
+      else if(a==='homepriv'){ if(homePub==null) return; const nv=!homePub;
+        const r=await api('/api/profile/privacy',{json:{home_public:nv}}); homePub=!(r&&r.home_public===false);
+        notify(homePub?'Trang chủ hồ sơ: công khai':'Trang chủ hồ sơ: riêng tư'); paint(); }
       else if(a==='theme'){ close(); document.querySelectorAll('.bp').forEach(p=>p.remove()); go('profile'); }
       else if(a==='uid'){ try{ await navigator.clipboard.writeText(me.code||''); notify('Đã chép UID'); }catch{ await askText('UID',me.code||''); } }
       else if(a==='card'){ shareCard({...me,online:true}); }

@@ -351,6 +351,7 @@ fn init_db(path: &std::path::Path) -> Connection {
         "ALTER TABLE users ADD COLUMN discord_refresh TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE users ADD COLUMN discord_expires INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE users ADD COLUMN supporter INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN home_public INTEGER NOT NULL DEFAULT 1", // Trang chủ hồ sơ: mặc định công khai
         "ALTER TABLE users ADD COLUMN listen_secs INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE users ADD COLUMN listen_at INTEGER NOT NULL DEFAULT 0",
     ] {
@@ -1262,6 +1263,8 @@ async fn main() {
         .route("/api/pair/create", post(pair_create))
         .route("/api/me", get(me))
         .route("/api/profile", post(update_profile))
+        .route("/api/profile/privacy", get(privacy_get).post(privacy_set))
+        .route("/api/users/:id/home", get(user_home))
         .route("/api/account/name", post(account_name))
         .route("/api/account/password", post(account_password))
         .route("/api/account", axum::routing::delete(account_delete))
@@ -1791,6 +1794,68 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
         .map_err(|_| e500())?;
     tx.commit().map_err(|_| e500())?;
     Ok(Json(out))
+}
+
+// ---------- Quyền riêng tư Trang chủ hồ sơ ----------
+#[derive(Deserialize)]
+struct PrivacyReq {
+    home_public: bool,
+}
+
+async fn privacy_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let p: i64 = db.query_row("SELECT home_public FROM users WHERE id=?1", [user.id], |r| r.get(0)).unwrap_or(1);
+    Ok(Json(json!({ "home_public": p != 0 })))
+}
+
+async fn privacy_set(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<PrivacyReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET home_public=?1 WHERE id=?2", params![r.home_public as i64, user.id]).map_err(|_| e500())?;
+    Ok(Json(json!({ "home_public": r.home_public })))
+}
+
+// Trang chủ của người khác: trả về cả trạng thái bạn bè (để ẩn nút "Kết bạn") và, nếu họ để công khai, playlist + nhạc đã thích gần đây.
+async fn user_home(State(st): State<AppState>, headers: HeaderMap, Path(uid): Path<i64>) -> R<Value> {
+    let me = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let public: i64 = db
+        .query_row("SELECT home_public FROM users WHERE id=?1", [uid], |r| r.get(0))
+        .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy người dùng".to_string()))?;
+    let friend = me.id == uid
+        || db.query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![me.id, uid], |_| Ok(())).is_ok();
+    if public == 0 && me.id != uid {
+        return Ok(Json(json!({ "friend": friend, "public": false })));
+    }
+    let mut pls: Vec<Value> = Vec::new();
+    if let Ok(mut stmt) = db.prepare("SELECT p.id, p.name, (SELECT COUNT(*) FROM playlist_tracks t WHERE t.playlist_id=p.id) FROM playlists p WHERE p.user_id=?1 ORDER BY p.id LIMIT 12") {
+        if let Ok(rows) = stmt.query_map([uid], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, i64>(2)?))) {
+            for (id, name, count) in rows.flatten() {
+                let mut covers: Vec<String> = Vec::new();
+                if let Ok(mut s2) = db.prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid LIMIT 24") {
+                    if let Ok(rows2) = s2.query_map([id], |r| r.get::<_, String>(0)) {
+                        for js in rows2.flatten() {
+                            if let Some(img) = serde_json::from_str::<Value>(&js).ok().and_then(|tv| tv.get("image").and_then(|x| x.as_str()).map(|s| s.to_string())) {
+                                if !img.is_empty() {
+                                    covers.push(img);
+                                    if covers.len() >= 4 {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                pls.push(json!({ "id": id, "name": name, "count": count, "covers": covers }));
+            }
+        }
+    }
+    let likes = {
+        let mut stmt = db.prepare("SELECT track_json FROM favorites WHERE user_id=?1 ORDER BY rowid DESC LIMIT 6").map_err(|_| e500())?;
+        parse_rows(&mut stmt, [uid])?
+    };
+    Ok(Json(json!({ "friend": friend, "public": true, "playlists": pls, "likes": likes })))
 }
 
 fn sniff_image(b: &[u8]) -> Option<&'static str> {
