@@ -1287,27 +1287,19 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 /* Đĩa than: mặt đĩa đen có rãnh + NHÃN TRÒN ở giữa mang hình bìa album (quay cùng đĩa) + lỗ trục.
    Cấu trúc từ tâm ra: lỗ trục → vành kim loại → nhãn (hình bìa) → viền nhãn → vòng đen trơn → rãnh đĩa. */
 .dd-disc{
-  background:
-    conic-gradient(from 20deg,#0000 0 10%,#ffffff14 16%,#0000 24% 58%,#ffffff10 65%,#0000 72%),
-    repeating-radial-gradient(circle closest-side,#121212 0 2px,#1d1d1d 2px 3px,#161616 3px 5px);
-  box-shadow:0 3px 14px #0005,inset 0 0 0 2px #0a0a0a}
-.dd-dimg{display:block!important;position:absolute;inset:auto;left:50%;top:50%;
-  width:42%;height:42%;transform:translate(-50%,-50%);border-radius:50%;object-fit:cover;background:#2a2a2a}
+  background:#1a1a1a;
+  box-shadow:0 4px 16px #0006}
+/* Hình bìa phủ kín cả mặt đĩa (quay cùng đĩa) */
+.dd-dimg{display:block!important;position:absolute;inset:0;left:0;top:0;
+  width:100%;height:100%;transform:none;border-radius:50%;object-fit:cover;background:#2a2a2a}
+/* Lớp phủ: lỗ trục to có vành trắng + bóng nhẹ quanh lỗ + tối dần ra mép + vệt sáng phản chiếu (không vẽ rãnh) */
 .dd-disc::after{
   background:
-    /* lỗ trục + vành kim loại quanh lỗ */
-    radial-gradient(circle closest-side,#0b0b0b 0 5.5%,#d7dbe0 5.5% 8%,#8b9097 8% 9%,#0000 9%),
-    /* bóng đổ nhẹ quanh lỗ trên nhãn */
-    radial-gradient(circle closest-side,#0000 0 9%,#00000040 10% 12%,#0000 15%),
-    /* viền nhãn: gờ sáng + gờ tối */
-    radial-gradient(circle closest-side,#0000 0 41%,#0000008c 41% 42%,#ffffff40 42% 43%,#0000 43%),
-    /* vòng đen trơn giữa nhãn và rãnh */
-    radial-gradient(circle closest-side,#0000 0 43%,#000000b8 43% 49%,#0000 51%),
-    /* tối dần ra mép */
-    radial-gradient(circle closest-side,#0000 0 70%,#0000003a 100%),
-    /* vệt sáng phản chiếu */
-    conic-gradient(from 25deg,#fff0 0 8%,#ffffff1c 14%,#fff0 21% 56%,#ffffff14 63%,#fff0 70%);
-  box-shadow:inset 0 0 0 1px #ffffff14,inset 0 0 10px #0005}
+    radial-gradient(circle closest-side,#050505 0 9.5%,#f1f3f5 10% 15.5%,#c9ced4 15.5% 16.5%,#0000 17%),
+    radial-gradient(circle closest-side,#0000 0 16.5%,#00000059 17.5% 20%,#0000 25%),
+    radial-gradient(circle closest-side,#0000 0 75%,#00000033 100%),
+    conic-gradient(from 25deg,#fff0 0 8%,#ffffff26 14%,#fff0 21% 56%,#ffffff1c 63%,#fff0 70%);
+  box-shadow:inset 0 0 0 1px #00000040,inset 0 0 10px #0004}
 
 /* Không cho bôi đen / chọn / kéo chữ và đĩa ở màn hình Chi tiết */
 .dd,.dd *{
