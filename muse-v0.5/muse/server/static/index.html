@@ -421,8 +421,8 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 @media(max-width:1000px){#bShuf,#bMode,.br .vol,#bQueueW,#bPip{display:none}#bar{gap:10px}}
 .pop{position:fixed;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;min-width:200px;box-shadow:0 8px 28px #000a}
 .pop div{padding:9px 12px;border-radius:8px;cursor:pointer}.pop div:hover{background:var(--hover)}
-#toasts{position:fixed;right:20px;top:20px;z-index:50;display:flex;flex-direction:column;gap:8px}
-.toast{width:300px;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 24px #000a;border-radius:16px;padding:12px}
+#toasts{position:fixed;right:20px;top:20px;z-index:100001;display:flex;flex-direction:column;gap:8px;pointer-events:none}#toasts .toast{pointer-events:auto}
+.toast{width:300px;background:var(--card);color:var(--text);border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 28px #000c,0 0 0 1px #0006;border-radius:16px;padding:12px;font-weight:600}
 #auth{position:fixed;inset:0;background:rgba(5,5,9,.92);display:none;align-items:center;justify-content:center;z-index:60}
 #auth .box{width:360px;background:var(--card);border-radius:24px;padding:26px;box-shadow:0 20px 60px #000}
 #auth .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;margin-bottom:16px}
@@ -464,12 +464,12 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 /* THẺ PHÓNG TO (mở bằng link /u/<tên>): nền ngoài đen nhẹ, thẻ to giữa màn hình nhưng không phủ hết */
 .pcov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:4vh 4vw;background:rgba(0,0,0,.58);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:pcovIn .18s}
 @keyframes pcovIn{from{opacity:0}}@keyframes pcovPop{from{opacity:0;transform:scale(.94) translateY(10px)}}
-.pcov .pc{width:min(560px,100%);height:min(780px,100%);display:flex;flex-direction:column;border-radius:24px;box-shadow:0 20px 60px #000a;animation:pcovPop .22s cubic-bezier(.2,.9,.3,1)}
-.pcov .pc-ban{aspect-ratio:auto;flex:1 1 56%;min-height:220px;border-radius:24px 24px 0 0}
-.pcov .pc-hd{padding:22px;gap:16px}
-.pcov .pc-av{width:112px;height:112px;border-width:5px}
-.pcov .pc-name{font-size:30px;font-weight:800}.pcov .pc-un{font-size:15px}
-.pcov .pc-body{flex:none;padding:18px 22px 22px;overflow:auto;max-height:46%}
+.pcov .pc{width:min(720px,100%);max-height:100%;display:flex;flex-direction:column;border-radius:22px;box-shadow:0 20px 60px #000a;animation:pcovPop .22s cubic-bezier(.2,.9,.3,1)}
+.pcov .pc-ban{aspect-ratio:21/9;flex:none;min-height:150px;border-radius:22px 22px 0 0}
+.pcov .pc-hd{padding:18px 22px;gap:16px}
+.pcov .pc-av{width:clamp(72px,13vw,96px);height:clamp(72px,13vw,96px);border-width:4px}
+.pcov .pc-name{font-size:clamp(22px,4vw,28px);font-weight:800}.pcov .pc-un{font-size:15px}
+.pcov .pc-body{flex:none;padding:16px 22px 20px;overflow:auto}
 .pcov .pc-st{display:flex;gap:28px;margin-bottom:14px}.pcov .pc-st b{display:block;font-size:20px}.pcov .pc-st span{font-size:12px;opacity:.7}
 .pcov .pc-act{margin-top:6px}.pcov .pc-act .big{flex:1 1 100%;justify-content:center;font-size:16px;padding:12px}
 .pcov-x{position:absolute;top:14px;right:14px;z-index:5;width:38px;height:38px;border-radius:50%;background:#0007;color:#fff;border:0;font-size:18px;cursor:pointer}
@@ -4050,7 +4050,7 @@ function showBigCard(u,mine){
   ov.innerHTML=profileCard(u,{extra,full:false,mine});
   const card=ov.firstElementChild; card.insertAdjacentHTML('beforeend','<button class="pcov-x" data-x="close" aria-label="Đóng">✕</button>');
   const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.imgv,.dlgov')){ e.preventDefault(); close(); } }
+  function onKey(e){ if(ov.style.display==='none'||!ov.isConnected){ if(!ov.isConnected) document.removeEventListener('keydown',onKey,true); return; } if(e.key==='Escape'&&!document.querySelector('.imgv,.dlgov,.shc-ov,.bp')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
   ov.onclick=e=>{
     if(e.target===ov){ close(); return; }
@@ -4061,8 +4061,12 @@ function showBigCard(u,mine){
       return; }
     const act=x.dataset.x;
     if(act==='close') close();
-    else if(act==='page'){ close(); openProfilePage(u,mine); }   /* xem Trang chủ của người này */
-    else if(act==='card'){ close(); shareCard(u); }
+    else if(act==='page'){   /* xem Trang chủ của người này: ẩn thẻ tạm thời, thoát trang chủ thì thẻ hiện lại */
+      ov.style.display='none'; openProfilePage(u,mine);
+      if(!document.querySelector('.bp')){ ov.style.display=''; return; }
+      const mo=new MutationObserver(()=>{ if(!ov.isConnected){ mo.disconnect(); return; } if(!document.querySelector('.bp')){ mo.disconnect(); ov.style.display=''; } });
+      mo.observe(document.body,{childList:true}); }
+    else if(act==='card'){ shareCard(u); }   /* thẻ chia sẻ mở đè lên, đóng lại vẫn còn thẻ */
     else if(act==='edit'){ close(); go('profile'); } };
   document.body.appendChild(ov);
   api('/api/fans/'+u.id).then(r=>{ const el=ov.querySelector('#pcvS1'); if(el) el.textContent=String(+r.n||0); },()=>{});
