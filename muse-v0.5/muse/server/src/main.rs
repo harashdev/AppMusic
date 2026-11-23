@@ -905,6 +905,13 @@ fn local_music_dir() -> PathBuf {
     PathBuf::from(home).join("Music").join("BBeat")
 }
 
+// Nhạc do app tải về nằm riêng trong thư mục con này (<Nhạc>\\BBeat\\Downloads), tách khỏi file người dùng tự thả vào BBeat để "Thêm nhạc".
+const LOCAL_DL_SUB: &str = "Downloads";
+
+fn local_dl_dir() -> PathBuf {
+    local_music_dir().join(LOCAL_DL_SUB)
+}
+
 fn local_host_ok(h: &HeaderMap) -> bool {
     let host = h.get("host").and_then(|v| v.to_str().ok()).unwrap_or("");
     ["127.0.0.1", "localhost", "[::1]"].iter().any(|p| host.strip_prefix(p).map(|r| r.is_empty() || r.starts_with(':')).unwrap_or(false))
@@ -1030,9 +1037,10 @@ async fn local_info(headers: HeaderMap) -> Response {
     if !local_host_ok(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
-    let dir = local_music_dir();
+    let root = local_music_dir();
+    let dir = local_dl_dir();
     let _ = std::fs::create_dir_all(&dir);
-    Json(json!({ "dir": dir.to_string_lossy() })).into_response()
+    Json(json!({ "dir": dir.to_string_lossy(), "root": root.to_string_lossy() })).into_response()
 }
 
 // Tên file an toàn trên Windows/macOS/Linux: bỏ đường dẫn, ký tự cấm, dấu chấm/khoảng trắng cuối; bắt buộc đuôi nhạc.
@@ -1055,7 +1063,7 @@ async fn local_save(headers: HeaderMap, Query(q): Query<LocalQ>, body: Bytes) ->
     if body.is_empty() {
         return (StatusCode::BAD_REQUEST, "File rỗng").into_response();
     }
-    let dir = local_music_dir();
+    let dir = local_dl_dir();
     if let Err(e) = std::fs::create_dir_all(&dir) {
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
     }
@@ -1069,7 +1077,8 @@ async fn local_save(headers: HeaderMap, Query(q): Query<LocalQ>, body: Bytes) ->
     }
     let path = dir.join(&final_name);
     match tokio::fs::write(&path, &body).await {
-        Ok(_) => Json(json!({ "name": final_name, "path": path.to_string_lossy(), "dir": dir.to_string_lossy() })).into_response(),
+        // name là đường dẫn tương đối so với thư mục BBeat ("Downloads/<file>") để /api/local/delete xoá đúng file này.
+        Ok(_) => Json(json!({ "name": format!("{LOCAL_DL_SUB}/{final_name}"), "path": path.to_string_lossy(), "dir": dir.to_string_lossy() })).into_response(),
         Err(e) => {
             let _ = tokio::fs::remove_file(&path).await;
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Không ghi được file: {e}")).into_response()
@@ -4409,13 +4418,18 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p></div>
 <script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
 if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
-/* Máy tính (Windows/macOS/Linux): thử mở app BBeat bằng bbeat://u/<tên>; nếu app không mở (chưa cài) thì hiện nút "Mở trong BBeat" / "Xem trên web" (không tự đẩy sang web vì trình duyệt có thể chặn mở app khi chưa bấm gì).
-   Trình duyệt hỏi "Mở BBeat?" hoặc app giành focus → trang bị ẩn/mất focus → không chuyển sang web nữa. */
+/* Trang này đang mở TRONG chính app BBeat (cửa sổ app desktop): vào thẳng giao diện của app và hiện thẻ hồ sơ,
+   không thử mở lại app bằng bbeat:// (trong WebView việc đó không làm gì nên trước đây kẹt ở thông báo lỗi). */
+if(window.__TAURI__||window.__TAURI_INTERNALS__||window.MuseNative){location.replace("/?u="+encodeURIComponent(app.split("/").pop()));return;}
+/* Máy tính (Windows/macOS/Linux) dùng trình duyệt: thử mở app BBeat bằng bbeat://u/<tên>. Không tự đẩy sang web vì trình duyệt
+   có thể đang hỏi "Mở BBeat?" (hộp thoại này không làm trang mất focus), nên chỉ đổi lời nhắc và để người dùng chọn. */
 if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
-var stop=false,m=document.getElementById("m"),halt=function(){stop=true;};
+var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn=document.getElementById("a"),timer=0,halt=function(){stop=true;};
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
-m.style.display="block";location.href=app;
-setTimeout(function(){if(!stop)document.getElementById("t").textContent="Trình duyệt chưa tự mở được app BBeat. Bấm \"Mở trong BBeat\" (nếu app chưa cài thì chọn \"Xem trên web\").";},1800);return;}
+var launch=function(){var l=document.createElement("a");l.href=app;l.style.display="none";document.body.appendChild(l);l.click();l.remove();};
+var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){t.textContent="BBeat đã được mở. Có thể đóng tab này.";return;}t.textContent="Nếu BBeat chưa mở: cho phép trình duyệt mở BBeat (hộp thoại \"Mở BBeat?\") rồi bấm \"Mở trong BBeat\" lần nữa. Chưa cài app thì chọn \"Xem trên web\".";},2200);};
+btn.onclick=function(e){e.preventDefault();stop=false;t.textContent="Đang mở BBeat…";launch();hint();};
+m.style.display="block";launch();hint();return;}
 }catch(e){}location.replace(web);})();</script>
 </body></html>"##;
 
