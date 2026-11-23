@@ -4479,8 +4479,9 @@ var ping=function(ok,no){var im=new Image();im.onload=function(){opened();say("�
 var launch=function(){location.href=app;};
 var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){opened();return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
 btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";ping();hint();});
-var wl=document.getElementById("w");if(wl)wl.addEventListener("click",function(){try{localStorage.setItem("bbeat_web",String(Date.now()));}catch(e){}});
-var pref=0;try{pref=+localStorage.getItem("bbeat_web")||0;}catch(e){}
+var wl=document.getElementById("w");if(wl)wl.addEventListener("click",function(){stop=true;clearTimeout(timer);});
+/* Không còn nhớ lựa chọn "Xem trên web" để tự chuyển về sau: chỉ chuyển khi người dùng bấm. Xoá giá trị cũ còn sót lại trong trình duyệt. */
+var pref=0;try{localStorage.removeItem("bbeat_web");}catch(e){}
 m.style.display="block";
 if(pref&&Date.now()-pref<2592000000){ /* người dùng từng chọn "Xem trên web" (chưa cài app): app đang chạy thì mở trong app, không thì vào web luôn */
   t.textContent="Đang mở…";ping(null,function(){location.replace(web);});setTimeout(function(){if(!stop)location.replace(web);},1500);return;}
