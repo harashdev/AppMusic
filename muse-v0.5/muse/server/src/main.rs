@@ -860,6 +860,9 @@ async fn run_gateway(remote: String) {
         .route("/api/local/list", get(local_list))
         .route("/api/local/log", get(local_log))
         .route("/api/local/file", get(local_file))
+        .route("/api/local/info", get(local_info))
+        .route("/api/local/save", post(local_save).layer(DefaultBodyLimit::max(400 * 1024 * 1024)))
+        .route("/api/local/delete", post(local_delete))
         .route("/ws/:room", get(gw_ws))
         .route("/ws-user", get(gw_ws))
         .fallback(gw_http)
@@ -1018,6 +1021,79 @@ async fn local_file(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
         _ => "audio/x-matroska",
     };
     ([(header::CONTENT_TYPE, mime), (header::CACHE_CONTROL, "no-store")], bytes).into_response()
+}
+
+// ----- Lưu / xoá nhạc đã tải trong thư mục BBeat (chỉ cổng nhà trên máy người dùng) -----
+// Nhạc tải xuống được ghi thẳng vào <Nhạc>\BBeat (không còn tải ra thư mục Downloads của trình duyệt).
+// Xoá bài thì chỉ xoá đúng file đó (đường dẫn được kiểm tra phải nằm trong thư mục BBeat, phải là file nhạc).
+async fn local_info(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let dir = local_music_dir();
+    let _ = std::fs::create_dir_all(&dir);
+    Json(json!({ "dir": dir.to_string_lossy() })).into_response()
+}
+
+// Tên file an toàn trên Windows/macOS/Linux: bỏ đường dẫn, ký tự cấm, dấu chấm/khoảng trắng cuối; bắt buộc đuôi nhạc.
+fn local_safe_filename(name: &str) -> Option<String> {
+    let base = name.rsplit(|c: char| c == '/' || c == '\\').next().unwrap_or("");
+    let cleaned: String = base.chars().map(|c| if c.is_control() || "\\/:*?\"<>|".contains(c) { '_' } else { c }).collect();
+    let cleaned = cleaned.trim().trim_end_matches(|c: char| c == '.' || c == ' ').to_string();
+    let cleaned: String = cleaned.chars().take(150).collect();
+    if cleaned.is_empty() || local_ext_of(&cleaned).is_none() {
+        return None;
+    }
+    Some(cleaned)
+}
+
+async fn local_save(headers: HeaderMap, Query(q): Query<LocalQ>, body: Bytes) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let Some(name) = q.name.as_deref().and_then(local_safe_filename) else { return (StatusCode::BAD_REQUEST, "Tên file không hợp lệ").into_response() };
+    if body.is_empty() {
+        return (StatusCode::BAD_REQUEST, "File rỗng").into_response();
+    }
+    let dir = local_music_dir();
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
+    }
+    // Không ghi đè file có sẵn: trùng tên thì thêm " (2)", " (3)"...
+    let (stem, ext) = name.rsplit_once('.').map(|(a, b)| (a.to_string(), b.to_string())).unwrap_or((name.clone(), String::new()));
+    let mut final_name = name.clone();
+    let mut n = 2;
+    while dir.join(&final_name).exists() && n < 1000 {
+        final_name = format!("{stem} ({n}).{ext}");
+        n += 1;
+    }
+    let path = dir.join(&final_name);
+    match tokio::fs::write(&path, &body).await {
+        Ok(_) => Json(json!({ "name": final_name, "path": path.to_string_lossy(), "dir": dir.to_string_lossy() })).into_response(),
+        Err(e) => {
+            let _ = tokio::fs::remove_file(&path).await;
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Không ghi được file: {e}")).into_response()
+        }
+    }
+}
+
+async fn local_delete(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    if local_ext_of(&name).is_none() || name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let root = local_music_dir();
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&name).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    if !path_c.starts_with(&root_c) || path_c == root_c || !path_c.is_file() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    match tokio::fs::remove_file(&path_c).await {
+        Ok(_) => Json(json!({ "ok": true, "name": name })).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Không xoá được file: {e}")).into_response(),
+    }
 }
 
 fn gw_hop(name: &str) -> bool {
