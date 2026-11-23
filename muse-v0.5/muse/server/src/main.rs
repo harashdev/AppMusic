@@ -1,7844 +1,8255 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="referrer" content="no-referrer">
-<link rel="preconnect" href="https://www.youtube.com" crossorigin>
-<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
-<link rel="preconnect" href="https://i.ytimg.com" crossorigin>
-<link rel="preconnect" href="https://googlevideo.com" crossorigin>
-<link rel="dns-prefetch" href="//www.youtube.com">
-<link rel="dns-prefetch" href="//i.ytimg.com">
-<script>
-(function(){
-  try{ Object.defineProperty(navigator,'share',{value:undefined,configurable:true}); }catch(e){}
-  try{ Object.defineProperty(navigator,'canShare',{value:undefined,configurable:true}); }catch(e){}
-  document.addEventListener('contextmenu',function(e){
-    var t=e.target; if(t&&t.closest&&t.closest('input,textarea,[contenteditable=""],[contenteditable="true"]')) return;
-    e.preventDefault();
-  },true);
-})();
-</script>
-<link rel="preconnect" href="https://i.ytimg.com" crossorigin>
-<link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
-<link rel="preconnect" href="https://yt3.googleusercontent.com" crossorigin>
-<link rel="preconnect" href="https://yt3.ggpht.com" crossorigin>
-<link rel="dns-prefetch" href="https://i.ytimg.com">
-<script>
-(function(){
-  var a=/MuseAndroid/i.test(navigator.userAgent); window.ANDROID_APP=a; if(a) document.documentElement.classList.add('android');
-  var m='phone'; try{ m=localStorage.getItem('uimode')||'phone'; }catch(e){}
-  window.UI_PC=a&&m==='pc';
-  if(a&&!window.UI_PC){ var v0=document.querySelector('meta[name=viewport]'); if(v0) v0.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover'); }
-  if(window.UI_PC){
-    var v=document.querySelector('meta[name=viewport]');
-    if(v) v.setAttribute('content','width=1100,user-scalable=yes,minimum-scale=0.1,maximum-scale=3');
-    document.documentElement.classList.add('ui-pc');
-  }
-})();
-</script>
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/icon-180.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BBeat">
-<meta name="theme-color" content="#07070b">
-<title>BBeat</title>
-<style>
-@property --npbg{syntax:'<color>';inherits:true;initial-value:#2b2640}
-@property --npfg{syntax:'<color>';inherits:true;initial-value:#ffffff}
-@property --ddc{syntax:'<color>';inherits:true;initial-value:#2f4f73}
-@property --dd1{syntax:'<color>';inherits:true;initial-value:#2f4f73}
-:root{--accent:#8ecbff;--on:#07131d;--bg:#07070b;--surf:#0e0c15;--surf2:#17141f;--card:#1b1823;--hover:#ffffff12;--hover2:#ffffff1c;--line:#ffffff17;--text:#f3f0fa;--sub:#a8a3b6;--red:#ff4d6a;--npbg:#2b2640;--npfg:#fff;--sw:268px;--nw:0px}
-body.skin-dark{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618}
-body.skin-ocean,body.skin-sunset,body.skin-forest,body.skin-custom{--surf:rgba(8,10,16,.5);--surf2:rgba(20,22,30,.62)}
-body.skin-ocean{background:linear-gradient(135deg,#0f2027,#2c5364) fixed}
-body.skin-sunset{background:linear-gradient(135deg,#42275a,#734b6d) fixed}
-body.skin-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a) fixed}
-body.skin-custom{background:#000 center/cover fixed}
-body.night{--bg:#000;--surf:#0a0a0c;--surf2:#131316;--card:#161618;background:#000!important;background-image:none!important}
-#nightBtn.on{color:var(--accent)}
-.pc-lv{padding:2px 2px 10px}.pc-lv:empty{display:none}
-.lvrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lvrow small{margin-left:auto;color:var(--sub)}
-.lvpill{color:#fff;font-weight:800;font-size:12px;padding:2px 9px;border-radius:999px}
-.lvbar{height:6px;border-radius:99px;background:#ffffff1f;margin:8px 0 4px;overflow:hidden}.lvbar i{display:block;height:100%;border-radius:99px}
-.lvnx{color:var(--sub);font-size:12px}
-.lvbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.lvb{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:inset 0 0 0 2px #ffffff40}
-body.side-min{--sw:76px}
-@media(min-width:1100px){body.has-np{--nw:clamp(330px,29vw,520px)}}
-*{box-sizing:border-box}
-html,body{-webkit-tap-highlight-color:transparent}
-html{touch-action:manipulation}
-button,[role=button],input[type=range]{touch-action:manipulation}
-button,[role=button],.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn,#meAv,#gear,.rb,.ico,.pbtn,.playbtn{
-  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent
-}
-input,textarea,select,[contenteditable="true"],.sel-text,.sel-text *{ -webkit-user-select:text;user-select:text }
-img,svg,a,button{-webkit-user-drag:none;user-drag:none}
-img{pointer-events:auto}
-button:focus:not(:focus-visible),[tabindex]:focus:not(:focus-visible),#meAv:focus,#gear:focus{outline:none}
-::selection{background:color-mix(in srgb,var(--accent) 38%,transparent);color:var(--text)}
-html,body{height:100%;margin:0}
-body{font-family:"Segoe UI",Roboto,system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:14px;overflow:hidden}
-button,input,select{font:inherit;border:0;color:var(--text)}
-button{background:var(--hover2);border-radius:999px;padding:8px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .1s,transform .08s}
-button:hover{background:#ffffff2c}button:active{transform:scale(.97)}
-button:focus-visible,.ni:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card:focus,.card:focus-visible,#bOpen:focus,#bOpen:focus-visible,.bm:focus,.bm:focus-visible,.qk:focus,.qk:focus-visible,.tr:focus,.tr:focus-visible,.coll:focus,.nmc:focus,.nmc:focus-visible,.tl:focus,.tl:focus-visible,.li:focus,.li:focus-visible,.blb:focus,.blb:focus-visible{outline:0}
-button.pri{background:var(--accent);color:var(--on);font-weight:600}button.pri:hover{filter:brightness(1.08)}
-button.out{background:transparent;box-shadow:inset 0 0 0 1px #ffffff40}button.out:hover{background:var(--hover)}
-button.ico{background:none;padding:8px;border-radius:50%;width:40px;height:40px}
-button.ico:hover{background:var(--hover2)}
-button.on{color:var(--accent)}
-input,select{background:var(--hover);outline:1px solid var(--line);width:100%;border-radius:12px;padding:10px 14px}
-select{color-scheme:dark}
-html{color-scheme:dark}
-*{scrollbar-width:thin;scrollbar-color:#ffffff30 transparent}
-*:hover{scrollbar-color:var(--accent) transparent}
-*::-webkit-scrollbar{width:10px;height:10px;background:transparent}
-*::-webkit-scrollbar-track{background:transparent;margin:6px 0}
-*::-webkit-scrollbar-corner{background:transparent}
-*::-webkit-scrollbar-button{display:none;width:0;height:0}
-*::-webkit-scrollbar-thumb{background:#ffffff2e;border-radius:10px;border:2px solid transparent;background-clip:content-box;min-height:40px;transition:background .15s}
-*::-webkit-scrollbar-thumb:hover{background:var(--accent);background-clip:content-box}
-*::-webkit-scrollbar-thumb:active{background:var(--accent);background-clip:content-box;filter:brightness(.85)}
-select option,select optgroup{background:#1c1f26;color:#f1f3f5}
-select option:checked,select option:hover{background:var(--accent);color:var(--on)}
-.mdd{position:relative;display:inline-block;min-width:0;background:none;border-radius:12px}
-.mdd-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;background:linear-gradient(180deg,#433f56,#353245)!important;outline:1px solid #ffffff17;border:0;border-radius:12px;padding:10px 14px;color:#f3f0fa;font:inherit}
-.mdd-btn:hover{background:linear-gradient(180deg,#4b4761,#3c3850)!important}
-.mdd-btn:focus-visible,.mdd.open .mdd-btn{outline:2px solid #8ecbff}
-.mdd-btn .mdd-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mdd-btn svg{flex:none;width:16px;height:16px;opacity:.7;transition:transform .15s}
-.mdd.open .mdd-btn svg{transform:rotate(180deg)}
-.mdd-menu{position:fixed;z-index:100000;box-sizing:border-box;max-height:260px;overflow:auto;padding:6px;background:#1c1a26;border:1px solid #ffffff22;border-radius:14px;box-shadow:0 14px 40px #000a;display:flex;flex-direction:column;gap:2px}
-.mdd-opt{padding:9px 12px;border-radius:9px;cursor:pointer;color:#f3f0fa;display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap}
-.mdd-opt:hover,.mdd-opt.act{background:#ffffff1c}
-.mdd-opt.sel{color:#8ecbff;font-weight:600}
-.mdd-opt.sel::after{content:"\2713";font-size:13px}
-input:focus{outline:2px solid var(--accent)}
-input[type=checkbox]{width:auto;accent-color:var(--accent);vertical-align:middle}
-img{display:block}
-.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;pointer-events:none}
-.i.fill{fill:currentColor}.i.flip{transform:scaleX(-1)}.i.sm{width:18px;height:18px}.i.lg{width:30px;height:30px}
-#app{height:100vh;display:grid;grid-template-columns:var(--sw) minmax(0,1fr);gap:12px;padding:12px;transition:grid-template-columns .25s}
-@media(min-width:1100px){body.has-np #app{grid-template-columns:var(--sw) minmax(0,1fr) var(--nw)}}
-.pnl{background:var(--surf);border-radius:20px;min-height:0;overflow:hidden}
-body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{backdrop-filter:blur(3px)}
-#side{display:flex;flex-direction:column;padding:12px}
-.ni{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:999px;cursor:pointer;color:var(--text);white-space:nowrap;user-select:none}
-.navLib{display:none}.navFr{display:none}#roomBar{display:none}
-.navcap{display:contents}
-.ni:hover{background:var(--hover)}.ni.act{background:var(--hover2);color:var(--accent);font-weight:600}
-.sep{height:1px;background:var(--line);margin:12px 8px}
-.libh{display:flex;align-items:center;gap:4px;padding:4px 4px 4px 8px;font-weight:600;font-size:15px}
-.libh .t{display:flex;align-items:center;gap:10px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;cursor:pointer;border-radius:999px;padding:6px 8px}.libh .t:hover{background:var(--hover)}.libh .t.act{background:var(--hover2);color:var(--accent)}.libh .t span{overflow:hidden;text-overflow:ellipsis}.libh button.ico{width:32px;height:32px;padding:5px}
-#libQrow{display:none;padding:6px 4px}#libQrow.show{display:block}
-#lib{flex:1;overflow:auto;margin-top:6px;scrollbar-width:thin}
-.li{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;cursor:pointer;min-width:0}
-.li:hover{background:var(--hover)}.li.act{background:var(--hover2)}
-.tile{width:48px;height:48px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:#2a2733;color:#fff;overflow:hidden}
-.li .meta{min-width:0}.li .meta b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li .meta span{display:block;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.side-min .ni span,body.side-min .li .meta,body.side-min .libh .t span,body.side-min #libS,body.side-min #libQrow{display:none}
-body.side-min .ni{justify-content:center;padding:12px}body.side-min .libh{justify-content:center;flex-direction:column;padding:4px 0}body.side-min .libh .t{flex:none}
-body.side-min .li{justify-content:center;padding:6px}
-.sbh{padding:12px 12px 4px;font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.04em}
-.sbf button.ico{margin-left:auto;width:30px;height:30px;padding:5px;flex:none}
-body.side-min .sbh,body.side-min .sbf button{display:none}
-#center{display:flex;flex-direction:column;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 13%,var(--surf)) 0,var(--surf) 380px),var(--surf)}
-#center{min-width:0}
-#top{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;padding:12px 16px 4px;flex:none;min-height:60px;min-width:0}
-#top>*{flex:none}
-#topChips{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;flex:1 1 0;min-width:0;padding:2px;overscroll-behavior-x:contain}
-#topChips::-webkit-scrollbar{display:none}
-#topChips .chip{flex:none}
-@keyframes moodIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
-#topChips .chip.mi{animation:moodIn .28s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d,0)*28ms)}
-.chip{background:var(--hover2);border-radius:12px;padding:8px 16px;white-space:nowrap;font-weight:500}
-.chip{display:inline-flex;align-items:center;gap:6px}.chip.moodbtn{padding-right:10px}.i.dn{transform:rotate(90deg)}
-.moodpop{position:fixed;z-index:45;width:300px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;box-shadow:0 12px 40px #000b;scrollbar-width:thin}
-.moodpop .mh{padding:8px 12px 6px;font-size:12px;color:var(--sub);letter-spacing:.04em;text-transform:uppercase;position:sticky;top:-6px;background:var(--card)}
-.mo{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer}.mo:hover,.mo:focus-visible{background:var(--hover2);outline:0}
-.mo.sel{background:var(--accent);color:var(--on);font-weight:600}.me{width:24px;text-align:center;font-size:18px}
-.chip.on{background:var(--accent);color:var(--on);font-weight:600}
-#top .sp{display:none}
-.roompill{background:var(--hover2);font-size:13px}
-#meAv{cursor:pointer;flex:none;border-radius:50%}
-#top .rb{width:44px;height:44px;background:var(--hover2)}
-.roompill{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#top.tn{flex-wrap:wrap;row-gap:8px;gap:8px}
-#top.tn .sp{display:block;flex:1 1 0}
-#top.tn #topChips{order:5;flex:0 0 100%;width:100%;padding:2px 0}
-#top.tn .rb{width:40px;height:40px}
-#top.tn #meAv .av,#top.tn #meAv img{width:40px;height:40px}
-#main{flex:1;overflow:auto;padding:8px 24px 28px;scrollbar-width:thin}
-body.has-cur #main{padding-bottom:116px}
-#main h2{margin:6px 0 16px;font-size:30px;letter-spacing:-.01em}
-.av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#8883;display:inline-flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex:none}
-.av{position:relative}.av>img,.av>video{width:100%;height:100%;object-fit:cover}
-.av.big{width:80px;height:80px;font-size:42px}
-.sec{margin-top:22px}
-.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
-.sh small{display:block;font-size:12px;color:var(--sub);margin-bottom:2px}
-.sh h3{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em}
-.shr{display:flex;align-items:center;gap:6px}
-.more{color:var(--sub);cursor:pointer;margin-right:6px;font-size:13px}.more:hover{color:var(--text)}
-.nv{width:32px;height:32px;padding:0;background:var(--hover)}
-.grid{display:flex;gap:2px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;scroll-behavior:smooth}
-.grid.wrap{flex-wrap:wrap}
-.card{cursor:pointer;padding:8px;border-radius:12px;width:176px;flex:none;min-width:0;position:relative}
-.card.wide{width:303px}
-.card:hover{background:var(--hover)}
-.cvw{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:#ffffff0d}
-.card.wide .cvw{aspect-ratio:16/9}
-.cvw>img{width:100%;height:100%;object-fit:cover}
-.pl{position:absolute;right:8px;bottom:8px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:var(--on);opacity:0;transform:translateY(6px);transition:.18s;padding:0}
-.pl:hover{background:var(--accent);filter:brightness(1.1)}
-.card:hover .pl,.card:focus-within .pl{opacity:1;transform:none}
-.ct{margin-top:8px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ca{color:var(--sub);font-size:12.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card.now .ct{color:var(--accent)}
-.card.sk .cvw,.card.sk .ct{animation:pulse 1.4s ease-in-out infinite}.card.sk .ct{background:#ffffff0d;border-radius:6px;min-height:1.3em;width:70%}
-@keyframes pulse{50%{opacity:.45}}
-.collage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%;background:#2a2733}
-.collage img{width:100%;height:100%;object-fit:cover}
-.collage.one{display:flex;align-items:center;justify-content:center;color:#ffffff90}
-.tcv{--tc:#1ed7a1;background:#fff;color:#111;container-type:inline-size;border-radius:8px}
-.tcv>.tband{position:absolute;left:0;right:0;bottom:0;height:46%;background:var(--tc)}
-.tcv>img.tlogo{position:absolute;left:7%;top:6%;width:9%;height:auto;aspect-ratio:1;border-radius:50%;object-fit:cover;z-index:2}
-.tcv>.tt{position:absolute;top:7%;left:0;right:0;text-align:center;font-size:16px;font-size:11.5cqw;font-weight:900;letter-spacing:.01em;line-height:1;z-index:2}
-.tcv>img.tpic{position:absolute;left:50%;top:26%;width:56%;height:auto;aspect-ratio:1;transform:translateX(-50%);object-fit:cover;background:#ddd;z-index:1}
-.tcv>.tnm{position:absolute;left:5%;right:5%;bottom:5%;text-align:center;font-size:14px;font-size:8.6cqw;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
-.tcv>.pl{z-index:3;box-shadow:0 4px 12px #0006}
-.tic .tdesc{margin-top:8px;color:var(--sub);font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.tih{--tc:#1ed7a1;display:flex;gap:24px;align-items:flex-end;padding:28px 24px 22px;border-radius:16px;background:linear-gradient(180deg,#00000040,#00000000),linear-gradient(180deg,var(--tc),#00000000 95%)}
-.tipic{width:220px;height:220px;flex:none;border-radius:10px;overflow:hidden;box-shadow:0 12px 36px #0008;background:#ffffff14}
-.tipic img{width:100%;height:100%;object-fit:cover}
-.tix{min-width:0}.tix small{font-size:13px;font-weight:600;color:var(--text)}
-.tix h2{font-size:clamp(30px,6vw,72px);line-height:1.04;margin:6px 0 10px;letter-spacing:-.02em;font-weight:900;overflow-wrap:anywhere}
-.tix .tid{margin:0 0 10px;color:#ffffffc4;font-size:14px}
-.tim{display:flex;align-items:center;gap:6px;font-size:14px;flex-wrap:wrap}.tim img{width:22px;height:22px;border-radius:50%;object-fit:cover}
-.tibar{display:flex;align-items:center;gap:10px;padding:18px 4px 10px}
-.tibar .tiplay{width:56px;height:56px;padding:0;border-radius:50%;background:var(--accent);color:var(--on)}
-.tibar .tiplay:hover{filter:brightness(1.1);transform:scale(1.05)}
-.tibar button.ico{width:44px;height:44px}
-.tr.trh{color:var(--sub);font-size:13px;cursor:default;border-bottom:1px solid #ffffff1a;border-radius:0;margin-bottom:4px;text-transform:none}
-.tr.trh:hover{background:none}
-.shr .more{white-space:nowrap}
-.hero{display:flex;gap:24px;align-items:flex-end;padding:12px 0 18px}
-.hcol{width:200px;height:200px;border-radius:12px;overflow:hidden;flex:none;box-shadow:0 12px 36px #0007}
-.hero small{color:var(--sub)}.hero h2{font-size:42px;margin:4px 0 14px;line-height:1.1}
-.hb{display:flex;gap:10px;flex-wrap:wrap}
-.tr{display:grid;grid-template-columns:36px 48px minmax(0,2fr) minmax(0,1.3fr) 56px 112px;gap:12px;align-items:center;padding:6px 10px;border-radius:10px;cursor:pointer}
-.tr:hover{background:var(--hover)}
-.tr .n{color:var(--sub);text-align:center}
-.cvx{position:relative;width:48px;height:48px;border-radius:6px;overflow:hidden;background:#ffffff0d}
-.cvx img{width:100%;height:100%;object-fit:cover}
-.cvx .pbtn{position:absolute;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;opacity:0;color:#fff}
-.tr:hover .pbtn{opacity:1}
-.ti,.ar{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.t1{overflow:hidden;text-overflow:ellipsis;font-weight:500}.t2{display:none;color:var(--sub);font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
-.ar,.du{color:var(--sub)}
-.tr .ac{display:flex;justify-content:flex-end}.tr .ac button{opacity:0;width:34px;height:34px}.tr:hover .ac button,.tr .ac button.on{opacity:1}
-.tr.now .t1,.tr.now .n{color:var(--accent)}.tr .ac button.on{color:var(--red)}
-.dlHead{padding:12px 0 8px}.dlHead small{color:var(--sub)}.dlHead h2{font-size:36px;margin:4px 0 12px;line-height:1.1}.dlHead .hb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.dlfmt{color:var(--sub)}
-.dlr{display:grid;grid-template-columns:48px minmax(0,2fr) minmax(0,1.4fr) 84px;gap:12px;align-items:center;padding:6px 10px;border-radius:10px}
-.dlr:hover{background:var(--hover)}.dlr img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:var(--surf2)}
-.dls{font-size:13px;color:var(--sub);min-width:0}.dls.done{color:var(--accent)}.dls.error{color:var(--red)}
-.dlbar{height:4px;border-radius:2px;background:var(--hover2);margin-top:6px;overflow:hidden}.dlbar i{display:block;height:100%;background:var(--accent);transition:width .3s}
-.dlr .ac{display:flex;justify-content:flex-end}.dlr .ac button{width:34px;height:34px}.dlr .ac button:disabled{opacity:.35;cursor:default}
-@media(max-width:700px){.dlr{grid-template-columns:48px minmax(0,1fr) auto}.dlr .dls{grid-column:2/4;grid-row:2}.dlHead h2{font-size:28px}}
-.panel{background:var(--surf2);border-radius:16px;padding:18px;margin-bottom:16px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.two{grid-template-columns:1fr}}
-.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.empty,small,.sub{color:var(--sub)}
-.tabs{display:flex;gap:8px;margin:2px 0 16px;flex-wrap:wrap}
-.tabs button{border-radius:12px;padding:8px 16px}.tabs button.on{background:var(--accent);color:var(--on);font-weight:600}
-#chat{height:220px;overflow:auto;margin-bottom:8px}#chat div{margin-bottom:4px}.sys{color:var(--sub);font-style:italic}
-.item{display:flex;gap:10px;align-items:center;padding:6px 0;flex-wrap:wrap}
-.item>span:first-child{flex:1 1 150px!important;min-width:0}
-.item>button{flex:none;white-space:nowrap}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-left:4px}.dot.on{background:#3ddc84}
-.skins{display:flex;gap:10px;flex-wrap:wrap}.skins .sk{width:90px;height:56px;border-radius:12px;cursor:pointer;display:flex;align-items:flex-end;padding:4px 8px;font-size:11px;color:#fff;border:2px solid transparent}.skins .sk.sel{border-color:var(--accent)}
-.sbox{display:flex;align-items:center;gap:12px;background:var(--hover2);border-radius:999px;padding:0 20px;max-width:620px;margin:8px 0 20px}
-.sbox input{background:none;outline:0;padding:14px 0;font-size:16px}.sbox:focus-within{box-shadow:0 0 0 2px var(--accent)}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
-.tl{height:104px;border-radius:12px;padding:14px;font-weight:700;font-size:18px;cursor:pointer;position:relative;overflow:hidden;color:#fff;transition:transform .15s}
-.tl:hover{transform:translateY(-2px)}
-.tl .i{position:absolute;right:-6px;bottom:-6px;width:64px;height:64px;opacity:.28;transform:rotate(-14deg)}
-.tl small{display:block;color:#ffffffc0;font-weight:400;font-size:12px;margin-top:4px}
-#np{position:fixed;right:12px;top:12px;bottom:100px;width:min(420px,calc(100vw - 24px));z-index:30;display:flex;flex-direction:column;color:var(--npfg);background:linear-gradient(180deg,var(--npbg),color-mix(in srgb,var(--npbg) 60%,#000));box-shadow:0 18px 60px #000b;transform:translateX(calc(100% + 28px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
-body.has-np #np{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-@media(min-width:1100px){#np{position:relative;right:auto;top:auto;bottom:auto;width:auto;z-index:auto;box-shadow:none;transform:none;visibility:visible;transition:none;display:none}body.has-np #np{display:flex}}
-/* Phóng to khung Đang phát: phủ gần hết màn hình (chừa thanh phát nhạc ở dưới). Nút cạnh X đổi thành "Thu nhỏ" để về lại cỡ cũ.
-   Điện thoại (≤700px) khung này đã full màn hình nên ẩn nút. */
-body.np-max.has-np #np{position:fixed;left:12px;right:12px;top:12px;bottom:100px;width:auto;z-index:36;display:flex;transform:none;visibility:visible;box-shadow:0 18px 60px #000b}
-@media(max-width:700px){#npMax{display:none}}
-.nph{display:flex;align-items:center;gap:4px;padding:12px 12px 6px 16px;flex:none}
-.npTabs{display:flex;flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:color-mix(in srgb,var(--npfg) 13%,transparent);border-radius:999px;padding:3px}
-.npTabs::-webkit-scrollbar{display:none}
-#np{container-type:inline-size;container-name:npc}
-/* Khung Đang phát hẹp (cửa sổ nhỏ / chưa phóng to): 3 nút icon lên hàng trên bên phải, các tab xuống hàng riêng, không bị đẩy ra ngoài khung */
-@container npc (max-width:490px){
-  .nph{flex-wrap:wrap;row-gap:6px}
-  .nph .ico{order:1}.nph #npMore{margin-left:auto}
-  .npTabs{order:2;flex:1 0 100%}
-  .npTabs button{padding:7px 6px;font-size:12.5px}
-}
-.npTabs button{flex:1 0 auto;background:none;color:inherit;padding:7px 10px;font-size:13px;opacity:.78;white-space:nowrap}
-.nph .ico{flex:none}
-.npTabs button:hover{background:color-mix(in srgb,var(--npfg) 10%,transparent);opacity:1}
-.npTabs button.on{background:color-mix(in srgb,var(--npfg) 26%,transparent);opacity:1;font-weight:600}
-#np button.ico{color:inherit}
-#np button.ico:hover{background:color-mix(in srgb,var(--npfg) 16%,transparent)}
-.npv{display:none;flex:1;min-height:0;flex-direction:column;overflow:auto;padding:4px 20px 18px;scrollbar-width:none}
-.npv.show{display:flex}
-/* Ambient light: ánh sáng lan tỏa từ ảnh bìa ra nền khung Đang phát */
-#npAmb{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;display:none;border-radius:inherit}
-body.amb #npAmb{display:block}
-#npAmb::before{content:"";position:absolute;left:50%;top:2%;width:130%;aspect-ratio:1;transform:translateX(-50%);background:var(--ambi,none) center/cover;filter:blur(46px) saturate(1.7) brightness(.95);opacity:.62;-webkit-mask:radial-gradient(closest-side,#000 35%,transparent 100%);mask:radial-gradient(closest-side,#000 35%,transparent 100%);transition:opacity .45s}
-#np>.nph,#np>.npv{position:relative;z-index:1}
-@media(prefers-reduced-motion:reduce){#npAmb::before{transition:none}}
-.npctx{font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.8;text-align:center;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.npctx b{font-weight:700}
-.art{position:relative;aspect-ratio:1;width:min(100%,max(200px,calc(100vh - 360px)));margin:14px auto 0;border-radius:14px;overflow:hidden;background:#0003;box-shadow:0 20px 50px #0006;flex:none}
-.art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.art.wide::before{content:"";position:absolute;inset:-24px;background:var(--bgi,none) center/cover;filter:blur(26px) brightness(.65) saturate(1.2)}
-.art.wide>img{object-fit:contain}
-#ytbox{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none;background:#000;overflow:hidden;transition:opacity .3s;cursor:pointer}
-#ytbox iframe,#ytp{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
-body.vid #ytbox.live{opacity:0}
-body.vid.ytfb #ytbox.live{opacity:1}
-body.ytfb #ytbox iframe{transform:scale(1.2)}
-body.vid.ytfb #ytbox iframe{transform:scale(1.35)}
-#vidEl{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:cover;background:#000;border:0;opacity:0;pointer-events:none;transition:opacity .12s;transform:translateZ(0)}
-#vidEl.on{opacity:1}
-body:not(.vid) #vidEl{display:none}
-.pwW{position:relative;flex:1;min-width:0;width:100%;display:block;line-height:0}
-.pwW>input{padding-right:46px;display:block}
-.pwEye,.pwEye:hover,.pwEye:active,.pwEye.on{position:absolute;right:8px;top:0;bottom:0;margin:auto 0;width:32px;height:32px;padding:0;background:none;color:var(--text);opacity:.6;border-radius:0;transform:none;transition:none;outline:0}
-.pwEye.on{opacity:1}
-.pwEye .i{width:20px;height:20px}
-input::-ms-reveal,input::-ms-clear{display:none}
-#vctl{position:absolute;inset:0;z-index:6;display:none;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-body.vid #vctl,body.vc #vctl{display:block}
-#vctl::before{content:"";position:absolute;inset:0;background:linear-gradient(#0008,#0000 30%,#0000 70%,#0006);opacity:0;transition:opacity .15s;pointer-events:none}
-#vctl.show::before{opacity:1}
-#vctl button{background:#0007;color:#fff;padding:0;opacity:0;pointer-events:none;transition:opacity .15s;border-radius:50%;touch-action:manipulation}
-#vctl.show button{opacity:1;pointer-events:auto}
-.art:fullscreen #vctl .vcMid{display:none}
-.art:-webkit-full-screen #vctl .vcMid{display:none}
-.art.pfs #vctl .vcMid{display:none}
-#vctl button:active{background:#000a}
-#vctl .vcMid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:clamp(40px,24%,120px);pointer-events:none}
-#vctl .vcMid button{width:60px;height:60px;position:relative}
-#vctl .vcMid button::after,#vctl #vcFull::after{content:"";position:absolute;inset:-10px}
-#vctl .vcMid .i{width:30px;height:30px}
-#vctl #vcFull{position:absolute;top:10px;right:10px;width:48px;height:48px}
-#vctl #vcFull .i{width:26px;height:26px}
-body.vc .art:fullscreen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
-body.vc .art:-webkit-full-screen{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
-body.vc .art.pfs{position:fixed;inset:0;z-index:100000;width:100vw;height:100dvh;max-width:none;aspect-ratio:auto;margin:0;border-radius:0;background:#000}
-body:not(.vid) #vctl{display:none}
-body:not(.vid) .art.wide::before{display:none}
-body:not(.vid) .art.wide>img{object-fit:cover}
-.art:fullscreen #npCov,.art:-webkit-full-screen #npCov,.art.pfs #npCov{object-fit:contain}
-.art:fullscreen #vidEl,.art:-webkit-full-screen #vidEl,.art.pfs #vidEl{object-fit:contain}
-#ytbox::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px #0006;border-radius:inherit}
-body.vid .art{aspect-ratio:16/9;margin-top:auto;margin-bottom:auto}
-body.vid .npt{margin-top:0}
-#npLine{margin-top:18px;font-size:16px;font-weight:600;min-height:24px;line-height:1.4}
-.npt{margin-top:auto;padding-top:18px;display:flex;align-items:center;gap:6px}
-.npt .tx{flex:1;min-width:0}
-.mq{text-overflow:clip!important}
-.mqt{display:inline-block;white-space:nowrap;animation:mqs linear infinite;will-change:transform}
-.mqt>span{display:inline-block;padding-right:56px}
-@keyframes mqs{to{transform:translateX(calc(-1*var(--mw)))}}
-@media(prefers-reduced-motion:reduce){.mqt{animation:none}}
-#npTitle{font-size:21px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#npArtist{opacity:.72;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#npInfoBox{display:none;margin-top:10px;font-size:13px;opacity:.85;background:color-mix(in srgb,var(--npfg) 12%,transparent);border-radius:10px;padding:10px 12px}
-#npInfoBox.show{display:block}
-.npb{display:flex;justify-content:space-between;margin-top:12px}
-#np button.on{color:inherit;background:color-mix(in srgb,var(--npfg) 18%,transparent)}
-.lh{flex:none;padding:8px 0 4px}.lh b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lh span{display:block;font-size:13px;opacity:.72;margin-top:2px}
-#lyrBody{position:relative;flex:1;min-height:0;overflow:auto;font-size:22px;line-height:1.6;font-weight:700;scroll-behavior:smooth;scrollbar-width:none;padding:22% 0}
-#lyrBody div{opacity:.42;transition:opacity .25s;cursor:pointer;padding:2px 0}
-#lyrBody div:hover{opacity:.75}
-#lyrBody .cur{opacity:1}
-#lyrBody .plain{font-size:16px;font-weight:500;opacity:.9;line-height:1.7;cursor:default}
-#lyrBody .none{font-size:15px;font-weight:500;opacity:.8;cursor:default}
-.cmf{display:flex;gap:8px;align-items:flex-end;position:sticky;bottom:0;padding:8px 0 4px;background:none;isolation:isolate}
-.cmf::before{content:"";position:absolute;inset:-14px 0 0;z-index:-1;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);-webkit-mask-image:linear-gradient(to top,#000 60%,transparent);mask-image:linear-gradient(to top,#000 60%,transparent)}
-.cmf textarea,.cmf button{position:relative}
-.cmf textarea{flex:1;resize:none;min-height:40px;max-height:110px;border-radius:12px;border:0;padding:10px 12px;font:inherit;font-size:14px;background:color-mix(in srgb,var(--npfg,#fff) 14%,transparent);color:inherit}
-.cmf textarea::placeholder{color:inherit;opacity:.6}
-.cmi{display:flex;gap:10px;padding:8px 0;align-items:flex-start}
-.cmi .av{width:34px;height:34px;flex:none;font-size:18px}
-.cmb{min-width:0;flex:1}.cmb b{font-size:13px}.cmb small{opacity:.65;margin-left:6px;font-size:11px}
-.cmb p{margin:2px 0 0;font-size:14px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
-.cmx{background:none;color:inherit;opacity:.5;padding:2px 6px;font-size:12px}.cmx:hover{opacity:1}
-.qh{display:flex;align-items:center;gap:8px;padding:6px 0 8px}.qh b{flex:1;font-size:16px}
-#np .qh button{background:color-mix(in srgb,var(--npfg) 16%,transparent);color:inherit;padding:6px 14px;font-size:13px}
-.qi{display:flex;gap:10px;align-items:center;padding:6px 8px;margin:0 -8px;border-radius:10px;cursor:pointer}
-.qi:hover{background:color-mix(in srgb,var(--npfg) 12%,transparent)}
-.qi.act{background:color-mix(in srgb,var(--npfg) 18%,transparent);font-weight:600}
-.qi img{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none;background:#0003}
-.qi .qm{min-width:0;flex:1}.qi .qm div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qi small{color:inherit;opacity:.7}
-#bar{position:fixed;z-index:20;bottom:16px;left:calc(24px + var(--sw));right:calc(24px + var(--nw));width:880px;max-width:calc(100vw - 48px - var(--sw) - var(--nw));margin:0 auto;display:none;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:10px 18px;border-radius:999px;background:color-mix(in srgb,#1c1925 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 10px 40px #000a,inset 0 0 0 1px var(--line)}
-body.has-cur #bar{display:grid}
-#bar{cursor:pointer}#bar button,#bar input{cursor:pointer}
-.bm{border-radius:0;outline-offset:2px}.bm img{transition:box-shadow .2s}
-#bPip.on{color:var(--accent)}
-.bc{display:flex;align-items:center;gap:2px}
-.bc button.ico{width:38px;height:38px}
-#pp{width:46px;height:46px;color:#fff}#pp .i{width:28px;height:28px}
-#bMode.on,#bShuf.on{color:var(--accent)}
-.bm{display:flex;min-width:0;align-items:center;gap:12px;min-width:0}
-.bm img{width:40px;height:40px;border-radius:0;object-fit:cover;background:#ffffff0d;flex:none}
-.bt{flex:1;min-width:0}
-.bt .l1{display:flex;align-items:baseline;gap:10px}
-.bt b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
-.bt .l2{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#tm{margin-left:auto;font-size:11px;color:var(--sub);flex:none;font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff26 var(--p,0%));outline:0;cursor:pointer}
-@media(min-width:701px){input[type=range]{background:linear-gradient(to right,var(--accent) var(--p,0%),#ffffff59 var(--p,0%),#ffffff59 var(--b,0%),#ffffff26 var(--b,0%))}}
-input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:12px;border-radius:50%;background:#fff;transition:width .12s}
-input[type=range]:hover::-webkit-slider-thumb{width:12px}
-input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff}
-#seek{display:block;margin-top:5px;touch-action:none}
-#seek,body.has-np #bar #seek{padding:9px 0;box-sizing:content-box;background-clip:content-box;-webkit-background-clip:content-box}
-.br{display:flex;align-items:center;gap:0}
-.br button.ico{width:38px;height:38px}
-#bar button.ico:hover{background:none}
-.vol{display:flex;align-items:center}.vol input{width:0;opacity:0;margin:0;transition:.2s}
-.vol:hover input,.vol:focus-within input{width:84px;opacity:1;margin:0 8px 0 2px}
-#bFav.on,#npFav.on{color:var(--red)}#npFav.on{color:inherit}
-@media(max-width:1099px){#bPip{display:none}}
-@media(max-width:1000px){#bShuf,#bMode,.br .vol,#bQueueW,#bPip{display:none}#bar{gap:10px}}
-.pop{position:fixed;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;min-width:200px;box-shadow:0 8px 28px #000a}
-.pop div{padding:9px 12px;border-radius:8px;cursor:pointer}.pop div:hover{background:var(--hover)}
-#toasts{position:fixed;right:20px;top:20px;z-index:100001;display:flex;flex-direction:column;gap:8px;pointer-events:none}#toasts .toast{pointer-events:auto}
-.toast{width:300px;background:var(--card);color:var(--text);border:1px solid rgba(255,255,255,.28);box-shadow:0 8px 28px #000c,0 0 0 1px #0006;border-radius:16px;padding:12px;font-weight:600}
-#auth{position:fixed;inset:0;background:rgba(5,5,9,.92);display:none;align-items:center;justify-content:center;z-index:60}
-#auth .box{width:360px;background:var(--card);border-radius:24px;padding:26px;box-shadow:0 20px 60px #000}
-#auth .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;margin-bottom:16px}
-#auth .logo b{width:38px;height:38px;border-radius:12px;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center}
-#authErr{color:#ff7b82;min-height:18px;font-size:13px;margin:4px 0}
-@media(max-width:700px){.tcv>.pl{display:none}.tih{flex-direction:column;align-items:center;text-align:center;padding:20px 14px}.tipic{width:180px;height:180px}.tim{justify-content:center}.tr.trh{display:none}.tibar{justify-content:center}}
-@media(max-width:800px){
- :root{--sw:76px}.ni span,.li .meta,.libh .t span,#libS,#libQrow{display:none}.ni{justify-content:center;padding:12px}.libh{justify-content:center;flex-direction:column;padding:4px 0}.li{justify-content:center;padding:6px}
- #bar{grid-template-columns:1fr auto;border-radius:24px}.br .vol,#bQueueW{display:none}
- .tr{grid-template-columns:30px 48px minmax(0,1fr) 40px}.tr .ar,.tr .du{display:none}.t2{display:block}.tr .ac button{opacity:1}
- .hero{flex-direction:column;align-items:flex-start}.hero h2{font-size:30px}
- #main{padding:8px 14px 28px}.sh h3{font-size:21px}
-}
-@media(min-width:701px){
- #bar{grid-template-columns:auto minmax(0,1fr) auto;container-type:inline-size;overflow:hidden}
- .bm{overflow:hidden}
-}
-@container (max-width:700px){#bShuf,#bMode{display:none}}
-@container (max-width:580px){#bQueueW,#bPip,#tm{display:none}}
-@container (max-width:470px){.br .vol{display:none}}
-.pc{--pcbg:var(--card);position:relative;background:var(--pcbg);border-radius:18px;overflow:hidden;box-shadow:0 10px 36px #0008,inset 0 0 0 1px var(--line);width:100%}
-.pc-ban{position:relative;aspect-ratio:2/1;background:#5865f2;overflow:hidden}
-.pc-ban>img,.pc-ban>video{max-width:none}
-.pc-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,.04) 64%);pointer-events:none;z-index:1}
-.pc-hd{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-end;gap:14px;padding:16px}
-.pc-av{position:relative;flex:none;width:92px;height:92px;border-radius:50%;border:4px solid var(--accent);background:#17141f}
-.pc-av .av{width:100%;height:100%;font-size:44px}
-.pc-dot{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#3ddc84;border:4px solid #17141f}
-.pc-dot.off{background:#80848e}
-.pc-id{min-width:0;padding-bottom:8px;color:#fff;text-shadow:0 1px 8px #000b}
-.pc-name{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pc-un{font-size:13px;opacity:.82;margin-top:1px}
-.pc-bub{position:absolute;z-index:3;left:124px;bottom:96px;max-width:calc(100% - 140px);background:#2e2b38;color:#f3f0fa;padding:8px 13px;border-radius:14px;font-size:13px;line-height:1.35;box-shadow:0 4px 14px #0007;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
-.pc-bub::before,.pc-bub::after{content:"";position:absolute;border-radius:50%;background:#2e2b38}
-.pc-bub::before{left:-9px;bottom:-5px;width:10px;height:10px}.pc-bub::after{left:-17px;bottom:-13px;width:6px;height:6px}
-.pc-body{padding:12px 16px}.pc-body:empty{display:none}
-.pc-act{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-.pcpop{position:fixed;z-index:45;width:min(340px,calc(100vw - 16px))}
-/* THẺ PHÓNG TO (mở bằng link /u/<tên>): nền ngoài đen nhẹ, thẻ to giữa màn hình nhưng không phủ hết */
-.pcov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:4vh 4vw;background:rgba(0,0,0,.58);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:pcovIn .18s}
-@keyframes pcovIn{from{opacity:0}}@keyframes pcovPop{from{opacity:0;transform:scale(.94) translateY(10px)}}
-.pcov .pc{width:min(720px,100%);max-height:100%;display:flex;flex-direction:column;border-radius:22px;box-shadow:0 20px 60px #000a;animation:pcovPop .22s cubic-bezier(.2,.9,.3,1)}
-.pcov .pc-ban{aspect-ratio:21/9;flex:none;min-height:150px;border-radius:22px 22px 0 0}
-.pcov .pc-hd{padding:18px 22px;gap:16px}
-.pcov .pc-ban::after{background:linear-gradient(to right,rgba(0,0,0,.5),rgba(0,0,0,.16) 60%,rgba(0,0,0,0))}
-.pcov .pc-av{width:clamp(72px,13vw,96px);height:clamp(72px,13vw,96px);border-width:4px}
-.pcov .pc-name{font-size:clamp(22px,4vw,28px);font-weight:800}.pcov .pc-un{font-size:15px}
-.pcov .pc-body{flex:none;padding:16px 22px 20px;overflow:auto}
-.pcov .pc-st{display:flex;gap:28px;margin-bottom:14px}.pcov .pc-st b{display:block;font-size:20px}.pcov .pc-st span{font-size:12px;opacity:.7}
-.pcov .pc-act{margin-top:6px}.pcov .pc-act .big{flex:1 1 100%;justify-content:center;font-size:16px;padding:12px}
-.pcov .pc-act.two .big{flex:1 1 0;min-width:0}
-.pcov .pc-act .pc-fr{display:none;border-radius:999px;border:2px solid var(--pf-ac,var(--accent,#8ecbff));background:none;color:var(--pf-ac,var(--accent,#8ecbff));font-weight:700;cursor:pointer}
-.pcov .pc-act.two .pc-fr{display:inline-flex;align-items:center;justify-content:center}
-.pcov .pc-act .pc-fr:disabled{opacity:.65;cursor:default}
-.pcov-x{position:absolute;top:14px;right:14px;z-index:5;width:38px;height:38px;border-radius:50%;background:#0007;color:#fff;border:0;font-size:18px;cursor:pointer}
-.pcov .pc{position:relative}
-/* TRANG HỒ SƠ kiểu Bilibili: banner trên cùng, avatar + số liệu, tên + cấp độ, hai tab Trang chủ / Yêu thích */
-.bp{position:fixed;inset:0;z-index:56;background:var(--bg);color:var(--text);overflow-y:auto;overscroll-behavior:contain;animation:bpin .2s ease-out}
-@keyframes bpin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.bp-w{width:100%;max-width:640px;margin:0 auto;min-height:100%;background:var(--bg)}
-.bp-ban{position:relative;height:210px;overflow:hidden;background:var(--surf2)}
-.bp-ban>img,.bp-ban>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
-.bp-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,0) 40%);pointer-events:none}
-.bp-top{position:absolute;z-index:2;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 10px 0}
-.bp-ib{width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.bp-ib .i{width:22px;height:22px}
-.bp-head{--avs:92px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"av hr" "info info";column-gap:16px;padding:0 16px;margin-top:calc(var(--avs) / -2);position:relative;z-index:3}
-.bp-av{grid-area:av;position:relative;flex:none;width:var(--avs);height:var(--avs);border-radius:50%;border:3px solid #fff;background:var(--surf2);overflow:hidden}
-.bp-av .av{width:100%;height:100%;font-size:calc(var(--avs) * .48)}
-.bp-hr{grid-area:hr;min-width:0;padding-top:calc(var(--avs) / 2 + 2px)}
-.bp-stats{display:flex;text-align:center}
-.bp-st{flex:1;min-width:0;padding:0 4px;border-left:1px solid var(--line)}
-.bp-st:first-child{border-left:0}
-.bp-st.clk{cursor:pointer;border-radius:10px;transition:background .15s}
-.bp-st.clk:hover,.bp-st.clk:focus-visible{background:rgba(255,255,255,.14);outline:none}
-.bp-tr .bp-avt{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surf2);color:var(--pf-ac,var(--sub));font-weight:700;font-size:18px}
-.bp-st b{display:block;font-size:18px}
-.bp-st span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
-.bp-ebs{display:flex;gap:8px;margin-top:12px}
-.bp-eb{display:block;flex:1;min-width:0;margin:0;padding:8px;border-radius:8px;border:1px solid var(--pf-ac,#fb7299);background:none;color:var(--pf-ac,#fb7299);font-weight:600;cursor:pointer}
-.bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
-.bp-info{grid-area:info;min-width:0;padding:14px 0 4px}
-.bp-nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;font-weight:700}
-.bp-nm b{min-width:0;overflow-wrap:anywhere}
-.bp-pen{width:28px;height:28px;flex:none;border:0;border-radius:50%;background:var(--hover2);color:var(--sub);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:color .15s,background .15s}
-.bp-pen .i{width:15px;height:15px}
-.bp-pen:hover,.bp-pen:focus-visible{color:var(--pf-ac,var(--accent))}
-.bp-tier{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#8b8f98;color:#fff}
-.bp-bio{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:var(--sub);font-size:14px}
-.bp-bio a{color:var(--pf-ac,var(--accent));cursor:pointer;flex:none}
-.bp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.bp-chips:empty{display:none}
-.bp-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:4px 12px 4px 5px;border:1px solid var(--pf-line,rgba(255,255,255,.12));border-radius:999px;background:var(--pf-card,var(--hover2));color:var(--text);font:inherit;font-size:12.5px;font-weight:600;line-height:1.3;cursor:default;transition:transform .15s,border-color .15s,background .15s}
-button.bp-chip{cursor:pointer}
-button.bp-chip:hover{transform:translateY(-1px);border-color:var(--pf-ac,var(--accent))}
-.bp-chip i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--pf-hover,rgba(255,255,255,.1));color:var(--pf-ac,var(--accent))}
-.bp-chip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-chip.uid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.4px;color:var(--pf-sub,var(--sub))}
-.bp-chip.add{border-style:dashed;background:transparent;color:var(--pf-sub,var(--sub));font-weight:500}
-.bp-chip.add i{background:transparent;border:1px dashed currentColor;color:inherit}
-.bp-q{position:relative;padding-left:14px;border-left:2px solid var(--pf-ac,var(--accent));font-style:italic;overflow-wrap:anywhere}
-.bp-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
-.bp-tab{flex:1;text-align:center;padding:12px 0;font-size:16px;color:var(--sub);cursor:pointer;position:relative;background:none;border:0}
-.bp-tab.on{color:var(--pf-ac,#fb7299)}
-.bp-tab.on::after{content:"";position:absolute;left:50%;bottom:0;width:24px;height:3px;margin-left:-12px;border-radius:2px;background:var(--pf-ac,#fb7299)}
-.bp-sec{padding:16px 16px 4px}
-.bp-sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.bp-sh b{font-size:17px}.bp-sh small{color:var(--sub);margin-left:6px}
-.bp-sh a{color:var(--sub);font-size:14px;cursor:pointer}
-.bp-pls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.bp-trs{display:grid;grid-template-columns:minmax(0,1fr)}
-.bp-pl{background:var(--card);border-radius:10px;overflow:hidden;cursor:pointer}
-.bp-pl .tile{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;background:var(--surf2);overflow:hidden}
-.bp-pl .tile .collage{width:100%;height:100%}
-.bp-pl .tile .collage img{object-fit:cover}
-.bp-pl .m{padding:8px 10px}.bp-pl .m b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-pl .m span{font-size:12px;color:var(--sub)}
-.bp-tr{display:grid;grid-template-columns:48px minmax(0,1fr) 34px;gap:12px;align-items:center;padding:6px 4px;border-radius:10px;cursor:pointer}
-.bp-tr:hover{background:var(--hover)}
-.bp-tr img{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--surf2)}
-.bp-tr .t1{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-tr .t2{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-tr button{width:34px;height:34px;border:0;background:none;color:var(--red);cursor:pointer}
-.bp-empty{color:var(--sub);text-align:center;padding:28px 0;font-size:14px}
-.bp-pad{height:calc(110px + env(safe-area-inset-bottom))}
-/* Trang chỉnh sửa thông tin */
-.bp-ed{position:fixed;inset:0;z-index:57;background:var(--bg);overflow-y:auto;animation:bpin .2s ease-out}
-.bp-edw{max-width:640px;margin:0 auto}
-.bp-edh{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 12px 12px;font-size:18px;font-weight:600}
-.bp-edh .bp-ib{background:none;color:var(--text)}
-.bp-ds{z-index:58}
-.bp-ds .bp-edw{max-width:780px;padding:0 12px 40px}
-.bp-ds h2{display:none}
-.bp-grp{background:var(--surf2);margin:12px 12px 0;border-radius:14px;overflow:hidden}
-.bp-rw{display:flex;align-items:center;gap:12px;padding:16px;border-top:1px solid var(--line);cursor:pointer}
-.bp-rw:first-child{border-top:0}
-.bp-rw>span{flex:none}
-.bp-rw>em{flex:1;min-width:0;text-align:right;font-style:normal;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bp-rw>.i{flex:none;width:18px;height:18px;color:var(--sub)}
+use argon2::{
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
+use axum::{
+    body::{Body, Bytes},
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        ConnectInfo, DefaultBodyLimit, Path, Query, State,
+    },
+    http::{header, HeaderMap, HeaderValue, Request, StatusCode, Uri},
+    middleware::{self, Next},
+    response::{IntoResponse, Redirect, Response},
+    routing::{get, post},
+    Json, Router,
+};
+use futures_util::{SinkExt, StreamExt};
+use rusqlite::{params, Connection};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+use tokio::sync::broadcast;
+use tower_http::services::ServeDir;
 
-/* ===== AVATAR: rê chuột → icon mờ đi + hiện cây bút. Icon emoji là chữ nên trước đây hiện con trỏ chữ I → tắt chọn chữ + ép con trỏ ===== */
-.av-pen{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;opacity:0;transform:scale(.8);transition:opacity .16s,transform .16s;pointer-events:none;filter:drop-shadow(0 1px 3px #000a)}
-.av-pen .i{width:38%;height:38%;min-width:16px;min-height:16px}
-.pc-av,.pc-av *,.bp-av,.bp-av *,#meAv,#meAv *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;caret-color:transparent}
-.pc-av,.pc-av *,.bp-av,.bp-av *{cursor:default}
-.pc-av.ed,.pc-av.ed *,.pc-av.zm,.pc-av.zm *,.bp-av.zm,.bp-av.zm *,#meAv,#meAv *{cursor:pointer}
-.pc-av .av{transition:opacity .16s}
-#meAv .av{transition:background .16s,box-shadow .16s}
-@media(hover:hover){
-  .pc-av.ed:hover .av{opacity:.3}
-  #meAv:hover .av{background:#ffffff33;box-shadow:0 0 0 2px #ffffff40}
-  .pc-av.ed:hover .av-pen{opacity:1;transform:none}
-}
-.pc-av.ed:focus-visible .av-pen{opacity:1;transform:none}
-/* ===== TRANG HỒ SƠ ĐỔI MÀU THEO NỀN HỒ SƠ: chỉ dùng MÀU (không nhét ảnh). Biến --pf-* do JS (pfThemeApply) tính ra ===== */
-.bp.themed,.bp-ed.themed{
-  --card:var(--pf-card);--surf2:var(--pf-card);--hover:var(--pf-hover);--hover2:var(--pf-hover);--line:var(--pf-line);--sub:var(--pf-sub);
-  background:
-    radial-gradient(70% 38% at 12% 0%,var(--pf-glow),transparent 72%),
-    radial-gradient(60% 40% at 100% 34%,var(--pf-glow2),transparent 70%),
-    linear-gradient(180deg,var(--pf-top),var(--pf-mid) 46%,var(--pf-bot));
-}
-.bp.themed .bp-w{background:transparent}
-.bp.themed .bp-ban{-webkit-mask-image:linear-gradient(to bottom,#000 58%,transparent);mask-image:linear-gradient(to bottom,#000 58%,transparent)}
-.bp.themed .bp-tabs{background:color-mix(in srgb,var(--pf-mid) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-/* ===== TRANG HỒ SƠ CO GIÃN THEO MÀN HÌNH: điện thoại xếp dọc; màn rộng đặt avatar | tên + cấp độ + tiểu sử | số liệu + nút trên một hàng, tab canh trái, nội dung thành các khối kính + lưới nhiều cột ===== */
-@media(min-width:720px){
-  .bp-w{max-width:none}
-  .bp-ban{height:clamp(210px,20vw,320px)}
-  .bp-head{--avs:128px;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av info hr";column-gap:26px;padding:0 28px;align-items:start}
-  .bp-info{padding:calc(var(--avs) / 2 + 10px) 0 0}
-  .bp-hr{padding-top:calc(var(--avs) / 2 + 10px);display:flex;align-items:center;gap:20px}
-  .bp-stats{justify-content:flex-end}
-  .bp-st{flex:none;padding:0 16px}
-  .bp-st b{font-size:20px}
-  .bp-ebs{margin-top:0;flex:none}
-  .bp-eb{flex:none;padding:9px 20px;white-space:nowrap}
-  .bp-nm{font-size:28px}
-  .bp-bio{justify-content:flex-start;gap:16px}
-  .bp-tabs{justify-content:flex-start;padding:0 20px;margin-top:22px}
-  .bp-tab{flex:none;padding:14px 28px}
-  .bp-sec{margin:18px 20px 0;padding:18px 20px 12px;border-radius:18px;background:color-mix(in srgb,var(--card) 70%,transparent);border:1px solid var(--line)}
-  .bp-pls{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
-  .bp-pl{background:var(--hover2)}
-}
-@media(min-width:1100px){
-  .bp-w{max-width:none}
-  .bp-trs{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}
-  .bp-edw{max-width:760px}
-}
-@media(min-width:1700px){
-  .bp-w{max-width:none}
-  .bp-head{--avs:148px}
-  .bp-nm{font-size:32px}
-  .bp-trs{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media(max-width:380px){ .bp-st span{font-size:11px} .bp-st b{font-size:16px} }
-/* Kiểu thẻ "toàn nền" (như trang cá nhân Bilibili): ảnh banner phủ cả thẻ, avatar + tên nằm dưới */
-.pc.full .pc-ban{aspect-ratio:3/4}
-.pc.full .pc-av{width:104px;height:104px}
-.pc.full .pc-name{font-size:23px}
-.pc.full .pc-badge{position:static;transform:none;display:inline-block;margin-top:6px}
-.pc.full .pc-av .pc-badge{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);margin:0}
-.pc-act .out.sm,.pc-act .pri.sm{padding:6px 12px;font-size:13px}
-.shc-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
-.shc-box{background:#17141f;border-radius:16px;padding:14px;max-width:min(620px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
-.shc-box canvas{width:100%;height:auto;border-radius:12px;display:block}
-.shc-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.shc-ov{overflow:auto;align-items:safe center}
-.shx{width:100%;display:flex;flex-direction:column;gap:8px;font-size:12.5px}.shx-ch{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.shc-box button{transition:none}.shc-box button:active{transform:none}
-.shc-box canvas{contain:paint}.shx{contain:layout style}
-/* Khung dựng sẵn thẻ hồ sơ: phải ẩn hẳn. Trước đây để opacity:.01 trong màn hình nên WebView Android vẫn vẽ ra bóng mờ avatar/banner/tên phía sau giao diện.
-   Ảnh vẫn được tải sẵn và giải mã bằng img.decode() trong warmProfile(), nên không cần cho nó nằm trong màn hình nữa. */
-.pcwarm{position:fixed;left:-9999px;top:0;width:340px;opacity:0;visibility:hidden;pointer-events:none;z-index:-1;contain:layout}
-.set{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,390px);gap:20px;align-items:start}
-.setR{position:sticky;top:0}
-.setR h4{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
-@media(max-width:1000px){.set{grid-template-columns:1fr}.setR{position:static;order:-1}}
-.stage{border-radius:18px;padding:22px 16px 18px;background:linear-gradient(135deg,#1a1530,#07070b);background-size:cover;background-position:center;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);transition:background .3s}
-.setL{max-width:780px}
-.banedit{position:absolute;inset:0;cursor:pointer;overflow:hidden}
-.banbg{position:absolute;inset:0;overflow:hidden}
-.banbg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
-.banbg::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.05) 65%);pointer-events:none}
-.banov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,20,24,.62);color:#fff;opacity:0;transition:opacity .15s}
-.banov .i{width:34px;height:34px}
-.banedit:hover .banov,.banedit:focus-visible .banov{opacity:1}
-.banx{position:absolute;top:12px;right:12px;width:34px;height:34px;padding:0;background:rgba(20,20,24,.7);color:#fff;opacity:0;transition:opacity .15s;z-index:2}
-.banedit:hover .banx{opacity:1}
-.prhero{position:relative;height:300px;border-radius:20px;overflow:hidden;background:var(--surf2);margin-bottom:8px}
-.prinfo{position:absolute;left:28px;right:28px;bottom:24px;display:flex;align-items:flex-end;gap:22px;pointer-events:none}
-.avwrap{position:relative;flex:none;width:132px;height:132px;pointer-events:auto}
-.avedit{position:relative;width:96px;height:96px;border-radius:50%;overflow:hidden;cursor:pointer;flex:none}
-#profAv{display:block;width:100%;height:100%}
-.avedit .av.big{display:flex;width:100%;height:100%;font-size:56px}
-.prhero .avedit{width:132px;height:132px;border:4px solid var(--accent);box-sizing:border-box;background:#17141f}
-.avedit .avov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,20,24,.62);color:#fff;opacity:0;transition:opacity .15s}
-.avedit .avov .i{width:30px;height:30px}
-.avedit:hover .avov,.avedit:focus-visible .avov{opacity:1}
-.prbadge{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);z-index:3;display:none;background:var(--accent);color:var(--on);font-weight:700;font-size:14px;padding:5px 14px;border-radius:10px;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
-.prtxt{min-width:0;padding-bottom:10px;color:#fff;text-shadow:0 1px 10px #000b}
-.prname{font-size:32px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prun{display:flex;align-items:center;gap:2px;margin-top:4px;font-size:17px;color:#ffffffb3}
-.prun .ico{pointer-events:auto;width:32px;height:32px;padding:6px;color:inherit}
-.pc-badge{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);background:var(--accent);color:var(--on);font-weight:700;font-size:12px;padding:3px 10px;border-radius:8px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
-.sgrp{margin-bottom:26px}
-.sgh{font-size:13px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:0 6px 8px;font-weight:600}
-.scard{background:var(--surf2);border-radius:18px;overflow:hidden}
-.sgrp>.panel{margin-bottom:0}
-.srow{display:flex;align-items:center;gap:16px;padding:16px 20px}
-.srow+.srow{border-top:1px solid var(--line)}
-.srow .sx{flex:1;min-width:0}.srow b{display:block;font-size:15px;font-weight:600}
-.srow small{display:block;margin-top:3px;font-size:12.5px;color:var(--sub);line-height:1.4}
-.srow.btn{cursor:pointer}.srow.btn:hover,.srow.btn:focus-visible{background:var(--hover);outline:0}
-.srow.dis{opacity:.5;pointer-events:none}
-.srow.col{flex-direction:column;align-items:stretch;gap:10px}
-.sinp{display:flex;gap:8px}.sinp.v{flex-direction:column}.sinp input{flex:1}
-.smsg{min-height:1em;margin:0!important}
-.sbadge{font-size:11px;color:var(--sub);background:var(--hover2);padding:3px 8px;border-radius:8px;white-space:nowrap}
-.tog{position:relative;display:inline-block;width:52px;height:30px;flex:none;cursor:pointer}
-.tog input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer;z-index:1}
-.tog span{position:absolute;inset:0;border-radius:999px;background:var(--hover);box-shadow:inset 0 0 0 2px #ffffff40;transition:background .18s}
-.tog span::after{content:"";position:absolute;left:6px;top:6px;width:18px;height:18px;border-radius:50%;background:#9aa0a6;transition:transform .18s,background .18s}
-.tog input:checked+span{background:var(--accent);box-shadow:none}
-.tog input:checked+span::after{transform:translateX(22px);background:var(--on)}
-.tog input:disabled{cursor:default}
-.stage{min-height:240px;display:flex;flex-direction:column;justify-content:flex-end}
-.stage>#pvCard{position:relative;z-index:1}
-.stban{position:absolute;inset:0;z-index:0;overflow:hidden;display:none}
-.stban img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
-.stban::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.05) 70%)}
-.stage .pc.flat{--pcbg:transparent;background:transparent;box-shadow:none;backdrop-filter:none;overflow:visible}
-.pc.flat .pc-ban{aspect-ratio:auto;min-height:120px;background:transparent!important;overflow:visible}
-.pc.flat .pc-ban::after{display:none}
-.pc.flat .pc-hd{padding:0}
-.avedit{position:relative;width:96px;height:96px;border-radius:50%;overflow:hidden;cursor:pointer;flex:none}
-.avedit .av.big{width:100%;height:100%}
-.avedit .avov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,20,24,.62);color:#fff;opacity:0;transition:opacity .15s}
-.avedit .avov .i{width:28px;height:28px}
-.avedit:hover .avov,.avedit:focus-visible .avov{opacity:1}
-.stage.s-dark{background:#000}
-.stage.s-ocean{background:linear-gradient(135deg,#0f2027,#2c5364)}
-.stage.s-sunset{background:linear-gradient(135deg,#42275a,#734b6d)}
-.stage.s-forest{background:linear-gradient(135deg,#1d2b1f,#3b5d3a)}
-.stage.s-custom{background-color:#000;background-size:cover;background-position:center}
-.stage .pc{--pcbg:rgba(14,12,21,.7);backdrop-filter:blur(5px)}
-.stage .mini{margin-top:14px;display:flex;align-items:center;gap:10px;background:rgba(14,12,21,.7);backdrop-filter:blur(5px);border-radius:999px;padding:8px 14px}
-.mini i{flex:1;height:4px;border-radius:2px;background:linear-gradient(to right,var(--accent) 38%,#ffffff26 38%)}
-.mini b{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center;flex:none}
-.mini b .i{width:16px;height:16px}
-.skins .sk{width:96px;height:62px;position:relative;text-shadow:0 1px 4px #0009}
-.skins .sk.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
-.skins .sk[data-v=custom]{background:repeating-conic-gradient(#3a3a44 0 25%,#2a2a32 0 50%) 0 0/16px 16px}
-.hint{display:block;margin-top:6px;font-size:12px;color:var(--sub)}
-.panel h3{margin:0 0 10px;font-size:16px}
-.row.wrapr{flex-wrap:wrap}
-.bnrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-input[type=color]{padding:2px;height:36px;width:56px;cursor:pointer}
-.qpager{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-behavior:auto}
-.qpager::-webkit-scrollbar{display:none}
-.qcol{flex:none;width:min(88%,380px);display:flex;flex-direction:column;scroll-snap-align:start;contain:layout paint style}
-.qk{display:flex;gap:14px;align-items:center;padding:7px 10px 7px 0;border-radius:12px;cursor:pointer;min-width:0;height:72px;box-sizing:border-box}
-.qk:hover{background:var(--hover)}
-.qk:active{background:var(--hover2)}
-.qk img{width:56px;height:56px;border-radius:8px;object-fit:cover;flex:none;background:#ffffff0d}
-.qk .qt{min-width:0;flex:1}.qk b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qk span{display:block;font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.qk.now b{color:var(--accent)}
-#cm{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:12px}
-.cbox{width:min(640px,100%);max-height:100%;overflow:auto;background:#2b2d31;border-radius:16px;padding:20px 22px;box-shadow:0 20px 70px #000}
-.cx{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.cx h3{margin:0;font-size:20px}
-.cstage{position:relative;height:340px;background:#1e1f22;border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;user-select:none}
-.cstage:active{cursor:grabbing}
-.cfr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
-.cbg,.cimg,.cmask{position:absolute;inset:0}
-.cimg img{pointer-events:none;user-select:none}
-.cmask{pointer-events:none;box-shadow:0 0 0 999px rgba(30,31,34,.74);border:3px solid #fff}
-.cmask.rnd{border-radius:50%}
-.csl{display:grid;gap:8px;margin:16px 0 4px}
-.cft{display:flex;align-items:center;gap:10px;margin-top:16px}
-.cft .lnk{background:none;padding:8px 0;color:#9aa4ff;border-radius:6px}.cft .lnk:hover{background:none;text-decoration:underline}
-.fr{cursor:pointer}
-.crop{display:grid;grid-template-columns:1fr;gap:6px;margin:10px 0;padding:10px 12px;background:var(--hover);border-radius:12px}
-.crop>b{font-size:13px}.crl{display:grid;grid-template-columns:44px 1fr 52px;gap:10px;align-items:center;font-size:13px}.crl output{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
-.crop button{justify-self:start;padding:5px 14px;font-size:12px}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+mod pl_import; // nhập playlist từ Spotify / Apple Music / SoundCloud
 
-.fxp{padding:4px 20px 18px;border-top:1px solid var(--line);background:#00000012}
-.fxr{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:13px}.fxr>label{width:92px;color:var(--sub);flex:none}.fxr input[type=range]{flex:1}.fxr>span{width:56px;text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
-.fxr select{flex:1;color-scheme:dark}
-.fxp select option{background:#1c1f26;color:#f1f3f5}
-.fxp input[type=range]{-webkit-appearance:auto;appearance:auto;accent-color:var(--accent);background:none;height:20px;padding:0;border:0}
-.fxp input[type=range]::-webkit-slider-runnable-track,.fxp input[type=range]::-webkit-slider-thumb{all:revert}
-.eqcv{display:block;width:100%;height:260px;margin-top:14px;touch-action:none;cursor:ns-resize}
-.ui-pc{-webkit-text-size-adjust:100%;touch-action:manipulation}
-.ui-pc body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
-.ui-pc input,.ui-pc textarea{-webkit-user-select:text;user-select:text}
-.ui-pc #main,.ui-pc #side,.ui-pc #np{-webkit-overflow-scrolling:touch}
-@media(max-width:700px){
- :root{--sw:0px;--nw:0px}
- html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
- input,select,textarea{font-size:16px}
- button:hover{background:var(--hover2)}button.pri:hover{background:var(--accent)}button.ico:hover{background:none}
- #app{display:block;height:100dvh;padding:0;gap:0}
- #center{border-radius:0;height:100dvh;display:flex;flex-direction:column}
- #top{padding:calc(10px + env(safe-area-inset-top)) 14px 6px;gap:8px;align-items:center}
- #top{flex-wrap:wrap;row-gap:8px}
- #top .sp{display:block;flex:1 1 0}
- #topChips{order:5;flex:0 0 100%;width:100%;padding:2px 0}
- #top .rb{width:40px;height:40px}
- #meAv .av,#meAv img{width:40px;height:40px}
- #main{padding:6px 16px calc(190px + env(safe-area-inset-bottom));scrollbar-width:none}
- #main::-webkit-scrollbar{display:none}
- body.has-cur #main{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
- #main h2{font-size:28px;margin:6px 0 14px}
- .sec{margin-top:18px}
- .sh h3{font-size:20px}.sh small{font-size:11px}
- .nv{display:none}
- .grid{gap:12px;padding-bottom:6px;scroll-snap-type:x proximity;scroll-padding-left:16px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-behavior:auto}
- .card{width:140px;padding:0;scroll-snap-align:start;border-radius:14px}
- .card:hover{background:none}
- .qpager{margin:0 -16px;padding:0 0 0 16px;scroll-padding-left:16px}
- .qk:hover{background:none}.qk:active{background:var(--hover2)}
- .card.wide{width:250px}
- .cvw{border-radius:14px}
- .pl{opacity:1;transform:none;width:36px;height:36px;right:6px;bottom:6px;box-shadow:0 4px 12px #0006}
- .ct{font-size:14px;margin-top:8px}.ca{font-size:12px}
- .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
- .tl{height:88px;font-size:16px;padding:12px}
- .sbox{max-width:none;margin:6px 0 16px}
- .tr{grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:7px 4px}
- .tr .n,.tr .ar,.tr .du{display:none}.t2{display:block}
- .tr .ac{gap:0}.tr .ac button{opacity:1;width:38px;height:38px}
- .tr:hover{background:none}.tr:active{background:var(--hover)}
- .hero{flex-direction:column;align-items:center;text-align:center;gap:14px;padding:6px 0 14px}
- .hcol{width:min(64vw,260px);height:auto;aspect-ratio:1;border-radius:16px}
- .hero h2{font-size:26px;margin:2px 0 10px}
- .hb{justify-content:center}
- .libL{display:flex;flex-direction:column;gap:2px}
- #main .libL .li{justify-content:flex-start;padding:8px 4px}
- #main .libL .li .meta{display:block;flex:1}
- .libL .tile{width:56px;height:56px;border-radius:12px}
- .libL .li .meta b{font-size:16px}.libL .li .meta span{font-size:13px}
- .libL .li:active{background:var(--hover)}
- :root{--cap:#1f1c29}
- #side{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;flex-direction:row;align-items:center;gap:12px;padding:0 16px calc(8px + env(safe-area-inset-bottom));height:auto;border-radius:0;overflow:visible;background:none;box-shadow:none;backdrop-filter:none!important;pointer-events:none}
- #side>*{pointer-events:auto}
- #side .sep,#side .libh,#side #libQrow,#side #lib{display:none}
- #side .navLib,#side .navFr{display:flex}
- #side .navcap{display:flex;flex:none;width:calc(100% - 68px);height:64px;padding:0 6px;gap:2px;border-radius:999px;background:var(--cap);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line);overflow:hidden;transition:width .3s,height .3s}
- #side .navcap .ni,body.side-min #side .navcap .ni{flex:1 1 0;min-width:0;height:52px;align-self:center;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:0;border-radius:999px;font-size:11px;font-weight:500;background:none;color:var(--sub)}
- #side .navcap .ni>i{display:flex;align-items:center;justify-content:center;width:auto;height:24px}
- #side .navcap .ni>i .i{width:24px;height:24px}
- #side .ni span,body.side-min #side .ni span{display:block;font-size:11px;line-height:1.1}
- #side .navcap .ni.act{background:color-mix(in srgb,var(--accent) 24%,transparent);color:var(--accent);font-weight:600}
- #side .ni:hover{background:none}
- #side .navcap .ni.act:hover{background:color-mix(in srgb,var(--accent) 24%,transparent)}
- #side .navSearch,body.side-min #side .navSearch{flex:none;width:56px;height:56px;padding:0;border-radius:50%;justify-content:center;align-items:center;background:var(--cap);color:var(--text);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line)}
- #side .navSearch span{display:none}
- #side .navSearch.act{color:var(--accent);background:var(--cap)}
- body.nav-min #side .navcap{width:56px;height:56px;padding:0}
- body.nav-min #side .navcap .ni{display:none}
- body.nav-min #side .navcap .ni.act{display:flex;flex:1;height:56px;background:none;color:var(--accent)}
- body.nav-min #side .navcap:not(:has(.ni.act)) .ni[data-p=home]{display:flex;flex:1;height:56px;color:var(--accent)}
- body.nav-min #side .navcap .ni span{display:none}
- body.nav-min #side .navSearch{display:none}
- #side .navcap #roomBar{display:flex}
- #side .navcap #roomBar:empty,body.nav-min #side .navcap #roomBar:not(.act){display:none}
- #roomInfo{display:none!important}
- #bar{left:16px;right:16px;width:auto;max-width:none;margin:0;bottom:calc(80px + env(safe-area-inset-bottom));height:56px;padding:0 8px;gap:8px;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;border-radius:999px;z-index:26;background:var(--cap);box-shadow:0 6px 20px #0007,inset 0 0 0 1px var(--line);transition:left .3s,bottom .3s}
- body.nav-min #bar{left:calc(16px + 56px + 8px);bottom:calc(8px + env(safe-area-inset-bottom))}
- #bar .bm{order:1;position:relative;gap:10px;min-width:0}
- #bar .br{order:2;display:flex}
- #bar .bc{order:3;gap:0}
- #bar #bShuf,#bar #bPrev,#bar #bNext,#bar #bMode,#bar #bQueueW,#bar #bPip,#bar .vol,#bar #bClose,#bar #tm,#bar #seek{display:none}
- #bar .bm img{width:26px;height:26px;margin:7px;border-radius:50%;position:relative;z-index:1}
- #bar .bm::before{content:"";position:absolute;left:0;top:50%;width:40px;height:40px;margin-top:-20px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--rp,0)*1%),var(--hover2) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px))}
- #bar .bt b{font-size:14px;font-weight:700}
- #bar .bt .l2{font-size:10px}
- #bar #bFav,#bar #pp{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border-radius:50%}
- #bar #bFav{background:var(--hover2)}
- #bar #bFav.on{color:var(--red)}
- #bar #pp{background:var(--accent);color:var(--on)}
- #bar #pp .i{width:22px;height:22px}
- #np{left:0;right:0;top:0;bottom:0;width:auto;height:100dvh;border-radius:0;z-index:35;padding-top:env(safe-area-inset-top);padding-bottom:calc(172px + env(safe-area-inset-bottom));transform:translateY(100%)}
- body.has-np #np{transform:none}
- .npv{padding:4px 22px 12px}
- .art{width:min(86vw,max(200px,calc(100dvh - 470px)));margin:12px auto 0;border-radius:22px;box-shadow:0 24px 60px #0008}
- #vPlay.show{justify-content:center}
- .npt{margin-top:22px;padding-top:0}
- #npLine{margin-top:8px;min-height:0}
- #npTitle{font-size:23px}#npArtist{font-size:15px}
- .npb{margin-top:10px}
- #lyrBody{font-size:24px}
- body.has-np #bar{left:0;right:0;bottom:0;height:auto;border-radius:26px 26px 0 0;padding:14px 22px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:12px;z-index:40;background:color-mix(in srgb,var(--npbg) 60%,#000);color:var(--npfg);backdrop-filter:none;box-shadow:none}
- body.has-np #bar .bm{order:1;width:100%}
- body.has-np #bar .bm img,body.has-np #bar .bt .l2,body.has-np #bar .bt b{display:none}
- body.has-np #bar .bt{display:flex;flex-direction:column-reverse;gap:8px}
- body.has-np #bar .bt .l1{justify-content:space-between}
- body.has-np #bar #tm{display:block;margin:0;color:inherit;opacity:.75;font-size:12px}
- body.has-np #bar #seek{display:block;position:static;width:100%;height:5px;pointer-events:auto;margin:0}
- body.has-np #bar .br,body.has-np #bar .bm::before{display:none}
- body.has-np #bar #seek::-webkit-slider-thumb{width:16px;height:16px}
- body.has-np #bar .bc{order:2;justify-content:space-between;padding:0 4px}
- body.has-np #bar #bShuf,body.has-np #bar #bPrev,body.has-np #bar #bNext,body.has-np #bar #bMode{display:inline-flex}
- body.has-np #bar .bc button.ico{width:52px;height:52px;color:inherit}
- body.has-np #bar #pp{width:70px;height:70px;background:var(--accent);color:var(--on)}
- body.has-np #bar #pp .i{width:32px;height:32px}
- #toasts{left:12px;right:12px;top:calc(12px + env(safe-area-inset-top))}.toast{width:auto}
- #auth .box{width:min(360px,92vw)}
- button.ico{min-width:40px;min-height:40px}
+struct Room {
+    tx: broadcast::Sender<String>,
+    last_state: Option<String>,
+    // Số kết nối đang mở của từng người trong phòng. Dùng để báo "vào phòng"/"thoát phòng" đúng 1 lần,
+    // dù mạng chập chờn khiến app tự kết nối lại nhiều lần.
+    members: HashMap<i64, usize>,
 }
 
-html.android *{-webkit-tap-highlight-color:transparent}
-html.android *,html.android *::before,html.android *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-html.android{overscroll-behavior:none;touch-action:manipulation}
-html.android body{overscroll-behavior:none}
-html.android *{scroll-behavior:auto!important}
-html.android .art.wide::before{filter:none!important}
-html.android .card.sk .cvw,html.android .card.sk .ct{animation:none!important}
-html.android #topChips .chip.mi{animation:none!important}
-html.android .sec{content-visibility:auto;contain-intrinsic-size:auto 280px}
-html.android .card,html.android .qk,html.android .nmc,html.android .item{contain:layout style}
-html.android img{image-rendering:auto}
-
-.schips{display:flex;gap:8px;overflow-x:auto;padding:0 0 16px;scrollbar-width:none}.schips[hidden]{display:none}
-.schips::-webkit-scrollbar{display:none}
-.schips .chip{flex:none;cursor:pointer;border:0;color:inherit;font:inherit;font-weight:500;border-radius:999px;padding:7px 16px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
-.schips .chip:hover{background:var(--hover)}
-.schips .chip.on{background:var(--accent);color:var(--on);font-weight:600;box-shadow:none}
-.sent{gap:12px;margin-bottom:8px}.card.art .cvw{border-radius:50%}.card.art .ct,.card.art .ca{text-align:center}
-.card.art,body.vid .card.art{width:150px;aspect-ratio:auto;margin:0;overflow:visible;background:none;box-shadow:none;border-radius:12px}
-@media(max-width:700px){.card.art,body.vid .card.art{width:120px;border-radius:14px}}
-.sres-h{margin:18px 0 8px;font-size:20px;font-weight:700}
-.libdlg{width:min(520px,100%);max-height:82vh;display:flex;flex-direction:column}
-.libdlg .liblist{margin-top:14px;overflow-y:auto;border-radius:14px;background:var(--surf2);border:1px solid var(--line)}
-.libdlg .srow{padding:12px 16px}
-.srow .sbadge{white-space:normal;max-width:46%;text-align:center}
-.dlgov{position:fixed;inset:0;z-index:99999;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
-.dlg{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:22px;width:min(400px,100%);box-shadow:0 24px 70px #000c}
-.dlg h3{margin:0;font-size:18px;font-weight:700}
-.dlg p{margin:10px 0 0;color:var(--sub);font-size:14px;line-height:1.5;white-space:pre-line}
-.dlg input{width:100%;box-sizing:border-box;margin-top:16px;background:var(--surf2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:13px 15px;font-size:16px;outline:none}
-.dlg input:focus{border-color:var(--accent)}
-.dlgb{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.dlgb button{border:0;border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;background:var(--hover2);color:var(--text)}
-.dlgb .dlgo{background:var(--accent);color:var(--on)}
-.ytl{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.yti{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;background:var(--hover);cursor:pointer}
-.yti img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--surf2);flex:none}
-.yti span{flex:1;min-width:0}
-.yti b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.yti small{color:var(--sub)}
-.yti input{width:18px;height:18px;accent-color:var(--accent);flex:none}
-@supports not (background:color-mix(in srgb,red 50%,blue)){
- #np{background:var(--npbg)}
- #bar{background:#1c1925}
- #np button.ico:hover,#np button.on{background:#ffffff2e}
- #np .qh button{background:#ffffff2a}
- @media(max-width:700px){
-  #bar{background:var(--cap)}
-  body.has-np #bar{background:var(--npbg)}
- }
+#[derive(Clone)]
+struct AppState {
+    db: Arc<Mutex<Connection>>,
+    rooms: Arc<Mutex<HashMap<String, Room>>>,
+    // Kênh thông báo riêng cho từng người dùng đang online (lời mời nghe chung).
+    notify: Arc<Mutex<HashMap<i64, broadcast::Sender<String>>>>,
+    avatar_dir: PathBuf,
+    bg_dir: PathBuf,
+    banner_dir: PathBuf,
+    card_dir: PathBuf, // ảnh thẻ chia sẻ hồ sơ (data/cards/<id>.png)
+    app_dir: PathBuf,
+    http: reqwest::Client,
+    // Client đi qua proxy (biến môi trường YT_PROXY), dùng khi người dùng bật "Proxy" trong Cài đặt.
+    http_proxy: Option<reqwest::Client>,
+    // Cache địa chỉ luồng âm thanh YouTube: khoá -> (url, kích thước, mime, thời điểm tạo - giây)
+    audio: Arc<Mutex<HashMap<String, (String, u64, String, u64, usize)>>>,
+    // Giới hạn đăng nhập/đăng ký: khoá -> (số lần, thời điểm bắt đầu cửa sổ - giây). Chống dò mật khẩu.
+    auth_limit: Arc<Mutex<HashMap<String, (u32, u64)>>>,
+    // Vé WebSocket dùng một lần, sống 30 giây: vé -> (người dùng, hạn - giây). Tránh để token phiên nằm trong URL (log proxy).
+    ws_tickets: Arc<Mutex<HashMap<String, (User, u64)>>>,
+    // Chế độ "cổng nhà" (GATEWAY_REMOTE): địa chỉ server chính để chuyển tiếp mọi thứ không phải YouTube.
+    gateway: Option<Arc<Gateway>>,
+    // Mã ghép thiết bị dùng một lần (đăng nhập nhanh không cần gõ mật khẩu): mã -> (user_id admin, hạn - giây).
+    pair_codes: Arc<Mutex<HashMap<String, (i64, u64)>>>,
 }
 
-body.skin-ocean .pnl,body.skin-sunset .pnl,body.skin-forest .pnl,body.skin-custom .pnl{
-  -webkit-backdrop-filter:blur(1.25px)!important;
-  backdrop-filter:blur(1.25px)!important;
-}
-.stage .pc{
-  --pcbg:rgba(14,12,21,.58);
-  -webkit-backdrop-filter:blur(2px);
-  backdrop-filter:blur(2px);
-}
-.stage .mini{
-  background:rgba(14,12,21,.58);
-  -webkit-backdrop-filter:blur(2px);
-  backdrop-filter:blur(2px);
-}
-body:has(.shc-ov) .pnl,body:has(.shc-ov) .stage .pc,body:has(.shc-ov) .stage .mini{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-button,[role="button"],#meAv,#gear,.rb,.ni,.card,.li,.tr,.qi,.qk,.mo,.tl,.fr,.srow.btn{
-  pointer-events:auto;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-}
-button,#meAv,#gear,.rb,.ni,[role="button"]{cursor:pointer}
-button:disabled{cursor:wait;opacity:.65}
-#meAv,#gear{position:relative;z-index:3}
-#top,#topChips{position:relative;z-index:4}
-#top button,#top a,#top [role="button"]{position:relative;z-index:5;pointer-events:auto}
-img,svg{ -webkit-user-drag:none; user-drag:none }
-button *,#gear *,#meAv *{pointer-events:none}
-#center{min-width:0;min-height:0;overflow:hidden}
-#main{
-  min-width:0;min-height:0;
-  overflow-x:hidden;overflow-y:auto;
-  overscroll-behavior-y:contain;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-gutter:stable;
-}
-#main>*{min-width:0;max-width:100%}
-#main .sec,#main .stage,#main .set,#main .grid{min-width:0}
-@media(max-width:700px){
-  #center{height:100dvh;min-height:0}
-  #main{
-    overscroll-behavior-y:contain;
-    scrollbar-gutter:auto;
-    scroll-padding-top:8px;
-  }
-  #top{flex-shrink:0}
-  #topChips{min-width:0;max-width:100%;overscroll-behavior-x:contain}
-  #main .grid{max-width:100%;overflow-x:auto}
+// Cổng nhà: chạy trên máy ở nhà (IP dân cư) để YouTube không chặn như khi chạy trên VPS/Render.
+struct Gateway {
+    remote: String, // vd. https://muse.example.com (không có dấu / cuối)
+    client: reqwest::Client,
+    // token đã băm -> (cho phép nội dung nhạy cảm, thời điểm lấy - giây)
+    explicit: Mutex<HashMap<String, (bool, u64)>>,
 }
 
-#offBar{display:none!important;position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;background:#2a2433;color:var(--text);box-shadow:0 6px 20px #0008,inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;white-space:nowrap;max-width:94vw}
-#offBar.ok{background:var(--accent);color:var(--on);font-weight:600}
-.offc{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:64px 20px}
-.offc .offi{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surf2);color:var(--sub)}
-.offc .offi .i{width:44px;height:44px}.offc h3{font-size:26px;margin:8px 0 0}.offc p{color:var(--sub);max-width:360px;margin:0 0 8px;line-height:1.5}
-.offc .offact{display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}.offc .offact button{padding:13px 18px;font-size:15px}
-.dlInfo{color:var(--sub);margin:-4px 0 12px}
-.dlWhere a{color:var(--accent);cursor:pointer;text-decoration:underline}.dlWhere{word-break:break-all}
-.dlr .t3{font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.dlr .t3 svg{vertical-align:-2px}
-.dlr.dim{opacity:.45}
-.offb{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent);vertical-align:middle}
-.offb .i{width:12px;height:12px}.offb.no{background:var(--hover2);color:var(--sub)}
-.lcTabs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px;scrollbar-width:none}.lcTabs::-webkit-scrollbar{display:none}
-.lcTabs .chip{flex:none;border-radius:999px;padding:8px 18px;font-size:14px;background:none;box-shadow:inset 0 0 0 1px #ffffff40;color:var(--text)}
-.lcTabs .chip.on{background:var(--accent);color:var(--on);box-shadow:none;font-weight:600}
-.libG{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 4px}
-.lc{position:relative;overflow:hidden;border-radius:24px;padding:14px 16px;min-height:124px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;background:#252a2f;transition:transform .12s}
-.lc:active{transform:scale(.98)}
-.lc.wide{grid-column:1/-1;min-height:140px}
-.lc .lcT{position:relative;z-index:1;min-width:0}
-.lc .lcT b{display:block;font-size:16px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.wide .lcT b{font-size:20px}
-.lc .lcT span{display:block;font-size:13px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.wide .lcT span{font-size:15px}
-.lcArt{position:absolute;right:12px;top:14px;display:flex}
-.lcArt img,.lcArt .ph{width:40px;height:40px;object-fit:cover;border-radius:10px;box-shadow:0 1px 6px #0007;background:#1c2025}
-.lcArt img+img{margin-left:-12px;margin-top:6px}
-.lcArt img:first-child{transform:rotate(-6deg)}.lcArt img+img{transform:rotate(5deg)}
-.lcArt .ph{position:relative;display:flex;align-items:center;justify-content:center;background:none;box-shadow:none;border:2px dashed #ffffff3a;border-radius:50%}
-.lcArt .ph::after{content:'';position:absolute;left:-16px;top:-2px;width:100%;height:100%;border:2px dashed #ffffff3a;border-radius:50%}
-.lcArt .ph .i{display:none}
-.lc.wide .lcArt{right:44px;top:50%;transform:translateY(-50%)}
-.lc.wide .lcArt img,.lc.wide .lcArt .ph{width:78px;height:78px;border-radius:14px;transform:none}
-.lc.wide .lcArt .ph{border-radius:14px}.lc.wide .lcArt .ph::after{display:none}.lc.wide .lcArt .ph .i{display:block;width:30px;height:30px;color:var(--sub)}
-.lcH{font-size:21px;font-weight:700;margin:22px 0 6px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between}
-.lcH button{font-size:13px;padding:7px 14px}
-@media(min-width:700px){.libG{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.lc.wide{grid-column:span 2}}
-.lc.wide{min-height:92px;justify-content:center;padding:12px 20px}
-.lc.wide .lcArt{right:22px;top:50%;transform:translateY(-50%)}
-.lc.wide .lcArt img,.lc.wide .lcArt .ph{width:60px;height:60px;border-radius:14px}
-.lc.wide .lcArt .ph .i{width:26px;height:26px}
-.lc.wide .lcT{padding-right:96px}
-.lc.wide .lcT b{font-size:19px}.lc.wide .lcT span{font-size:14px}
-#npFollow{margin-top:6px;padding:4px 12px;border-radius:999px;font-size:12px;background:none;color:var(--text);box-shadow:inset 0 0 0 1px #ffffff55}
-#npFollow.on{background:var(--accent);color:var(--on);box-shadow:none}
-.li .ico[data-un]{margin-left:auto}
+// Giao diện nhúng sẵn (chỉ khi build với `--features embed-ui`, app desktop dùng): cổng nhà đặt GATEWAY_LOCAL_UI=1 thì tự phục vụ
+// trang chính từ chính file chạy này thay vì tải từ server chính → giao diện nằm trong app, server chính chỉ còn lưu dữ liệu.
+#[cfg(feature = "embed-ui")]
+const EMBED_INDEX: &str = include_str!("../static/index.html");
+#[cfg(not(feature = "embed-ui"))]
+const EMBED_INDEX: &str = "";
 
-.collg{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;scroll-snap-type:x proximity}.collg::-webkit-scrollbar{display:none}
-.coll{flex:none;width:min(360px,86vw);box-sizing:border-box;border-radius:22px;background:var(--surf2);padding:18px 16px 10px;scroll-snap-align:start}
-.coll .ccv{width:min(210px,62%);margin:0 auto;aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;background:#ffffff0d}.coll .ccv .collage{width:100%;height:100%}
-.coll .cch{display:flex;align-items:center;gap:12px;margin:16px 4px 8px}.coll .cct{flex:1;min-width:0}.coll .cct b{display:block;font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coll .cct span{display:block;font-size:14px;color:var(--sub);margin-top:2px}
-.coll .cpb{flex:none;width:52px;height:52px;border-radius:50%;border:0;background:var(--hover2);color:inherit;display:grid;place-items:center;cursor:pointer}.coll .cpb:hover{background:var(--accent);color:var(--on)}
-.coll .qk{padding-left:4px}
-.blb{position:relative;overflow:hidden;border-radius:24px;background:#d6d2fb;min-height:168px;padding:22px 24px;cursor:pointer;color:#ff5a1f;transition:transform .15s}.blb:hover{transform:scale(1.005)}
-.blb .blt{position:relative;z-index:2;max-width:54%;font-size:22px;line-height:1.3;font-weight:600}
-.blb .bla{position:absolute;left:24px;bottom:20px;z-index:2;width:44px;height:44px;border-radius:50%;background:#ffffff66;display:grid;place-items:center}
-.blb .bg1,.blb .bg2{position:absolute;right:6%;width:42%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 100%,#ff5a1f,#ff8a5c 55%,#ffd2c0)}.blb .bg1{top:-34%}.blb .bg2{bottom:-34%;transform:scaleY(-1)}
-.blb .bgp{position:absolute;right:14%;top:50%;transform:translateY(-50%);width:68px;height:68px;border-radius:50%;background:#ff5a1f;color:#fff;display:grid;place-items:center;z-index:1;font-size:40px;font-weight:300}
-@media(max-width:700px){.blb .blt{font-size:19px;max-width:58%}.blb{min-height:150px;padding:18px}}
-.nmh h3{font-size:30px;letter-spacing:-.01em}
-.nmh .more.pill{border:1px solid var(--line);border-radius:999px;padding:8px 16px;margin-right:0;font-size:14px;font-weight:600;color:var(--text)}.nmh .more.pill:hover{background:var(--hover)}
-.nmd{gap:14px;scroll-snap-type:x mandatory;scroll-padding-left:0}
-.nmc{position:relative;flex:none;width:min(440px,88%);aspect-ratio:1;border-radius:28px;overflow:hidden;cursor:pointer;scroll-snap-align:start;background:#222;isolation:isolate}
-.nmc>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
-.nmc::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#000b 0,#0006 30%,#0000 55%,#0000 72%,#000a 100%)}
-.nmc .nt{position:absolute;left:24px;right:24px;top:22px}
-.nmc .nt b{display:block;font-size:22px;font-weight:700;line-height:1.25;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nmc .nt span{display:block;font-size:18px;color:#ffffffb3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nmc .nc{position:absolute;left:24px;right:24px;bottom:20px;font-size:18px;font-style:italic;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:700px){.nmh h3{font-size:24px}.nmd{margin:0 -16px;padding-left:16px;padding-right:16px;scroll-padding-left:16px}.nmc{width:88%;border-radius:24px}.nmc .nt{left:20px;right:20px}.nmc .nc{left:20px;right:20px}}
-
-.pc.flat .pc-ban{contain:none;transform:none;border-radius:0}
-.pc.flat .pc-av .av{transform:none}
-.pc-ban>img,.pc-av .av img,.pc-ban>video,.pc-av .av video{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center}
-.pc-ban{contain:paint;isolation:isolate;border-radius:18px 18px 0 0;transform:translateZ(0)}
-.pc-av .av{overflow:hidden;border-radius:50%;transform:translateZ(0)}
-html.android .pcpop .pc{overflow:visible;box-shadow:0 4px 14px #0007}
-.imgv{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px}
-.imgv>img,.imgv>video{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:default}
-.imgv-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff22;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.imgv-x .i{width:22px;height:22px}
-body.imgv-open .pc-ban>img,body.imgv-open .pc-av img,body.imgv-open .av img,body.imgv-open .pc-ban>video,body.imgv-open .pc-av video,body.imgv-open .av video{display:none!important}
-/* Cover chưa tải xong (hoặc đang tải): ô tối + nốt nhạc xám nhạt ở giữa; ảnh tải xong thì phủ lên. Áp cho mọi ảnh bìa YouTube/Google
-   (kể cả khi đi qua proxy ảnh) và 2 ô cover của trình phát. */
-img[src*="ytimg.com"],img[src*="googleusercontent.com"],img[src*="ggpht.com"],img[src*="/api/img"],img[src*="wsrv.nl"],img[src*="duckduckgo.com/iu"],img[src*="weserv.nl"],#bCov,#npCov{
-  background-color:#222326;background-repeat:no-repeat;background-position:center;background-size:42% 42%;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='translate(5 2)'%3E%3Cpath fill='%233c3d42' d='M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z'/%3E%3C/g%3E%3C/svg%3E")!important}
-
-/* ===== PC: màn hình "Chi tiết" khi phát từ Tải xuống (kiểu foobar2000) ===== */
-body.dl-det #bar,body.dl-det #side,body.dl-det #top,body.dl-det #np{display:none!important}
-body.dl-det #app{display:block;height:100vh;padding:0;gap:0}
-body.dl-det #center{border-radius:0;height:100vh}
-body.dl-det #main{padding:0!important;overflow:hidden}
-.dd{--ddc:var(--npbg,#2f4f73);position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;height:100%;min-height:0;color:#fff;
- --dd1:#2f4f73;background:var(--dd1);transition:--dd1 1s ease}
-.dd-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:40px;padding:0 14px;flex:none}
-.dd-nav button{background:none;border:0;color:#ffffffcc;font:inherit;font-size:13px;cursor:pointer;padding:5px 12px;border-radius:5px;letter-spacing:.2px}
-.dd-nav button:hover{background:#ffffff1f;color:#fff}
-.dd-nav .menu{justify-self:start;display:flex;align-items:center;gap:8px}
-.dd-nav .tabs{display:flex;gap:4px}
-.dd-nav .tabs button.on{background:#ffffff26;color:#fff;font-weight:600}
-.dd-nav .x{justify-self:end;font-size:16px;line-height:1;padding:5px 10px}
-.dd-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,31%) 1fr;gap:16px;padding:18px 24px}
-.dd-info{overflow:auto;scrollbar-width:thin;min-width:0;background:none;margin:-22px 0 -22px -28px;padding:22px 24px 22px 28px;border-radius:0}
-.dd-info h2{margin:0 0 10px;font-size:clamp(17px,1.5vw,20px);font-weight:600;line-height:1.3;overflow-wrap:anywhere;text-shadow:0 1px 6px #0003}
-.dd-info hr{border:0;height:9px;background:linear-gradient(90deg,#ffffffd9,#ffffffd9),#ffffff;background-clip:padding-box;margin:0 0 22px;width:100%;position:relative;box-shadow:inset -2px 0 #0000,0 1px 4px #0002;
- -webkit-mask:linear-gradient(90deg,#000 0 calc(50% - 1px),#0000 calc(50% - 1px) calc(50% + 1px),#000 calc(50% + 1px) calc(75% - 1px),#0000 calc(75% - 1px) calc(75% + 1px),#000 calc(75% + 1px));
- mask:linear-gradient(90deg,#000 0 calc(50% - 1px),#0000 calc(50% - 1px) calc(50% + 1px),#000 calc(50% + 1px) calc(75% - 1px),#0000 calc(75% - 1px) calc(75% + 1px),#000 calc(75% + 1px))}
-.dd-info dl{display:grid;grid-template-columns:auto 1fr;gap:15px 22px;margin:0;font-size:15px;line-height:1.3;align-items:center;text-shadow:0 1px 5px #0003}
-.dd-info dt{color:#fff;font-weight:700;white-space:nowrap}.dd-info dd{margin:0;overflow-wrap:anywhere;color:#ffffffee}
-.ddb{display:inline-flex;align-items:center;gap:5px;height:20px;vertical-align:middle;font-weight:800;letter-spacing:.2px;text-shadow:none}
-.ddb svg{display:block;flex:none}
-.ddb-c{font-size:19px;letter-spacing:-.5px;gap:4px}
-.ddb-ch i{font-style:normal;font-size:10px;font-weight:700;background:#ffffffcc;color:#1b2a3a;border-radius:3px;padding:2px 4px;line-height:1}
-.ddb-ch b{font-size:10px;font-weight:800;letter-spacing:.6px;background:#ffffff40;border-radius:3px;padding:2px 5px;line-height:1}
-.ddb-pc{gap:10px;font-weight:600}.ddb-pc u{display:inline-flex;gap:2px;height:13px;align-items:stretch;text-decoration:none}
-.ddb-pc u s{display:block;width:2px;background:#ffffffd9;border-radius:1px}
-.dd-art{container-type:size;position:relative;min-width:0;min-height:0;overflow:hidden;margin:-14px -24px -16px -8px}
-/* Bìa to gần kín chiều cao, đĩa nhô ra sau và bị cắt ở mép phải (kiểu foobar2000) */
-.dd-disc,.dd-cov{position:absolute;top:50%;border-radius:6px;--s:min(98cqh,74cqw);--gap:14px}
-.dd-cov{left:var(--gap);width:var(--s);aspect-ratio:1;transform:translateY(-50%);object-fit:cover;box-shadow:5px 0 12px -4px #0007;background:var(--surf2);z-index:1}
-.dd-disc{left:calc(var(--gap) + var(--s)*.5);width:var(--s);aspect-ratio:1;transform:translateY(-50%);border-radius:50%;z-index:0;
- background:radial-gradient(circle,#0c0c0c 0 5%,#bbb 5% 11%,#111 11% 14%,transparent 14%),repeating-radial-gradient(circle,#161616 0 2px,#222 2px 4px);box-shadow:0 3px 12px #0004}
-/* Mặt đĩa mang hình bìa (cover vuông đè lên giữa đĩa nên chỉ lộ phần cung bên phải; đĩa quay thì hình quay theo).
-   Lớp ::after phủ rãnh đĩa mờ + vệt sáng + lỗ giữa để vẫn ra dáng đĩa than. */
-.dd-disc{overflow:hidden;will-change:transform;backface-visibility:hidden}
-.dd-dimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
-.dd-disc::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
- background:radial-gradient(circle,#0b1118 0 5.5%,#e6e9ec 6% 10.5%,#ffffff55 10.8% 16.5%,#0000 17%),
-  radial-gradient(circle,#0000 0 16.5%,#0000003a 17% 17.6%,#0000 18.4%),
-  radial-gradient(circle,#0000 0 70%,#00000020 100%),
-  conic-gradient(from 25deg,#fff0 0 8%,#ffffff18 14%,#fff0 21% 56%,#ffffff12 63%,#fff0 70%);
- box-shadow:inset 0 0 0 1px #ffffff18,inset 0 0 8px #0003}
-/* Đĩa luôn có animation nhưng tạm dừng khi không phát: dừng đúng góc đang quay, không về lại vị trí ban đầu. */
-.dd-disc{animation:ddspin 6s linear infinite paused}
-.dd-playing .dd-disc{animation-play-state:running}
-/* Nền: chỉ là gradient màu lấy từ bìa (xem ddPalette), không còn hình bìa nằm phía sau */
-/* Nút Menu: mở thanh bên (Trang chủ / Mix / Tìm kiếm / Thư viện...) dạng ngăn kéo phủ lên màn hình Chi tiết */
-.dd-scrim{display:none}
-body.dl-det.dd-menu .dd-scrim{display:block;position:fixed;inset:0;z-index:55;background:#0005}
-body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:fixed;left:12px;top:12px;bottom:12px;right:auto;width:min(300px,calc(100vw - 24px));height:auto;z-index:60;padding:12px;border-radius:20px;overflow:hidden;background:var(--surf);box-shadow:0 18px 60px #000c;animation:ddside .22s cubic-bezier(.2,.8,.2,1)}
-@keyframes ddside{from{transform:translateX(-18px);opacity:0}}
-@media(max-width:700px){
- body.dl-det.dd-menu #side .navcap{display:contents}
- body.dl-det.dd-menu #side .navcap .ni,body.dl-det.dd-menu #side .navSearch{flex:none;width:auto;height:auto;flex-direction:row;justify-content:flex-start;gap:16px;padding:12px 16px;border-radius:999px;background:none;box-shadow:none;font-size:inherit}
- body.dl-det.dd-menu #side .navcap .ni.act{background:var(--hover2)}
- body.dl-det.dd-menu #side .sep{display:block}body.dl-det.dd-menu #side .libh{display:flex}body.dl-det.dd-menu #side #lib{display:block}
-}
-.dd-nav .wc{justify-self:end;display:flex;align-items:center;gap:2px}
-.dd-nav .wc button svg{display:block}
-.dd-lyr{display:none;grid-column:2;grid-row:1;overflow:auto;scrollbar-width:thin;min-height:0;padding:6px 18px 40vh 12px}
-.dd-tab-lyr .dd-lyr{display:block}.dd-tab-lyr .dd-art{display:none}
-.dd-lyr div[data-k]{padding:7px 0;font-size:21px;line-height:1.4;color:#ffffff80;cursor:pointer;transition:color .2s}
-.dd-lyr div[data-k]:hover{color:#ffffffcc}.dd-lyr .cur{color:#fff!important;font-weight:700}
-.dd-lyr .none,.dd-lyr .plain{color:#ffffffb3;font-size:16px;line-height:1.6}
-@keyframes ddspin{to{transform:translateY(-50%) rotate(360deg)}}
-.dd-ft{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"now ctl tm" "seek seek seek";gap:8px 16px;align-items:center;padding:12px 24px 16px;background:#00000024;-webkit-backdrop-filter:blur(24px) saturate(1.2);backdrop-filter:blur(24px) saturate(1.2)}
-.dd-now{grid-area:now;display:flex;gap:12px;align-items:baseline;min-width:0;font-size:14px;color:#ffffffd9;white-space:nowrap;overflow:hidden}
-.dd-now b{font-weight:700;color:#fff;flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis}.dd-now span{overflow:hidden;text-overflow:ellipsis}
-.dd-ctl{grid-area:ctl;display:flex;align-items:center;gap:6px}
-.dd-ctl button{background:#e8edf1e6;border:0;color:color-mix(in srgb,var(--ddc) 55%,#000);width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 1px 3px #0005}
-.dd-ctl button:hover{background:#fff}.dd-ctl button.on{background:#fff;box-shadow:0 0 0 2px #ffffff88}
-.dd-ctl button svg{width:14px;height:14px}
-.dd-vol{display:flex;align-items:center;gap:6px}
-.dd-vol .vol{width:0;opacity:0;margin:0;transition:width .2s,opacity .2s;accent-color:#fff}
-.dd-vol:hover .vol,.dd-vol:focus-within .vol{width:84px;opacity:1}
-.dd-prog{grid-area:seek;display:flex}
-.dd-prog input{flex:1;accent-color:#fff;--accent:#fff}
-.dd-tm{grid-area:tm;justify-self:end;font-variant-numeric:tabular-nums;color:#ffffffd9;font-size:13px;white-space:nowrap}
-@media (max-width:820px){.dd-art{margin:0}.dd-info{margin:0;border-radius:8px}.dd-body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.dd-info{max-height:34vh}.dd-ft{grid-template-columns:1fr;grid-template-areas:"now" "ctl" "seek" "tm"}}
-
-/* ===== TRANG CÁ NHÂN kiểu Bilibili: banner to phủ sau cả avatar + tên + mô tả, số Fan / Theo dõi / Lượt thích nằm dưới cùng ===== */
-.bp .bp-hero{position:relative;overflow:hidden}
-.bp .bp-ban{position:absolute;inset:0;height:auto}
-.bp.themed .bp-ban{-webkit-mask-image:none;mask-image:none}
-.bp .bp-ban::after{background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 38%,rgba(0,0,0,.74))}
-.bp .bp-head{margin-top:0;padding:calc(clamp(96px,26vw,190px) + env(safe-area-inset-top)) 16px 16px;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"av info" "hr hr";align-items:start;column-gap:16px;row-gap:14px}
-.bp .bp-info{padding:0;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.65)}
-.bp .bp-nm,.bp .bp-nm b{color:#fff}
-.bp .bp-bio{color:rgba(255,255,255,.94)}
-.bp .bp-bio a{color:#fff;text-decoration:underline}
-.bp .bp-pen{background:rgba(255,255,255,.22);color:#fff}
-.bp .bp-chip{background:rgba(0,0,0,.36);border-color:rgba(255,255,255,.28);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:none}
-.bp .bp-chip.uid{color:rgba(255,255,255,.88)}
-.bp .bp-chip.add{background:transparent;color:rgba(255,255,255,.8)}
-/* Hàng số liệu dưới cùng của banner */
-.bp .bp-hr{padding:12px 0 0;border-top:1px solid rgba(255,255,255,.24);display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.65)}
-.bp .bp-stats{flex:1 1 240px;justify-content:flex-start}
-.bp .bp-st{flex:1;border-left-color:rgba(255,255,255,.28)}
-.bp .bp-st b{color:#fff}
-.bp .bp-st span{color:rgba(255,255,255,.88)}
-.bp .bp-ebs{margin-top:0;flex:1 1 220px}
-.bp .bp-eb{background:rgba(0,0,0,.36);border-color:rgba(255,255,255,.75);color:#fff;text-shadow:none}
-.bp .bp-eb.f{background:var(--pf-ac,#fb7299);border-color:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
-@media(min-width:720px){
-  .bp .bp-head{padding-left:28px;padding-right:28px;padding-bottom:18px;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"av info" "hr hr"}
-  .bp .bp-info{padding:0}
-  .bp .bp-hr{padding-top:14px}
-  .bp .bp-stats{flex:0 1 auto}
-  .bp .bp-st{flex:none;padding:0 28px}
-  .bp .bp-st:first-child{padding-left:0}
-  .bp .bp-ebs{flex:0 0 auto;margin-left:auto}
-}
-/* ----- sửa lỗi nút Back + bỏ viền + nút chỉnh sửa nằm riêng dưới banner ----- */
-.bp .bp-top{z-index:6}
-.bp .bp-hr{border-top:0;padding-top:4px}
-.bp .bp-st{border-left:0}
-.bp .bp-chip{border:0}
-.bp .bp-q{border-left:0;padding-left:0}
-.bp .bp-tabs{border-top:0;border-bottom:0}
-.bp .bp-ebs{display:flex;gap:10px;margin:0;padding:14px 16px 0;flex:none}
-.bp .bp-eb{border:0;background:var(--hover2);color:var(--text);text-shadow:none}
-.bp .bp-eb.f{background:var(--pf-ac,#fb7299);color:var(--pf-on,#fff)}
-@media(min-width:720px){ .bp .bp-ebs{padding:16px 28px 0;margin-left:0}.bp .bp-eb{flex:none;padding:9px 22px} }
-/* ----- banner dài hơn để thêm ảnh thoải mái; avatar + tên + số liệu đứng giữa banner; sửa lỗi hẹp giao diện trên điện thoại ----- */
-.bp .bp-w{max-width:none}   /* trước đây bị khóa 640px nên màn 640–720px banner bị hở hai bên */
-.bp .bp-tab:focus,.bp .bp-tab:focus-visible,.bp .bp-eb:focus{outline:none}
-.bp .bp-hero{min-height:clamp(250px,68vw,380px);display:flex;flex-direction:column;justify-content:center}   /* thu nhỏ banner: tỉ lệ ~3:2 như ảnh mẫu Bilibili (trước đây 400–560px) */
-.bp .bp-head{padding-top:calc(52px + env(safe-area-inset-top));padding-bottom:14px;row-gap:10px;align-items:center}
-.bp .bp-head>.bp-hr{align-self:stretch}
-.bp .bp-ban::after{background:linear-gradient(to bottom,rgba(0,0,0,.4),rgba(0,0,0,.16) 35%,rgba(0,0,0,.24) 65%,rgba(0,0,0,.6))}
-/* Hồ sơ: banner to hơn (cấu trúc giữ nguyên) */
-.prhero{height:clamp(300px,40vw,360px)}
-/* Hàng tên: tên + bút + LV nằm CÙNG MỘT HÀNG như ảnh mẫu Bilibili (tên dài thì rút gọn ..., không đẩy bút/LV xuống dòng) */
-.bp .bp-nm{flex-wrap:nowrap;gap:6px;font-size:19px}
-.bp .bp-nm b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
-.bp .bp-nm .bp-pen,.bp .bp-nm .bp-tier{flex:none}
-@media(min-width:720px){ .bp .bp-nm{font-size:26px;gap:8px} }
-/* Sửa lỗi tên bị cắt/vỡ nét: overflow:hidden của thẻ <b> cắt mất phần đổ bóng + chân chữ (g, y...) → thêm vùng đệm bù trừ bằng margin âm, giảm bóng cho gọn */
-.bp .bp-nm{line-height:1.25;align-items:center}
-.bp .bp-nm b{display:block;line-height:1.3;padding:.14em .35em .22em;margin:-.14em -.35em -.22em;font-weight:700;letter-spacing:0;text-shadow:0 1px 3px rgba(0,0,0,.5);-webkit-font-smoothing:antialiased}
-/* ===== TRANG HỒ SƠ (chỉnh sửa): khung xem trước giống trang hồ sơ kiểu Bilibili + thẻ nhóm + thanh Lưu dính đáy ===== */
-.pe{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding-bottom:88px;max-width:1100px}
-@media(min-width:900px){.pe{grid-template-columns:400px minmax(0,1fr);gap:20px 26px;align-items:start}.pe-left{position:sticky;top:8px}.pe-bar{grid-column:1/-1}}
-.pe .i,.pe svg{flex:none}
-.pe-hero{position:relative;height:290px;border-radius:20px;overflow:hidden;background:var(--surf2);color:#fff}
-@media(min-width:900px){.pe-hero{height:340px}}
-.pe-hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.1) 35%,rgba(0,0,0,.2) 62%,rgba(0,0,0,.66))}
-.pe-ban{position:absolute;inset:0;cursor:pointer;overflow:hidden;z-index:0}
-.pe-ban .banbg::after{display:none}
-.pe-top{position:absolute;z-index:3;top:12px;right:12px;display:flex;gap:8px}
-.pe-pill{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 13px;border-radius:99px;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:13px;font-weight:600;cursor:pointer;user-select:none}
-.pe-pill:hover{background:rgba(0,0,0,.62)}
-.pe-hd{position:absolute;z-index:3;left:16px;right:16px;bottom:14px;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none}
-.pe-hd>*>*,.pe-hd .pe-bio span,.pe-hd .pe-bio u{pointer-events:auto}
-.pe-r1{display:flex;gap:16px;align-items:flex-end}
-.pe-av{position:relative;width:88px;height:88px;flex:none;cursor:pointer}
-.pe-avc{width:88px;height:88px;border-radius:50%;border:3px solid #fff;overflow:hidden;background:#2a2a3a;box-sizing:border-box}
-.pe-avc #profAv{display:block;width:100%;height:100%}.pe-avc .av.big{display:flex;width:100%;height:100%;font-size:44px}
-.pe-cam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:flex;align-items:center;justify-content:center;border:2px solid #14141c;text-shadow:none}
-.pe-id{min-width:0;padding-bottom:4px}
-.pe-nm{display:flex;align-items:center;gap:6px;font-size:21px;font-weight:700;min-width:0}
-.pe-nm b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;padding:.35em .7em .5em;margin:-.35em -.7em -.5em}  /* vùng đệm để bóng chữ (text-shadow) không bị overflow:hidden cắt mất */
-.pe-pen{width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.22);color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none;text-shadow:none}
-.pe-pen .i{width:14px;height:14px}
-.pe-un>span{line-height:1.4;padding:.3em .5em .4em;margin:-.3em -.5em -.4em}
-.pe-un{display:flex;align-items:center;gap:2px;margin-top:2px;font-size:13px;color:rgba(255,255,255,.85)}
-.pe-un .ico{width:28px;height:28px;padding:6px;color:inherit}
-.pe-bio{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-style:italic;color:rgba(255,255,255,.95)}
-.pe-bio span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;padding:.4em .7em .55em;margin:-.4em -.7em -.55em}
-.pe-bio u{text-decoration:none;font-style:normal;font-size:11px;padding:2px 9px;border-radius:99px;border:1px dashed rgba(255,255,255,.65);cursor:pointer;flex:none}
-.pe-st{display:flex;text-align:center;margin-top:10px}.pe-st>div{flex:1}.pe-st b{display:block;font-size:17px}.pe-st span{font-size:12px;opacity:.88}
-.pe-hn{text-align:center;margin-top:8px}
-.pe-sec h4{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:2px 6px 8px;font-weight:600}
-.pe-sec{margin-bottom:14px}
-.pe-card{background:var(--surf2);border-radius:16px;overflow:hidden}
-.pe-rw{display:flex;align-items:center;gap:12px;padding:13px 16px;flex-wrap:wrap}.pe-rw+.pe-rw{border-top:1px solid var(--line)}
-.pe-rw>b{flex:1;font-weight:600;min-width:120px}
-.pe-bt{display:flex;gap:8px;flex-wrap:wrap}
-.pe-b{border:0;border-radius:99px;padding:8px 15px;background:var(--hover2);color:var(--text);font-weight:600;font-size:13px;cursor:pointer}
-.pe-b.p{background:var(--accent);color:var(--on)}.pe-b.d{color:#ff8a8a}.pe-b:disabled{opacity:.6;cursor:default}
-.pe-sw{display:flex;gap:10px;align-items:center}
-.pe-sw .dot{width:26px;height:26px;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25);flex:none}
-.pe-sw .dot.s{box-shadow:0 0 0 2px var(--bg),0 0 0 4px #fff}
-.pe-sw input[type=color]{width:30px;height:30px;padding:0;border:0;background:none;border-radius:50%;cursor:pointer}
-.pe-skins{padding:14px 16px;flex-wrap:nowrap;overflow-x:auto;gap:10px}
-.skins.pe-skins .sk{flex:none;width:72px;height:96px;border-radius:12px;position:relative;align-items:flex-end;justify-content:center;padding:0 0 6px;border:1px solid rgba(255,255,255,.14);font-size:11.5px}
-.skins.pe-skins .sk::before{content:"";position:absolute;left:10px;right:10px;top:12px;height:20px;border-radius:6px;background:rgba(255,255,255,.16)}
-.skins.pe-skins .sk.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
-.pe-bar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px 4px;background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
-.pe-bar small{flex:1;color:var(--sub);font-size:12.5px;min-height:1em}
-/* Điều chỉnh chữ trên hồ sơ */
-.pe-chips{display:flex;gap:7px;flex-wrap:wrap}.pe-chip{border:1px solid var(--line);background:transparent;color:inherit;border-radius:99px;padding:6px 13px;font-size:12.5px;cursor:pointer}.pe-chip.s{background:var(--accent,#8ecbff);border-color:transparent;color:#10202e;font-weight:700}
-.pe-tsw{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.tdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer;display:block;padding:0}.tdot.s{border-color:#fff;box-shadow:0 0 0 2px var(--accent,#8ecbff)}
-.pe-tsw input[type=color]{width:34px;height:28px;padding:1px;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
-.pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}
-/* Thanh trượt hai chiều: vạch giữa = giá trị mặc định của chữ đang chọn; nửa nào không còn chỗ chỉnh thì mờ đi và không kéo vào được */
-.pe-rw input[type=range].pe-bi{flex:0 1 170px;height:6px;border-radius:3px;
-  background:
-   linear-gradient(to right,transparent var(--a,50%),var(--accent,#8ecbff) var(--a,50%),var(--accent,#8ecbff) var(--z,50%),transparent var(--z,50%)) 0 0/100% 100% no-repeat,
-   linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 50%/2px 12px no-repeat,
-   linear-gradient(to right,rgba(255,255,255,.06) var(--dl,0%),rgba(255,255,255,.22) var(--dl,0%),rgba(255,255,255,.22) var(--dr,100%),rgba(255,255,255,.06) var(--dr,100%)) 0 0/100% 100% no-repeat}
-.pe-rw input[type=range].pe-bi::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008;transition:none;cursor:grab}
-.pe-rw input[type=range].pe-bi:hover::-webkit-slider-thumb{width:16px}
-.pe-rw input[type=range].pe-bi::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008}
-.pe-tn.dflt{opacity:.7}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
-.pe-bar .pe-b{padding:10px 22px}
-.pe-lock{max-width:460px}.pe-lock p{margin:8px 0 14px;color:var(--sub)}
-/* Bố cục trang Chỉnh sửa hồ sơ (màn rộng): banner xem trước trải ngang trên cùng, các mục cài đặt xếp 2 cột phía dưới */
-@media(min-width:900px){
-  .pe{grid-template-columns:minmax(0,1fr);max-width:none;gap:20px 26px}
-  .pe-left{position:static}
-  .pe-hero{height:clamp(340px,27.5vw,525px)}
-  .pe-hd{left:clamp(16px,2.8vw,44px);right:clamp(16px,2.8vw,44px)}
-  .pe-st{margin-top:14px}
-}
-@media(min-width:1200px){
-  .pe-right{columns:2;column-gap:26px}
-  .pe-right>*{break-inside:avoid}
-}
-.pe-av:focus:not(:focus-visible){outline:none}
-/* trạng thái nằm ngay dưới @username, thẳng hàng với tên (không còn tụt xuống dưới avatar) */
-.pe-id{flex:1 1 auto;min-width:0}.pe-bio{margin-top:6px;max-width:100%}
-
-/* ===== Đĩa than như mẫu: bìa vuông + đĩa đen thò ra bên phải, luôn hiện trọn vẹn ===== */
-/* Trước đây --s = min(98cqh,74cqw) nên bìa + nửa đĩa rộng 1.5×s vượt khung → đĩa bị cắt.
-   Giờ tính s sao cho (khoảng cách + 1.5×s) luôn nằm vừa trong khung. */
-.dd-disc,.dd-cov{
-  --s:min(96cqh,calc((100cqw - 40px) / 1.5));
-  --gap:14px;
-}
-/* Đĩa than: mặt đĩa đen có rãnh + NHÃN TRÒN ở giữa mang hình bìa album (quay cùng đĩa) + lỗ trục.
-   Cấu trúc từ tâm ra: lỗ trục → vành kim loại → nhãn (hình bìa) → viền nhãn → vòng đen trơn → rãnh đĩa. */
-.dd-disc{
-  background:#1a1a1a;
-  box-shadow:0 4px 16px #0006}
-/* Hình bìa phủ kín cả mặt đĩa (quay cùng đĩa) */
-.dd-dimg{display:block!important;position:absolute;inset:0;left:0;top:0;
-  width:100%;height:100%;transform:none;border-radius:50%;object-fit:cover;background:#2a2a2a}
-/* Lớp phủ: lỗ trục to có vành trắng + bóng nhẹ quanh lỗ + tối dần ra mép + vệt sáng phản chiếu (không vẽ rãnh) */
-.dd-disc::after{
-  background:
-    radial-gradient(circle closest-side,#050505 0 9.5%,#f1f3f5 10% 15.5%,#c9ced4 15.5% 16.5%,#0000 17%),
-    radial-gradient(circle closest-side,#0000 0 16.5%,#00000059 17.5% 20%,#0000 25%),
-    radial-gradient(circle closest-side,#0000 0 75%,#00000033 100%),
-    conic-gradient(from 25deg,#fff0 0 8%,#ffffff26 14%,#fff0 21% 56%,#ffffff1c 63%,#fff0 70%);
-  box-shadow:inset 0 0 0 1px #00000040,inset 0 0 10px #0004}
-
-/* ===== Lịch sử tìm kiếm (giao diện riêng của app, không dùng gợi ý của trình duyệt) ===== */
-.sbox{position:relative}
-.shist{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;background:var(--surf);border-radius:18px;padding:8px;box-shadow:0 12px 40px #0008,inset 0 0 0 1px var(--line);max-height:min(360px,60vh);overflow:auto}
-.shist[hidden]{display:none}
-.shi{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;cursor:pointer}
-.shi:hover{background:var(--hover)}
-.shi>.i,.hchip>.i{opacity:.7;flex:none}
-.shi>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.shx{flex:none;width:26px;height:26px;border:0;background:none;color:inherit;border-radius:50%;opacity:.55;cursor:pointer;display:grid;place-items:center;padding:0}
-.shx:hover{background:var(--hover2);opacity:1}
-.hchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
-.hchip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:6px 6px 6px 14px;border-radius:999px;background:var(--hover2);cursor:pointer;font-weight:500}
-.hchip:hover{background:var(--hover)}
-.hchip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
-
-/* Không cho bôi đen / chọn / kéo chữ và đĩa ở màn hình Chi tiết */
-.dd,.dd *{
-  -webkit-user-select:none!important;user-select:none!important;
-  -webkit-touch-callout:none;caret-color:transparent;
-}
-.dd *::selection{background:transparent!important;color:inherit!important}
-.dd img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
-.dd button:focus,.dd button:focus-visible,.dd input:focus,.dd input:focus-visible,.dd [tabindex]:focus{outline:none!important}
-.dd-info,.dd-info *,.dd-art,.dd-art *,.dd-disc,.dd-cov{cursor:default}
-
-
-
-/* Giới hạn nền khung Chi tiết đang phát, không phủ gần kín toàn màn hình */
-@media (min-width: 1100px) {
-  body.np-max.has-np #np {
-    left: 50%;
-    right: auto;
-    width: min(1480px, calc(100vw - 64px));
-    max-width: calc(100vw - 64px);
-    border-radius: 22px;
-    overflow: hidden;
-    transform: translateX(-50%);
-  }
+fn gw_local_ui() -> bool {
+    !EMBED_INDEX.is_empty() && std::env::var("GATEWAY_LOCAL_UI").map(|v| v.trim() == "1").unwrap_or(false)
 }
 
-</style>
-</head>
-<body class="skin-default">
-<svg id="sprite" width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
+// ===== Bảo mật: header phản hồi + giới hạn đăng nhập =====
+// Chính sách nội dung (CSP): chỉ cho tải script/khung từ chính server và YouTube, chặn nhúng trang vào khung khác.
+// Muốn tắt tạm khi gỡ lỗi: đặt biến môi trường CSP_OFF=1.
+const CSP: &str = "default-src 'self'; \
+script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; \
+style-src 'self' 'unsafe-inline'; \
+img-src 'self' data: blob: https:; \
+media-src 'self' blob: https:; \
+font-src 'self' data:; \
+connect-src 'self' ws: wss: ipc: http://ipc.localhost https://i.ytimg.com https://*.googleusercontent.com https://*.ggpht.com https://www.youtube.com https://music.youtube.com https://returnyoutubedislikeapi.com https://api.github.com https://sponsor.ajay.app https://lrclib.net https://api-lyrics.simpmusic.org; \
+frame-src https://www.youtube.com https://www.youtube-nocookie.com; \
+worker-src 'self'; manifest-src 'self'; \
+object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
-<div id="auth"><div class="box">
-  <div class="logo"><b data-ic="music"></b> BBeat</div>
-  <div class="row"><button id="tLogin" class="pri" style="flex:1">Đăng nhập</button><button id="tReg" style="flex:1">Đăng ký</button></div>
-  <div class="row"><input id="aUser" placeholder="Tên đăng nhập" autocomplete="username"></div>
-  <div class="row" id="aNameRow" style="display:none"><input id="aName" placeholder="Tên hiển thị"></div>
-  <div class="row"><input id="aPass" type="password" placeholder="Mật khẩu (≥ 8 ký tự)" autocomplete="current-password"></div>
-  <div id="authErr"></div>
-  <button id="aGo" class="pri" style="width:100%;padding:12px">Đăng nhập</button>
-  <button id="aPairBtn" style="width:100%;padding:12px;margin-top:8px">Đăng nhập nhanh (QR / mã ghép)</button>
-  <button id="aGuest" style="width:100%;padding:12px;margin-top:8px">Dùng không cần đăng nhập</button>
-  <div class="row" style="justify-content:center;margin-top:12px"><select id="aLang" style="width:auto;min-width:130px" aria-label="Language / Ngôn ngữ" onchange="bbSetLang(this.value)"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div>
-</div></div>
-
-<div id="app">
-  <nav id="side" class="pnl">
-    <div class="navcap">
-      <div class="ni" data-p="home" tabindex="0"><i data-ic="home" data-f="1"></i><span>Trang chủ</span></div>
-      <div class="ni" data-p="mix" tabindex="0"><i data-ic="radio"></i><span>Mix</span></div>
-      <div class="ni navRoom" id="roomBar" data-p="together" tabindex="0"></div>
-      <div class="ni navFr" data-p="friends" tabindex="0"><i data-ic="userplus"></i><span>Bạn bè</span></div>
-      <div class="ni navLib" data-p="library" tabindex="0"><i data-ic="library"></i><span>Thư viện</span></div>
-    </div>
-    <div class="ni navSearch" data-p="search" tabindex="0"><i data-ic="search"></i><span>Tìm kiếm</span></div>
-    <div class="sep"></div>
-    <div class="libh">
-      <div class="t" id="libTitle" data-p="library" role="link" tabindex="0"><i data-ic="library"></i><span id="libTitleTx">Thư viện của bạn</span></div>
-      <button class="ico" id="libSbtn" title="Lọc thư viện"><i data-ic="search"></i></button>
-      <button class="ico" id="sideMin" title="Thu gọn"><i data-ic="panel"></i></button>
-    </div>
-    <div id="libQrow"><input id="libQ" placeholder="Lọc thư viện"></div>
-    <div id="lib">
-      <div class="li ni0" data-p="together" tabindex="0"><div class="tile" style="background:#33283f;color:#d1a8ff"><i data-ic="users"></i></div><div class="meta"><b>Nghe cùng nhau</b><span id="roomSub">Phòng nghe chung</span></div></div>
-      <div class="li ni0" data-p="friends" tabindex="0"><div class="tile" style="background:#1f3a33;color:#6fe0b5"><i data-ic="userplus"></i></div><div class="meta"><b>Bạn bè</b><span id="friendSub">Bạn bè &amp; lời mời</span></div></div>
-      <div class="li ni0" data-p="downloads" tabindex="0"><div class="tile" style="background:#26364a;color:#8ec5ff"><i data-ic="download"></i></div><div class="meta"><b>Tải xuống</b><span id="dlSub">Danh sách tải xuống</span></div></div>
-      <div id="plList"></div>
-    </div>
-  </nav>
-
-  <section id="center" class="pnl">
-    <header id="top">
-      <span id="meAv" title="Hồ sơ"></span>
-      <div id="topChips"></div>
-      <span class="sp"></span>
-      <button id="roomInfo" class="roompill" style="display:none"></button>
-      <button id="donateBtn" class="pri" style="display:none">Ủng hộ</button>
-      <button class="ico rb" id="newPl" title="Tạo playlist"><i data-ic="plus"></i></button>
-      <button class="ico rb" id="scanBtn" title="Quét QR"><i data-ic="scan"></i></button>
-      <button class="ico rb" id="nightBtn" title="Chế độ tối"><i data-ic="moon"></i></button>
-      <button class="ico rb" id="gear" title="Cài đặt"><i data-ic="gear"></i></button>
-    </header>
-    <main id="main"></main>
-  </section>
-
-  <aside id="np" class="pnl" aria-label="Đang phát">
-    <div id="npAmb" aria-hidden="true"></div>
-    <div class="nph">
-      <div class="npTabs" role="tablist">
-        <button role="tab" data-nt="play" class="on">Đang phát</button>
-        <button role="tab" data-nt="lyr">Lời</button>
-        <button role="tab" data-nt="q">Tiếp theo</button>
-        <button role="tab" data-nt="c">Bình luận</button>
-      </div>
-      <button class="ico" id="npMore" title="Thêm"><i data-ic="dots"></i></button>
-      <button class="ico" id="npMax" title="Phóng to"><i data-ic="full"></i></button>
-      <button class="ico" id="npHide" title="Đóng"><i data-ic="x"></i></button>
-    </div>
-    <div class="npv show" id="vPlay">
-      <div class="npctx" id="npCtxW" hidden>Từ <b id="npCtx"></b></div>
-      <div class="art">
-        <img id="npCov" alt="">
-        <div id="ytbox"><div id="ytp"></div></div>
-        <video id="vidEl" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1"></video>
-        <div id="vctl">
-          <button id="vcFull" title="Toàn màn hình" aria-label="Toàn màn hình"><i data-ic="full"></i></button>
-          <div class="vcMid">
-            <button id="vcBack" title="Lùi 5 giây" aria-label="Lùi 5 giây"><i data-ic="rew5"></i></button>
-            <button id="vcFwd" title="Tới 5 giây" aria-label="Tới 5 giây"><i data-ic="fwd5"></i></button>
-          </div>
-        </div>
-      </div>
-      <div id="npLine"></div>
-      <div class="npt">
-        <div class="tx"><div id="npTitle">Chưa phát</div><div id="npArtist"></div><button id="npFollow" style="display:none"></button></div>
-        <button class="ico" id="npAdd" title="Thêm vào playlist"><i data-ic="plusc"></i></button>
-        <button class="ico" id="npDl" title="Tải nhạc"><i data-ic="download"></i></button>
-        <button class="ico" id="npFav" title="Yêu thích"><i data-ic="heart"></i></button>
-        <button class="ico" id="npDis" title="Không thích bài này"><i data-ic="dislike"></i></button>
-      </div>
-      <div id="npInfoBox"></div>
-      <div class="npb">
-        <div>
-          <button class="ico" id="npInfo" title="Thông tin"><i data-ic="info"></i></button>
-          <button class="ico" id="npVid" title="Chuyển âm thanh / video"><i data-ic="phones"></i></button>
-          <button class="ico" id="npLyr" title="Lời bài hát"><i data-ic="lyrics"></i></button>
-        </div>
-        <button class="ico" id="npQ" title="Tiếp theo"><i data-ic="queue"></i></button>
-      </div>
-    </div>
-    <div class="npv" id="vLyr"><div class="lh"><b id="lTitle"></b><span id="lArtist"></span></div><div id="lyrBody"></div></div>
-    <div class="npv" id="vQ"></div>
-    <div class="npv" id="vC"></div>
-  </aside>
-</div>
-
-<footer id="bar">
-  <div class="bc">
-    <button class="ico" id="bShuf" title="Ngẫu nhiên"><i data-ic="shuffle"></i></button>
-    <button class="ico" id="bPrev" title="Bài trước"><i data-ic="prev" data-f="1"></i></button>
-    <button class="ico" id="pp" title="Phát / tạm dừng"><i data-ic="play" data-f="1"></i></button>
-    <button class="ico" id="bNext" title="Bài sau"><i data-ic="next" data-f="1"></i></button>
-    <button class="ico" id="bMode" title="Lặp lại"><i data-ic="repeat"></i></button>
-  </div>
-  <div class="bm" id="bOpen" tabindex="0" role="button" aria-label="Mở Đang phát bên phải" title="Bấm để xem đang phát">
-    <img id="bCov" alt="">
-    <div class="bt">
-      <div class="l1"><b id="bTitle">Chưa phát</b><span id="tm">0:00 / 0:00</span></div>
-      <div class="l2" id="bArtist"></div>
-      <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Tua">
-    </div>
-  </div>
-  <div class="br">
-    <button class="ico" id="bFav" title="Yêu thích"><i data-ic="heart"></i></button>
-    <span id="bQueueW"><button class="ico" id="bQueue" title="Danh sách phát"><i data-ic="queue"></i></button></span>
-    <button class="ico" id="bPip" title="Mở / đóng Đang phát"><i data-ic="pip"></i></button>
-    <div class="vol"><button class="ico" id="bVol" title="Âm lượng"><i data-ic="vol"></i></button><input type="range" id="vol" min="0" max="100" value="80" aria-label="Âm lượng"></div>
-    <button class="ico" id="bClose" title="Dừng phát"><i data-ic="x"></i></button>
-  </div>
-</footer>
-
-<div id="toasts"></div>
-<audio id="aud"></audio>
-<script>
-(function(){
-  let L=/^vi/i.test(navigator.language||'')?'vi':'en'; try{ L=localStorage.getItem('bb_lang')||L; }catch{}
-  if(L!=='vi'&&L!=='en') L='en';
-  window.BB_LANG=L;
-  window.bbSetLang=l=>{ try{ localStorage.setItem('bb_lang',l); }catch{} location.reload(); };
-  document.documentElement.lang=L;
-  { const al=document.getElementById('aLang'); if(al) al.value=L; }
-  if(L==='vi') return;
-
-  const EN_EXACT={
-    'Chi tiết':'Details',
-    'Danh sách':'List',
-    'Kênh':'Channels',
-    'Nguồn':'Sample rate',
-    'Dữ liệu':'Bitrate',
-    'Thời lượng':'Duration',
-    'Đã thêm':'Added',
-    'Nghe lần cuối':'Last played',
-    'Lượt nghe':'Plays',
-    'Xoá khỏi danh sách':'Remove from list','Nhạc tải xuống được lưu tại:':'Downloads are saved in:','Mở thư mục':'Open folder',
-    'Tải nhạc':'Download',
-    'Không thích bài này':'Dislike this song',
-    'Về danh sách tải xuống':'Back to downloads',
-    'Dừng':'Stop',
-    'Không thể kết nối':"Can't connect",
-    'Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.':'Check your internet connection and try again, or listen to songs you have downloaded.',
-    'Thử lại':'Try again',
-    'Nghe những bài đã tải xuống':'Play downloaded songs',
-    'Đã tải xuống':'Downloaded',
-    'Nghe offline':'Available offline',
-    'Chưa có bài nào. Bấm nút tải xuống ở bài hát để lưu về nghe offline.':'Nothing yet. Tap the download button on a song to save it for offline listening.',
-    'Nghệ sĩ nổi bật':'Best of artists','Tổng hợp những bài hát hàng đầu của một nghệ sĩ.':'Bringing together the top songs from an artist.','Danh sách phát công khai':'Public Playlist','Lưu thành danh sách phát':'Save as playlist','Đã lưu thành danh sách phát':'Saved as a playlist','Không tải được bài hát của nghệ sĩ này.':'Couldn’t load this artist’s songs.','Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.':'No artists to show yet. Try again later.',
-    'Đăng nhập':'Log in','Đăng ký':'Sign up','Tên đăng nhập':'Username','Tên hiển thị':'Display name',
-    'Mật khẩu (≥ 8 ký tự)':'Password (8+ characters)','Tạo tài khoản':'Create account',
-    'Trang chủ':'Home','Bạn bè':'Friends','Thư viện':'Library','Tìm kiếm':'Search','Thư viện của bạn':'Your library','Đã thêm gần đây':'Recently added','Chưa có bài nào':'No songs yet','Lịch sử nghe':'Listening history','Đang kết nối…':'Connecting…','Vẫn chưa có mạng, hãy thử lại sau':'Still offline, please try again later',
-    'Lọc thư viện':'Filter library','Thu gọn':'Collapse','Yêu thích':'Favorites','Danh sách phát':'Playlists',
-    'Nghe gần đây':'Recently played','Lịch sử':'History','Tải xuống':'Downloads','Danh sách tải xuống':'Download list','Định dạng:':'Format:','Xoá danh sách':'Clear list','Thịnh hành':'Trending','Nghe cùng nhau':'Listen together',
-    'Phòng nghe chung':'Listening room','Bạn bè & lời mời':'Friends & invites','Bạn bè &amp; lời mời':'Friends & invites',
-    'Hồ sơ':'Profile','Ủng hộ':'Donate','Tạo playlist':'Create playlist','Cài đặt':'Settings','Giao diện':'Appearance','Ánh sáng nền lan tỏa theo màu ảnh bìa của bài đang phát trong khung Đang phát. Tắt nếu máy yếu bị giật.':'Soft background glow that follows the cover art of the current song in the Now playing panel. Turn off if your device lags.','Đang phát':'Now playing',
-    'Dùng không cần đăng nhập':'Continue without signing in','Hiện mật khẩu':'Show password','Ẩn mật khẩu':'Hide password','Toàn màn hình':'Fullscreen','Thoát toàn màn hình':'Exit fullscreen','Lùi 5 giây':'Back 5 seconds','Tới 5 giây':'Forward 5 seconds','Tua':'Seek',
-    'Cần tài khoản':'Account required','Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.':'You are using BBeat without signing in. Log in or sign up to use this feature.',
-    'Đăng nhập / Đăng ký':'Log in / Sign up','Đăng nhập nhanh (QR / mã ghép)':'Quick sign-in (QR / pair code)','Đăng nhập nhanh':'Quick sign-in','Mã ghép đăng nhập':'Sign-in pair code','Tạo mã 6 số + QR để đăng nhập tài khoản này trên thiết bị khác. Cần nhập lại mật khẩu để xác nhận.':'Create a 6-digit code + QR to sign in to this account on another device. You must re-enter your password to confirm.','Tạo mã ghép đăng nhập':'Create sign-in pair code','Tạo mã':'Create code','Sai mật khẩu':'Wrong password','Hoặc nhập mã ghép (6 số)':'Or enter a pair code (6 digits)','Vào':'Go','Mã ghép admin':'Admin pair code','Chỉ máy chạy server thấy được mã này':'Only the machine running the server can see this code','Chép mã':'Copy code','Mã mới':'New code','Đã chép mã ghép':'Pair code copied','Mã gồm 6 chữ số':'The code has 6 digits','Mã sai hoặc đã hết hạn':'Wrong or expired code','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu':'Log in or sign up to use friends, listening rooms and data sync','Khách':'Guest','Đăng nhập bằng QR':'Log in with QR','Quét QR đăng nhập':'Scan login QR','Tạo mã mới':'New code','Cho phép':'Allow','Từ chối':'Deny',
-    'Cần đăng nhập để dùng tính năng này':'Sign in to use this feature','Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”':'Could not sign in – check your connection or tap “Continue without signing in”',
-    'Lời':'Lyrics','Bình luận':'Comments','Viết bình luận…':'Write a comment…','Tiếp theo':'Up next','Thêm':'More','Phóng to':'Maximize','Thu nhỏ':'Minimize','Thêm nhạc':'Add music','Thêm file nhạc từ máy':'Add music files from your device','Từ máy bạn':'From your device',
-    'Không có file âm thanh nào được chọn':'No audio files selected','Đang thêm nhạc, vui lòng chờ…':'Adding music, please wait…','File nhạc này không còn trong bộ nhớ của app – hãy thêm lại':'This music file is no longer in the app’s storage – please add it again','Đóng':'Close','Từ':'From','Chưa phát':'Not playing',
-    'Thêm vào playlist':'Add to playlist','Thông tin':'Info','Chuyển âm thanh / video':'Switch audio / video',
-    'Lời bài hát':'Lyrics','Ngẫu nhiên':'Shuffle','Bài trước':'Previous','Phát / tạm dừng':'Play / pause',
-    'Bài sau':'Next','Lặp lại':'Repeat','Mở Đang phát bên phải':'Open Now playing panel','Bấm để xem đang phát':'Click to see what’s playing',
-    'Mở / đóng Đang phát':'Open / close Now playing','Âm lượng':'Volume','Dừng phát':'Stop playback',
-    'Trình phát YouTube chính thức':'Official YouTube player',
-    'Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0':'Skip-segment data (ads, intros, outros) – © Ajay Ramachandran and community, CC BY-NC-SA 4.0',
-    'Số lượt thích/không thích':'Like / dislike counts','Lời bài hát (nguồn chính)':'Lyrics (primary source)',
-    'Lời bài hát có thời gian (dự phòng)':'Time-synced lyrics (fallback)','Lấy luồng âm thanh khi nguồn khác bị chặn':'Fetches the audio stream when other sources are blocked',
-    'Nguồn luồng âm thanh dự phòng':'Fallback audio stream source','Chạy bất đồng bộ (Rust)':'Async runtime (Rust)','Phục vụ file tĩnh':'Static file serving',
-    'Gọi HTTP từ server':'HTTP client for the server','Cơ sở dữ liệu':'Database','Băm mật khẩu':'Password hashing','Đọc ghi JSON':'JSON read/write',
-    'Đóng gói app máy tính':'Desktop app packaging','Thành phần app Android':'Android app components',
-    'Web server (Rust)':'Web server (Rust)',
-    'Tất cả':'All','Bài hát':'Songs','Nghệ sĩ':'Artists','Danh sách phát nổi bật':'Featured playlists','Quay lại':'Back','Đang tải…':'Loading…','Đóng':'Close',
-    'Cần đăng nhập':'Sign in required','Cần đăng nhập BBeat':'Sign in to BBeat required','Cần tải app BBeat':'BBeat app required','Cần đăng nhập và tải app BBeat':'Sign in and install the BBeat app',
-    'Danh sách phát':'Playlists','Podcast':'Podcast',
-    'Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0':'Inspiration and lyrics source – © maxrave-dev, GPL-3.0',
-    'Cách lấy dữ liệu YouTube Music (InnerTube) mà SimpMusic cũng tham khảo':'How to read YouTube Music data (InnerTube), also credited by SimpMusic',
-    'Tham khảo cách lấy luồng âm thanh YouTube':'Reference for extracting YouTube audio streams',
-    'Tạo mã định danh':'Unique ID generation','Tiện ích bất đồng bộ (Rust)':'Async utilities (Rust)',
-    'Hiện trạng thái đang nghe trên Discord (tuỳ chọn)':'Shows what you are listening to on Discord (optional)',
-    'Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)':'Cannot reach the server (it may be offline, or the uploaded file is too large)',
-    'Hủy':'Cancel','Xác nhận':'Confirm','Bạn vừa mời người này rồi, đợi vài giây nhé':'You just invited this person – wait a few seconds',
-    'Không đọc được ảnh này':'Couldn’t read this image','Kéo ảnh để di chuyển · cuộn chuột để zoom · ảnh luôn phủ kín khung.':'Drag to move · scroll to zoom · the image always fills the frame.',
-    'Đặt lại':'Reset','Hủy bỏ':'Cancel','Áp dụng':'Apply','Chỉnh sửa hồ sơ':'Edit profile','Đăng xuất':'Log out',
-    'Phát':'Play','Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.':'No songs yet. Search for a song and tap ♡ or add it to a playlist.',
-    'Xoá khỏi playlist':'Remove from playlist','Xáo trộn':'Shuffle','Dán link playlist':'Paste playlist link','Không cần đăng nhập. Dán link playlist YouTube công khai hoặc không công khai (dạng youtube.com/playlist?list=…). Video riêng tư hoặc đã xóa sẽ bị bỏ qua.':'No sign-in needed. Paste a public or unlisted YouTube playlist link (like youtube.com/playlist?list=…). Private or deleted videos are skipped.','Nhập':'Import','Hãy dán link playlist YouTube':'Paste a YouTube playlist link','Tải tất cả':'Download all','Không có bài nào để tải':'No tracks to download','Đang tải danh sách, vui lòng chờ…':'A download is already in progress…','Phát tất cả':'Play all','Cuộn trái':'Scroll left','Cuộn phải':'Scroll right',
-    'Chọn nhanh':'Quick picks','Bắt đầu một đài phát':'Start a radio','Chọn nhanh đài phát':'Quick-pick radio',
-    'đã có bản cập nhật mới':'has a new update','Tải về':'Download','Để sau':'Later',
-    'Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)':'No GitHub repo is set for BBeat (set ABOUT.repo in index.html)',
-    'Chưa có bản phát hành nào trên GitHub':'No releases on GitHub yet','GitHub trả về lỗi':'GitHub returned an error',
-    'Tất cả':'All','Nhạc Việt thịnh hành':'Trending Vietnamese music','Nhạc trẻ mới nhất':'Latest young pop','Top hits quốc tế':'Top international hits',
-    'Thư giãn':'Relax','Acoustic nhẹ nhàng':'Soft acoustic','Piano thư giãn':'Relaxing piano','Tập luyện':'Workout','EDM bùng nổ':'Explosive EDM',
-    'Rap Việt':'Vietnamese rap','Tập trung':'Focus','Nhạc không lời':'Instrumentals','Lofi học bài':'Lofi study','Nhạc cổ điển':'Classical music',
-    'Vui vẻ':'Happy','Pop sôi động':'Upbeat pop','Nhạc Hoa':'Chinese music','Buồn':'Sad','Ballad buồn':'Sad ballads','Tâm trạng':'Moods',
-    'Lãng mạn':'Romantic','Nhạc tình yêu':'Love songs','Acoustic tình cảm':'Romantic acoustic','Tiệc tùng':'Party','Đi đường':'Road trip',
-    'Nhạc lái xe':'Driving music','Ngủ ngon':'Sleep','Nhạc ru ngủ':'Lullabies','Piano êm dịu':'Soothing piano','Âm thanh thiên nhiên':'Nature sounds',
-    'Học bài':'Study','Piano tập trung':'Focus piano','Buổi sáng':'Morning','Khởi đầu ngày mới':'Start the day','Acoustic sáng':'Morning acoustic',
-    'Pop nhẹ nhàng':'Gentle pop','Đêm khuya':'Late night','R&B đêm':'Night R&B','Lofi đêm':'Night lofi','Hoài niệm':'Nostalgia','Nhạc xưa':'Oldies',
-    'Hits thập niên 2000':'2000s hits','Nhạc Việt 8x 9x':'Vietnamese 80s–90s','Tràn năng lượng':'Energetic','Rock mạnh mẽ':'Hard rock','Nhạc điện tử':'Electronic',
-    'Chill cuối tuần':'Weekend chill','Chill cùng bạn bè':'Chill with friends','Nấu ăn & dọn nhà':'Cooking & cleaning','Nhạc vui làm việc nhà':'Upbeat chore music',
-    'Pop dễ nghe':'Easy pop',
-    'Nhạc từ YouTube Music, phát bằng player của YouTube.':'Music from YouTube Music, played with YouTube’s own player.',
-    'bài hát':'songs','Nghe lại':'Listen again','Những bản nhạc bạn yêu thích':'Music you love','Mix yêu thích':'Favorites mix','Mix nghe lại':'Listen-again mix',
-    'Mix nhạc Việt':'Vietnamese mix','Mix quốc tế':'International mix','Bấm vào một mix để nghe ngẫu nhiên.':'Tap a mix to listen on shuffle.','Phát ngẫu nhiên':'Shuffle play',
-    'Việt Nam':'Vietnam','Quốc tế':'International','Đang tải…':'Loading…',
-    'Tìm bài hát, nghệ sĩ… hoặc dán link YouTube':'Search songs, artists… or paste a YouTube link',
-    'Tìm kiếm gần đây':'Recent searches','Xóa tất cả':'Clear all','Xóa khỏi lịch sử':'Remove from history','Đang chuẩn bị mix…':'Preparing your mix…',
-    'Chưa tải được mix này, hãy thử lại sau ít phút.':'Couldn’t load this mix – please try again in a few minutes.','Chưa có bài yêu thích để tạo mix này.':'No favorites yet to build this mix.',
-    'Đang offline – hiển thị bản đã lưu':'Offline – showing the saved copy','Xoá playlist':'Delete playlist','Xoá playlist này?':'Delete this playlist?','Xoá':'Delete',
-    'Phòng hiện tại':'Current room','Mã phòng:':'Room code:','– mọi người trong phòng nghe đồng bộ và cùng điều khiển.':'– everyone in the room listens in sync and shares control.',
-    'Chép link phòng':'Copy room link','Chép mã phòng':'Copy room code','Chia sẻ nhạc':'Share song','Đã chép link bài hát để chia sẻ':'Song link copied','Tham gia phòng':'Join a room','Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.':'Enter a room code or paste the room link a friend sent you.',
-    'Mã phòng hoặc link phòng':'Room code or room link','Mời bạn bè vào phòng':'Invite friends to the room','Quản lý bạn bè':'Manage friends','Chat phòng':'Room chat',
-    'Nhắn gì đó…':'Say something…','Gửi':'Send','Đã chép link phòng!':'Room link copied!','Đã chép mã phòng':'Room code copied','Mã phòng':'Room code',
-    'Mã hoặc link phòng không hợp lệ':'Invalid room code or link','Thêm bạn':'Add friend',
-    'Nhập mã bạn bè hoặc tên đăng nhập. Người kia sẽ nhận được lời mời và cần chấp nhận.':'Enter a friend code or username. They’ll get an invite and need to accept it.',
-    'Mã bạn bè hoặc tên đăng nhập':'Friend code or username','Gửi lời mời':'Send invite','Mã của bạn:':'Your code:','Chép mã':'Copy code','Lời mời kết bạn':'Friend requests',
-    'Danh sách bạn bè':'Friends list','Hai bạn đã trở thành bạn bè!':'You’re now friends!','Đã gửi lời mời kết bạn':'Friend request sent','Đã chép mã bạn bè':'Friend code copied',
-    'Mã bạn bè':'Friend code','Đã chấp nhận lời mời':'Invite accepted','Chép link':'Copy link','Đã xoá bạn':'Friend removed',
-    'Link phòng':'Room link','Bạn đang ở phòng này rồi':'You’re already in this room','Đã tham gia phòng':'Joined the room','Mời nghe chung':'Invite to listen together',
-    'Chấp nhận':'Accept','Từ chối':'Decline','Đang chờ':'Pending','Huỷ':'Cancel','Không có lời mời nào.':'No invites.','Xem hồ sơ':'View profile','Mời nghe':'Invite to listen',
-    'Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.':'No friends yet. Send an invite using a friend code above.','Mời':'Invite','Xem':'View','Bỏ qua':'Dismiss','Tham gia':'Join',
-    'Đang online':'Online','Chưa có bạn bè nào.':'No friends yet.','Quản lý':'Manage',
-    'Mặc định':'Default','Tối':'Dark','Biển':'Ocean','Hoàng hôn':'Sunset','Rừng':'Forest','Ảnh riêng':'Custom image','Lưu':'Save','Đổi banner':'Change banner','Gỡ banner':'Remove banner',
-    'Đổi avatar':'Change avatar','Chép tên đăng nhập':'Copy username',
-
-    'Trạng thái':'Status','Trạng thái (hiện thành nhãn dưới avatar)':'Status (shown as a label under your avatar)','Nền hồ sơ':'Profile background',
-    'Tải ảnh nền (GIF được)':'Upload background (GIFs allowed)','…hoặc dán link https://…/anh-nen.jpg':'…or paste a link https://…/background.jpg',
-    'Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.':'Background ≤ 10MB. Applied to the app right away – click Save to keep it.','Màu chủ đạo':'Accent color',
-    'Đã chép tên đăng nhập':'Username copied','Chỉnh sửa banner':'Edit banner','Chỉnh sửa avatar':'Edit avatar','Đang lưu…':'Saving…','Đã lưu ✔':'Saved ✔',
-    'Tài khoản':'Account','Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.':'The name others see in listening rooms and on your profile.','Đổi mật khẩu':'Change password',
-    'Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.':'After changing it, your other devices will be logged out. The new password must be 8–128 characters.',
-    'Mật khẩu hiện tại':'Current password','Mật khẩu mới':'New password','Nhập lại mật khẩu mới':'Repeat new password','Giao diện app Android':'Android app layout','Giao diện máy tính':'Desktop layout',
-    'Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.':'Same layout as the PC version (scaled to fit the screen). Turn off to use the phone layout. Rotate the screen to landscape when enabled.',
-    'Phát bài hát chứa nội dung nhạy cảm':'Play explicit songs','Bật để phát cả những bài hát nhạy cảm':'Turn on to play songs with explicit content',
-    'Giữ danh sách phát YouTube của bạn hiển thị khi offline':'Keep your YouTube playlists visible offline','Lưu danh sách phát lại và hiển thị khi offline':'Save playlists and show them while offline',
-    'Sử dụng Proxy để vượt qua trình chặn nội dung':'Use a proxy to get around content blocking','(áp dụng cho tìm kiếm và luồng âm thanh qua server)':'(applies to search and audio streams via the server)',
-    '– cần đặt biến môi trường YT_PROXY trên server':'– set the YT_PROXY environment variable on the server','Server chưa cấu hình':'Server not configured','Phát lại':'Playback',
-    'Bộ chỉnh âm':'Equalizer','Tinh chỉnh âm thanh bằng đường cong mười dải tần':'Fine-tune the sound with a ten-band curve','Mẫu thiết lập':'Preset','Tùy chỉnh':'Custom',
-    'Tiền khuếch đại':'Preamp','Độ trễ':'Delay','Echo âm thanh với độ trễ lặp lại':'Echo with repeating delay','Thời gian':'Time','Mức echo':'Echo level','Độ vang':'Reverb',
-    'Đưa âm nhạc vào trong một phòng, hội trường hoặc tấm kim loại':'Place the music in a room, a hall or a metal plate','Không gian':'Space','Phòng':'Room','Hội trường':'Hall','Tấm kim loại':'Plate',
-    'Mức vang':'Reverb level','Lưu trạng thái phát lại':'Save playback state','Lưu chế độ trộn và phát lại':'Remember shuffle and repeat modes','Chuyển bài mượt mà (BETA)':'Smooth track transitions (BETA)',
-    'Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.':'Crossfade between songs by fading out the current one while fading in the next.',
-    'Phát video của nhạc':'Play music videos','Gợi ý cho bạn':'Recommended for you','Đã theo dõi':'Following','Phát nhiều nhất':'Most played','Theo dõi':'Follow','Nghệ sĩ bạn theo dõi':'Artists you follow',
-    'Lịch sử nghe':'Listening history','Theo dõi lịch sử nghe':'Track listening history','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản':'Save your listening history to your account’s database',
-    'Xóa lịch sử nghe':'Clear listening history','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này':'Delete all listening history for this account','Nhập playlist từ YouTube':'Import playlists from YouTube','Nhập playlist từ app khác':'Import playlists from other apps','Hãy dán link playlist':'Paste a playlist link','Link Spotify, Apple Music, SoundCloud hoặc YouTube…':'Spotify, Apple Music, SoundCloud or YouTube link…','Không cần đăng nhập. Hỗ trợ playlist công khai từ Spotify, Apple Music, SoundCloud (dạng …/sets/…) và YouTube (công khai hoặc không công khai). Bài ngoài YouTube được tìm lại trên YouTube Music nên vài bài có thể không khớp.':'No sign-in needed. Supports public playlists from Spotify, Apple Music, SoundCloud (…/sets/… links) and YouTube (public or unlisted). Tracks from other apps are matched on YouTube Music, so a few may not be found.',
-    'Đăng nhập Google':'Sign in with Google','Đã cấp quyền đọc playlist YouTube. Bấm để ngắt kết nối và thu hồi quyền.':'Read access to your YouTube playlists is granted. Click to disconnect and revoke it.',
-    'Chỉ dùng để đọc danh sách playlist của bạn rồi nhập vào BBeat. BBeat không đăng nhập bằng Google và không lưu mật khẩu hay token.':'Only used to read your playlist list and import it into BBeat. BBeat doesn’t use Google to log in and doesn’t store passwords or tokens.',
-    'Đã kết nối':'Connected','Chưa kết nối':'Not connected','Đăng nhập Google để nhập playlist từ YouTube':'Sign in with Google to import playlists from YouTube',
-    'Server chưa đặt GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL':'Server is missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / PUBLIC_URL',
-    'Playlist của bạn trên YouTube':'Your YouTube playlists','Chọn playlist muốn nhập. Video riêng tư hoặc đã xóa sẽ bị bỏ qua.':'Choose the playlists to import. Private or deleted videos are skipped.',
-    'Tải danh sách playlist':'Load playlists','Tích hợp Discord':'Discord integration','Đăng nhập Discord':'Sign in with Discord','Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Discord account linked. Click to unlink.',
-    'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)':'Sign in with Discord to link your account (required for Rich Presence)','Chưa liên kết':'Not linked',
-    'Đăng nhập Discord để liên kết tài khoản':'Sign in with Discord to link your account','Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL':'Server is missing DISCORD_CLIENT_SECRET / PUBLIC_URL',
-    'Kết nối Discord':'Connect Discord','Tự động dùng tài khoản đã đăng nhập, không cần mở ứng dụng Discord':'Automatically uses the signed-in account – no need to open the Discord app','Tự động':'Automatic',
-    'Kết nối với ứng dụng Discord đang mở trên máy này (không cần nhập mật khẩu)':'Connect to the Discord app running on this computer (no password needed)','Kết nối với ứng dụng Discord':'Connect to the Discord app',
-    'Server chưa đặt DISCORD_CLIENT_ID':'Server is missing DISCORD_CLIENT_ID','Chỉ có trên app desktop/Android bản mới':'Only in the latest desktop/Android app','Kích hoạt Rich Presence':'Enable Rich Presence',
-    'Hiển thị phiên phát nhạc trên tài khoản Discord':'Show your listening session on your Discord profile','Cần DISCORD_CLIENT_ID':'DISCORD_CLIENT_ID required','Cần đăng nhập Discord':'Discord sign-in required',
-    'Hủy liên kết rồi đăng nhập lại Discord':'Unlink, then sign in with Discord again','Chỉ có trên app desktop':'Desktop app only','Sao lưu':'Back up',
-    'Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON':'Save your favorites, history and all playlists to a JSON file','Khôi phục':'Restore',
-    'Khôi phục dữ liệu từ file sao lưu (thay thế yêu thích, lịch sử và danh sách phát hiện có)':'Restore data from a backup file (replaces your current favorites, history and playlists)','Nhập danh sách phát':'Import playlists',
-    'Nhập danh sách phát từ file JSON (giữ nguyên dữ liệu hiện có)':'Import playlists from a JSON file (keeps your existing data)','Phiên bản':'Version','Kiểm tra cập nhật tự động':'Check for updates automatically',
-    'Kiểm tra cập nhật mỗi khi bạn mở ứng dụng':'Check for updates every time you open the app','Kênh cập nhật':'Update channel','Kiểm tra cập nhật':'Check for updates','Chưa kiểm tra lần nào':'Never checked',
-    'Tác giả':'Author','Hỗ trợ tôi':'Support me','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).':'BBeat is a personal, non-profit project. If you like the app, you can buy the author a coffee (totally optional).',
-    'Thư viện bên thứ ba':'Third-party libraries','Các thư viện và dịch vụ mà BBeat sử dụng':'Libraries and services BBeat uses','Đăng xuất khỏi thiết bị này':'Log out of this device',
-    'Đã lưu danh sách phát để xem khi offline':'Playlists saved for offline viewing','Trình duyệt không hỗ trợ Web Audio':'Your browser doesn’t support Web Audio',
-    'Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.':'Disconnect Google? BBeat will revoke its YouTube read access. Playlists you already imported are kept.',
-    'Ngắt kết nối':'Disconnect','Đã ngắt kết nối Google':'Google disconnected','Không thấy playlist nào trong tài khoản này':'No playlists found in this account','bài':'songs','Nhập đã chọn':'Import selected',
-    'Hãy chọn ít nhất một playlist':'Select at least one playlist','Đang nhập… (playlist dài có thể mất vài chục giây)':'Importing… (long playlists can take a few tens of seconds)','Đã nhập':'Imported','bài ✔':'songs ✔',
-    'Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.':'Unlink your Discord account? Rich Presence will be turned off too.','Hủy liên kết':'Unlink','Đã hủy liên kết Discord':'Discord unlinked',
-    'Đã kết nối Discord':'Discord connected','Xóa toàn bộ lịch sử nghe?':'Delete all listening history?','Xóa':'Delete','Đã xóa lịch sử nghe':'Listening history cleared',
-    'Mật khẩu nhập lại không khớp':'The passwords don’t match','Đã đổi mật khẩu ✔':'Password changed ✔','Đã tạo file sao lưu':'Backup file created','File không phải JSON hợp lệ':'This isn’t a valid JSON file',
-    'Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?':'Restoring will replace your current favorites, history and playlists. Continue?','Đã khôi phục':'Restored',
-    'Chưa gắn kho GitHub cho BBeat':'No GitHub repo is set for BBeat','Đang kiểm tra…':'Checking…','Tác giả chưa gắn link hỗ trợ':'The author hasn’t added a support link yet',
-    'Tạo mới':'Create new','Chưa có danh sách phát nào.':'No playlists yet.',
-    'Nhạc Việt':'Vietnamese','Cổ điển':'Classical','Duyệt tất cả':'Browse all','Đang tìm…':'Searching…',
-    'Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.':'No results found. Try another keyword or paste a YouTube link.','Chưa có bài nào để tạo mix này.':'Not enough songs to build this mix yet.',
-    'Đang offline – hiển thị danh sách phát đã lưu':'Offline – showing saved playlists','Tên playlist mới':'New playlist name','＋ Playlist mới…':'＋ New playlist…','Đã thêm vào playlist':'Added to playlist',
-    'Bạn đang ở phòng này rồi.':'You’re already in this room.',
-    'Luồng âm thanh lỗi:':'Audio stream error:','Trình duyệt chặn tự phát – bấm ▶ để nghe':'The browser blocked autoplay – press ▶ to listen',
-    'Ngẫu nhiên: bật':'Shuffle: on','Ngẫu nhiên: tắt':'Shuffle: off','Lặp lại: tắt':'Repeat: off','Lặp danh sách':'Repeat all','Lặp một bài':'Repeat one',
-    'Thích':'Likes','· Không thích':'· Dislikes','Nguồn: YouTube Music':'Source: YouTube Music','Ẩn video':'Hide video','Hiện video':'Show video','Chép link YouTube':'Copy YouTube link','Đã chép link':'Link copied',
-    'Chưa có bài nào trong hàng đợi.':'The queue is empty.','Đang tải lời…':'Loading lyrics…','Chưa tìm thấy lời bài này.':'No lyrics found for this song.','· Thích':'· Likes',
-    'Hãy đăng nhập Discord để liên kết tài khoản trước':'Sign in with Discord to link your account first',
-    'Không kết nối được Discord – hãy mở ứng dụng Discord trên máy này rồi thử lại':'Couldn’t connect to Discord – open the Discord app on this computer and try again',
-    'lỗi Discord':'Discord error','hết thời gian chờ Discord phản hồi':'Discord took too long to respond',
-    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again','Đã kết nối Google, hãy chọn playlist để nhập':'Google connected – choose playlists to import',
-    'Kết nối Google thất bại, hãy thử lại':'Google connection failed, please try again',
-    'Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe':'This song is explicit – turn on “Play explicit songs” in Settings to listen',
-    'Chưa đăng nhập hoặc phiên hết hạn':'Not logged in or the session has expired','Lỗi máy chủ':'Server error','Tên đăng nhập 3-24 ký tự: chữ, số hoặc _':'Username must be 3–24 characters: letters, numbers or _',
-    'Mật khẩu từ 8 đến 128 ký tự':'Password must be 8–128 characters','Tên đăng nhập đã tồn tại':'That username is already taken','Sai tên đăng nhập hoặc mật khẩu':'Wrong username or password',
-    'Tên hiển thị không được trống':'Display name can’t be empty','Màu không hợp lệ':'Invalid color','Nền không hợp lệ':'Invalid background',
-    'Link ảnh nền phải là https:// (hoặc ảnh đã tải lên) và không chứa ký tự đặc biệt':'The background link must be https:// (or an uploaded image) with no special characters','Màu banner không hợp lệ':'Invalid banner color',
-    'Avatar tối đa 10MB':'Avatar must be 10MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 10MB)':'Only PNG, JPG, GIF or WEBP images (max 10MB)','Hãy nhập mã bạn bè hoặc tên đăng nhập':'Enter a friend code or username',
-    'Không tìm thấy người dùng này':'User not found','Không thể tự kết bạn với chính mình':'You can’t friend yourself','Hai bạn đã là bạn bè rồi':'You’re already friends','Bạn đã gửi lời mời cho người này rồi':'You already sent this person an invite',
-    'Lời mời không còn tồn tại':'This invite no longer exists','Thao tác không hợp lệ':'Invalid action','Mã phòng không hợp lệ':'Invalid room code','Người này chưa là bạn của bạn':'This person isn’t your friend',
-    'Bạn ấy đang offline':'They’re offline','Bài hát không hợp lệ':'Invalid song','Dữ liệu bài hát quá lớn':'Song data is too large','Mật khẩu mới từ 8 đến 128 ký tự':'The new password must be 8–128 characters',
-    'Mật khẩu hiện tại không đúng':'Current password is incorrect','Dữ liệu không hợp lệ':'Invalid data','Giá trị cài đặt không hợp lệ':'Invalid setting value','Playlist đã nhập':'Imported playlist',
-    'Không tìm thấy danh sách phát nào trong file':'No playlists found in the file','Đây không phải file sao lưu của Muse':'This isn’t a Muse backup file','Tên playlist không được trống':'Playlist name can’t be empty',
-    'Tối đa 50 playlist':'Up to 50 playlists','Không tìm thấy playlist':'Playlist not found','Ảnh nền tối đa 10MB':'Background image must be 10MB or less','Chỉ nhận ảnh PNG, JPG, GIF, WEBP':'Only PNG, JPG, GIF or WEBP images',
-    'Banner tối đa 10MB':'Banner must be 10MB or less','Chỉ admin mới đổi được icon':'Only admins can change the icon','Icon phải là file PNG, tối đa 2MB':'The icon must be a PNG file, max 2MB',
-    'Thiếu từ khoá tìm kiếm':'Missing search keyword','Không kết nối được YouTube Music':'Couldn’t connect to YouTube Music','YouTube Music trả về lỗi':'YouTube Music returned an error','YouTube Music trả dữ liệu lạ':'YouTube Music returned unexpected data',
-    'Không kết nối được':'Couldn’t connect','Không lấy được luồng âm thanh':'Couldn’t get the audio stream','Phiên đăng nhập hết hạn':'Your session has expired','Chưa đăng nhập Google hoặc phiên đã hết hạn, hãy đăng nhập lại':'Not signed in to Google or the session expired – please sign in again',
-    'Server chưa cấu hình đăng nhập Google':'The server isn’t set up for Google sign-in','Không kết nối được YouTube':'Couldn’t connect to YouTube','YouTube từ chối yêu cầu':'YouTube rejected the request',
-    'Chưa chọn playlist nào':'No playlist selected','Playlist không hợp lệ':'Invalid playlist','Server chưa cấu hình đăng nhập Discord':'The server isn’t set up for Discord sign-in',
-    'Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence':'Unlink, then sign in with Discord again to grant Rich Presence permission',
-    'Phiên Discord hết hạn, hãy hủy liên kết rồi đăng nhập Discord lại':'Your Discord session expired – unlink, then sign in with Discord again','Discord không trả token':'Discord didn’t return a token',
-    'mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút':'every audio source is currently blocked by YouTube – try again in a few minutes','video không phát được':'this video can’t be played',
-    'Về tôi':'About','Nhạc mới mỗi ngày':'New music every day','Từ nghệ sĩ bạn hay nghe':'From artists you listen to','Nghệ sĩ tương tự':'Similar artists','Bài mới từ nghệ sĩ bạn nghe':'New from artists you listen to','Khám phá thêm':'Discover more',
-    'Nghệ sĩ yêu thích của bạn':'Your favorite artists','Gợi ý cho hôm nay':'Recommended for today','Tiếp tục nghe':'Jump back in','Cập nhật mỗi ngày theo gu nghe của bạn':'Refreshed daily from your listening taste','Hiện tất cả':'Show all','Những bản nhạc yêu thích dần trôi vào quên lãng':'Favorites fading into oblivion','Tuyển tập nhạc cho bạn':'Collections for you','Siêu tuyển tập nhạc của tôi':'My supermix','Hoà trộn gu với bạn bè trong một danh sách phát':'Blend your taste with friends in one playlist','Hoà trộn gu':'Blend','Khám phá':'Explore','Bản phát hành mới':'New releases','Bảng xếp hạng':'Charts','Chọn một người bạn để tạo danh sách phát gộp gu nghe của hai người.':'Pick a friend to make a playlist that blends both your tastes.','Hoà trộn với bạn':'Blend with you','Đổi bạn':'Change friend','Bạn chưa có bạn bè nào.':'You have no friends yet.','Thêm bạn':'Add friends','Hai bạn chưa có đủ dữ liệu nghe để hòa trộn.':'You two don’t have enough listening data to blend yet.','Thu gọn':'Show less'
-  };
-
-  const plural=(n,a,b)=>n+' '+(+n===1?a:b);
-  const EN_RULES=[
-    [/^Đang tải (\d+)%$/,(m)=>'Downloading '+m[1]+'%'],
-    [/^Xong · (.+)$/,(m)=>'Done · '+m[1]],
-    [/^Lỗi: (.+)$/,(m)=>'Error: '+(m[1]==='không rõ'?'unknown':m[1])],
-
-    [/^(\d+) bài nghe được offline$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' available offline'],
-    [/^(\d+) bài đã tải$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' downloaded'],
-    [/^Đang tải (\d+) bài…$/,(m)=>'Downloading '+m[1]+(m[1]==='1'?' song':' songs')+'…'],
-    [/^(\d+) bài · (\d+) bài nghe được khi không có mạng(.*)$/,(m)=>m[1]+(m[1]==='1'?' song':' songs')+' · '+m[2]+' playable offline'+m[3]],
-    [/^(\d+) nghệ sĩ$/,(m)=>m[1]+(m[1]==='1'?' artist':' artists')],
-    [/^(\d{4}-\d\d-\d\d) \((\d+) ngày\)$/,(m)=>m[1]+' ('+m[2]+(m[2]==='1'?' day':' days')+' ago)'],
-
-    [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. The essential tracks, all in one playlist.'],
-    [/^(.+) • (\d+) bài hát, khoảng (\d+) giờ$/,(m)=>m[1]+' • '+m[2]+' songs, about '+m[3]+' hr'],
-    [/^(.+) • (\d+) bài hát, (\d+) phút$/,(m)=>m[1]+' • '+m[2]+' songs, '+m[3]+' min'],
-    [/^(Sử dụng Proxy để vượt qua trình chặn nội dung)( .+)$/,(m)=>EN_EXACT[m[1]]+tr(m[2])],
-    [/^Danh sách phát · (\d+) bài hát$/,(m)=>'Playlist · '+plural(m[1],'song','songs')],
-    [/^(\d+) bài hát$/,(m)=>plural(m[1],'song','songs')],
-    [/^(\d+) bài$/,(m)=>plural(m[1],'song','songs')],
-    [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
-    [/^Đang thêm (\d+) file…$/,(m)=>'Adding '+plural(m[1],'file','files')+'…'],
-    [/^Đã thêm (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from your device'+(m[2]?' · '+m[2]+' already added':'')+(m[3]?' · '+plural(m[3],'file','files')+' failed':'')],
-    [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
-    [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
-    [/^Giống (.+)$/,(m)=>'Similar to '+m[1]],
-    [/^Nếu bạn thích (.+)$/,(m)=>'If you like '+m[1]],
-    [/^Cùng gu với (.+)$/,(m)=>'Same vibe as '+m[1]],
-    [/^Fan (.+) cũng nghe$/,(m)=>'Fans of '+m[1]+' also listen to'],
-    [/^Dành cho người hâm mộ (.+)$/,(m)=>'For fans of '+m[1]],
-    [/^Mới từ (.+)$/,(m)=>'New from '+m[1]],
-    [/^Tiếp tục: (.+)$/,(m)=>'Resume: '+m[1]],
-    [/^Hôm nay · (.+)$/,(m)=>'Today · '+m[1]],
-    [/^Tuyển tập (.+)$/,(m)=>'Collection: '+tr(m[1])],
-    [/^Hoà trộn gu · (\d+) bài chung$/,(m)=>'Blend · '+m[1]+' in common'],
-    [/^(.+) · bài mới$/,(m)=>m[1]+' · new'],
-    [/^Dành cho bạn · (.+)$/,(m)=>'For you · '+tr(m[1])],
-    [/^Dành cho bạn$/,()=>'For you'],
-    [/^Thư viện của (.+)$/,(m)=>m[1]+"'s library"],
-    [/^↻ Làm mới$/,()=>'↻ Refresh'],
-    [/^Khám phá$/,()=>'Discover'],
-    [/^Khám phá (.+)$/,(m)=>'Discover '+m[1]],
-    [/^Kết quả cho “(.*)”$/,(m)=>'Results for “'+m[1]+'”'],
-    [/^Bạn bè · (\d+) online$/,(m)=>'Friends · '+m[1]+' online'],
-    [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
-    [/^Phòng (.+)$/,(m)=>'Room '+m[1]],
-    [/^(.+) đã vào phòng$/,(m)=>m[1]+' joined the room'],
-    [/^(.+) đã thoát phòng$/,(m)=>m[1]+' left the room'],
-    [/^(.+) gửi lời mời kết bạn$/,(m)=>m[1]+' sent you a friend request'],
-    [/^(.+) đã chấp nhận lời mời kết bạn$/,(m)=>m[1]+' accepted your friend request'],
-    [/^(.+) mời bạn nghe nhạc chung$/,(m)=>m[1]+' invited you to listen together'],
-    [/^Đã gửi lời mời tới (.+)$/,(m)=>'Invite sent to '+m[1]],
-    [/^Đã tham gia phòng (.+)$/,(m)=>'Joined room '+m[1]],
-    [/^Xoá (.+) khỏi danh sách bạn bè\?$/,(m)=>'Remove '+m[1]+' from your friends?'],
-    [/^([\s\S]+)\n\nChép link phòng để gửi thủ công\?$/,(m)=>tr(m[1])+'\n\nCopy the room link to send it manually?'],
-    [/^Đã liên kết: (.+)$/,(m)=>'Linked: '+m[1]],
-    [/^Đã kết nối: (.+)$/,(m)=>'Connected: '+m[1]],
-    [/^Đã liên kết Discord: (.+)$/,(m)=>'Discord linked: '+m[1]],
-    [/^Không kết nối được Discord: (.+)$/,(m)=>'Couldn’t connect to Discord: '+m[1]],
-    [/^Đã nhập (\d+) playlist, (\d+) bài ✔$/,(m)=>'Imported '+plural(m[1],'playlist','playlists')+', '+plural(m[2],'song','songs')+' ✔'],
-    [/^Đã nhập (\d+) danh sách phát \((\d+) bài\)$/,(m)=>'Imported '+plural(m[1],'playlist','playlists')+' ('+plural(m[2],'song','songs')+')'],
-    [/^Đã khôi phục (\d+) bài yêu thích, (\d+) danh sách phát$/,(m)=>'Restored '+plural(m[1],'favorite song','favorite songs')+', '+plural(m[2],'playlist','playlists')],
-    [/^Lần kiểm tra cuối vào (.+)$/,(m)=>'Last checked '+m[1]],
-    [/^Bạn đang dùng bản mới nhất \(v(.+)\)$/,(m)=>'You’re on the latest version (v'+m[1]+')'],
-    [/^Không kiểm tra được cập nhật: (.+)$/,(m)=>'Couldn’t check for updates: '+m[1]],
-    [/^GitHub trả về lỗi (.+)$/,(m)=>'GitHub returned an error '+m[1]],
-    [/^Ảnh quá lớn \(tối đa (.+)MB\)$/,(m)=>'Image too large (max '+m[1]+'MB)'],
-    [/^Không lấy được luồng âm thanh \(([\s\S]*)\) – chuyển sang player YouTube$/,(m)=>'Couldn’t get the audio stream ('+m[1]+') – switching to the YouTube player'],
-    [/^Luồng âm thanh lỗi: (.+)$/,(m)=>'Audio stream error: '+m[1]],
-    [/^Thích (.+) · Không thích (.+)$/,(m)=>'Likes '+m[1]+' · Dislikes '+m[2]],
-    [/^· Thích (.+) · Không thích (.+)$/,(m)=>'· Likes '+m[1]+' · Dislikes '+m[2]],
-    [/^Nguồn: YouTube Music( · .+)?$/,(m)=>'Source: YouTube Music'+(m[1]||'')],
-    [/^(.+) • (\d+) bài$/,(m)=>m[1]+' • '+plural(m[2],'song','songs')],
-    [/^Ngắt kết nối Google\?.*$/,()=>EN_EXACT['Ngắt kết nối Google? BBeat sẽ thu hồi quyền đọc YouTube. Playlist đã nhập vẫn được giữ.']],
-    [/^(Thích|Không thích) (\d.*)$/,(m)=>(m[1]==='Thích'?'Likes ':'Dislikes ')+m[2]]
-  ];
-
-  /* ===== Bổ sung bản dịch English còn thiếu (khớp cả câu; khoá dài ≥5 ký tự còn được dùng để thay từng cụm trong câu ghép) ===== */
-  const EN_EXTRA={
-    'Quét QR':'Scan QR','Chế độ tối':'Dark mode',
-    'Không mở được trình duyệt – đã chép link:':'Couldn’t open the browser – link copied:','Không mở được trình duyệt, link:':'Couldn’t open the browser, link:',
-    'tải thành công':'uploaded successfully','Yêu cầu không hợp lệ':'Invalid request',
-    'Máy chủ phản hồi quá lâu, hãy bấm Lưu lại (ảnh GIF nặng có thể cần thu nhỏ trước)':'The server took too long to respond, tap Save again (large GIFs may need to be resized first)',
-    'Máy chủ phản hồi quá lâu, hãy thử ảnh nhẹ hơn rồi bấm Lưu lại':'The server took too long to respond, try a smaller image and tap Save again',
-    'Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.':'On a device already signed in to BBeat, go to Settings → Scan login QR, then scan this code.',
-    'Đang tạo mã…':'Generating code…','Mã đã hết hạn.':'Code expired.','Không tạo được mã QR – kiểm tra mạng.':'Couldn’t generate the QR code – check your connection.',
-    'Đang chờ quét… (mã có hiệu lực 3 phút)':'Waiting for scan… (code valid for 3 minutes)',
-    'Không đăng nhập được admin':'Couldn’t log in as admin','Không đăng nhập được':'Couldn’t log in','Đang đăng nhập…':'Logging in…','hết phiên':'session expired',
-    'Hãy đăng nhập để tạo mã ghép':'Log in to create a pairing code',
-    'Nhập lại mật khẩu để xác nhận. Mã 6 số dùng một lần, hết hạn sau 5 phút, cho phép một thiết bị khác vào tài khoản này mà không cần mật khẩu.':'Re-enter your password to confirm. The 6-digit one-time code expires after 5 minutes and lets another device into this account without a password.',
-    'Hãy nhập mật khẩu':'Enter your password','Nhập mật khẩu để xác nhận':'Enter your password to confirm',
-    'Nhập mã này (hoặc quét QR) ở màn hình đăng nhập của thiết bị kia. Mã chỉ dùng được một lần.':'Enter this code (or scan the QR) on the other device’s login screen. The code can only be used once.',
-    'Mã đã hết hạn — đóng rồi tạo lại.':'Code expired — close and generate a new one.','Không tạo được mã':'Couldn’t generate the code',
-    'Đã chép mã ghép':'Pairing code copied','Mã ghép:':'Pairing code:','Đăng nhập thiết bị khác?':'Log in on another device?',
-    'Một thiết bị đang xin đăng nhập vào tài khoản “':'A device is asking to log in to the account “','”. Chỉ cho phép nếu chính bạn vừa mở mã QR đó.':'”. Only allow this if you just opened that QR code yourself.',
-    'Đã cho phép thiết bị kia đăng nhập':'The other device is now allowed to log in','Mã QR đã hết hạn, hãy tạo mã mới ở thiết bị kia':'The QR code expired, create a new one on the other device',
-    'Máy này chưa hỗ trợ quét QR trong app. Hãy dùng camera điện thoại quét mã rồi mở liên kết bằng BBeat.':'This device doesn’t support QR scanning in the app. Use your phone camera to scan the code, then open the link with BBeat.',
-    'Chưa cấp quyền camera cho BBeat':'Camera permission hasn’t been granted to BBeat','Đưa mã QR ở màn hình đăng nhập của thiết bị kia vào khung hình.':'Point the camera at the QR code on the other device’s login screen.',
-    'Hãy đăng nhập để quét QR':'Log in to scan a QR code',
-    'Chỉnh sửa hồ sơ':'Edit profile','Đổi kiểu thẻ':'Change card style','Hãy đăng nhập để dùng thẻ chia sẻ':'Log in to use the share card',
-    'Chép ảnh':'Copy image','Đổi hình':'Change image','Hình mặc định':'Default image','Chỉnh chữ':'Adjust text','Tải ảnh':'Download image','Màu':'Color','Độ đậm':'Weight','Độ rõ':'Opacity','Cỡ chữ':'Font size','Đặt lại chữ này':'Reset this text',
-    'Tên':'Name','Số':'Number','Ngày':'Date',
-    'THÀNH VIÊN LỚN':'PREMIUM MEMBER','THÀNH VIÊN NHỎ':'BASIC MEMBER','Thành viên lớn':'Premium member','Thành viên nhỏ':'Basic member',
-    'Hãy chọn file ảnh':'Please choose an image file','Ảnh tối đa 10MB':'Max image size 10MB','Máy không đủ chỗ lưu hình này':'Not enough storage on this device for this image','mặc định':'default',
-    'Đang tạo link…':'Creating link…','Đã chép link + ảnh thẻ':'Copied link + card image','Đã chép ảnh thẻ':'Copied card image','Đã chép link thẻ':'Copied card link','Link thẻ của bạn':'Your card link','Không tạo được link, thử lại nhé':'Couldn’t create the link, try again',
-    'Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh':'Your browser doesn’t allow copying images — tap Download image',
-    'Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.':'Couldn’t create the image (a background from another site blocks export). Use an uploaded banner instead.',
-    'Mới nghe':'Newcomer','Tập sự':'Apprentice','Mê nhạc':'Music lover','Sành nghe':'Connoisseur','Cao thủ':'Expert','Bậc thầy':'Master','Huyền thoại':'Legend',
-    'Đã nghe':'Listened','Đã đạt cấp cao nhất':'Max level reached','trên BBeat':'on BBeat','Không tìm thấy thẻ này':'Card not found','Thẻ danh tính':'ID card',
-    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Không lưu được vào thư mục BBeat\\Downloads: ':'Couldn’t save to the BBeat\\Downloads folder: ','Đã gửi lời mời':'Request sent','Đã là bạn bè':'Friends','Nghệ sĩ đã theo dõi':'Followed artists','Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You haven’t followed any artists yet. While a song plays, tap “Follow” under the artist name.','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
-    'Chưa có playlist nào.':'No playlists yet.','Thêm ›':'More ›','Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.':'You haven’t liked any songs yet. Tap ♡ on a song to add it here.','Nhạc đã thích':'Liked music',
-    'Đã chép UID':'UID copied','Đã lưu tên hiển thị':'Display name saved','Không lưu được':'Couldn’t save','Không gửi được lời mời':'Couldn’t send the invite','Không mở được':'Couldn’t open',
-    'Đăng nhập để chỉnh sửa hồ sơ':'Log in to edit your profile','Biệt danh':'Nickname','Đã lưu biệt danh':'Nickname saved','Chữ ký cá nhân':'Bio','Đã lưu chữ ký':'Bio saved',
-    'Anime opening hay nhất':'Best anime openings','Anime ending cảm xúc':'Emotional anime endings','Nhạc Nhật':'Japanese music','J-Pop thịnh hành':'Trending J-Pop','City Pop Nhật Bản':'Japanese City Pop','Rock Nhật':'Japanese rock',
-    'Nhạc Hoa hay nhất':'Best Chinese music','C-Pop thịnh hành':'Trending C-Pop','Nhạc Hoa lời Việt':'Chinese songs with Vietnamese lyrics','K-Pop thịnh hành':'Trending K-Pop','K-Pop thế hệ mới':'New-gen K-Pop',
-    'Chill buổi tối':'Evening chill','Bolero hay nhất':'Best Bolero','Nhạc vàng bất hủ':'Timeless “nhạc vàng”','Trữ tình quê hương':'Hometown ballads','Ballad / Buồn':'Ballad / Sad','Piano / Không lời':'Piano / Instrumental',
-    'Indie Việt':'Vietnamese indie','Nhạc xưa bất hủ':'Timeless oldies','Viral mạng xã hội':'Viral on social media','Pop Âu Mỹ':'Western pop','Jazz nhẹ nhàng':'Smooth jazz','Nhạc phim & OST':'Movie music & OST',
-    'Đã làm mới gợi ý':'Suggestions refreshed','Đang hòa trộn…':'Blending…','Thịnh hành hôm nay':'Trending today',
-    'Khách không thể chỉnh sửa hồ sơ. Đăng nhập (hoặc tạo tài khoản) để đổi avatar, banner, nền và màu chủ đạo.':'Guests can’t edit profiles. Log in (or create an account) to change your avatar, banner, background and accent color.',
-    'Đổi tên hiển thị':'Change display name','Chọn màu khác':'Pick another color','Chạm để thêm trạng thái':'Tap to add a status','Chưa lưu thay đổi':'Unsaved changes','Chưa có ảnh banner để căn chỉnh':'No banner image to adjust yet',
-    'Ảnh nền':'Background image','Không nhận video (mp4) làm avatar':'Videos (mp4) can’t be used as an avatar','Đang nén ảnh…':'Compressing image…','(máy chủ đang xử lý)':'(server is processing)','Lượt thích':'Likes',
-    'Đăng nhập BBeat trên thiết bị khác: quét mã QR hiện ở màn hình đăng nhập của nó.':'Sign in to BBeat on another device: scan the QR code shown on its login screen.',
-    'Hiệu năng':'Performance','Ảnh động (GIF)':'Animated images (GIF)',
-    'Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định bật; máy yếu bị giật thì tắt ở đây.':'Lets GIF avatars, banners and backgrounds animate. Turn off to save battery and avoid lag (the first frame is shown; tap the image to still see the animation). On by default; turn it off here if your device stutters.',
-    'Nguồn nhạc':'Music source','Đang dùng IP riêng của máy này':'Using this device’s own IP',
-    'Tìm kiếm, album và luồng nhạc YouTube đi thẳng từ máy bạn (cổng nhà 127.0.0.1:38417); server chính chỉ lưu tài khoản, bạn bè, avatar và banner.':'Search, albums and YouTube audio go straight from your device (home gateway 127.0.0.1:38417); the main server only stores accounts, friends, avatars and banners.',
-    'IP nhà':'Home IP','Phát bằng luồng IP riêng':'Play via own-IP stream',
-    'Giống app Android: phát qua luồng âm thanh của máy thay vì player YouTube. Luồng lỗi thì tự quay về player YouTube. Tắt nếu muốn luôn dùng player YouTube.':'Like the Android app: plays through your device’s audio stream instead of the YouTube player. If the stream fails it falls back to the YouTube player. Turn off to always use the YouTube player.',
-    'Phát video của nhạc':'Play music videos',
-    'Bật để tự động hiện video YouTube của mọi bài hát thay cho ảnh bìa. Tắt (mặc định) thì chỉ nghe âm thanh; muốn xem video của một bài thì bấm dấu ba chấm → Hiện video (video không hiện khi đang dùng Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy)':'Turn on to automatically show the YouTube video of every song instead of the cover art. When off (default) you only hear audio; to watch a song’s video tap the three dots → Show video (video isn’t shown while using the Equalizer, Delay, Reverb or Proxy)',
-    'Quản trị':'Admin','Bài kế tiếp sẽ phát bằng luồng IP riêng':'The next song will play via the own-IP stream','Bài kế tiếp sẽ phát bằng player YouTube':'The next song will play via the YouTube player',
-    'Link này không chứa danh sách phát (thiếu list=…)':'This link doesn’t contain a playlist (missing list=…)',
-    'Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…':'This is a YouTube auto-generated Mix (list=RD…) and can’t be imported. Use a link like youtube.com/playlist?list=PL…',
-    'Đang kiểm tra link và yêu cầu YouTube…':'Checking the link and asking YouTube…','Đang đọc playlist và tìm từng bài trên YouTube Music… (có thể mất vài chục giây)':'Reading the playlist and finding each song on YouTube Music… (may take a few dozen seconds)',
-    'bài không tìm thấy trên YouTube Music, rê chuột vào đây để xem)':'songs not found on YouTube Music, hover here to see)','Chỉ nhập 300 bài đầu tiên.':'Only the first 300 songs were imported.',
-    'Không khớp:':'No match:','Nhập thất bại:':'Import failed:','Máy chủ không trả về nội dung lỗi.':'The server returned no error details.','(Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)':'(Open the console / server log for details if needed)',
-    'Đã mở trình duyệt – đăng nhập Discord xong thì quay lại app':'Browser opened – finish logging in to Discord, then come back to the app','Đã liên kết Discord':'Discord linked','Đã kết nối:':'Connected:',
-    'Liên kết Discord thất bại, hãy thử lại':'Discord linking failed, please try again',
-    'Xóa vĩnh viễn tài khoản “':'Permanently delete account “','"? Toàn bộ dữ liệu sẽ mất và không khôi phục được.':'"? All data will be lost and can’t be recovered.','Xóa':'Delete',
-    'Nghe không cần mạng':'Listen without internet','Đang tìm video…':'Looking for video…',
-    'không có video – phát âm thanh':'has no video – playing audio','Không tìm thấy video cho bài này – phát âm thanh':'No video found for this song – playing audio','không có video':'has no video',
-    'Album này không có video – sẽ phát âm thanh':'This album has no video – audio will play','Đang tìm video cho album…':'Looking for videos for this album…',
-    'Có video cho':'Video found for','bấm phát để xem video, bài nào không có video sẽ phát âm thanh':'tap play to watch the video; songs without a video will play audio',
-    'Kết quả cho “':'Results for “','Hãy đăng nhập để lưu danh sách phát':'Log in to save playlists','khoảng':'about',
-    'đã vào phòng':'joined the room','đã thoát phòng':'left the room','lời mời mới':'new invites','gửi lời mời kết bạn':'sent a friend request','đã chấp nhận lời mời kết bạn':'accepted your friend request','mời bạn nghe nhạc chung':'invited you to listen together',
-    'Đã ẩn “':'Hid “','bài này':'this song','” vì không phát được (đang ẩn':'” because it can’t be played (hiding','bài, tự hiện lại sau 12 giờ)':'songs, they reappear after 12 hours)',
-    'Nguồn nhạc đang khởi động – thử lại bài này…':'The music source is starting up – retrying this song…',
-    'Không phát được bài này (YouTube đang chặn – cần đăng nhập/cookies cho yt-dlp). Đã dừng, không tự nhảy bài nữa.':'Couldn’t play this song (YouTube is blocking it – yt-dlp needs login/cookies). Stopped; not skipping to the next song automatically.',
-    'Player YouTube không phát được bài này – chuyển sang luồng của server':'The YouTube player couldn’t play this song – switching to the server stream',
-    'Không phát được “':'Couldn’t play “','” – chuyển bài kế tiếp':'” – skipping to the next song',
-    'IndexedDB không khả dụng':'IndexedDB isn’t available','IndexedDB lỗi':'IndexedDB error',
-    'Bản lưu offline bị lỗi – hãy tải lại bài này':'The offline copy is corrupted – download this song again',
-    'Nhạc bị đứng – đang tải lại…':'Playback stalled – reloading…','Nhạc bị đứng – thử lại…':'Playback stalled – retrying…',
-    'Luồng server bị đứng – chuyển sang player YouTube':'The server stream stalled – switching to the YouTube player','Player YouTube bị đứng – chuyển sang luồng của server':'The YouTube player stalled – switching to the server stream',
-    'Không bật được hiệu ứng âm thanh cho bài này':'Couldn’t enable audio effects for this song','Đã bỏ theo dõi':'Unfollowed','Bỏ theo dõi':'Unfollow',
-    'Chưa có dữ liệu. Nghe vài bài rồi quay lại đây nhé.':'No data yet. Listen to a few songs, then come back.','Phát nhiều nhất':'Most played',
-    'Chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You’re not following any artists. While music is playing, tap “Follow” under the artist’s name.',
-    'Đã bỏ "không thích"':'Dislike removed','Đã ghi nhận: không thích bài này – sẽ ít gợi ý bài tương tự':'Noted: you dislike this song – fewer similar songs will be suggested',
-    'Đang tải':'Downloading','Đang đổi sang WAV…':'Converting to WAV…','Lỗi:':'Error:','không rõ':'unknown','Chưa lưu offline':'Not saved offline','Chưa có bài nào được tải.':'No songs downloaded yet.','Nghệ sĩ - Tên bài':'Artist - Song title',
-    'Đang thêm':'Adding','Bài này đang trong danh sách tải':'This song is already in the download list','Đã thêm vào danh sách tải:':'Added to the download list:','Bài này không có file để tải':'This song has no file to download',
-    'quá thời gian chờ khi lấy nhạc trên máy':'timed out while fetching music on the device','Không lấy được nhạc bằng IP điện thoại:':'Couldn’t fetch the music using the phone’s IP:','không rõ nguyên nhân':'unknown cause',
-    'Đứt kết nối khi đang tải (đã được':'Connection dropped while downloading (got','KB, đã thử lại':'KB, retried','lần)':'times)','Trên máy:':'On device:','Nhận dữ liệu rỗng (HTTP':'Received empty data (HTTP','không có content-range':'no content-range',
-    'không lưu được bản offline trong app (hết bộ nhớ?)':'couldn’t save the offline copy in the app (out of storage?)','quá dài nên giữ định dạng gốc':'too long, keeping the original format','không đổi được sang WAV, đã lưu bản gốc':'couldn’t convert to WAV, saved the original',
-    'Đã tải xong:':'Downloaded:','Không tải được:':'Couldn’t download:','Toàn màn hình (F11)':'Full screen (F11)','Đóng':'Close',
-    'Chưa có bài nào nghe được lúc này':'No playable songs right now','Đã mở thư mục nhạc – thả file nhạc vào đó, app sẽ tự thêm':'Music folder opened – drop music files into it and the app will add them automatically',
-    'Cần có mạng để tải lại':'An internet connection is needed to download again','Bài này chưa lưu offline – hãy tải lại khi có mạng':'This song isn’t saved offline – download it again when you’re online',
-    'Tải về':'Download','về máy?':'to this device?','danh sách':'list','Đã tải xong':'Finished downloading','bài lỗi)':'failed)',
-    'Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album':'The server doesn’t have yt-dlp installed, or yt-dlp failed – keeping the album art','Không phát được video:':'Couldn’t play the video:','định dạng không đọc được':'unreadable format',
-    'server chưa có /api/yt/video (cần dùng main.rs mới)':'the server doesn’t have /api/yt/video yet (use the new main.rs)','Không phát được video: không kết nối được server':'Couldn’t play the video: can’t connect to the server',
-    'vừa xong':'just now','Hãy phát một bài để xem bình luận.':'Play a song to see comments.','Đăng nhập để xem và viết bình luận.':'Log in to view and write comments.','Chưa có bình luận nào cho bài này. Hãy là người đầu tiên!':'No comments on this song yet. Be the first!',
-    'Không gửi được bình luận':'Couldn’t post the comment','Không xoá được':'Couldn’t delete','Đang tải bình luận…':'Loading comments…','Không tải được bình luận.':'Couldn’t load comments.','Tiếp theo ·':'Up next ·',
-    'Không kết nối được Discord:':'Couldn’t connect to Discord:','Đã liên kết Discord:':'Discord linked:','Mã ghép sai hoặc đã hết hạn':'The pairing code is wrong or has expired',
-    'Không kết nối được YouTube Music. Hãy thử lại sau.':'Couldn’t connect to YouTube Music. Please try again later.',
-    'Không kiểm tra được cập nhật:':'Couldn’t check for updates:','Lần kiểm tra cuối vào':'Last checked','Đã gửi lời mời tới':'Invite sent to','khỏi danh sách bạn bè?':'from your friends?',
-    'bài yêu thích,':'favorite songs,'
-  };
-  Object.keys(EN_EXTRA).forEach(k=>{ if(EN_EXACT[k]===undefined) EN_EXACT[k]=EN_EXTRA[k]; });
-  const EN_EXTRA_KEYS=Object.keys(EN_EXTRA).filter(k=>k.length>=5).sort((a,b)=>b.length-a.length);
-  const isLN=c=>!!c&&/[\p{L}\p{N}]/u.test(c);
-  EN_RULES.push(
-    [/^Thư viện của (.+)$/,(m)=>m[1]+'’s library'],
-    [/^Tuyển tập (.+)$/,(m)=>m[1]+' collection'],
-    [/^Bạn & (.+)$/,(m)=>'You & '+m[1]],
-    [/^Hoà trộn gu · (\d+) bài chung$/,(m)=>'Taste blend · '+plural(m[1],'song','songs')+' in common'],
-    [/^Hoà trộn: (.+)$/,(m)=>'Blend: '+m[1]],
-    [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
-    [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you often listen to '+m[1]],
-    [/^Vì bạn nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
-    [/^Dành cho người hâm mộ (.+)$/,(m)=>'For fans of '+m[1]],
-    [/^Nếu bạn thích (.+)$/,(m)=>'If you like '+m[1]],
-    [/^Cùng gu với (.+)$/,(m)=>'Similar to '+m[1]],
-    [/^Fan (.+) cũng nghe$/,(m)=>'Fans of '+m[1]+' also listen to'],
-    [/^(.+) · bài mới$/,(m)=>m[1]+' · new songs'],
-    [/^Mới từ (.+)$/,(m)=>'New from '+m[1]],
-    [/^Khám phá (.+)$/,(m)=>'Discover '+m[1]],
-    [/^Mới ra mắt tháng (\d+)$/,(m)=>'New releases · month '+m[1]],
-    [/^Ảnh nền ([\d.]+)MB vượt quá 10MB, không tải lên được$/,(m)=>'Background image '+m[1]+'MB exceeds 10MB and can’t be uploaded'],
-    [/^Đang lưu… (\d+%)$/,(m)=>'Saving… '+m[1]],
-    [/^Đã lưu ✔ (\d+%)$/,(m)=>'Saved ✔ '+m[1]],
-    [/^Đã nghe ([\d.]+) (phút|giờ)$/,(m)=>'Listened '+m[1]+(m[2]==='phút'?' min':' h')],
-    [/^Còn ([\d.]+) giờ nữa lên (LV\d+) · (.+)$/,(m)=>m[1]+' h left to reach '+m[2]+' · '+tr(m[3])],
-    [/^Đã nhập (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from this device'+(m[2]?' · '+m[2]+' already in the list':'')+(m[3]?' · '+plural(m[3],'bad file','bad files'):'')],
-    [/^Đã thêm (\d+) bài từ máy(?: · (\d+) bài đã có)?(?: · (\d+) file lỗi)?$/,(m)=>'Added '+plural(m[1],'song','songs')+' from this device'+(m[2]?' · '+m[2]+' already in the list':'')+(m[3]?' · '+plural(m[3],'bad file','bad files'):'')],
-    [/^Đang tải (\d+) bài…$/,(m)=>'Downloading '+plural(m[1],'song','songs')+'…'],
-    [/^(\d+) bài nghe được offline$/,(m)=>plural(m[1],'song','songs')+' available offline'],
-    [/^(\d+) bài đã tải$/,(m)=>plural(m[1],'song','songs')+' downloaded'],
-    [/^(\d+) bài · (\d+) bài nghe được khi không có mạng(.*)$/,(m)=>plural(m[1],'song','songs')+' · '+plural(m[2],'song','songs')+' available without internet'+m[3]],
-    [/^Đã thêm (\d+) bài vào danh sách tải xuống$/,(m)=>'Added '+plural(m[1],'song','songs')+' to the download list'],
-    [/^Đã tải xong (\d+)\/(\d+) bài(?: \((\d+) bài lỗi\))?$/,(m)=>'Downloaded '+m[1]+'/'+plural(m[2],'song','songs')+(m[3]?' ('+m[3]+' failed)':'')],
-    [/^Tải (\d+) bài trong "(.*)" về máy\?$/,(m)=>'Download '+plural(m[1],'song','songs')+' in "'+tr(m[2])+'" to this device?'],
-    [/^Tiếp theo · (\d+) bài$/,(m)=>'Up next · '+plural(m[1],'song','songs')],
-    [/^Xóa vĩnh viễn tài khoản "(.+)"\? Toàn bộ dữ liệu sẽ mất và không khôi phục được\.$/,(m)=>'Permanently delete account "'+m[1]+'"? All data will be lost and can’t be recovered.'],
-    [/^(\d+) lời mời mới$/,(m)=>plural(m[1],'new invite','new invites')],
-    [/^Có video cho (\d+)\/(\d+) bài – .*$/,(m)=>'Video found for '+m[1]+'/'+m[2]+' songs – tap play to watch the video; songs without a video will play audio'],
-    [/^Đang tìm video cho album… (\d+)\/(\d+)$/,(m)=>'Looking for videos for this album… '+m[1]+'/'+m[2]],
-    [/^Đây là (.+)\. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát\.$/,(m)=>'This is '+m[1]+'. Their very best songs, all in one playlist.'],
-    [/^Album "(.+)" không có video – phát âm thanh$/,(m)=>'Album "'+m[1]+'" has no video – playing audio'],
-    [/^Album "(.+)" không có video$/,(m)=>'Album "'+m[1]+'" has no video']
-  );
-  /* Thay từng cụm đã biết trong câu ghép + các số đếm (N bài, N phút, N giờ, N ngày, N nghệ sĩ) */
-  function bbSub(s){
-    let out=s;
-    for(const k of EN_EXTRA_KEYS){
-      let i=out.indexOf(k);
-      while(i!==-1){
-        const a=out[i-1], b=out[i+k.length];
-        if((!isLN(k[0])||!isLN(a))&&(!isLN(k[k.length-1])||!isLN(b))){ const v=EN_EXTRA[k]; out=out.slice(0,i)+v+out.slice(i+k.length); i=out.indexOf(k,i+v.length); }
-        else i=out.indexOf(k,i+1);
-      }
+async fn security_headers(req: Request<Body>, next: Next) -> Response {
+    let is_api = req.uri().path().starts_with("/api/");
+    let is_card_page = req.uri().path().starts_with("/u/");
+    // Banner / avatar / nền tải lên có tên là UUID mới cho mỗi lần upload (không bao giờ đổi nội dung) → cho trình duyệt/WebView
+    // giữ cả năm, lần mở sau hiện ngay không cần hỏi mạng.
+    let is_upload = {
+        let p = req.uri().path();
+        p.starts_with("/banners/") || p.starts_with("/avatars/") || p.starts_with("/backgrounds/")
+    };
+    let mut res = next.run(req).await;
+    let ok_status = res.status().is_success();
+    let h = res.headers_mut();
+    fn set(h: &mut HeaderMap, k: &'static str, v: &'static str) {
+        h.insert(header::HeaderName::from_static(k), HeaderValue::from_static(v));
     }
-    out=out.replace(/(\d+) bài hát/g,(_,n)=>plural(n,'song','songs'))
-           .replace(/(\d+) bài(?![\p{L}])/gu,(_,n)=>plural(n,'song','songs'))
-           .replace(/(\d+) nghệ sĩ/g,(_,n)=>plural(n,'artist','artists'))
-           .replace(/(\d+) phút trước/g,(_,n)=>n+' min ago')
-           .replace(/(\d+) giờ trước/g,(_,n)=>n+' h ago')
-           .replace(/(\d+) ngày trước/g,(_,n)=>n+(+n===1?' day ago':' days ago'))
-           .replace(/([\d.]+) giờ/g,(_,n)=>n+' h').replace(/(\d+) phút/g,(_,n)=>n+' min').replace(/(\d+) ngày\)/g,(_,n)=>n+' days)')
-           .replace(/(\d+) lần\)/g,(_,n)=>n+' times)');
-    return out;
-  }
-
-  const VI=/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ]/;
-  function tr(s){
-    if(!s||!VI.test(s)) return s;
-    const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(s); const lead=m[1], core=m[2], tail=m[3];
-    if(!core) return s;
-    const e=EN_EXACT[core]; if(e!==undefined) return lead+e+tail;
-    for(const [re,fn] of EN_RULES){ const x=re.exec(core); if(x) return lead+fn(x)+tail; }
-    const r2=bbSub(core); if(r2!==core) return lead+r2+tail;
-    return s;
-  }
-  window.bbTr=tr;
-
-  const ATTRS=['title','placeholder','aria-label','alt'];
-  let busy=false;
-  function node(n){
-    if(n.nodeType===3){ const v=n.nodeValue, r=tr(v); if(r!==v) n.nodeValue=r; return; }
-    if(n.nodeType!==1) return;
-    const tag=n.tagName; if(tag==='SCRIPT'||tag==='STYLE') return;
-    for(const a of ATTRS){ if(n.hasAttribute&&n.hasAttribute(a)){ const v=n.getAttribute(a), r=tr(v); if(r!==v) n.setAttribute(a,r); } }
-    for(let c=n.firstChild;c;c=c.nextSibling) node(c);
-  }
-  function run(fn){ if(busy) return; busy=true; try{ fn(); }finally{ busy=false; } }
-  function start(){
-    run(()=>node(document.body));
-    document.title=tr(document.title);
-    new MutationObserver(list=>{
-      run(()=>{
-        for(const r of list){
-          if(r.type==='childList') r.addedNodes.forEach(node);
-          else if(r.type==='characterData') node(r.target);
-          else if(r.type==='attributes'){ const v=r.target.getAttribute(r.attributeName), t=tr(v); if(t!==v) r.target.setAttribute(r.attributeName,t); }
-        }
-      });
-    }).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
-  }
-  if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
-})();
-</script>
-<script>
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt=t=>{t=Math.max(0,t|0);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
-const key=t=>t.src+':'+t.id;
-const slim=t=>({src:t.src,id:String(t.id),title:t.title,artist:t.artist||'',image:t.image||'',url:t.url||'',dur:t.dur||0,explicit:!!t.explicit});
-const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-const CID=Math.random().toString(36).slice(2,10);
-const ABOUT={
-  name:'BBeat', author:'BaoBu', version:'1.0.0',
-  repo:'harashdev/Bbeat',
-  supportUrl:'https://ko-fi.com/harashdev',
-  libs:[
-    ['SimpMusic','Ý tưởng và nguồn lời bài hát – © maxrave-dev, GPL-3.0','https://github.com/maxrave-dev/SimpMusic'],
-    ['SimpMusic Lyrics','Lời bài hát (nguồn chính)','https://github.com/maxrave-dev/SimpMusic'],
-    ['LRCLIB','Lời bài hát có thời gian (dự phòng)','https://lrclib.net'],
-    ['InnerTune','Cách lấy dữ liệu YouTube Music (InnerTube) mà SimpMusic cũng tham khảo','https://github.com/z-huang/InnerTune'],
-    ['SmartTube','Tham khảo cách lấy luồng âm thanh YouTube','https://github.com/yuliskov/SmartTube'],
-    ['YouTube IFrame Player API','Trình phát YouTube chính thức','https://developers.google.com/youtube/iframe_api_reference'],
-    ['SponsorBlock','Dữ liệu đoạn bỏ qua (quảng cáo, intro, outro) – © Ajay Ramachandran và cộng đồng, CC BY-NC-SA 4.0','https://sponsor.ajay.app'],
-    ['Return YouTube Dislike','Số lượt thích/không thích','https://returnyoutubedislike.com'],
-    ['yt-dlp','Lấy luồng âm thanh khi nguồn khác bị chặn','https://github.com/yt-dlp/yt-dlp'],
-    ['Piped','Nguồn luồng âm thanh dự phòng','https://github.com/TeamPiped/Piped'],
-    ['Axum','Web server (Rust)','https://github.com/tokio-rs/axum'],
-    ['Tokio','Chạy bất đồng bộ (Rust)','https://tokio.rs'],
-    ['tower-http','Phục vụ file tĩnh','https://github.com/tower-rs/tower-http'],
-    ['reqwest','Gọi HTTP từ server','https://github.com/seanmonstar/reqwest'],
-    ['rusqlite / SQLite','Cơ sở dữ liệu','https://github.com/rusqlite/rusqlite'],
-    ['argon2','Băm mật khẩu','https://github.com/RustCrypto/password-hashes'],
-    ['serde / serde_json','Đọc ghi JSON','https://serde.rs'],
-    ['uuid','Tạo mã định danh','https://github.com/uuid-rs/uuid'],
-    ['futures-util','Tiện ích bất đồng bộ (Rust)','https://github.com/rust-lang/futures-rs'],
-    ['Tauri','Đóng gói app máy tính','https://tauri.app'],
-    ['AndroidX Core / Activity','Thành phần app Android','https://developer.android.com/jetpack/androidx'],
-    ['Discord Social SDK','Hiện trạng thái đang nghe trên Discord (tuỳ chọn)','https://discord.com/developers/docs/discord-social-sdk/overview']
-  ]
-};
-const bbPad=n=>String(n).padStart(2,'0');
-const bbFmt=ms=>{ const d=new Date(+ms); return d.getFullYear()+'-'+bbPad(d.getMonth()+1)+'-'+bbPad(d.getDate())+' '+bbPad(d.getHours())+':'+bbPad(d.getMinutes())+':'+bbPad(d.getSeconds()); };
-const bbCmp=(a,b)=>{ const x=String(a).split('.').map(n=>parseInt(n)||0), y=String(b).split('.').map(n=>parseInt(n)||0); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0?1:-1; } return 0; };
-function openExt(u){
-  u=String(u||'').trim(); if(!u) return;
-  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u='https://'+u.replace(/^\/+/,'');
-  if(window.ANDROID_APP){ location.href=u; return; }
-  const T=window.__TAURI__;
-  if(T&&T.core&&T.core.invoke){
-    (async()=>{
-      let err='';
-      for(const [c,a] of [['open_url',{url:u}],['plugin:opener|open_url',{url:u}],['plugin:shell|open',{path:u}]]){ try{ await T.core.invoke(c,a); return; }catch(e){ if(!err) err=String((e&&e.message)||e).slice(0,140); } }
-      const why=err?' ['+err+']':'';
-      try{ await navigator.clipboard.writeText(u); notify('Không mở được trình duyệt – đã chép link: '+u+why); }catch{ notify('Không mở được trình duyệt, link: '+u+why); }
-    })();
-    return;
-  }
-  window.open(u,'_blank','noopener');
-}
-if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP){
-  const wo=window.open.bind(window);
-  window.open=function(u,...r){ if(/^https?:\/\//i.test(String(u||''))&&!String(u).startsWith(location.origin)){ openExt(String(u)); return null; } return wo(u,...r); };
-  document.addEventListener('click',e=>{ const a=e.target.closest&&e.target.closest('a[href]'); if(a&&/^https?:\/\//i.test(a.href)&&a.origin!==location.origin&&(a.target==='_blank'||!a.href.startsWith(location.origin))){ e.preventDefault(); openExt(a.href); } },true);
-}
-const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch{return d}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
-let token=LS.get('token',''), me=null, cfg={}, ws, room, yt, ytReady=false, cur=null, playing=false, regMode=false;
-let S={track_history:true,save_state:false,crossfade:false,crossfade_secs:5,explicit:false,offline_pl:false,proxy:false,discord_rpc:false,eq_on:false,eq_gains:[0,0,0,0,0,0,0,0,0,0],eq_pre:0,delay_on:false,delay_ms:300,delay_fb:35,delay_mix:35,reverb_on:false,reverb_type:'hall',reverb_mix:30,show_errors:false}, fadeMul=1, fadeInAt=0;
-let leader=false, offset=0, pend=null, queue=[], qi=-1, shuf=false, rep=0, vol=+LS.get('vol',0.8), lastVol=.8, seeking=false, qname='';
-let favs=new Set(), playlists=[], chatLog=[], page='home', curPl=null, lyrCache={}, lyrLines=null, homeCi=0, lastQ='', showVideo=LS.get('vid','0')==='1', npOpen=LS.get('npopen','0')==='1', npTab='play';
-const lists={}, lnames={}; let lid=0; const reg=(l,n)=>{const k='l'+(++lid);lists[k]=l;lnames[k]=String(n||'').replace(/^Kết quả: /,'');try{ warmList(l); }catch{} return k};
-const now=()=>Date.now()+offset;
-const aud=$('#aud');
-const offSet=new Set(), offUrl={}, offBad={}; let offOrder=[], netDown=false;
-const offlineNow=()=>netDown||navigator.onLine===false;
-
-const IC={
- scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
- moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
- home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
- search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
- radio:'<circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2"/>',
- library:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 16V8.5l5-1.5v7.5"/><circle cx="8.5" cy="16" r="1.5"/><circle cx="13.5" cy="14.5" r="1.5"/>',
- music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
- panel:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>',
- dislike:'<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>',
- heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
- clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
- trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
- userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/>',
- users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20"/>',
- plus:'<path d="M12 5v14M5 12h14"/>',
- plusc:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
- copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
- pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
- camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
- crop:'<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/>',
- gear:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
- shuffle:'<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
- stop:'<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
- prev:'<path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/>',
- next:'<path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/>',
- play:'<path d="M7 4.5v15l13-7.5z"/>',
- pause:'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
- repeat:'<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
- repeat1:'<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/><path d="M11 10h1.5v4"/>',
- queue:'<path d="M3 6h12M3 12h12M3 18h7"/><path d="M19 15V6l3 1"/><circle cx="17" cy="17" r="2.5"/>',
- pip:'<rect x="3" y="4" width="18" height="16" rx="3"/><rect x="12" y="12" width="6" height="5" rx="1"/>',
- vol:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
- volx:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>',
- x:'<path d="M6 6l12 12M18 6 6 18"/>',
- folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
- chev:'<path d="m9 6 6 6-6 6"/>',
- info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
- phones:'<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="2"/><rect x="17" y="14" width="4" height="7" rx="2"/>',
- video:'<rect x="3" y="6" width="14" height="12" rx="2"/><path d="m17 10 4-2v8l-4-2z"/>',
- lyrics:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
- dots:'<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
- note:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
- trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
- download:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
- check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
- eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
- eyeoff:'<path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A16.8 16.8 0 0 0 2 12s3.6 7 10 7a9.8 9.8 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
- rew5:'<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M14.5 9.5h-3.2l-.4 2.8c.4-.3.9-.5 1.5-.5 1.1 0 1.9.7 1.9 1.7 0 1.1-.9 1.8-2 1.8-.7 0-1.2-.2-1.6-.6"/>',
- fwd5:'<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/><path d="M14.5 9.5h-3.2l-.4 2.8c.4-.3.9-.5 1.5-.5 1.1 0 1.9.7 1.9 1.7 0 1.1-.9 1.8-2 1.8-.7 0-1.2-.2-1.6-.6"/>',
- full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
- fullx:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
- cloudoff:'<path d="M3 3l18 18M8 18a4.5 4.5 0 0 1-1-8.9M10.5 6.2A6 6 0 0 1 18 11a4 4 0 0 1 1.6 7.6M9 18h8"/>'
-};
-$('#sprite').innerHTML=Object.entries(IC).map(([k,v])=>`<symbol id="i-${k}" viewBox="0 0 24 24">${v}</symbol>`).join('');
-const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
-document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,e.dataset.f?'fill':'')});
-function setIc(el,name,fill){ const s=name+(fill?'f':''); if(el.dataset.s===s) return; el.dataset.s=s; el.innerHTML=ic(name,fill?'fill':''); }
-
-const thumb0=(u,s=300)=>{ u=String(u||''); const s0=s; s=Math.min(Math.round(s*Math.min(window.devicePixelRatio||1,3)),1200);
-  if(/googleusercontent\.com|ggpht\.com/.test(u)&&/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${s}-h${s}-l90-rj`);
-  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return `https://i.ytimg.com/vi/${m[1]}/${s0>400?'hq720':'mqdefault'}.jpg`;
-  return u; };
-const IMG_NET=/^https?:\/\/(i\.ytimg\.com|[\w-]+\.(googleusercontent|ggpht)\.com)\//;
-/* ẢNH BÌA – luôn phải hiện. Mọi bước đều chạy ngay trên máy người dùng (không phụ thuộc server):
-   trực tiếp i.ytimg.com -> các tên miền ảnh YouTube khác -> wsrv.nl -> DuckDuckGo -> weserv.nl -> server (/api/img) -> ảnh thay thế.
-   Ảnh lỗi (hoặc treo > 6 giây) tự nhảy sang nguồn kế tiếp; nguồn nào chạy được thì nhớ 6 giờ để các ảnh sau đi thẳng. */
-const imgHolder=k=>{ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))>>>0; const a=h%360, b=(a+40)%360;
-  return 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#222326"/><g transform="translate(5 2)"><path d="M58 28v30.5a9 9 0 1 1-5-8V36l-18 4v22.5a9 9 0 1 1-5-8V34z" fill="#3c3d42"/></g></svg>`); };
-const IMG_PX=u=>'/api/img?u='+encodeURIComponent(u);
-const imgClean=u=>String(u).replace(/([?&])_r=\d+/,'').replace(/[?&]$/,'');
-const imgVia=(b,v)=>{ const e=encodeURIComponent(b); return v==='w'?'https://wsrv.nl/?url='+e : v==='d'?'https://external-content.duckduckgo.com/iu/?u='+e+'&f=1' : v==='v'?'https://images.weserv.nl/?url='+e : IMG_PX(b); };
-function imgChain(o){ o=imgClean(o); const c=[o]; const m=o.match(/^https?:\/\/(?:i\d?\.ytimg\.com|img\.youtube\.com)\/vi(?:_webp)?\/([\w-]{11})\//);
-  let base=o;
-  if(m){ base='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg'; c.push(base,'https://img.youtube.com/vi/'+m[1]+'/mqdefault.jpg','https://i1.ytimg.com/vi/'+m[1]+'/hqdefault.jpg'); }
-  for(const v of ['w','d','v','p']) c.push(imgVia(base,v));
-  return c.map(x=>x[0]==='/'?location.origin+x:x).filter((x,k,arr)=>arr.indexOf(x)===k); }
-function imgUnproxy(s){ try{ const u=new URL(s,location.href), h=u.hostname;
-  if(h==='wsrv.nl'||h==='images.weserv.nl') return u.searchParams.get('url')||'';
-  if(h==='external-content.duckduckgo.com'||(h===location.hostname&&u.pathname==='/api/img')) return u.searchParams.get('u')||''; }catch{} return ''; }
-let imgOk=0, imgBad=0, imgBest=''; try{ const [v,t]=String(LS.get('muse_imgvia','')).split('@'); if(v&&Date.now()-(+t||0)<6*3600e3) imgBest=v; }catch{}
-const thumb=(u,s)=>{ const r=thumb0(u,s); return imgBest&&IMG_NET.test(r)?imgVia(imgClean(r),imgBest):r; };
-/* Nhận ảnh vào hệ thống dự phòng: trả về URL gốc (hoặc '' nếu không phải ảnh bìa). */
-function imgAdopt(i){ if(i.dataset.o0) return i.dataset.o0; const src=i.src||''; if(!src||/^data:/.test(src)) return '';
-  let o=IMG_NET.test(src)?imgClean(src):imgUnproxy(src); if(!o) return '';
-  const h=i.closest('[data-tk]'), m=h&&String(h.dataset.tk).match(/^yt:([\w-]{11})$/);
-  if(m&&!/ytimg\.com/.test(o)) o='https://i.ytimg.com/vi/'+m[1]+'/mqdefault.jpg';   /* ảnh Google lỗi -> dùng thumbnail theo id bài */
-  return i.dataset.o0=o; }
-function imgNext(i){ if(!i.isConnected) return; const o=imgAdopt(i); if(!o) return; const ch=imgChain(o);
-  let k=ch.indexOf(i.src); if(k<0) k=(i.dataset.fi!==undefined&&i.dataset.fi!=='x')?+i.dataset.fi:0; k++;
-  i.dataset.t=Date.now();
-  if(k>=ch.length){ if(i.dataset.fi!=='x'){ i.dataset.fi='x'; i.src=imgHolder(o); } return; }
-  i.dataset.fi=k; i.loading='eager'; i.src=ch[k]; }
-document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG'||!i.dataset.o0) { if(i&&i.tagName==='IMG'&&IMG_NET.test(i.src||'')) imgOk++; return; }
-  const src=i.src||''; if(/^data:/.test(src)) return; delete i.dataset.t;
-  if(!imgOk&&!imgBest){ const v=/^https:\/\/wsrv\.nl\//.test(src)?'w':/duckduckgo\.com\/iu/.test(src)?'d':/images\.weserv\.nl/.test(src)?'v':src.indexOf('/api/img?')>=0?'p':'';
-    if(v){ imgBest=v; LS.set('muse_imgvia',v+'@'+Date.now()); } } },true);
-/* YouTube không có ảnh hq720 thì trả về ảnh xám 120x90 (trạng thái vẫn "tải thành công" nên sự kiện lỗi không chạy) → bìa lớn hiện khung xám nhoè.
-   Nhận ra ảnh đó qua kích thước rồi thử lần lượt bản nét nhất còn có: hq720 → maxresdefault → sddefault → hqdefault → mqdefault (320px, mờ nhất nên để cuối). */
-const YT_RES=['hq720','maxresdefault','sddefault','hqdefault','mqdefault'];
-const YT_RES_RE=/^(https?:\/\/(?:i\d?\.ytimg\.com|img\.youtube\.com)\/vi(?:_webp)?\/[\w-]{11}\/)(hq720|maxresdefault|sddefault|hqdefault|mqdefault)\.jpg/;
-function ytLowerRes(src){ const m=String(src).match(YT_RES_RE); if(!m) return ''; const k=YT_RES.indexOf(m[2]); if(k<0||k>=YT_RES.length-1) return ''; return src.replace(m[0],m[1]+YT_RES[k+1]+'.jpg'); }
-document.addEventListener('load',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||'', m=src.match(YT_RES_RE);
-  if(!m){ if(i.style.objectViewBox) i.style.objectViewBox=''; return; }
-  if(i.naturalWidth===120&&i.naturalHeight===90){ const nx=ytLowerRes(src); i.dataset.fi='0'; if(nx) i.src=nx; else imgNext(i); return; }
-  /* sddefault/hqdefault là khung 4:3 có viền đen trên/dưới (nội dung 16:9) → cắt viền khi hiển thị (object-view-box: Chrome/WebView; trình duyệt chưa hỗ trợ thì bỏ qua) */
-  const lb=(m[2]==='sddefault'||m[2]==='hqdefault')&&i.naturalWidth*3===i.naturalHeight*4;
-  i.style.objectViewBox=lb?'inset(12.5% 0)':''; },true);
-document.addEventListener('error',e=>{ const i=e.target; if(!i||i.tagName!=='IMG') return; const src=i.src||''; if(!src||/^data:/.test(src)) return;
-  if(!imgAdopt(i)) return; if(!i.dataset.o0.length) return;
-  if(IMG_NET.test(src)&&!i.dataset.fi) imgBad++;
-  /* ảnh hq720 không có thì hạ ngay (không tốn một lượt chuỗi) */
-  if(IMG_NET.test(src)){ const nx=ytLowerRes(src); if(nx){ i.dataset.fi='0'; i.src=nx; return; } }
-  const k=+i.dataset.fi||0; setTimeout(()=>imgNext(i), k===0?0:200); },true);
-function imgSweep(force){ const now=Date.now(); document.querySelectorAll('img[src]').forEach(i=>{ const src=i.src; if(!src||/^data:/.test(src)||i.dataset.fi==='x') return;
-  if(!(i.dataset.o0||IMG_NET.test(src)||imgUnproxy(src))) return;
-  const bad=i.complete&&!i.naturalWidth; if(i.complete&&!bad){ delete i.dataset.t; return; }
-  const r=i.getBoundingClientRect(); if(!r.width||r.bottom<-600||r.top>innerHeight+600||r.right<-300||r.left>innerWidth+300) return;   /* ảnh lazy ngoài màn hình thì chưa tính */
-  if(!i.dataset.t) i.dataset.t=now;
-  if(force||(bad&&now-(+i.dataset.t)>300)||(!bad&&now-(+i.dataset.t)>2000)) imgNext(i); }); }
-setInterval(()=>{ if(!document.hidden) imgSweep(false); },800);
-addEventListener('online',()=>imgSweep(true)); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) imgSweep(false); });
-const IMG_LOAD=window.ANDROID_APP?'lazy':'eager';
-const isWide=t=>/i\.ytimg\.com\/vi\//.test(t.image||'');
-function setImg(img,url,s){ img.onerror=()=>{ img.onerror=null; if(url) img.src=url; }; img.src=url?thumb(url,s):''; }
-/* Nạp trước ảnh bìa của những dòng đầu ngay khi có kết quả (trước khi vẽ ra màn hình): app Android tải/ghi cache sẵn nên ảnh hiện tức thì. */
-const warmSeen=new Set();
-function warmImgs(list,s,n=14){ try{ let k=0; for(const t of (list||[])){ if(k>=n) break; const u=t&&(t.image||t.thumbnail); if(!u) continue;
-  const src=thumb(u,s); if(warmSeen.has(src)) continue; warmSeen.add(src); k++; const i=new Image(); i.decoding='async'; i.src=src; }
-  if(warmSeen.size>800) warmSeen.clear(); }catch{} }
-
-let guest=!token&&LS.get('muse_guest','0')==='1';
-const GUEST_USER={id:0,username:'guest',display_name:'Khách',avatar:'🎧',accent:'#8ecbff',bg:'',bg_url:'',code:'',is_admin:false,banner:'',banner_color:'',status:'',crop:''};
-const GUEST_LOCAL=/^\/api\/(settings|favorites|history|playlists(\/.*)?)$/, GUEST_NET=/^\/api\/(yt\/|config$|time$|users\/\d+\/home$|fans\/\d+$)/;
-const GL={ get(k,d){ try{ const v=JSON.parse(LS.get('muse_g_'+k,'null')); return v===null?d:v; }catch{ return d; } }, set(k,v){ LS.set('muse_g_'+k,JSON.stringify(v)); } };
-async function guestApi(p,opt){
-  const m=String(opt.method||(opt.json!==undefined?'POST':'GET')).toUpperCase(), j=opt.json;
-  if(p==='/api/settings'){ const s=GL.get('settings',{}); if(m==='POST'){ Object.assign(s,j||{}); GL.set('settings',s); } return Object.assign({},S,s); }
-  if(p==='/api/favorites'){ const f=GL.get('fav',[]);
-    if(m==='POST'){ const k=key(j), i=f.findIndex(x=>key(x)===k); if(i>=0){ f.splice(i,1); GL.set('fav',f); return {fav:false}; } f.unshift(slim(j)); GL.set('fav',f); return {fav:true}; }
-    return f; }
-  if(p==='/api/history'){ let h=GL.get('hist',[]);
-    if(m==='POST'){ const k=key(j); h=h.filter(x=>key(x)!==k); h.unshift(slim(j)); GL.set('hist',h.slice(0,100)); return ''; }
-    if(m==='DELETE'){ GL.set('hist',[]); return ''; }
-    return h; }
-  const pls=GL.get('pls',[]);
-  if(p==='/api/playlists'){
-    if(m==='POST'){ const name=String((j&&j.name)||'').trim().slice(0,40); if(!name) throw new Error('Tên playlist không được trống'); if(pls.length>=50) throw new Error('Tối đa 50 playlist');
-      const id=GL.get('plseq',0)+1; GL.set('plseq',id); pls.push({id,name,tracks:[]}); GL.set('pls',pls); return {id,name,count:0}; }
-    return pls.map(x=>({id:x.id,name:x.name,count:x.tracks.length,covers:x.tracks.map(t=>t.image).filter(Boolean).slice(0,4)})); }
-  const mm=p.match(/^\/api\/playlists\/(\d+)(\/tracks(?:\/(.+))?)?$/); if(!mm) throw new Error('Yêu cầu không hợp lệ');
-  const id=+mm[1], pl=pls.find(x=>x.id===id); if(!pl) throw new Error('Không tìm thấy playlist');
-  if(mm[2]){
-    if(m==='POST'){ const k=key(j); if(!pl.tracks.some(x=>key(x)===k)) pl.tracks.push(slim(j)); }
-    else if(m==='DELETE'){ const k=decodeURIComponent(mm[3]||''); pl.tracks=pl.tracks.filter(x=>key(x)!==k); }
-    GL.set('pls',pls); return ''; }
-  if(m==='DELETE'){ GL.set('pls',pls.filter(x=>x.id!==id)); return ''; }
-  return {id:pl.id,name:pl.name,tracks:pl.tracks};
-}
-function goLogin(){ LS.set('muse_guest','0'); guest=false; location.reload(); }
-function guestCta(m,title){
-  m.innerHTML=`<h2>${esc(title)}</h2><div class="panel"><h3 style="margin-top:0">Cần tài khoản</h3><p class="sub">Bạn đang dùng BBeat không đăng nhập. Hãy đăng nhập hoặc đăng ký để dùng tính năng này.</p><div class="row"><button class="pri" id="gLogin">Đăng nhập / Đăng ký</button></div></div>`;
-  $('#gLogin').onclick=goLogin;
-}
-
-const NET_ERR='Không kết nối được máy chủ (server đang tắt hoặc file tải lên quá lớn)';
-const errTxt=e=>(e&&e.net)?'':String((e&&e.message)||e||'');
-async function api(path,opt={}){
-  if(guest){ const p=path.split('?')[0];
-    if(GUEST_LOCAL.test(p)) return guestApi(p,opt);
-    if(!GUEST_NET.test(p)){ const ge=new Error('Cần đăng nhập để dùng tính năng này'); ge.guest=true; throw ge; } }
-  const h=Object.assign({},opt.headers||{}); if(token) h.Authorization='Bearer '+token;
-  let body=opt.body; if(opt.json!==undefined){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
-  let r, ctl=null, tmo=0; if(opt.timeout){ ctl=new AbortController(); tmo=setTimeout(()=>ctl.abort(),opt.timeout); }
-  try{ r=await fetch(path,{method:opt.method||(body!==undefined?'POST':'GET'),headers:h,body,signal:opt.signal||(ctl?ctl.signal:undefined)}); netDown=false; clearTimeout(tmo); }catch(e){ clearTimeout(tmo);
-    if(opt.signal&&opt.signal.aborted){ const ae=new Error('aborted'); ae.name='AbortError'; ae.aborted=true; throw ae; }
-    if(ctl&&ctl.signal.aborted){ const te=new Error('Máy chủ phản hồi quá lâu, hãy bấm Lưu lại (ảnh GIF nặng có thể cần thu nhỏ trước)'); te.timeout=true; throw te; }
-    netDown=true; try{ if(!offWatchTm){ offBar(true); offWatch(); } }catch{} const ne=new Error(NET_ERR); ne.net=true; throw ne; }
-  if(r.status===401&&path!=='/api/login'){ showAuth(); throw new Error('401'); }
-  if(!r.ok){ const detail=(await r.text()||'').trim(); if(r.status>=400&&r.status<500&&detail) throw new Error(detail); throw new Error(`HTTP ${r.status} ${r.statusText||''}: ${detail||'Máy chủ không gửi nội dung lỗi'}`.trim()); }
-  const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text();
-}
-/* Tải file lên có % tiến độ (fetch không báo được tiến độ gửi nên dùng XHR). onProg(loaded,total) */
-function apiUp(path,body,onProg,timeout=240000){
-  return new Promise((resolve,reject)=>{
-    const x=new XMLHttpRequest(); x.open('POST',path); x.timeout=timeout;
-    if(token) x.setRequestHeader('Authorization','Bearer '+token);
-    x.upload.onprogress=e=>{ if(e.lengthComputable&&onProg) onProg(e.loaded,e.total); };
-    x.onload=()=>{
-      if(x.status===401){ showAuth(); return reject(new Error('401')); }
-      if(x.status<200||x.status>=300){ const d=(x.responseText||'').trim(); return reject(new Error(x.status<500&&d?d:`HTTP ${x.status}: ${d||'Máy chủ không gửi nội dung lỗi'}`)); }
-      try{ resolve(JSON.parse(x.responseText)); }catch{ resolve(x.responseText); } };
-    x.onerror=()=>reject(new Error(NET_ERR));
-    x.ontimeout=()=>reject(new Error('Máy chủ phản hồi quá lâu, hãy thử ảnh nhẹ hơn rồi bấm Lưu lại'));
-    x.send(body); });
-}
-const isImg=a=>a&&(a.startsWith('/')||a.startsWith('https://')||a.startsWith('blob:'));
-const cropOf=u=>{ let c={}; try{ c=JSON.parse((u&&u.crop)||'{}')||{}; }catch{} const n=(v,lo,hi,d)=>{ v=(v===''||v===null||v===undefined)?NaN:+v; return Math.min(hi,Math.max(lo,Number.isFinite(v)?v:d)); };
-  return {bx:n(c.bx,0,100,50),by:n(c.by,0,100,50),bz:n(c.bz,.1,4,1),ba:n(c.ba,0,20,0),ax:n(c.ax,0,100,50),ay:n(c.ay,0,100,50),az:n(c.az,.1,4,1),aa:n(c.aa,0,20,0)}; };
-/* ===== KIỂU CHỮ HỒ SƠ (Điều chỉnh chữ ở trang Chỉnh sửa hồ sơ) =====
-   Lưu trên server trong crop.tx (độ lệch so với mặc định của từng chữ) → thẻ nhỏ, trang cá nhân, thẻ chia sẻ, link và người khác xem đều thấy đúng như lúc chỉnh.
-   c: màu · s: mức bóng (±5) · w: bậc đậm (×100) · o: độ rõ (điểm %, ≤0) · z: cỡ chữ (điểm %, -30..+40) */
-const TX_KEYS=['name','un','st','fan','fol','like'];
-const txClean=o=>{ const r={}; TX_KEYS.forEach(k=>{ const v=(o&&o[k])||{}; const cl=(x,lo,hi)=>{ x=Math.round(+x); return Number.isFinite(x)?Math.min(hi,Math.max(lo,x)):0; }; r[k]={c:/^#[0-9a-f]{6}$/i.test(v.c||'')?v.c.toLowerCase():'',s:cl(v.s,-5,5),w:cl(v.w,-5,5),o:cl(v.o,-60,0),z:cl(v.z,-30,40)}; }); return r; };
-const txOf=u=>{ let c={}; try{ c=JSON.parse((u&&u.crop)||'{}')||{}; }catch{} return txClean(c.tx); };
-const txIsDef=v=>!v||(!v.c&&!v.s&&!v.w&&!v.o&&!v.z);
-const txDump=T=>{ const r={}; TX_KEYS.forEach(k=>{ if(T&&!txIsDef(T[k])) r[k]=T[k]; }); return r; };
-const txShadowCss=n=>n<=0?'none':`0 ${(n*.2).toFixed(2)}px ${(n*1.2).toFixed(1)}px rgba(0,0,0,${Math.min(.95,.1+n*.12).toFixed(2)})`;
-const txAttr=u=>{ const d=txDump(txOf(u)); return Object.keys(d).length?` data-tx="${esc(JSON.stringify(d))}"`:''; };
-/* Áp kiểu chữ lên một (nhóm) phần tử: màu/bóng/độ đậm đo từ mặc định thật của chữ đó; cỡ chữ dùng zoom nên đúng ở mọi khung (thẻ nhỏ, thẻ to, trang cá nhân). */
-function txStyle(tg,v,box){
-  tg=(tg||[]).filter(Boolean); if(!tg.length) return; box=box||tg[0];
-  box.style.opacity=''; tg.forEach(t=>{ t.style.color=''; t.style.textShadow=''; t.style.fontWeight=''; t.style.zoom=''; });
-  if(!v||txIsDef(v)) return;
-  const base=tg.map(t=>parseInt(getComputedStyle(t).fontWeight,10)||400);
-  const L=Math.max(0,Math.floor((base[0]-300)/100)), R=Math.max(0,Math.floor((900-base[0])/100)), dw=Math.max(-L,Math.min(R,v.w));
-  if(v.o) box.style.opacity=((100+v.o)/100).toFixed(2);
-  tg.forEach((t,i)=>{ if(v.c) t.style.color=v.c; if(v.s) t.style.textShadow=txShadowCss(5+v.s); if(dw) t.style.fontWeight=Math.max(300,Math.min(900,base[i]+dw*100)); if(v.z) t.style.zoom=((100+v.z)/100).toFixed(2); });
-}
-function txApplyPc(pc){ let T; try{ T=txClean(JSON.parse(pc.dataset.tx||'{}')); }catch{ return; }
-  txStyle([pc.querySelector('.pc-name')],T.name); txStyle([pc.querySelector('.pc-un')],T.un); txStyle([pc.querySelector('.pc-badge')],T.st);
-  const f=pc.querySelector('.pc-st>div'); if(f) txStyle([...f.children],T.fan,f); }
-function txApplyBp(d,u){ const T=txOf(u);
-  txStyle([d.querySelector('.bp-nm b')],T.name); txStyle([d.querySelector('.bp-bio .bp-q')],T.st);
-  const st=[...d.querySelectorAll('.bp-st')]; [T.fan,T.fol,T.like].forEach((v,i)=>{ if(st[i]) txStyle([...st[i].children],v,st[i]); }); }
-(function(){   /* thẻ hồ sơ (dựng sẵn / popup / thẻ to qua link) tự được áp kiểu chữ ngay khi được gắn vào trang, kể cả khi bị chuyển từ khung dựng sẵn sang popup */
-  const pcs=n=>{ if(n.nodeType!==1) return []; if(n.classList.contains('pc')) return [n]; if(n.classList.contains('pcov')||n.classList.contains('pcpop')||n.classList.contains('pcwarm')) return [...n.querySelectorAll('.pc[data-tx]')]; return []; };
-  const run=ms=>{ for(const m of ms) m.addedNodes.forEach(n=>pcs(n).forEach(pc=>{ if(pc.dataset.tx){ try{ txApplyPc(pc); }catch{} } })); };
-  try{ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true}); }catch{}
-})();
-function cropRange(z,ar,fa){
-  const w=Math.max(1,ar/fa)*100*z, h=Math.max(1,fa/ar)*100*z;
-  const r=sz=>sz>=100?[100-sz/2,sz/2]:[sz/2,100-sz/2];
-  return {x:r(w),y:r(h)};
-}
-function cropClamp(x,y,z,ar,fa){
-  if(!ar) return [x,y];
-  const g=cropRange(z,ar,fa), c=(v,[lo,hi])=>Math.min(hi,Math.max(lo,v));
-  return [c(x,g.x),c(y,g.y)];
-}
-function cropStyle(x,y,z,ar,fa){
-  z=Math.max(1,+z||1);
-  [x,y]=cropClamp(x,y,z,ar,fa);
-  if(!ar) return `position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;max-width:none;transform:scale(${z})`;
-  return `position:absolute;left:${x}%;top:${y}%;width:${Math.max(1,ar/fa)*100}%;height:${Math.max(1,fa/ar)*100}%;max-width:none;transform:translate(-50%,-50%) scale(${z})`;
-}
-const avHtml=(a,cls='',cr,vid)=>isImg(a)?`<span class="av ${cls}">${vid?gvHtml(a,cr?cropStyle(cr.ax,cr.ay,cr.az,cr.aa,1):''):`<img src="${esc(a)}" alt=""${cr?` style="${cropStyle(cr.ax,cr.ay,cr.az,cr.aa,1)}"`:''}>`}</span>`:`<span class="av ${cls}">${esc(a||'🎧')}</span>`;
-const avU=(u,cls='')=>avHtml(u.avatar,cls,cropOf(u));
-function askDialog(o){ return new Promise(res=>{
-  const ov=document.createElement('div'); ov.className='dlgov';
-  const box=document.createElement('div'); box.className='dlg'; box.setAttribute('role','dialog');
-  const h=document.createElement('h3'); h.textContent=o.title; box.appendChild(h);
-  if(o.msg){ const p=document.createElement('p'); p.textContent=o.msg; box.appendChild(p); }
-  let inp=null; if(o.input){ inp=document.createElement('input'); inp.type='text'; inp.value=o.def||''; inp.autocomplete='off'; box.appendChild(inp); }
-  const b=document.createElement('div'); b.className='dlgb';
-  const c=document.createElement('button'); c.className='dlgc'; c.textContent='Hủy';
-  const k=document.createElement('button'); k.className='dlgo'; k.textContent=o.ok||'OK';
-  b.appendChild(c); b.appendChild(k); box.appendChild(b); ov.appendChild(box); document.body.appendChild(ov);
-  const done=v=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); res(v); };
-  const okv=()=>done(o.input?inp.value:true), no=()=>done(o.input?null:false);
-  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); no(); } else if(e.key==='Enter'){ e.preventDefault(); okv(); } }
-  document.addEventListener('keydown',onKey,true);
-  c.onclick=no; k.onclick=okv; ov.onclick=e=>{ if(e.target===ov) no(); };
-  setTimeout(()=>(inp||k).focus(),30);
-}); }
-function showLibs(){
-  const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML=`<div class="dlg libdlg" role="dialog" aria-modal="true"><h3>Thư viện bên thứ ba</h3><p>Các thư viện và dịch vụ mà BBeat sử dụng</p><div class="liblist">${ABOUT.libs.map(([n,d,u])=>`<div class="srow btn" data-url="${esc(u)}" role="button" tabindex="0"><div class="sx"><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')}</div><div class="dlgb"><button class="dlgo">Đóng</button></div></div>`;
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  ov.onclick=e=>{ if(e.target===ov){ close(); return; } const r=e.target.closest('[data-url]'); if(r) openExt(r.dataset.url); };
-  ov.querySelector('.dlgo').onclick=close;
-  document.body.appendChild(ov);
-}
-const askText=(title,def)=>askDialog({title:String(title).replace(/[:：]\s*$/,''),input:true,def});
-const askConfirm=(msg,ok)=>askDialog({title:'Xác nhận',msg,ok});
-function pushToast(t,key,ms){
-  const box=$('#toasts'); if(key){ box.querySelectorAll('.toast').forEach(x=>{ if(x.dataset.k===key) x.remove(); }); t.dataset.k=key; }
-  box.appendChild(t); while(box.children.length>3) box.firstElementChild.remove();
-  setTimeout(()=>t.remove(),ms);
-}
-function adminNotify(msg){ if(/video/i.test(String(msg))) return; try{ if(me&&me.is_admin&&S.show_errors) notify(msg); }catch{} }
-function notify(msg){ if(msg===NET_ERR) return; const t=document.createElement('div'); t.className='toast'; t.textContent=msg; pushToast(t,'n:'+msg,3200); }
-const muted={}, inviteAt={};
-const isMuted=n=>muted[n]&&muted[n]>Date.now();
-async function sendInvite(id){
-  if(Date.now()-(inviteAt[id]||0)<15000){ const e=new Error('Bạn vừa mời người này rồi, đợi vài giây nhé'); e.quiet=true; throw e; }
-  inviteAt[id]=Date.now();
-  try{ return await api('/api/invite',{json:{friend_id:id,room}}); }catch(e){ inviteAt[id]=0; throw e; }
-}
-
-function showAuth(){ $('#auth').style.display='flex'; }
-function setMode(reg){ regMode=reg; $('#aNameRow').style.display=reg?'':'none'; $('#aGo').textContent=reg?'Tạo tài khoản':'Đăng nhập'; $('#tReg').className=reg?'pri':''; $('#tLogin').className=reg?'':'pri'; $('#authErr').textContent=''; }
-$('#tLogin').onclick=()=>setMode(false); $('#tReg').onclick=()=>setMode(true);
-$('#aGo').onclick=async()=>{
-  try{
-    const r=await api(regMode?'/api/register':'/api/login',{json:{username:$('#aUser').value,password:$('#aPass').value,display_name:$('#aName').value}});
-    token=r.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; $('#aPass').value=''; start(r.user);
-  }catch(e){ $('#authErr').textContent=errTxt(e)||'Chưa đăng nhập được – kiểm tra mạng hoặc bấm “Dùng không cần đăng nhập”'; }
-};
-$('#aGuest').onclick=()=>{ LS.set('muse_guest','1'); try{ localStorage.removeItem('token'); }catch{} location.reload(); };
-/* QR code generator — Kazuhiko Arase, MIT (qrcode-terminal vendor build) */
-const bbQR=(()=>{const D={},C={};const R=n=>{n=n.replace('./','');if(!C[n]){const m={exports:{}};C[n]=m;D[n](m,m.exports,R);}return C[n].exports;};
-D['QRMode']=function(module,exports,require){
-module.exports = {
-    MODE_NUMBER :       1 << 0,
-    MODE_ALPHA_NUM :    1 << 1,
-    MODE_8BIT_BYTE :    1 << 2,
-    MODE_KANJI :        1 << 3
-};
-
-};
-D['QRErrorCorrectLevel']=function(module,exports,require){
-module.exports = {
-	L : 1,
-	M : 0,
-	Q : 3,
-	H : 2
-};
-
-
-};
-D['QRMaskPattern']=function(module,exports,require){
-module.exports = {
-	PATTERN000 : 0,
-	PATTERN001 : 1,
-	PATTERN010 : 2,
-	PATTERN011 : 3,
-	PATTERN100 : 4,
-	PATTERN101 : 5,
-	PATTERN110 : 6,
-	PATTERN111 : 7
-};
-
-};
-D['QRMath']=function(module,exports,require){
-var QRMath = {
-
-	glog : function(n) {
-	
-		if (n < 1) {
-			throw new Error("glog(" + n + ")");
-		}
-		
-		return QRMath.LOG_TABLE[n];
-	},
-	
-	gexp : function(n) {
-	
-		while (n < 0) {
-			n += 255;
-		}
-	
-		while (n >= 256) {
-			n -= 255;
-		}
-	
-		return QRMath.EXP_TABLE[n];
-	},
-	
-	EXP_TABLE : new Array(256),
-	
-	LOG_TABLE : new Array(256)
-
-};
-	
-for (var i = 0; i < 8; i++) {
-	QRMath.EXP_TABLE[i] = 1 << i;
-}
-for (var i = 8; i < 256; i++) {
-	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
-		^ QRMath.EXP_TABLE[i - 5]
-		^ QRMath.EXP_TABLE[i - 6]
-		^ QRMath.EXP_TABLE[i - 8];
-}
-for (var i = 0; i < 255; i++) {
-	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
-}
-
-module.exports = QRMath;
-
-};
-D['QRPolynomial']=function(module,exports,require){
-var QRMath = require('./QRMath');
-
-function QRPolynomial(num, shift) {
-	if (num.length === undefined) {
-		throw new Error(num.length + "/" + shift);
-	}
-
-	var offset = 0;
-
-	while (offset < num.length && num[offset] === 0) {
-		offset++;
-	}
-
-	this.num = new Array(num.length - offset + shift);
-	for (var i = 0; i < num.length - offset; i++) {
-		this.num[i] = num[i + offset];
-	}
-}
-
-QRPolynomial.prototype = {
-
-	get : function(index) {
-		return this.num[index];
-	},
-	
-	getLength : function() {
-		return this.num.length;
-	},
-	
-	multiply : function(e) {
-	
-		var num = new Array(this.getLength() + e.getLength() - 1);
-	
-		for (var i = 0; i < this.getLength(); i++) {
-			for (var j = 0; j < e.getLength(); j++) {
-				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
-			}
-		}
-	
-		return new QRPolynomial(num, 0);
-	},
-	
-	mod : function(e) {
-	
-		if (this.getLength() - e.getLength() < 0) {
-			return this;
-		}
-	
-		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
-	
-		var num = new Array(this.getLength() );
-		
-		for (var i = 0; i < this.getLength(); i++) {
-			num[i] = this.get(i);
-		}
-		
-		for (var x = 0; x < e.getLength(); x++) {
-			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
-		}
-	
-		// recursive call
-		return new QRPolynomial(num, 0).mod(e);
-	}
-};
-
-module.exports = QRPolynomial;
-
-};
-D['QRBitBuffer']=function(module,exports,require){
-function QRBitBuffer() {
-	this.buffer = [];
-	this.length = 0;
-}
-
-QRBitBuffer.prototype = {
-
-	get : function(index) {
-		var bufIndex = Math.floor(index / 8);
-		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
-	},
-	
-	put : function(num, length) {
-		for (var i = 0; i < length; i++) {
-			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
-		}
-	},
-	
-	getLengthInBits : function() {
-		return this.length;
-	},
-	
-	putBit : function(bit) {
-	
-		var bufIndex = Math.floor(this.length / 8);
-		if (this.buffer.length <= bufIndex) {
-			this.buffer.push(0);
-		}
-	
-		if (bit) {
-			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
-		}
-	
-		this.length++;
-	}
-};
-
-module.exports = QRBitBuffer;
-
-};
-D['QR8bitByte']=function(module,exports,require){
-var QRMode = require('./QRMode');
-
-function QR8bitByte(data) {
-	this.mode = QRMode.MODE_8BIT_BYTE;
-	this.data = data;
-}
-
-QR8bitByte.prototype = {
-
-	getLength : function() {
-		return this.data.length;
-	},
-	
-	write : function(buffer) {
-		for (var i = 0; i < this.data.length; i++) {
-			// not JIS ...
-			buffer.put(this.data.charCodeAt(i), 8);
-		}
-	}
-};
-
-module.exports = QR8bitByte;
-
-};
-D['QRRSBlock']=function(module,exports,require){
-var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
-
-function QRRSBlock(totalCount, dataCount) {
-	this.totalCount = totalCount;
-	this.dataCount  = dataCount;
-}
-
-QRRSBlock.RS_BLOCK_TABLE = [
-
-	// L
-	// M
-	// Q
-	// H
-
-	// 1
-	[1, 26, 19],
-	[1, 26, 16],
-	[1, 26, 13],
-	[1, 26, 9],
-	
-	// 2
-	[1, 44, 34],
-	[1, 44, 28],
-	[1, 44, 22],
-	[1, 44, 16],
-
-	// 3
-	[1, 70, 55],
-	[1, 70, 44],
-	[2, 35, 17],
-	[2, 35, 13],
-
-	// 4		
-	[1, 100, 80],
-	[2, 50, 32],
-	[2, 50, 24],
-	[4, 25, 9],
-	
-	// 5
-	[1, 134, 108],
-	[2, 67, 43],
-	[2, 33, 15, 2, 34, 16],
-	[2, 33, 11, 2, 34, 12],
-	
-	// 6
-	[2, 86, 68],
-	[4, 43, 27],
-	[4, 43, 19],
-	[4, 43, 15],
-	
-	// 7		
-	[2, 98, 78],
-	[4, 49, 31],
-	[2, 32, 14, 4, 33, 15],
-	[4, 39, 13, 1, 40, 14],
-	
-	// 8
-	[2, 121, 97],
-	[2, 60, 38, 2, 61, 39],
-	[4, 40, 18, 2, 41, 19],
-	[4, 40, 14, 2, 41, 15],
-	
-	// 9
-	[2, 146, 116],
-	[3, 58, 36, 2, 59, 37],
-	[4, 36, 16, 4, 37, 17],
-	[4, 36, 12, 4, 37, 13],
-	
-	// 10		
-	[2, 86, 68, 2, 87, 69],
-	[4, 69, 43, 1, 70, 44],
-	[6, 43, 19, 2, 44, 20],
-	[6, 43, 15, 2, 44, 16],
-
-	// 11
-	[4, 101, 81],
-	[1, 80, 50, 4, 81, 51],
-	[4, 50, 22, 4, 51, 23],
-	[3, 36, 12, 8, 37, 13],
-
-	// 12
-	[2, 116, 92, 2, 117, 93],
-	[6, 58, 36, 2, 59, 37],
-	[4, 46, 20, 6, 47, 21],
-	[7, 42, 14, 4, 43, 15],
-
-	// 13
-	[4, 133, 107],
-	[8, 59, 37, 1, 60, 38],
-	[8, 44, 20, 4, 45, 21],
-	[12, 33, 11, 4, 34, 12],
-
-	// 14
-	[3, 145, 115, 1, 146, 116],
-	[4, 64, 40, 5, 65, 41],
-	[11, 36, 16, 5, 37, 17],
-	[11, 36, 12, 5, 37, 13],
-
-	// 15
-	[5, 109, 87, 1, 110, 88],
-	[5, 65, 41, 5, 66, 42],
-	[5, 54, 24, 7, 55, 25],
-	[11, 36, 12],
-
-	// 16
-	[5, 122, 98, 1, 123, 99],
-	[7, 73, 45, 3, 74, 46],
-	[15, 43, 19, 2, 44, 20],
-	[3, 45, 15, 13, 46, 16],
-
-	// 17
-	[1, 135, 107, 5, 136, 108],
-	[10, 74, 46, 1, 75, 47],
-	[1, 50, 22, 15, 51, 23],
-	[2, 42, 14, 17, 43, 15],
-
-	// 18
-	[5, 150, 120, 1, 151, 121],
-	[9, 69, 43, 4, 70, 44],
-	[17, 50, 22, 1, 51, 23],
-	[2, 42, 14, 19, 43, 15],
-
-	// 19
-	[3, 141, 113, 4, 142, 114],
-	[3, 70, 44, 11, 71, 45],
-	[17, 47, 21, 4, 48, 22],
-	[9, 39, 13, 16, 40, 14],
-
-	// 20
-	[3, 135, 107, 5, 136, 108],
-	[3, 67, 41, 13, 68, 42],
-	[15, 54, 24, 5, 55, 25],
-	[15, 43, 15, 10, 44, 16],
-
-	// 21
-	[4, 144, 116, 4, 145, 117],
-	[17, 68, 42],
-	[17, 50, 22, 6, 51, 23],
-	[19, 46, 16, 6, 47, 17],
-
-	// 22
-	[2, 139, 111, 7, 140, 112],
-	[17, 74, 46],
-	[7, 54, 24, 16, 55, 25],
-	[34, 37, 13],
-
-	// 23
-	[4, 151, 121, 5, 152, 122],
-	[4, 75, 47, 14, 76, 48],
-	[11, 54, 24, 14, 55, 25],
-	[16, 45, 15, 14, 46, 16],
-
-	// 24
-	[6, 147, 117, 4, 148, 118],
-	[6, 73, 45, 14, 74, 46],
-	[11, 54, 24, 16, 55, 25],
-	[30, 46, 16, 2, 47, 17],
-
-	// 25
-	[8, 132, 106, 4, 133, 107],
-	[8, 75, 47, 13, 76, 48],
-	[7, 54, 24, 22, 55, 25],
-	[22, 45, 15, 13, 46, 16],
-
-	// 26
-	[10, 142, 114, 2, 143, 115],
-	[19, 74, 46, 4, 75, 47],
-	[28, 50, 22, 6, 51, 23],
-	[33, 46, 16, 4, 47, 17],
-
-	// 27
-	[8, 152, 122, 4, 153, 123],
-	[22, 73, 45, 3, 74, 46],
-	[8, 53, 23, 26, 54, 24],
-	[12, 45, 15, 28, 46, 16],
-
-	// 28
-	[3, 147, 117, 10, 148, 118],
-	[3, 73, 45, 23, 74, 46],
-	[4, 54, 24, 31, 55, 25],
-	[11, 45, 15, 31, 46, 16],
-
-	// 29
-	[7, 146, 116, 7, 147, 117],
-	[21, 73, 45, 7, 74, 46],
-	[1, 53, 23, 37, 54, 24],
-	[19, 45, 15, 26, 46, 16],
-
-	// 30
-	[5, 145, 115, 10, 146, 116],
-	[19, 75, 47, 10, 76, 48],
-	[15, 54, 24, 25, 55, 25],
-	[23, 45, 15, 25, 46, 16],
-
-	// 31
-	[13, 145, 115, 3, 146, 116],
-	[2, 74, 46, 29, 75, 47],
-	[42, 54, 24, 1, 55, 25],
-	[23, 45, 15, 28, 46, 16],
-
-	// 32
-	[17, 145, 115],
-	[10, 74, 46, 23, 75, 47],
-	[10, 54, 24, 35, 55, 25],
-	[19, 45, 15, 35, 46, 16],
-
-	// 33
-	[17, 145, 115, 1, 146, 116],
-	[14, 74, 46, 21, 75, 47],
-	[29, 54, 24, 19, 55, 25],
-	[11, 45, 15, 46, 46, 16],
-
-	// 34
-	[13, 145, 115, 6, 146, 116],
-	[14, 74, 46, 23, 75, 47],
-	[44, 54, 24, 7, 55, 25],
-	[59, 46, 16, 1, 47, 17],
-
-	// 35
-	[12, 151, 121, 7, 152, 122],
-	[12, 75, 47, 26, 76, 48],
-	[39, 54, 24, 14, 55, 25],
-	[22, 45, 15, 41, 46, 16],
-
-	// 36
-	[6, 151, 121, 14, 152, 122],
-	[6, 75, 47, 34, 76, 48],
-	[46, 54, 24, 10, 55, 25],
-	[2, 45, 15, 64, 46, 16],
-
-	// 37
-	[17, 152, 122, 4, 153, 123],
-	[29, 74, 46, 14, 75, 47],
-	[49, 54, 24, 10, 55, 25],
-	[24, 45, 15, 46, 46, 16],
-
-	// 38
-	[4, 152, 122, 18, 153, 123],
-	[13, 74, 46, 32, 75, 47],
-	[48, 54, 24, 14, 55, 25],
-	[42, 45, 15, 32, 46, 16],
-
-	// 39
-	[20, 147, 117, 4, 148, 118],
-	[40, 75, 47, 7, 76, 48],
-	[43, 54, 24, 22, 55, 25],
-	[10, 45, 15, 67, 46, 16],
-
-	// 40
-	[19, 148, 118, 6, 149, 119],
-	[18, 75, 47, 31, 76, 48],
-	[34, 54, 24, 34, 55, 25],
-	[20, 45, 15, 61, 46, 16]
-];
-
-QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
-	
-	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
-	
-	if (rsBlock === undefined) {
-		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
-	}
-
-	var length = rsBlock.length / 3;
-	
-	var list = [];
-	
-	for (var i = 0; i < length; i++) {
-
-		var count = rsBlock[i * 3 + 0];
-		var totalCount = rsBlock[i * 3 + 1];
-		var dataCount  = rsBlock[i * 3 + 2];
-
-		for (var j = 0; j < count; j++) {
-			list.push(new QRRSBlock(totalCount, dataCount) );	
-		}
-	}
-	
-	return list;
-};
-
-QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
-
-	switch(errorCorrectLevel) {
-	case QRErrorCorrectLevel.L :
-		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
-	case QRErrorCorrectLevel.M :
-		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
-	case QRErrorCorrectLevel.Q :
-		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
-	case QRErrorCorrectLevel.H :
-		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
-	default :
-		return undefined;
-	}
-};
-
-module.exports = QRRSBlock;
-
-};
-D['QRUtil']=function(module,exports,require){
-var QRMode = require('./QRMode');
-var QRPolynomial = require('./QRPolynomial');
-var QRMath = require('./QRMath');
-var QRMaskPattern = require('./QRMaskPattern');
-
-var QRUtil = {
-
-    PATTERN_POSITION_TABLE : [
-        [],
-        [6, 18],
-        [6, 22],
-        [6, 26],
-        [6, 30],
-        [6, 34],
-        [6, 22, 38],
-        [6, 24, 42],
-        [6, 26, 46],
-        [6, 28, 50],
-        [6, 30, 54],        
-        [6, 32, 58],
-        [6, 34, 62],
-        [6, 26, 46, 66],
-        [6, 26, 48, 70],
-        [6, 26, 50, 74],
-        [6, 30, 54, 78],
-        [6, 30, 56, 82],
-        [6, 30, 58, 86],
-        [6, 34, 62, 90],
-        [6, 28, 50, 72, 94],
-        [6, 26, 50, 74, 98],
-        [6, 30, 54, 78, 102],
-        [6, 28, 54, 80, 106],
-        [6, 32, 58, 84, 110],
-        [6, 30, 58, 86, 114],
-        [6, 34, 62, 90, 118],
-        [6, 26, 50, 74, 98, 122],
-        [6, 30, 54, 78, 102, 126],
-        [6, 26, 52, 78, 104, 130],
-        [6, 30, 56, 82, 108, 134],
-        [6, 34, 60, 86, 112, 138],
-        [6, 30, 58, 86, 114, 142],
-        [6, 34, 62, 90, 118, 146],
-        [6, 30, 54, 78, 102, 126, 150],
-        [6, 24, 50, 76, 102, 128, 154],
-        [6, 28, 54, 80, 106, 132, 158],
-        [6, 32, 58, 84, 110, 136, 162],
-        [6, 26, 54, 82, 110, 138, 166],
-        [6, 30, 58, 86, 114, 142, 170]
-    ],
-
-    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
-    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
-    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
-
-    getBCHTypeInfo : function(data) {
-        var d = data << 10;
-        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
-            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
-        }
-        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
-    },
-
-    getBCHTypeNumber : function(data) {
-        var d = data << 12;
-        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
-            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
-        }
-        return (data << 12) | d;
-    },
-
-    getBCHDigit : function(data) {
-
-        var digit = 0;
-
-        while (data !== 0) {
-            digit++;
-            data >>>= 1;
-        }
-
-        return digit;
-    },
-
-    getPatternPosition : function(typeNumber) {
-        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
-    },
-
-    getMask : function(maskPattern, i, j) {
-        
-        switch (maskPattern) {
-            
-        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
-        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
-        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
-        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
-        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
-        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
-        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
-        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
-
-        default :
-            throw new Error("bad maskPattern:" + maskPattern);
-        }
-    },
-
-    getErrorCorrectPolynomial : function(errorCorrectLength) {
-
-        var a = new QRPolynomial([1], 0);
-
-        for (var i = 0; i < errorCorrectLength; i++) {
-            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
-        }
-
-        return a;
-    },
-
-    getLengthInBits : function(mode, type) {
-
-        if (1 <= type && type < 10) {
-
-            // 1 - 9
-
-            switch(mode) {
-            case QRMode.MODE_NUMBER     : return 10;
-            case QRMode.MODE_ALPHA_NUM  : return 9;
-            case QRMode.MODE_8BIT_BYTE  : return 8;
-            case QRMode.MODE_KANJI      : return 8;
-            default :
-                throw new Error("mode:" + mode);
+    set(h, "x-content-type-options", "nosniff");
+    set(h, "x-frame-options", "DENY");
+    set(h, "referrer-policy", "no-referrer");
+    set(h, "cross-origin-opener-policy", "same-origin");
+    set(h, "cross-origin-resource-policy", "same-origin");
+    set(h, "x-permitted-cross-domain-policies", "none");
+    set(h, "permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()");
+    set(h, "strict-transport-security", "max-age=31536000");
+    if std::env::var("CSP_OFF").ok().as_deref() != Some("1") {
+        if is_card_page {
+            // Trang thẻ /u/<tên> được gọi tới cổng nhà (127.0.0.1) bằng một ảnh 1x1 để app đang chạy tự mở thẻ.
+            let csp = CSP.replace("img-src 'self' data: blob: https:", "img-src 'self' data: blob: https: http://127.0.0.1:38417 http://localhost:38417").replace("connect-src 'self'", "connect-src 'self' http://127.0.0.1:38417 http://localhost:38417");
+            if let Ok(v) = HeaderValue::from_str(&csp) {
+                h.insert(header::CONTENT_SECURITY_POLICY, v);
             }
-
-        } else if (type < 27) {
-
-            // 10 - 26
-
-            switch(mode) {
-            case QRMode.MODE_NUMBER     : return 12;
-            case QRMode.MODE_ALPHA_NUM  : return 11;
-            case QRMode.MODE_8BIT_BYTE  : return 16;
-            case QRMode.MODE_KANJI      : return 10;
-            default :
-                throw new Error("mode:" + mode);
-            }
-
-        } else if (type < 41) {
-
-            // 27 - 40
-
-            switch(mode) {
-            case QRMode.MODE_NUMBER     : return 14;
-            case QRMode.MODE_ALPHA_NUM  : return 13;
-            case QRMode.MODE_8BIT_BYTE  : return 16;
-            case QRMode.MODE_KANJI      : return 12;
-            default :
-                throw new Error("mode:" + mode);
-            }
-
         } else {
-            throw new Error("type:" + type);
+            set(h, "content-security-policy", CSP);
         }
-    },
+    }
+    if is_api && !h.contains_key(header::CACHE_CONTROL) {
+        set(h, "cache-control", "no-store");
+    } else if is_upload && ok_status && !h.contains_key(header::CACHE_CONTROL) {
+        set(h, "cache-control", "public, max-age=31536000, immutable");
+    }
+    res
+}
 
-    getLostPoint : function(qrCode) {
-        
-        var moduleCount = qrCode.getModuleCount();
-        var lostPoint = 0;
-        var row = 0; 
-        var col = 0;
+// Địa chỉ người gọi: ưu tiên X-Forwarded-For (khi đứng sau Caddy/Tailscale), không có thì dùng địa chỉ kết nối.
+fn client_key(headers: &HeaderMap, addr: &std::net::SocketAddr) -> String {
+    headers
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().chars().take(64).collect::<String>())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| addr.ip().to_string())
+}
 
-        
-        // LEVEL1
-        
-        for (row = 0; row < moduleCount; row++) {
+// true = đang bị khoá (đã vượt `max` lần trong `window` giây).
+fn rl_blocked(st: &AppState, key: &str, max: u32, window: u64) -> bool {
+    let mut g = st.auth_limit.lock().unwrap();
+    let now = now_secs();
+    if g.len() > 5000 {
+        g.retain(|_, (_, t)| now.saturating_sub(*t) < 3600);
+    }
+    let cur: Option<(u32, u64)> = g.get(key).copied();
+    match cur {
+        Some((n, t)) if now.saturating_sub(t) < window => n >= max,
+        Some(_) => {
+            g.remove(key);
+            false
+        }
+        None => false,
+    }
+}
 
-            for (col = 0; col < moduleCount; col++) {
+fn rl_hit(st: &AppState, key: &str, window: u64) {
+    let mut g = st.auth_limit.lock().unwrap();
+    let now = now_secs();
+    let e = g.entry(key.to_string()).or_insert((0, now));
+    if now.saturating_sub(e.1) >= window {
+        *e = (0, now);
+    }
+    e.0 += 1;
+}
 
-                var sameCount = 0;
-                var dark = qrCode.isDark(row, col);
+fn rl_clear(st: &AppState, key: &str) {
+    st.auth_limit.lock().unwrap().remove(key);
+}
 
-                for (var r = -1; r <= 1; r++) {
+fn too_many() -> ApiErr {
+    (StatusCode::TOO_MANY_REQUESTS, "Thử quá nhiều lần. Vui lòng đợi vài phút rồi thử lại.".into())
+}
 
-                    if (row + r < 0 || moduleCount <= row + r) {
+#[derive(Serialize, Clone)]
+struct User {
+    id: i64,
+    username: String,
+    display_name: String,
+    avatar: String,
+    accent: String,
+    bg: String,
+    bg_url: String,
+    code: String,
+    is_admin: bool,
+    banner: String,
+    banner_color: String,
+    status: String,
+    crop: String,
+    supporter: i64, // 0 = chưa ủng hộ, 1 = thành viên nhỏ, 2 = thành viên lớn (donate Ko-fi)
+}
+
+#[derive(Serialize)]
+struct Friend {
+    id: i64,
+    display_name: String,
+    avatar: String,
+    online: bool,
+    accent: String,
+    banner: String,
+    banner_color: String,
+    status: String,
+    crop: String,
+    supporter: i64,
+}
+
+const USER_COLS: &str = "id, username, display_name, avatar, accent, bg, bg_url, code, is_admin, banner, banner_color, status, crop, supporter";
+
+fn row_to_user(r: &rusqlite::Row) -> rusqlite::Result<User> {
+    let is_admin = r.get::<_, i64>(8)? != 0;
+    Ok(User {
+        id: r.get(0)?,
+        username: r.get(1)?,
+        display_name: r.get(2)?,
+        avatar: r.get(3)?,
+        accent: r.get(4)?,
+        bg: r.get(5)?,
+        bg_url: r.get(6)?,
+        code: r.get(7)?,
+        is_admin,
+        banner: r.get(9)?,
+        banner_color: r.get(10)?,
+        status: r.get(11)?,
+        crop: r.get(12)?,
+        supporter: if is_admin { 2 } else { r.get(13)? }, // admin: quyền cao nhất, luôn là thành viên lớn
+    })
+}
+
+type ApiErr = (StatusCode, String);
+type R<T> = Result<Json<T>, ApiErr>;
+fn bad(m: &str) -> ApiErr { (StatusCode::BAD_REQUEST, m.to_string()) }
+fn unauth() -> ApiErr { (StatusCode::UNAUTHORIZED, "Chưa đăng nhập hoặc phiên hết hạn".into()) }
+fn e500() -> ApiErr { (StatusCode::INTERNAL_SERVER_ERROR, "Lỗi máy chủ".into()) }
+
+fn hash_pw(pw: &str) -> Result<String, ()> {
+    let salt = SaltString::encode_b64(uuid::Uuid::new_v4().as_bytes()).map_err(|_| ())?;
+    Argon2::default().hash_password(pw.as_bytes(), &salt).map(|h| h.to_string()).map_err(|_| ())
+}
+fn verify_pw(pw: &str, hash: &str) -> bool {
+    match PasswordHash::new(hash) {
+        Ok(p) => Argon2::default().verify_password(pw.as_bytes(), &p).is_ok(),
+        Err(_) => false,
+    }
+}
+fn new_token() -> String {
+    format!("{}{}", uuid::Uuid::new_v4().simple(), uuid::Uuid::new_v4().simple())
+}
+
+// Token phiên chỉ được lưu dưới dạng băm SHA-256 ("h1:" + hex): lộ file muse.db cũng không dùng lại được phiên đăng nhập.
+// Người dùng giữ token gốc; mỗi lần gọi API server băm lại rồi so khớp.
+fn tok_hash(t: &str) -> String {
+    let d = Sha256::digest(t.as_bytes());
+    let mut s = String::with_capacity(3 + d.len() * 2);
+    s.push_str("h1:");
+    for b in d.iter() {
+        s.push_str(&format!("{:02x}", b));
+    }
+    s
+}
+
+// Băm giả để mất thời gian như khi kiểm tra mật khẩu thật: tên đăng nhập không tồn tại không trả lời nhanh hơn tên có thật.
+static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+fn user_from_token(db: &Connection, token: &str) -> Option<User> {
+    let sql = "SELECT u.id,u.username,u.display_name,u.avatar,u.accent,u.bg,u.bg_url,u.code,u.is_admin,u.banner,u.banner_color,u.status,u.crop,u.supporter \
+               FROM users u JOIN sessions s ON s.user_id=u.id \
+               WHERE s.token=?1 AND s.created_at > datetime('now','-30 days')";
+    db.query_row(sql, [tok_hash(token)], row_to_user).ok()
+}
+fn bearer(h: &HeaderMap) -> Option<String> {
+    h.get("authorization")?.to_str().ok()?.strip_prefix("Bearer ").map(|s| s.to_string())
+}
+fn require(st: &AppState, h: &HeaderMap) -> Result<User, ApiErr> {
+    let token = bearer(h).ok_or_else(unauth)?;
+    let db = st.db.lock().unwrap();
+    let u = user_from_token(&db, &token);
+    u.ok_or_else(unauth)
+}
+
+fn init_db(path: &std::path::Path) -> Connection {
+    let db = Connection::open(path).expect("không mở được SQLite");
+    db.execute_batch(
+        "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA foreign_keys=ON;
+         CREATE TABLE IF NOT EXISTS users(
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           pass_hash TEXT NOT NULL,
+           display_name TEXT NOT NULL,
+           avatar TEXT NOT NULL DEFAULT '🎧',
+           accent TEXT NOT NULL DEFAULT '#31c27c',
+           bg TEXT NOT NULL DEFAULT '',
+           bg_url TEXT NOT NULL DEFAULT '',
+           code TEXT NOT NULL UNIQUE,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+         CREATE TABLE IF NOT EXISTS sessions(
+           token TEXT PRIMARY KEY,
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+         CREATE TABLE IF NOT EXISTS friends(
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           friend_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           PRIMARY KEY(user_id, friend_id));
+         CREATE TABLE IF NOT EXISTS friend_requests(
+           from_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           to_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           PRIMARY KEY(from_id, to_id));
+         CREATE TABLE IF NOT EXISTS favorites(
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           track_key TEXT NOT NULL, track_json TEXT NOT NULL,
+           PRIMARY KEY(user_id, track_key));
+         CREATE TABLE IF NOT EXISTS history(
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           track_key TEXT NOT NULL, track_json TEXT NOT NULL,
+           PRIMARY KEY(user_id, track_key));
+         CREATE TABLE IF NOT EXISTS comments(
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           track_key TEXT NOT NULL,
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           body TEXT NOT NULL,
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+         CREATE INDEX IF NOT EXISTS idx_comments_track ON comments(track_key, id);
+         CREATE TABLE IF NOT EXISTS playlists(
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           name TEXT NOT NULL);
+         CREATE TABLE IF NOT EXISTS playlist_tracks(
+           playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+           track_key TEXT NOT NULL, track_json TEXT NOT NULL,
+           PRIMARY KEY(playlist_id, track_key));",
+    )
+    .expect("không tạo được bảng");
+    // Nâng cấp DB cũ: thêm cột is_admin (lỗi "đã tồn tại" được bỏ qua).
+    let _ = db.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0", []);
+    // Banner kiểu Discord: ảnh/GIF + màu dự phòng + dòng trạng thái.
+    for ddl in [
+        "ALTER TABLE users ADD COLUMN banner TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN banner_color TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN crop TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN settings TEXT NOT NULL DEFAULT '{}'",
+        "ALTER TABLE users ADD COLUMN discord_id TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_name TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_avatar TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_access TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_refresh TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN discord_expires INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN supporter INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN home_public INTEGER NOT NULL DEFAULT 1", // Trang chủ hồ sơ: mặc định công khai
+        "ALTER TABLE users ADD COLUMN listen_secs INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN listen_at INTEGER NOT NULL DEFAULT 0",
+    ] {
+        let _ = db.execute(ddl, []);
+    }
+    // Lịch sử donate Ko-fi (webhook). user_id để trống nếu chưa khớp được tài khoản nào.
+    let _ = db.execute_batch(
+        "CREATE TABLE IF NOT EXISTS kofi_donations(
+           txn_id TEXT PRIMARY KEY,
+           user_id INTEGER,
+           amount REAL NOT NULL DEFAULT 0,
+           currency TEXT NOT NULL DEFAULT '',
+           from_name TEXT NOT NULL DEFAULT '',
+           message TEXT NOT NULL DEFAULT '',
+           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
+    );
+    // Dữ liệu nghe đồng bộ theo TÀI KHOẢN (lượt phát, nghe hết/bỏ qua, không thích, theo dõi nghệ sĩ, tiếp tục nghe).
+    // Mọi tài khoản (kể cả admin) dùng chung một cơ chế, khóa theo user_id.
+    let _ = db.execute(
+        "CREATE TABLE IF NOT EXISTS user_sync(
+           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+           k TEXT NOT NULL, v TEXT NOT NULL, ts INTEGER NOT NULL DEFAULT 0,
+           PRIMARY KEY(user_id, k))",
+        [],
+    );
+    // Trạng thái tạm (dùng 1 lần) cho luồng đăng nhập Discord OAuth2.
+    let _ = db.execute(
+        "CREATE TABLE IF NOT EXISTS discord_states(state TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+        [],
+    );
+    // Nâng cấp bảo mật: token phiên cũ (lưu thô) -> băm SHA-256, người dùng không bị đăng xuất.
+    let mut olds: Vec<String> = Vec::new();
+    if let Ok(mut stmt) = db.prepare("SELECT token FROM sessions WHERE token NOT LIKE 'h1:%'") {
+        if let Ok(rows) = stmt.query_map([], |r| r.get::<_, String>(0)) {
+            for t in rows.flatten() {
+                olds.push(t);
+            }
+        };
+    }
+    for t in olds {
+        let _ = db.execute("UPDATE sessions SET token=?1 WHERE token=?2", params![tok_hash(&t), t]);
+    }
+    // Dọn dữ liệu SoundCloud cũ (nguồn "sc" đã bị gỡ).
+    for t in ["favorites", "history", "playlist_tracks"] {
+        let _ = db.execute(&format!("DELETE FROM {t} WHERE track_key LIKE 'sc:%'"), []);
+    }
+    db
+}
+
+
+// Tên đặt trước: không ai (trừ admin) đăng ký làm tên đăng nhập hoặc đặt làm tên hiển thị được.
+// Thêm tên khác qua biến môi trường RESERVED_NAMES (cách nhau bằng dấu phẩy). ADMIN_USER cũng tự được đặt trước.
+const RESERVED_DEFAULT: &[&str] = &["saki_hanami"];
+fn is_reserved_name(s: &str) -> bool {
+    let n = norm_name(s);
+    if n.is_empty() {
+        return false;
+    }
+    let mut list: Vec<String> = RESERVED_DEFAULT.iter().map(|x| norm_name(x)).collect();
+    if let Ok(a) = std::env::var("ADMIN_USER") {
+        list.push(norm_name(&a));
+    }
+    if let Ok(r) = std::env::var("RESERVED_NAMES") {
+        list.extend(r.split(',').map(norm_name));
+    }
+    list.iter().any(|x| !x.is_empty() && *x == n)
+}
+
+// Tạo/cấp quyền admin từ biến môi trường ADMIN_USER (+ ADMIN_PASS nếu tài khoản chưa tồn tại).
+fn bootstrap_admin(db: &Connection) {
+    let Ok(user) = std::env::var("ADMIN_USER") else { return };
+    let user = user.trim().to_lowercase();
+    if user.len() < 3 || user.len() > 24 || !user.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        eprintln!("ADMIN_USER không hợp lệ (3-24 ký tự: chữ, số, _)");
+        return;
+    }
+    // Không xóa tài khoản của ai. Từ bản này tên admin được đặt trước (xem is_reserved_name) nên người khác không đăng ký trùng được.
+    // Nếu tên đã có người dùng thường đăng ký từ trước thì không tự cấp admin cho họ, chỉ cảnh báo để chủ server xử lý thủ công.
+    if let Ok(row) = db.query_row("SELECT is_admin FROM users WHERE username=?1", [&user], |r| r.get::<_, i64>(0)) {
+        if row == 0 {
+            eprintln!("Cảnh báo: tên admin '{user}' đã bị tài khoản thường dùng từ trước; không tạo/ghi đè admin.");
+            return;
+        }
+    }
+    let existing: Option<(i64, String)> = db
+        .query_row("SELECT id, pass_hash FROM users WHERE username=?1", [&user], |r| Ok((r.get(0)?, r.get(1)?)))
+        .ok();
+    match existing {
+        Some((id, _)) => {
+            // Còn lại chỉ có thể là tài khoản đã là admin: giữ nguyên mật khẩu hiện tại, chỉ cập nhật tên hiển thị.
+            if let Ok(name) = std::env::var("ADMIN_NAME") {
+                let name: String = name.trim().chars().take(24).collect();
+                if !name.is_empty() {
+                    let _ = db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, id]);
+                }
+            }
+        }
+        None => {
+            let Ok(pw) = std::env::var("ADMIN_PASS") else {
+                eprintln!("Thiếu ADMIN_PASS để tạo tài khoản admin");
+                return;
+            };
+            if pw.len() < 8 || pw.len() > 128 {
+                eprintln!("ADMIN_PASS phải từ 8 đến 128 ký tự");
+                return;
+            }
+            let Ok(hash) = hash_pw(&pw) else { return };
+            let code = uuid::Uuid::new_v4().simple().to_string()[..8].to_uppercase();
+            let display: String = std::env::var("ADMIN_NAME")
+                .ok()
+                .map(|n| n.trim().chars().take(24).collect::<String>())
+                .filter(|n| !n.is_empty())
+                .unwrap_or_else(|| "Admin".to_string());
+            let res = db.execute(
+                "INSERT INTO users(username,pass_hash,display_name,code,is_admin) VALUES(?1,?2,?3,?4,1)",
+                params![user, hash, display, code],
+            );
+            match res {
+                Ok(_) => {}
+                Err(e) => eprintln!("Không tạo được admin: {e}"),
+            }
+        }
+    }
+}
+
+// Chế độ AUDIO_ONLY=1 (dùng trong app Android): chỉ phục vụ /api/yt/audio/:id trên máy này (127.0.0.1) để điện thoại
+// tự lấy nhạc từ YouTube bằng IP nhà. Không có tài khoản / playlist / phòng nghe chung (những thứ đó vẫn do server chính lo).
+// DB là SQLite trong bộ nhớ (trống) nên mọi yêu cầu được coi là khách, đúng với cách yt_audio đã xử lý khách.
+async fn run_audio_only() {
+    let st = AppState {
+        db: Arc::new(Mutex::new(init_db(std::path::Path::new(":memory:")))),
+        rooms: Arc::new(Mutex::new(HashMap::new())),
+        notify: Arc::new(Mutex::new(HashMap::new())),
+        avatar_dir: PathBuf::new(),
+        bg_dir: PathBuf::new(),
+        banner_dir: PathBuf::new(),
+        card_dir: PathBuf::new(),
+        app_dir: PathBuf::new(),
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
+            .build()
+            .expect("không tạo được HTTP client"),
+        http_proxy: None,
+        audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
+        gateway: gateway_from_env(),
+    };
+    let router = yt_routes().layer(middleware::from_fn(dbg_req_timing)).with_state(st);
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
+    // Chỉ nhận kết nối từ chính máy này, không bao giờ mở ra mạng.
+    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{port}")).await.unwrap();
+    println!("Muse audio-only: http://127.0.0.1:{port}");
+    dbg_log(&format!("[START] audio-only 127.0.0.1:{port} | file log: {}", dbg_log_path().display()));
+    axum::serve(listener, router.into_make_service()).await.unwrap();
+}
+
+// Các route lấy dữ liệu từ YouTube (tìm kiếm, album, nghệ sĩ, luồng âm thanh, ảnh bìa...). Dùng chung cho server chính,
+// chế độ AUDIO_ONLY (Android) và chế độ cổng nhà (desktop). Tất cả đều chạy được với tư cách khách (không cần tài khoản).
+fn yt_routes() -> Router<AppState> {
+    yt_meta_routes().merge(yt_media_routes())
+}
+
+// Nhóm "dữ liệu danh sách": tìm kiếm, trang chủ/khám phá, album, nghệ sĩ... (JSON nhỏ, cache được).
+fn yt_meta_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/search", get(yt_search))
+        .route("/api/yt/browse", get(yt_browse_music))
+        .route("/api/yt/similar", get(yt_similar))
+        .route("/api/yt/fresh", get(yt_fresh))
+        .route("/api/yt/artists", get(yt_artists))
+        .route("/api/yt/best-artists", get(yt_best_artists))
+        .route("/api/yt/this-is", get(yt_this_is))
+}
+
+// Nhóm "luồng nặng": âm thanh, video, ảnh bìa qua server. Server chính không phục vụ nhóm này (app tự lấy bằng IP máy).
+fn yt_media_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/audio/:id", get(yt_audio))
+        .route("/api/img", get(img_proxy))
+        .route("/api/yt/video/:id", get(yt_video))
+}
+
+// Server chính chỉ lưu dữ liệu người dùng (database): các route lấy nhạc / tìm kiếm / ảnh bìa từ YouTube bị tắt và báo rõ lý do.
+// Nhạc do chính app tự lấy: app desktop qua cổng nhà (GATEWAY_REMOTE), app Android qua AUDIO_ONLY – hai chế độ đó vẫn dùng yt_routes().
+// Mặc định (không đặt SERVE_MUSIC) server chính chạy chế độ "meta": xem media_off_routes() và meta_cache().
+fn music_off_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/*rest", axum::routing::any(music_off))
+        .route("/api/img", axum::routing::any(music_off))
+}
+
+// Chế độ mặc định của server chính ("meta"): chỉ nhóm luồng nặng bị tắt (HTTP 410), phần danh sách vẫn chạy và được cache.
+fn media_off_routes() -> Router<AppState> {
+    Router::new()
+        .route("/api/yt/audio/*rest", axum::routing::any(music_off))
+        .route("/api/yt/video/*rest", axum::routing::any(music_off))
+        .route("/api/img", axum::routing::any(music_off))
+}
+
+// ===== Cache dữ liệu danh sách (metadata) trên server chính =====
+// Ý tưởng: server tải danh sách từ YouTube Music giống cổng nhà rồi LƯU XUỐNG ĐĨA (data/app/meta-cache/).
+//  - Còn mới (< 1 giờ): trả thẳng từ cache, không hỏi YouTube.
+//  - Hết hạn: hỏi YouTube, thành công thì cập nhật cache.
+//  - YouTube lỗi / chặn IP server: vẫn trả bản cũ (tối đa 7 ngày) thay vì lỗi, để trang chủ không trống.
+// Khoá cache gồm đường dẫn + query và cài đặt "nội dung nhạy cảm" của người gọi (kết quả khác nhau theo cài đặt đó).
+// Kết quả rỗng không được lưu (tránh "ghi nhớ" lúc YouTube chặn). Header phản hồi `x-muse-cache`: hit | stale.
+const META_FRESH_SECS: u64 = 3600;
+const META_STALE_SECS: u64 = 7 * 86400;
+const META_MAX_BYTES: usize = 2 * 1024 * 1024;
+const META_MAX_FILES: usize = 3000;
+static META_WRITES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+fn meta_cache_path(st: &AppState, key: &str) -> Option<PathBuf> {
+    if st.app_dir.as_os_str().is_empty() {
+        return None;
+    }
+    let d = Sha256::digest(key.as_bytes());
+    let mut name = String::with_capacity(d.len() * 2 + 5);
+    for b in d.iter() {
+        name.push_str(&format!("{:02x}", b));
+    }
+    name.push_str(".json");
+    Some(st.app_dir.join("meta-cache").join(name))
+}
+
+// File: dòng 1 = thời điểm lưu (giây), phần còn lại = nội dung JSON.
+fn meta_cache_read(p: &std::path::Path) -> Option<(u64, String)> {
+    let s = std::fs::read_to_string(p).ok()?;
+    let (t, body) = s.split_once('\n')?;
+    Some((t.trim().parse().ok()?, body.to_string()))
+}
+
+fn meta_cache_write(p: &std::path::Path, body: &str) {
+    let Some(dir) = p.parent() else { return };
+    if std::fs::create_dir_all(dir).is_err() {
+        return;
+    }
+    // Ghi file tạm rồi đổi tên: không bao giờ đọc phải file ghi dở.
+    let tmp = p.with_extension(format!("{}.tmp", uuid::Uuid::new_v4().simple()));
+    if std::fs::write(&tmp, format!("{}\n{}", now_secs(), body)).is_ok() {
+        if std::fs::rename(&tmp, p).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+        }
+    }
+    if META_WRITES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 50 == 49 {
+        meta_cache_prune(dir);
+    }
+}
+
+// Xoá file quá 7 ngày; nếu vẫn quá nhiều file thì xoá các file cũ nhất (người dùng tìm bừa không làm đầy ổ đĩa).
+fn meta_cache_prune(dir: &std::path::Path) {
+    let Ok(rd) = std::fs::read_dir(dir) else { return };
+    let now = SystemTime::now();
+    let mut files: Vec<(SystemTime, PathBuf)> = Vec::new();
+    for e in rd.flatten() {
+        let p = e.path();
+        let Ok(m) = e.metadata() else { continue };
+        let mt = m.modified().unwrap_or(UNIX_EPOCH);
+        if now.duration_since(mt).map(|d| d.as_secs() > META_STALE_SECS).unwrap_or(false) {
+            let _ = std::fs::remove_file(&p);
+            continue;
+        }
+        files.push((mt, p));
+    }
+    if files.len() > META_MAX_FILES {
+        files.sort_by_key(|f| f.0);
+        let extra = files.len() - META_MAX_FILES;
+        for (_, p) in files.into_iter().take(extra) {
+            let _ = std::fs::remove_file(p);
+        }
+    }
+}
+
+// Kết quả "rỗng": mảng rỗng, hoặc object mà mọi trường dạng mảng đều rỗng (vd. {"tracks":[]}).
+fn meta_is_empty(v: &Value) -> bool {
+    match v {
+        Value::Null => true,
+        Value::Array(a) => a.is_empty(),
+        Value::Object(o) => {
+            let arrs: Vec<&Vec<Value>> = o.values().filter_map(|x| x.as_array()).collect();
+            !arrs.is_empty() && arrs.iter().all(|a| a.is_empty())
+        }
+        _ => false,
+    }
+}
+
+fn meta_json(body: String, state: &'static str) -> Response {
+    ([("content-type", "application/json"), ("x-muse-cache", state)], body).into_response()
+}
+
+async fn meta_cache(State(st): State<AppState>, req: Request<Body>, next: Next) -> Response {
+    if req.method() != axum::http::Method::GET {
+        return next.run(req).await;
+    }
+    let pq = req.uri().path_and_query().map(|p| p.as_str().to_string()).unwrap_or_default();
+    if pq.len() > 300 {
+        return next.run(req).await;
+    }
+    let (explicit, _) = net_prefs(&st, req.headers()).await;
+    let key = format!("{}|{}", explicit as u8, pq);
+    let path = meta_cache_path(&st, &key);
+    let cached = path.as_deref().and_then(meta_cache_read);
+    if let Some((t, body)) = &cached {
+        if now_secs().saturating_sub(*t) < META_FRESH_SECS {
+            return meta_json(body.clone(), "hit");
+        }
+    }
+    let res = next.run(req).await;
+    if res.status().is_success() {
+        let (parts, body) = res.into_parts();
+        let bytes = match axum::body::to_bytes(body, META_MAX_BYTES).await {
+            Ok(b) => b,
+            Err(_) => return (StatusCode::BAD_GATEWAY, "Dữ liệu từ YouTube quá lớn").into_response(),
+        };
+        let empty = serde_json::from_slice::<Value>(&bytes).map(|v| meta_is_empty(&v)).unwrap_or(false);
+        if empty {
+            // YouTube trả rỗng (thường là bị chặn): có bản cũ thì dùng bản cũ.
+            if let Some((_, b)) = &cached {
+                return meta_json(b.clone(), "stale");
+            }
+        } else if let (Some(p), Ok(txt)) = (path.as_deref(), std::str::from_utf8(&bytes)) {
+            meta_cache_write(p, txt);
+        }
+        return Response::from_parts(parts, Body::from(bytes));
+    }
+    // YouTube lỗi: ưu tiên bản cũ (còn trong 7 ngày) hơn là báo lỗi.
+    if let Some((t, b)) = &cached {
+        if now_secs().saturating_sub(*t) < META_STALE_SECS {
+            return meta_json(b.clone(), "stale");
+        }
+    }
+    res
+}
+
+async fn music_off() -> Response {
+    (StatusCode::GONE, "Server này chỉ lưu dữ liệu người dùng; nhạc do app tự lấy (đặt SERVE_MUSIC=1 nếu muốn bật lại nguồn nhạc trên server)").into_response()
+}
+
+// ===== LOG CHẨN ĐOÁN TẠM (xoá được: tìm "dbg_" trong file này) =====
+// App desktop chạy server với stdout/stderr tắt, nên ghi thêm ra file. Mặc định: <thư mục tạm>/bbeat-debug.log (đặt BBEAT_LOG=đường_dẫn để đổi).
+fn dbg_log_path() -> PathBuf {
+    std::env::var("BBEAT_LOG").ok().filter(|x| !x.trim().is_empty()).map(PathBuf::from).unwrap_or_else(|| std::env::temp_dir().join("bbeat-debug.log"))
+}
+fn dbg_log(line: &str) {
+    use std::io::Write;
+    let ms = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+    let txt = format!("{}.{:03} {line}", ms / 1000, ms % 1000);
+    eprintln!("{txt}");
+    let path = dbg_log_path();
+    if std::fs::metadata(&path).map(|m| m.len() > 2_000_000).unwrap_or(false) {
+        let _ = std::fs::remove_file(&path);
+    }
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+        let _ = writeln!(f, "{txt}");
+    }
+}
+// Đo thời gian mọi yêu cầu qua cổng nhà / audio-only: thời gian tới khi có header phản hồi (luồng nhạc thì là lúc bắt đầu phát).
+// Các yêu cầu bị chuyển tiếp lên server chính (đăng nhập, giao diện, avatar...) cũng được đo ở đây → thấy Render chậm hay YouTube chậm.
+async fn dbg_req_timing(req: Request<Body>, next: Next) -> Response {
+    let path = req.uri().path().to_string();
+    if path.starts_with("/ws") {
+        return next.run(req).await;
+    }
+    let method = req.method().clone();
+    let t = std::time::Instant::now();
+    let res = next.run(req).await;
+    let ms = t.elapsed().as_millis();
+    if path == "/api/local/list" && ms < 1500 && res.status().is_success() {
+        return res; // giao diện hỏi mục này mỗi 4 giây: bỏ khỏi log cho đỡ rác
+    }
+    let kind = if path.starts_with("/api/yt/") || path == "/api/img" { "yt" } else { "fwd" };
+    dbg_log(&format!("[REQ] {kind} {method} {path} -> {} ttfb={ms}ms{}", res.status().as_u16(), if ms >= 1500 { "  <<< CHẬM" } else { "" }));
+    res
+}
+
+fn gateway_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(240))
+        .user_agent("Muse-Gateway/0.5")
+        .build()
+        .expect("không tạo được HTTP client cho cổng nhà")
+}
+
+// AUDIO_ONLY (Android) có thể kèm GATEWAY_REMOTE chỉ để hỏi server chính xem người dùng có bật "nội dung nhạy cảm" không.
+fn gateway_from_env() -> Option<Arc<Gateway>> {
+    let remote = std::env::var("GATEWAY_REMOTE").ok()?.trim().trim_end_matches('/').to_string();
+    if remote.is_empty() {
+        return None;
+    }
+    Some(Arc::new(Gateway { remote, client: gateway_client(), explicit: Mutex::new(HashMap::new()) }))
+}
+
+// Cài đặt "nội dung nhạy cảm" nằm ở tài khoản trên server chính. KHÔNG được để tìm kiếm/phát nhạc đứng chờ server chính
+// (Render gói free hay ngủ đông, một lần hỏi có thể mất vài chục giây): trả ngay giá trị đã nhớ, làm mới ngầm ở nền.
+const EXPLICIT_FRESH_SECS: u64 = 600;
+async fn gateway_fetch_explicit(g: &Gateway, tok: &str, timeout: Duration) -> Option<bool> {
+    let r = g
+        .client
+        .get(format!("{}/api/settings", g.remote))
+        .header("authorization", format!("Bearer {tok}"))
+        .timeout(timeout)
+        .send()
+        .await
+        .ok()?;
+    if !r.status().is_success() {
+        return None;
+    }
+    let j = r.json::<Value>().await.ok()?;
+    Some(j.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false))
+}
+
+async fn gateway_explicit(g: &Arc<Gateway>, headers: &HeaderMap) -> bool {
+    let Some(tok) = bearer(headers) else { return false };
+    let key = tok_hash(&tok);
+    let now = now_secs();
+    let cached = g.explicit.lock().unwrap().get(&key).copied();
+    if let Some((v, t)) = cached {
+        if now.saturating_sub(t) >= EXPLICIT_FRESH_SECS {
+            // Hết hạn: dùng giá trị cũ ngay, đánh dấu lại để 1 lần làm mới ở nền (thất bại thì 60s sau thử lại).
+            g.explicit.lock().unwrap().insert(key.clone(), (v, now.saturating_sub(EXPLICIT_FRESH_SECS - 60)));
+            let g2 = g.clone();
+            tokio::spawn(async move {
+                if let Some(nv) = gateway_fetch_explicit(&g2, &tok, Duration::from_secs(20)).await {
+                    g2.explicit.lock().unwrap().insert(key, (nv, now_secs()));
+                }
+            });
+        }
+        return v;
+    }
+    // Lần đầu chưa có gì trong bộ nhớ: chỉ chờ tối đa 2,5s; không được thì tạm coi là false và thử lại sau 60s.
+    let val = gateway_fetch_explicit(g, &tok, Duration::from_millis(2500)).await;
+    let mut c = g.explicit.lock().unwrap();
+    if c.len() > 500 {
+        c.clear();
+    }
+    match val {
+        Some(v) => {
+            c.insert(key, (v, now));
+            v
+        }
+        None => {
+            c.insert(key, (false, now.saturating_sub(EXPLICIT_FRESH_SECS - 60)));
+            false
+        }
+    }
+}
+
+// (cho phép nội dung nhạy cảm, dùng proxy) cho các route YouTube: server chính đọc từ DB, cổng nhà hỏi server chính.
+async fn net_prefs(st: &AppState, headers: &HeaderMap) -> (bool, bool) {
+    if let Some(g) = &st.gateway {
+        return (gateway_explicit(g, headers).await, false);
+    }
+    match require(st, headers) {
+        Ok(user) => user_net_prefs(st, user.id),
+        Err(_) => (false, false),
+    }
+}
+
+// ===== Cổng nhà =====
+// GATEWAY_REMOTE=https://server-chinh  ->  chương trình này chạy trên máy ở nhà và làm 2 việc:
+//   1) tự xử lý mọi route YouTube (tìm kiếm, album, nghệ sĩ, nhạc, ảnh bìa) bằng IP nhà;
+//   2) chuyển tiếp mọi thứ còn lại (giao diện, đăng nhập, bạn bè, avatar/banner, phòng nghe chung, WebSocket) lên server chính.
+// Giao diện được mở ở http://127.0.0.1:PORT (cùng một nguồn gốc) nên không dính CORS/CSP. Server chính chỉ còn lưu dữ liệu người dùng.
+async fn run_gateway(remote: String) {
+    let st = AppState {
+        db: Arc::new(Mutex::new(init_db(std::path::Path::new(":memory:")))),
+        rooms: Arc::new(Mutex::new(HashMap::new())),
+        notify: Arc::new(Mutex::new(HashMap::new())),
+        avatar_dir: PathBuf::new(),
+        bg_dir: PathBuf::new(),
+        banner_dir: PathBuf::new(),
+        card_dir: PathBuf::new(),
+        app_dir: PathBuf::new(),
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
+            .build()
+            .expect("không tạo được HTTP client"),
+        http_proxy: None,
+        audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
+        gateway: Some(Arc::new(Gateway { remote: remote.clone(), client: gateway_client(), explicit: Mutex::new(HashMap::new()) })),
+    };
+    // Làm nóng kết nối tới YouTube ngay khi cổng nhà lên (DNS + TLS), để bài đầu tiên không phải trả thêm vài lượt bắt tay.
+    {
+        let c = st.http.clone();
+        tokio::spawn(async move { warm_youtube(&c).await });
+    }
+    let router = yt_routes()
+        .route("/api/local/open", post(local_open))
+        .route("/api/local/list", get(local_list))
+        .route("/api/local/log", get(local_log))
+        .route("/api/local/file", get(local_file))
+        .route("/api/local/info", get(local_info))
+        .route("/api/local/open-user", get(local_open_user).options(local_open_user_preflight))
+        .route("/api/local/pending-user", get(local_pending_user))
+        .route("/api/local/save", post(local_save).layer(DefaultBodyLimit::max(400 * 1024 * 1024)))
+        .route("/api/local/delete", post(local_delete))
+        .route("/ws/:room", get(gw_ws))
+        .route("/ws-user", get(gw_ws))
+        .fallback(gw_http)
+        .layer(middleware::from_fn(dbg_req_timing))
+        .with_state(st);
+    let port = std::env::var("PORT").unwrap_or_else(|_| "38417".into());
+    let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "127.0.0.1".into());
+    let listener = match tokio::net::TcpListener::bind(format!("{bind}:{port}")).await {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Không mở được cổng {bind}:{port}: {e} (có thể cổng nhà đã chạy sẵn?)");
+            return;
+        }
+    };
+    println!("Muse cổng nhà: http://{bind}:{port}  ->  server chính {remote}");
+    dbg_log(&format!("[START] cổng nhà {bind}:{port} -> {remote} | file log: {}", dbg_log_path().display()));
+    axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
+}
+
+// Mở sẵn kết nối tới các máy chủ YouTube dùng khi lấy nhạc; kết quả bỏ qua (lỗi mạng cũng không sao).
+async fn warm_youtube(c: &reqwest::Client) {
+    let one = |u: &'static str| async move {
+        let _ = c.get(u).timeout(Duration::from_secs(6)).send().await;
+    };
+    tokio::join!(one("https://youtubei.googleapis.com/generate_204"), one("https://www.youtube.com/generate_204"));
+}
+
+// ===== Thư mục nhạc của app (chỉ có ở cổng nhà chạy trên máy người dùng) =====
+// "Thêm nhạc" mở thư mục này trong trình quản lý file; người dùng thả file nhạc vào, giao diện tự quét và thêm vào Tải xuống.
+// Mặc định: <Nhạc của người dùng>\BBeat (đặt MUSE_MUSIC_DIR để đổi). Chỉ nhận yêu cầu gọi tới 127.0.0.1/localhost.
+const LOCAL_AUDIO_EXT: &[&str] = &["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "webm", "wma", "mka", "mp4"];
+
+fn local_music_dir() -> PathBuf {
+    if let Ok(d) = std::env::var("MUSE_MUSIC_DIR") {
+        if !d.trim().is_empty() {
+            return PathBuf::from(d.trim());
+        }
+    }
+    let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).unwrap_or_else(|_| ".".into());
+    PathBuf::from(home).join("Music").join("BBeat")
+}
+
+// Nhạc do app tải về nằm trong thư mục RIÊNG của app (Windows: %LOCALAPPDATA%\\BBeat\\Downloads), không nằm trong thư mục Nhạc của người dùng.
+// "Thêm nhạc" vẫn dùng <Nhạc>\\BBeat. Đặt MUSE_DL_DIR để đổi chỗ lưu. Tên tương đối trả cho giao diện vẫn là "Downloads/<file>".
+const LOCAL_DL_SUB: &str = "Downloads";
+
+fn local_app_dir() -> PathBuf {
+    std::env::var_os("LOCALAPPDATA")
+        .filter(|v| !v.is_empty())
+        .map(|p| PathBuf::from(p).join("BBeat"))
+        .or_else(|| std::env::var_os("XDG_DATA_HOME").filter(|v| !v.is_empty()).map(|p| PathBuf::from(p).join("bbeat")))
+        .or_else(|| std::env::var_os("HOME").filter(|v| !v.is_empty()).map(|p| PathBuf::from(p).join(".local").join("share").join("bbeat")))
+        .unwrap_or_else(|| std::env::temp_dir().join("bbeat"))
+}
+
+fn local_dl_dir() -> PathBuf {
+    if let Ok(d) = std::env::var("MUSE_DL_DIR") {
+        if !d.trim().is_empty() {
+            return PathBuf::from(d.trim());
+        }
+    }
+    local_app_dir().join(LOCAL_DL_SUB)
+}
+
+// Tên tương đối "Downloads/<file>" nằm trong thư mục riêng của app; tên khác nằm trong thư mục Nhạc.
+fn local_base_for(name: &str) -> (PathBuf, String) {
+    match name.strip_prefix("Downloads/") {
+        Some(rest) => (local_dl_dir(), rest.to_string()),
+        None => (local_music_dir(), name.to_string()),
+    }
+}
+
+// Một lần mỗi lần chạy: chuyển nhạc đã tải từ chỗ cũ (<Nhạc>\\BBeat\\Downloads) sang thư mục riêng của app.
+static LOCAL_DL_MIGRATED: std::sync::Once = std::sync::Once::new();
+fn local_migrate_dl() {
+    LOCAL_DL_MIGRATED.call_once(|| {
+        let old = local_music_dir().join(LOCAL_DL_SUB);
+        let new = local_dl_dir();
+        if old == new {
+            return;
+        }
+        let Ok(rd) = std::fs::read_dir(&old) else { return };
+        let _ = std::fs::create_dir_all(&new);
+        for ent in rd.flatten() {
+            let name = ent.file_name().to_string_lossy().into_owned();
+            if !ent.metadata().map(|m| m.is_file()).unwrap_or(false) || local_ext_of(&name).is_none() {
+                continue;
+            }
+            let dest = new.join(&name);
+            if dest.exists() {
+                continue;
+            }
+            if std::fs::rename(ent.path(), &dest).is_err() && std::fs::copy(ent.path(), &dest).is_ok() {
+                let _ = std::fs::remove_file(ent.path());
+            }
+        }
+    });
+}
+
+// ===== Mở thẻ hồ sơ trong app đang chạy, không cần Windows đăng ký bbeat:// =====
+// Trang /u/<tên> (trên trình duyệt) gọi GET http://127.0.0.1:38417/api/local/open-user?name=<tên> bằng một ảnh 1x1;
+// cổng nhà ghi nhớ tên đó, giao diện app hỏi /api/local/pending-user mỗi ~1,5 giây rồi tự hiện thẻ. Chỉ nhận Host = 127.0.0.1/localhost.
+static PENDING_USER: Mutex<Option<(String, std::time::Instant)>> = Mutex::new(None);
+
+async fn local_open_user(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    if card_name_ok(&name) {
+        *PENDING_USER.lock().unwrap() = Some((name, std::time::Instant::now()));
+    }
+    const GIF: &[u8] = &[
+        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04, 0x01, 0x00,
+        0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b,
+    ];
+    ([(header::CONTENT_TYPE, "image/gif"), (header::CACHE_CONTROL, "no-store"), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], GIF).into_response()
+}
+
+// Trình duyệt (Chrome/Opera/Edge) có thể hỏi trước (preflight) khi trang https gọi về cổng nhà 127.0.0.1: trả lời cho phép.
+async fn local_open_user_preflight(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    (
+        StatusCode::NO_CONTENT,
+        [
+            (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*"),
+            (header::ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS"),
+            (header::ACCESS_CONTROL_ALLOW_HEADERS, "*"),
+            (header::ACCESS_CONTROL_MAX_AGE, "600"),
+            (header::HeaderName::from_static("access-control-allow-private-network"), "true"),
+        ],
+    )
+        .into_response()
+}
+
+async fn local_pending_user(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = PENDING_USER
+        .lock()
+        .unwrap()
+        .take()
+        .filter(|(_, t)| t.elapsed() < Duration::from_secs(90))
+        .map(|(n, _)| n)
+        .unwrap_or_default();
+    ([(header::CACHE_CONTROL, "no-store")], Json(json!({ "name": name }))).into_response()
+}
+
+fn local_host_ok(h: &HeaderMap) -> bool {
+    let host = h.get("host").and_then(|v| v.to_str().ok()).unwrap_or("");
+    ["127.0.0.1", "localhost", "[::1]"].iter().any(|p| host.strip_prefix(p).map(|r| r.is_empty() || r.starts_with(':')).unwrap_or(false))
+}
+
+fn local_ext_of(name: &str) -> Option<String> {
+    let e = name.rsplit_once('.')?.1.to_lowercase();
+    if LOCAL_AUDIO_EXT.contains(&e.as_str()) {
+        Some(e)
+    } else {
+        None
+    }
+}
+
+#[derive(Deserialize)]
+struct LocalOpenQ {
+    dl: Option<String>,
+}
+
+async fn local_open(headers: HeaderMap, Query(q): Query<LocalOpenQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    local_migrate_dl();
+    let dir = if q.dl.as_deref() == Some("1") { local_dl_dir() } else { local_music_dir() };
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
+    }
+    #[cfg(windows)]
+    let r = std::process::Command::new("explorer.exe").arg(&dir).spawn();
+    #[cfg(target_os = "macos")]
+    let r = std::process::Command::new("open").arg(&dir).spawn();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let r = std::process::Command::new("xdg-open").arg(&dir).spawn();
+    match r {
+        Ok(_) => Json(json!({ "dir": dir.to_string_lossy() })).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Không mở được thư mục: {e}")).into_response(),
+    }
+}
+
+// Danh sách file nhạc trong thư mục (đi sâu tối đa 3 cấp thư mục con): [{name, size, mtime(ms)}], name là đường dẫn tương đối dùng dấu /.
+// Xem log chẩn đoán ngay trong trình duyệt: mở http://127.0.0.1:38417/api/local/log (chỉ máy này; trả 40KB cuối của file log).
+// Mở được trang này = đang chạy đúng bản server có log; nếu trang báo lỗi / 404 thì app vẫn đang chạy bản server cũ.
+async fn local_log(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let path = dbg_log_path();
+    let txt = match std::fs::read(&path) {
+        Ok(b) => {
+            let from = b.len().saturating_sub(40_000);
+            format!("# file: {}\n# {} byte, hiện phần cuối\n{}", path.display(), b.len(), String::from_utf8_lossy(&b[from..]))
+        }
+        Err(e) => format!("# chưa có log tại {} ({e})\n# server đang chạy đúng bản mới; hãy dùng app vài thao tác rồi tải lại trang này.", path.display()),
+    };
+    ([(header::CONTENT_TYPE, "text/plain; charset=utf-8"), (header::CACHE_CONTROL, "no-store")], txt).into_response()
+}
+
+async fn local_list(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let root = local_music_dir();
+    let dl = local_dl_dir();
+    let out = tokio::task::spawn_blocking(move || {
+        local_migrate_dl();
+        let mut files: Vec<Value> = Vec::new();
+        // Thư mục Nhạc (không quét "Downloads" cũ trong đó) + thư mục tải xuống riêng của app (tên tương đối bắt đầu bằng "Downloads/")
+        let mut stack: Vec<(PathBuf, String, u8)> = vec![(root, String::new(), 0), (dl, LOCAL_DL_SUB.to_string(), 1)];
+        while let Some((dir, rel, depth)) = stack.pop() {
+            let Ok(rd) = std::fs::read_dir(&dir) else { continue };
+            for ent in rd.flatten() {
+                let name = ent.file_name().to_string_lossy().into_owned();
+                let Ok(md) = ent.metadata() else { continue };
+                let relname = if rel.is_empty() { name.clone() } else { format!("{rel}/{name}") };
+                if md.is_dir() {
+                    if rel.is_empty() && name.eq_ignore_ascii_case(LOCAL_DL_SUB) {
                         continue;
                     }
+                    if depth < 3 {
+                        stack.push((ent.path(), relname, depth + 1));
+                    }
+                } else if md.is_file() && local_ext_of(&name).is_some() {
+                    let mtime = md.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map(|d| d.as_millis() as u64).unwrap_or(0);
+                    files.push(json!({ "name": relname, "size": md.len(), "mtime": mtime }));
+                }
+            }
+        }
+        files.truncate(5000);
+        files
+    })
+    .await
+    .unwrap_or_default();
+    Json(Value::Array(out)).into_response()
+}
 
-                    for (var c = -1; c <= 1; c++) {
+#[derive(Deserialize)]
+struct LocalQ {
+    name: Option<String>,
+}
 
-                        if (col + c < 0 || moduleCount <= col + c) {
+async fn local_file(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    let Some(ext) = local_ext_of(&name) else { return StatusCode::BAD_REQUEST.into_response() };
+    if name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let (root, rel) = local_base_for(&name);
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&rel).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    if !path_c.starts_with(&root_c) || !path_c.is_file() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let Ok(bytes) = tokio::fs::read(&path_c).await else { return StatusCode::NOT_FOUND.into_response() };
+    let mime = match ext.as_str() {
+        "mp3" => "audio/mpeg",
+        "m4a" | "mp4" => "audio/mp4",
+        "aac" => "audio/aac",
+        "flac" => "audio/flac",
+        "wav" => "audio/wav",
+        "ogg" | "oga" | "opus" => "audio/ogg",
+        "webm" => "audio/webm",
+        "wma" => "audio/x-ms-wma",
+        _ => "audio/x-matroska",
+    };
+    ([(header::CONTENT_TYPE, mime), (header::CACHE_CONTROL, "no-store")], bytes).into_response()
+}
+
+// ----- Lưu / xoá nhạc đã tải trong thư mục BBeat (chỉ cổng nhà trên máy người dùng) -----
+// Nhạc tải xuống được ghi thẳng vào <Nhạc>\BBeat (không còn tải ra thư mục Downloads của trình duyệt).
+// Xoá bài thì chỉ xoá đúng file đó (đường dẫn được kiểm tra phải nằm trong thư mục BBeat, phải là file nhạc).
+async fn local_info(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    local_migrate_dl();
+    let root = local_music_dir();
+    let dir = local_dl_dir();
+    let _ = std::fs::create_dir_all(&dir);
+    Json(json!({ "dir": dir.to_string_lossy(), "root": root.to_string_lossy() })).into_response()
+}
+
+// Tên file an toàn trên Windows/macOS/Linux: bỏ đường dẫn, ký tự cấm, dấu chấm/khoảng trắng cuối; bắt buộc đuôi nhạc.
+fn local_safe_filename(name: &str) -> Option<String> {
+    let base = name.rsplit(|c: char| c == '/' || c == '\\').next().unwrap_or("");
+    let cleaned: String = base.chars().map(|c| if c.is_control() || "\\/:*?\"<>|".contains(c) { '_' } else { c }).collect();
+    let cleaned = cleaned.trim().trim_end_matches(|c: char| c == '.' || c == ' ').to_string();
+    let cleaned: String = cleaned.chars().take(150).collect();
+    if cleaned.is_empty() || local_ext_of(&cleaned).is_none() {
+        return None;
+    }
+    Some(cleaned)
+}
+
+async fn local_save(headers: HeaderMap, Query(q): Query<LocalQ>, body: Bytes) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let Some(name) = q.name.as_deref().and_then(local_safe_filename) else { return (StatusCode::BAD_REQUEST, "Tên file không hợp lệ").into_response() };
+    if body.is_empty() {
+        return (StatusCode::BAD_REQUEST, "File rỗng").into_response();
+    }
+    let dir = local_dl_dir();
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
+    }
+    // Không ghi đè file có sẵn: trùng tên thì thêm " (2)", " (3)"...
+    let (stem, ext) = name.rsplit_once('.').map(|(a, b)| (a.to_string(), b.to_string())).unwrap_or((name.clone(), String::new()));
+    let mut final_name = name.clone();
+    let mut n = 2;
+    while dir.join(&final_name).exists() && n < 1000 {
+        final_name = format!("{stem} ({n}).{ext}");
+        n += 1;
+    }
+    let path = dir.join(&final_name);
+    match tokio::fs::write(&path, &body).await {
+        // name là đường dẫn tương đối so với thư mục BBeat ("Downloads/<file>") để /api/local/delete xoá đúng file này.
+        Ok(_) => Json(json!({ "name": format!("{LOCAL_DL_SUB}/{final_name}"), "path": path.to_string_lossy(), "dir": dir.to_string_lossy() })).into_response(),
+        Err(e) => {
+            let _ = tokio::fs::remove_file(&path).await;
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Không ghi được file: {e}")).into_response()
+        }
+    }
+}
+
+async fn local_delete(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    if local_ext_of(&name).is_none() || name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let (root, rel) = local_base_for(&name);
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&rel).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    if !path_c.starts_with(&root_c) || path_c == root_c || !path_c.is_file() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    match tokio::fs::remove_file(&path_c).await {
+        Ok(_) => Json(json!({ "ok": true, "name": name })).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Không xoá được file: {e}")).into_response(),
+    }
+}
+
+fn gw_hop(name: &str) -> bool {
+    matches!(
+        name,
+        "host" | "connection" | "keep-alive" | "proxy-authenticate" | "proxy-authorization" | "te" | "trailer" | "transfer-encoding" | "upgrade" | "content-length"
+    )
+}
+
+// Trang chờ: khi server chính chưa sẵn sàng (Render đang ngủ/khởi động, mất mạng...) thì cửa sổ app không kẹt ở trang lỗi,
+// mà tự nạp lại mỗi 3 giây cho tới khi vào được.
+const GW_RETRY_HTML: &str = r#"<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>BBeat</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{height:100%;margin:0;background:#07070b;color:#ededf2;font-family:system-ui,sans-serif}body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}.s{width:34px;height:34px;border:3px solid #333;border-top-color:#8ecbff;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}p{margin:0;color:#a6a6b4;font-size:14px}</style></head><body><div class="s"></div><b>Đang kết nối tới máy chủ…</b><p>Máy chủ có thể đang khởi động, app sẽ tự vào khi sẵn sàng.</p><script>setTimeout(function(){location.reload()},3000)</script></body></html>"#;
+
+fn gw_retry_page() -> Response {
+    (
+        StatusCode::SERVICE_UNAVAILABLE,
+        [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-store")],
+        GW_RETRY_HTML,
+    )
+        .into_response()
+}
+
+// Chuyển tiếp nguyên một yêu cầu HTTP lên server chính rồi trả lại phản hồi (không giải nén, không tự theo chuyển hướng).
+async fn gw_http(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, req: Request<Body>) -> Response {
+    let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
+    let (parts, body) = req.into_parts();
+    // Mã ghép admin: chỉ máy mở cổng nhà (127.0.0.1) mới xin được; cổng nhà gắn ADMIN_PAIR_KEY (env của máy này) khi chuyển lên server chính.
+    let is_pair = parts.method == axum::http::Method::POST && parts.uri.path() == "/api/admin/pair-code";
+    if is_pair && !is_local_request(&addr, &parts.headers) {
+        return (StatusCode::FORBIDDEN, "Chỉ tạo được mã ghép từ chính máy chạy cổng nhà (mở http://127.0.0.1)").into_response();
+    }
+    if parts.method == axum::http::Method::GET && matches!(parts.uri.path(), "/" | "/index.html") && gw_local_ui() {
+        return (
+            [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-cache")],
+            EMBED_INDEX,
+        )
+            .into_response();
+    }
+    let pq = parts.uri.path_and_query().map(|p| p.as_str()).unwrap_or("/");
+    let url = format!("{}{}", g.remote, pq);
+    let is_nav = parts.method == axum::http::Method::GET
+        && parts
+            .headers
+            .get("accept")
+            .and_then(|v| v.to_str().ok())
+            .map(|a| a.contains("text/html"))
+            .unwrap_or(false);
+    let bytes = match axum::body::to_bytes(body, 16 * 1024 * 1024).await {
+        Ok(b) => b,
+        Err(_) => return StatusCode::PAYLOAD_TOO_LARGE.into_response(),
+    };
+    let mut rb = g.client.request(parts.method.clone(), &url);
+    for (k, v) in parts.headers.iter() {
+        let n = k.as_str();
+        if gw_hop(n) || n == "origin" || n == "referer" || n == "x-pair-key" {
+            continue;
+        }
+        rb = rb.header(k, v);
+    }
+    if is_pair {
+        if let Ok(k) = std::env::var("ADMIN_PAIR_KEY") {
+            let k = k.trim().to_string();
+            if !k.is_empty() {
+                rb = rb.header("x-pair-key", k);
+            }
+        }
+    }
+    if !bytes.is_empty() {
+        rb = rb.body(bytes);
+    }
+    match rb.send().await {
+        Ok(r) => {
+            let status = r.status();
+            if is_nav && matches!(status.as_u16(), 502 | 503 | 504) {
+                return gw_retry_page();
+            }
+            let headers = r.headers().clone();
+            match r.bytes().await {
+                Ok(b) => {
+                    let mut out = Response::new(Body::from(b));
+                    *out.status_mut() = status;
+                    for (k, v) in headers.iter() {
+                        if gw_hop(k.as_str()) {
                             continue;
                         }
+                        out.headers_mut().append(k.clone(), v.clone());
+                    }
+                    out
+                }
+                Err(e) => {
+                    if is_nav {
+                        return gw_retry_page();
+                    }
+                    (StatusCode::BAD_GATEWAY, format!("Cổng nhà: lỗi đọc phản hồi từ server chính ({e})")).into_response()
+                }
+            }
+        }
+        Err(e) => {
+            if is_nav {
+                return gw_retry_page();
+            }
+            {
+                let kind = if e.is_timeout() { "quá thời gian chờ" } else if e.is_connect() { "không kết nối được (server Render đang ngủ/tắt?)" } else if e.is_request() { "lỗi khi gửi dữ liệu lên" } else { "lỗi khác" };
+                let mut chain = String::new();
+                let mut src = std::error::Error::source(&e);
+                while let Some(s) = src { chain.push_str(&format!(" → {s}")); src = s.source(); }
+                (StatusCode::BAD_GATEWAY, format!("Cổng nhà: không nối được server chính {} [{kind}] ({e}){chain}", g.remote)).into_response()
+            }
+        }
+    }
+}
 
-                        if (r === 0 && c === 0) {
-                            continue;
-                        }
+// Chuyển tiếp WebSocket (phòng nghe chung, thông báo mời) lên server chính, giữ nguyên đường dẫn + vé (?ticket=).
+async fn gw_ws(State(st): State<AppState>, ws: WebSocketUpgrade, uri: Uri) -> Response {
+    use tokio_tungstenite::tungstenite::Message as TM;
+    let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
+    let pq = uri.path_and_query().map(|p| p.as_str()).unwrap_or("/").to_string();
+    let base = g.remote.replacen("https://", "wss://", 1).replacen("http://", "ws://", 1);
+    let url = format!("{base}{pq}");
+    ws.on_upgrade(move |client: WebSocket| async move {
+        let Ok((up, _)) = tokio_tungstenite::connect_async(url.as_str()).await else { return };
+        let (mut up_tx, mut up_rx) = up.split();
+        let (mut c_tx, mut c_rx) = client.split();
+        let to_up = async {
+            while let Some(Ok(m)) = c_rx.next().await {
+                let t = match m {
+                    Message::Text(s) => TM::Text(s),
+                    Message::Binary(b) => TM::Binary(b),
+                    Message::Close(_) => break,
+                    _ => continue,
+                };
+                if up_tx.send(t).await.is_err() {
+                    break;
+                }
+            }
+        };
+        let to_client = async {
+            while let Some(Ok(m)) = up_rx.next().await {
+                let t = match m {
+                    TM::Text(s) => Message::Text(s),
+                    TM::Binary(b) => Message::Binary(b),
+                    TM::Close(_) => break,
+                    _ => continue,
+                };
+                if c_tx.send(t).await.is_err() {
+                    break;
+                }
+            }
+        };
+        tokio::select! { _ = to_up => {}, _ = to_client => {} }
+    })
+}
 
-                        if (dark === qrCode.isDark(row + r, col + c) ) {
-                            sameCount++;
+#[tokio::main]
+async fn main() {
+    if std::env::var("AUDIO_ONLY").map(|v| v.trim() == "1").unwrap_or(false) {
+        run_audio_only().await;
+        return;
+    }
+    if let Some(remote) = std::env::var("GATEWAY_REMOTE").ok().map(|v| v.trim().trim_end_matches('/').to_string()).filter(|v| !v.is_empty()) {
+        run_gateway(remote).await;
+        return;
+    }
+    let data_dir = PathBuf::from(std::env::var("DATA_DIR").unwrap_or_else(|_| "data".into()));
+    let avatar_dir = data_dir.join("avatars");
+    let bg_dir = data_dir.join("backgrounds");
+    let banner_dir = data_dir.join("banners");
+    let card_dir = data_dir.join("cards");
+    let app_dir = data_dir.join("app");
+    std::fs::create_dir_all(&avatar_dir).unwrap();
+    std::fs::create_dir_all(&bg_dir).unwrap();
+    std::fs::create_dir_all(&banner_dir).unwrap();
+    std::fs::create_dir_all(&card_dir).unwrap();
+    std::fs::create_dir_all(&app_dir).unwrap();
+    let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "static".into());
+
+    let db_conn = init_db(&data_dir.join("muse.db"));
+    bootstrap_admin(&db_conn);
+    let st = AppState {
+        db: Arc::new(Mutex::new(db_conn)),
+        rooms: Arc::new(Mutex::new(HashMap::new())),
+        notify: Arc::new(Mutex::new(HashMap::new())),
+        avatar_dir: avatar_dir.clone(),
+        bg_dir: bg_dir.clone(),
+        banner_dir: banner_dir.clone(),
+        card_dir: card_dir.clone(),
+        app_dir: app_dir.clone(),
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .user_agent("Muse/0.3")
+            // Giữ kết nối tới YouTube/googlevideo lâu hơn (mặc định 90s) và gửi gói nhỏ ngay: bài kế tiếp khỏi bắt tay TLS lại.
+            .tcp_nodelay(true)
+            .tcp_keepalive(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(300))
+            .build()
+            .expect("không tạo được HTTP client"),
+        http_proxy: std::env::var("YT_PROXY")
+            .ok()
+            .map(|p| p.trim().to_string())
+            .filter(|p| !p.is_empty())
+            .and_then(|p| reqwest::Proxy::all(p).ok())
+            .and_then(|px| {
+                reqwest::Client::builder()
+                    .proxy(px)
+                    .timeout(Duration::from_secs(20))
+                    .user_agent("Muse/0.3")
+                    .build()
+                    .ok()
+            }),
+        audio: Arc::new(Mutex::new(HashMap::new())),
+        auth_limit: Arc::new(Mutex::new(HashMap::new())),
+        ws_tickets: Arc::new(Mutex::new(HashMap::new())),
+        pair_codes: Arc::new(Mutex::new(HashMap::new())),
+        gateway: None,
+    };
+
+    // SERVE_MUSIC: "1" = server chính phục vụ cả nhạc như cổng nhà; "0" = tắt hết (410);
+    // để trống (mặc định) = chế độ "meta": danh sách/tìm kiếm có cache, còn luồng âm thanh/video/ảnh bìa vẫn do app tự lấy.
+    let music_mode = match std::env::var("SERVE_MUSIC").unwrap_or_default().trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "on" | "yes" => "full",
+        "0" | "false" | "off" | "no" => "off",
+        _ => "meta",
+    };
+    let music_router = match music_mode {
+        "full" => yt_routes(),
+        "off" => music_off_routes(),
+        _ => yt_meta_routes().layer(middleware::from_fn_with_state(st.clone(), meta_cache)).merge(media_off_routes()),
+    };
+    let router = Router::new()
+        .route("/api/config", get(config))
+        .route("/api/register", post(register))
+        .route("/api/login", post(login))
+        .route("/api/logout", post(logout))
+        .route("/api/ws-ticket", post(ws_ticket))
+        .route("/api/admin/pair-code", post(admin_pair_code))
+        .route("/api/kofi/webhook", post(kofi_webhook))
+        .route("/api/qr/new", post(qr_new))
+        .route("/api/qr/poll/:id", get(qr_poll))
+        .route("/api/qr/approve", post(qr_approve))
+        .route("/api/admin/supporter", post(admin_set_supporter))
+        .route("/api/admin/users/reset-avatar", post(admin_reset_avatar))
+        .route("/api/pair/redeem", post(pair_redeem))
+        .route("/api/pair/create", post(pair_create))
+        .route("/api/me", get(me))
+        .route("/api/profile", post(update_profile))
+        .route("/api/profile/privacy", get(privacy_get).post(privacy_set))
+        .route("/api/users/:id/home", get(user_home))
+        .route("/api/account/name", post(account_name))
+        .route("/api/account/password", post(account_password))
+        .route("/api/account", axum::routing::delete(account_delete))
+        .route("/api/settings", get(settings_get).post(settings_set))
+        .route("/api/discord/status", get(discord_status))
+        .route("/api/discord/link", post(discord_link).delete(discord_unlink))
+        .route("/api/discord/callback", get(discord_callback))
+        .route("/api/discord/token", get(discord_token))
+        .route("/api/yt-import/url", post(yt_import_url))
+        .route("/api/pl-import/url", post(pl_import::pl_import_url))
+        .route("/api/backup", get(backup_export))
+        .route("/api/restore", post(backup_restore).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
+        .route("/api/import", post(import_playlists).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
+        .route("/api/avatar", post(upload_avatar))
+        .route("/api/background", post(upload_bg).layer(DefaultBodyLimit::max(10_500_000)))
+        .route("/api/banner", post(upload_banner).delete(remove_banner).layer(DefaultBodyLimit::max(10 * 1024 * 1024)))
+        .route("/api/admin/icon", post(admin_icon).delete(admin_icon_reset))
+        .route("/app-icon.png", get(serve_icon))
+        .route("/api/card", post(upload_card).layer(DefaultBodyLimit::max(3 * 1024 * 1024)))
+        .route("/api/u/:username", get(card_user))
+        .route("/api/fans/:id", get(fans_get))
+        .route("/api/listen", post(listen_post))
+        .route("/api/lv/:id", get(level_get))
+        .route("/u/:username", get(card_page))
+        .route("/.well-known/assetlinks.json", get(assetlinks))
+        .merge(music_router)
+        .route("/api/friends", get(list_friends).post(add_friend))
+        .route("/api/friends/requests", get(list_requests))
+        .route("/api/friends/respond", post(respond_request))
+        .route("/api/friends/:id", axum::routing::delete(remove_friend))
+        .route("/api/favorites", get(fav_list).post(fav_toggle))
+        .route("/api/history", get(hist_list).post(hist_add).delete(hist_clear))
+        .route("/api/comments", get(comments_list).post(comments_add))
+        .route("/api/comments/:id", axum::routing::delete(comments_delete))
+        .route("/api/sync", get(sync_get).post(sync_post))
+        .route("/api/recommend", get(recommend))
+        .route("/api/blend/:fid", get(blend))
+        .route("/api/playlists", get(pl_list).post(pl_create))
+        .route("/api/playlists/:id", get(pl_get).delete(pl_delete))
+        .route("/api/playlists/:id/tracks", post(pl_add))
+        .route("/api/playlists/:id/tracks/:key", axum::routing::delete(pl_remove))
+        .route("/api/time", get(time_now))
+        .route("/api/invite", post(invite))
+        .route("/ws-user", get(ws_user))
+        .route("/ws/:room", get(ws_handler))
+        .nest_service("/avatars", ServeDir::new(avatar_dir))
+        .nest_service("/backgrounds", ServeDir::new(bg_dir))
+        .nest_service("/banners", ServeDir::new(banner_dir))
+        .nest_service("/cards", ServeDir::new(card_dir))
+        .fallback_service(ServeDir::new(static_dir))
+        .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
+        .layer(middleware::from_fn(security_headers))
+        .with_state(st);
+
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
+    // BIND=127.0.0.1 -> chỉ nhận kết nối từ chính máy này (dùng khi đã có Caddy / Tailscale Serve / Funnel phía trước),
+    // nên IP mạng LAN và cổng không bị lộ ra ngoài. Mặc định 0.0.0.0 để không phá cách chạy hiện có (Docker, điện thoại cùng Wi-Fi).
+    let bind = std::env::var("BIND").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).unwrap_or_else(|| "0.0.0.0".into());
+    let listener = tokio::net::TcpListener::bind(format!("{bind}:{port}")).await.unwrap();
+    println!("Muse server: http://localhost:{port} (lắng nghe {bind})");
+    match music_mode {
+        "off" => println!("Nguồn nhạc (YouTube) đã tắt trên server này (SERVE_MUSIC=0): chỉ lưu dữ liệu người dùng."),
+        "meta" => println!("Server chính ở chế độ meta: danh sách/tìm kiếm YouTube có cache trên đĩa; luồng âm thanh/video do app tự lấy (SERVE_MUSIC=1 để phục vụ cả nhạc)."),
+        _ => {}
+    }
+    axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
+}
+
+// Ảnh bìa YouTube/Google qua server: dự phòng cho app khi mạng điện thoại chặn i.ytimg.com. Chỉ nhận https và đúng các tên miền ảnh này.
+#[derive(Deserialize)]
+struct ImgQ {
+    u: String,
+}
+
+// ===== Ảnh bìa: cache RAM + đĩa, nguồn gốc chạy trước, các nguồn dự phòng chạy đua (giống bản Android) =====
+struct ImgRam {
+    map: HashMap<String, (String, Bytes)>,
+    order: std::collections::VecDeque<String>,
+    bytes: usize,
+}
+const IMG_RAM_MAX: usize = 8 * 1024 * 1024;
+
+fn img_ram() -> &'static Mutex<ImgRam> {
+    static R: std::sync::OnceLock<Mutex<ImgRam>> = std::sync::OnceLock::new();
+    R.get_or_init(|| Mutex::new(ImgRam { map: HashMap::new(), order: Default::default(), bytes: 0 }))
+}
+
+fn img_ram_get(key: &str) -> Option<(String, Bytes)> {
+    img_ram().lock().ok()?.map.get(key).cloned()
+}
+
+fn img_ram_put(key: &str, ct: &str, b: &Bytes) {
+    let Ok(mut r) = img_ram().lock() else { return };
+    if r.map.contains_key(key) {
+        return;
+    }
+    r.bytes += b.len() + 64;
+    r.map.insert(key.to_string(), (ct.to_string(), b.clone()));
+    r.order.push_back(key.to_string());
+    while r.bytes > IMG_RAM_MAX {
+        let Some(old) = r.order.pop_front() else { break };
+        if let Some((_, ob)) = r.map.remove(&old) {
+            r.bytes = r.bytes.saturating_sub(ob.len() + 64);
+        }
+    }
+}
+
+// Thư mục cache ảnh trên đĩa: MUSE_CACHE_DIR, không có thì thư mục cache của hệ điều hành (không ghi cạnh file .exe vì có thể bị khoá quyền).
+fn img_cache_dir() -> Option<PathBuf> {
+    static D: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new();
+    D.get_or_init(|| {
+        let base = std::env::var_os("MUSE_CACHE_DIR")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("LOCALAPPDATA").map(|p| PathBuf::from(p).join("BBeat")))
+            .or_else(|| std::env::var_os("XDG_CACHE_HOME").map(|p| PathBuf::from(p).join("bbeat")))
+            .or_else(|| std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".cache").join("bbeat")))
+            .unwrap_or_else(|| std::env::temp_dir().join("bbeat"));
+        let d = base.join("img");
+        std::fs::create_dir_all(&d).ok()?;
+        Some(d)
+    })
+    .clone()
+}
+
+fn img_key(url: &str) -> String {
+    Sha256::digest(url.as_bytes()).iter().map(|b| format!("{b:02x}")).collect()
+}
+
+async fn img_disk_get(key: &str) -> Option<(String, Bytes)> {
+    let f = img_cache_dir()?.join(key);
+    let raw = tokio::fs::read(&f).await.ok()?;
+    let nl = raw.iter().position(|&c| c == b'\n')?;
+    let ct = String::from_utf8(raw[..nl].to_vec()).ok()?;
+    let body = &raw[nl + 1..];
+    if !ct.starts_with("image/") || body.is_empty() {
+        let _ = tokio::fs::remove_file(&f).await;
+        return None;
+    }
+    Some((ct, Bytes::copy_from_slice(body)))
+}
+
+async fn img_disk_put(key: &str, ct: &str, b: &Bytes) {
+    static N: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let Some(dir) = img_cache_dir() else { return };
+    let mut out = Vec::with_capacity(ct.len() + 1 + b.len());
+    out.extend_from_slice(ct.as_bytes());
+    out.push(b'\n');
+    out.extend_from_slice(b);
+    if tokio::fs::write(dir.join(key), out).await.is_err() {
+        return;
+    }
+    // Giữ thư mục gọn: cứ 50 ảnh mới thì kiểm tra, quá 800 file thì xoá 200 file cũ nhất.
+    if N.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 50 == 49 {
+        if let Ok(mut rd) = tokio::fs::read_dir(&dir).await {
+            let mut all: Vec<(SystemTime, PathBuf)> = Vec::new();
+            while let Ok(Some(e)) = rd.next_entry().await {
+                if let Ok(m) = e.metadata().await {
+                    all.push((m.modified().unwrap_or(UNIX_EPOCH), e.path()));
+                }
+            }
+            if all.len() > 800 {
+                all.sort();
+                for (_, f) in all.into_iter().take(200) {
+                    let _ = tokio::fs::remove_file(f).await;
+                }
+            }
+        }
+    }
+}
+
+const IMG_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+
+// Tải một URL ảnh: Ok((content-type, bytes)) nếu là ảnh hợp lệ, Err(ghi chú) nếu không.
+async fn img_fetch(client: &reqwest::Client, url: &str, timeout: Duration) -> Result<(String, Bytes), String> {
+    let r = client
+        .get(url)
+        .header("user-agent", IMG_UA)
+        .header("accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
+        .timeout(timeout)
+        .send()
+        .await
+        .map_err(|e| format!("[{}: lỗi kết nối ({e})] ", reqwest::Url::parse(url).ok().and_then(|u| u.host_str().map(|h| h.to_string())).unwrap_or_default()))?;
+    let host = r.url().host_str().unwrap_or("?").to_string();
+    if !r.status().is_success() {
+        return Err(format!("[{host}: HTTP {}] ", r.status().as_u16()));
+    }
+    let ct = r.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").split(';').next().unwrap_or("").trim().to_string();
+    if !ct.starts_with("image/") {
+        return Err(format!("[{host}: không phải ảnh ({ct})] "));
+    }
+    match r.bytes().await {
+        Ok(b) if !b.is_empty() && b.len() < 8 * 1024 * 1024 => Ok((ct, b)),
+        _ => Err(format!("[{host}: ảnh rỗng/quá lớn] ")),
+    }
+}
+
+fn img_resp(ct: &str, b: Bytes) -> Response {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, ct)
+        .header(header::CACHE_CONTROL, "public, max-age=86400")
+        .body(Body::from(b))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
+async fn img_proxy(State(st): State<AppState>, Query(q): Query<ImgQ>) -> Response {
+    let parsed = match reqwest::Url::parse(&q.u).ok().filter(|p| p.scheme() == "https") {
+        Some(p) => p,
+        None => return StatusCode::BAD_REQUEST.into_response(),
+    };
+    let host = parsed.host_str().map(|h| h.to_ascii_lowercase()).unwrap_or_default();
+    if !(host == "i.ytimg.com" || host.ends_with(".ggpht.com") || host.ends_with(".googleusercontent.com")) {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    // 1) RAM rồi đĩa: ảnh đã xem rồi hiện ngay, không hỏi mạng.
+    let key = img_key(&q.u);
+    if let Some((ct, b)) = img_ram_get(&key) {
+        return img_resp(&ct, b);
+    }
+    if let Some((ct, b)) = img_disk_get(&key).await {
+        img_ram_put(&key, &ct, &b);
+        return img_resp(&ct, b);
+    }
+    // 2) Nguồn gốc (IP của máy này): link gốc, rồi các tên miền ảnh khác của YouTube, rồi hạ dần chất lượng (hq720/maxres không phải video nào cũng có).
+    let mut cands: Vec<String> = vec![q.u.clone()];
+    if host == "i.ytimg.com" {
+        for alt in ["i1.ytimg.com", "i9.ytimg.com", "img.youtube.com"] {
+            let mut u = parsed.clone();
+            if u.set_host(Some(alt)).is_ok() {
+                cands.push(u.to_string());
+            }
+        }
+        if let Some(pos) = q.u.rfind('/') {
+            let (base, tail) = q.u.split_at(pos + 1);
+            if base.contains("/vi/") && tail.ends_with(".jpg") {
+                for n in ["hqdefault.jpg", "mqdefault.jpg", "default.jpg"] {
+                    if tail != n {
+                        cands.push(format!("{base}{n}"));
+                    }
+                }
+            }
+        }
+    }
+    // 3) Dự phòng (wsrv.nl, DuckDuckGo, weserv.nl) chỉ bắt đầu SAU KHI nguồn gốc xong mà lỗi (hoặc sau 1,5 giây), chạy song song, cái nào xong trước thắng.
+    let enc: String = reqwest::Url::parse_with_params("https://x/", &[("u", q.u.as_str())])
+        .ok()
+        .and_then(|u| u.query().map(|s| s.trim_start_matches("u=").to_string()))
+        .unwrap_or_default();
+    let fallbacks = [
+        format!("https://wsrv.nl/?url={enc}"),
+        format!("https://external-content.duckduckgo.com/iu/?u={enc}&f=1"),
+        format!("https://images.weserv.nl/?url={enc}"),
+    ];
+    type Msg = Result<(String, Bytes), String>;
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Msg>();
+    let direct_done = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let mut tasks: Vec<tokio::task::JoinHandle<()>> = Vec::new();
+    {
+        let (tx, client, done) = (tx.clone(), st.http.clone(), direct_done.clone());
+        tasks.push(tokio::spawn(async move {
+            let mut notes = String::new();
+            for (i, u) in cands.iter().enumerate() {
+                match img_fetch(&client, u, Duration::from_secs(if i == 0 { 5 } else { 8 })).await {
+                    Ok(x) => {
+                        done.store(true, std::sync::atomic::Ordering::Relaxed);
+                        let _ = tx.send(Ok(x));
+                        return;
+                    }
+                    Err(n) => notes.push_str(&n),
+                }
+            }
+            done.store(true, std::sync::atomic::Ordering::Relaxed);
+            let _ = tx.send(Err(notes));
+        }));
+    }
+    for (i, u) in fallbacks.into_iter().enumerate() {
+        let (tx, client, done) = (tx.clone(), st.http.clone(), direct_done.clone());
+        tasks.push(tokio::spawn(async move {
+            let t0 = std::time::Instant::now();
+            while !done.load(std::sync::atomic::Ordering::Relaxed) && t0.elapsed() < Duration::from_millis(1500) {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+            }
+            tokio::time::sleep(Duration::from_millis(150 * i as u64)).await;
+            let _ = tx.send(img_fetch(&client, &u, Duration::from_secs(8)).await);
+        }));
+    }
+    drop(tx);
+    let mut notes = String::new();
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
+    let mut got: Option<(String, Bytes)> = None;
+    while let Ok(Some(m)) = tokio::time::timeout_at(deadline, rx.recv()).await {
+        match m {
+            Ok(x) => {
+                got = Some(x);
+                break;
+            }
+            Err(n) => notes.push_str(&n),
+        }
+    }
+    for t in tasks {
+        t.abort();
+    }
+    match got {
+        Some((ct, b)) => {
+            img_ram_put(&key, &ct, &b);
+            img_disk_put(&key, &ct, &b).await;
+            img_resp(&ct, b)
+        }
+        None => (StatusCode::BAD_GATEWAY, format!("Không tải được ảnh: {notes}")).into_response(),
+    }
+}
+
+async fn config(State(st): State<AppState>) -> Json<serde_json::Value> {
+    let icon = std::fs::metadata(st.app_dir.join("icon.png"))
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+        .map(|d| format!("/app-icon.png?v={}", d.as_secs()))
+        .unwrap_or_default();
+    Json(json!({
+        "donate_url": std::env::var("DONATE_URL").unwrap_or_default(),
+        "icon_url": icon,
+        "version": env!("CARGO_PKG_VERSION"),
+        "proxy_available": st.http_proxy.is_some(),
+        "discord_app_id": std::env::var("DISCORD_CLIENT_ID").unwrap_or_default(),
+        "discord_login": discord_cfg().is_some(),
+        "artist_aliases": alias_map(),
+    }))
+}
+
+#[derive(Deserialize)]
+struct AuthReq {
+    username: String,
+    password: String,
+    display_name: Option<String>,
+}
+#[derive(Serialize)]
+struct AuthResp {
+    token: String,
+    user: User,
+}
+
+async fn register(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
+    // Tối đa 10 lần đăng ký / giờ / địa chỉ, tránh tạo tài khoản hàng loạt.
+    let rkey = format!("reg:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &rkey, 10, 3600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &rkey, 3600);
+    let username = r.username.trim().to_lowercase();
+    if username.len() < 3 || username.len() > 24 || !username.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return Err(bad("Tên đăng nhập 3-24 ký tự: chữ, số hoặc _"));
+    }
+    // Chỉ tên ĐĂNG NHẬP mới bị giữ chỗ / phải duy nhất; tên hiển thị thì ai cũng đặt trùng được.
+    if is_reserved_name(&username) {
+        return Err((StatusCode::CONFLICT, "Tên đăng nhập đã tồn tại".into()));
+    }
+    if r.password.len() < 8 || r.password.len() > 128 {
+        return Err(bad("Mật khẩu từ 8 đến 128 ký tự"));
+    }
+    let pw = r.password.clone();
+    let hash = tokio::task::spawn_blocking(move || hash_pw(&pw)).await.map_err(|_| e500())?.map_err(|_| e500())?;
+    let display: String = r
+        .display_name
+        .filter(|s| !s.trim().is_empty())
+        .unwrap_or_else(|| username.clone())
+        .trim()
+        .chars()
+        .take(24)
+        .collect();
+    let code = uuid::Uuid::new_v4().simple().to_string()[..8].to_uppercase();
+
+    let db = st.db.lock().unwrap();
+    let res = db.execute(
+        "INSERT INTO users(username,pass_hash,display_name,code) VALUES(?1,?2,?3,?4)",
+        params![username, hash, display, code],
+    );
+    match res {
+        Ok(_) => {}
+        Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::ConstraintViolation => {
+            return Err((StatusCode::CONFLICT, "Tên đăng nhập đã tồn tại".into()));
+        }
+        Err(_) => return Err(e500()),
+    }
+    let id = db.last_insert_rowid();
+    let token = new_token();
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), id]).map_err(|_| e500())?;
+    let user = db
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [id], row_to_user)
+        .map_err(|_| e500())?;
+    Ok(Json(AuthResp { token, user }))
+}
+
+async fn login(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<AuthReq>) -> R<AuthResp> {
+    let username = r.username.trim().to_lowercase();
+    // Chống dò mật khẩu: 5 lần sai / 10 phút cho mỗi tên đăng nhập, 30 lần sai / 10 phút cho mỗi địa chỉ.
+    let ukey = format!("u:{}", username.chars().take(40).collect::<String>());
+    let ikey = format!("ip:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ukey, 5, 600) || rl_blocked(&st, &ikey, 30, 600) {
+        return Err(too_many());
+    }
+    let row = {
+        let db = st.db.lock().unwrap();
+        let x = db
+            .query_row("SELECT id, pass_hash FROM users WHERE username=?1", [&username], |r| {
+                Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?))
+            })
+            .ok();
+        x
+    };
+    let Some((id, hash)) = row else {
+        let dummy = DUMMY_HASH.get_or_init(|| hash_pw("dummy-password-for-timing").unwrap_or_default()).clone();
+        let pw = r.password.clone();
+        let _ = tokio::task::spawn_blocking(move || verify_pw(&pw, &dummy)).await;
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
+        return Err(unauth_login());
+    };
+    let pw = r.password.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
+    if !ok {
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
+        return Err(unauth_login());
+    }
+    rl_clear(&st, &ukey);
+    let db = st.db.lock().unwrap();
+    let _ = db.execute("DELETE FROM sessions WHERE created_at < datetime('now','-30 days')", []);
+    let token = new_token();
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), id]).map_err(|_| e500())?;
+    let user = db
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [id], row_to_user)
+        .map_err(|_| e500())?;
+    Ok(Json(AuthResp { token, user }))
+}
+fn unauth_login() -> ApiErr { (StatusCode::UNAUTHORIZED, "Sai tên đăng nhập hoặc mật khẩu".into()) }
+
+async fn logout(State(st): State<AppState>, headers: HeaderMap) -> StatusCode {
+    if let Some(t) = bearer(&headers) {
+        let db = st.db.lock().unwrap();
+        let _ = db.execute("DELETE FROM sessions WHERE token=?1", [tok_hash(&t)]);
+    }
+    StatusCode::OK
+}
+
+async fn me(State(st): State<AppState>, headers: HeaderMap) -> R<User> {
+    Ok(Json(require(&st, &headers)?))
+}
+
+#[derive(Deserialize)]
+struct ProfileReq {
+    display_name: String,
+    accent: String,
+    bg: String,
+    bg_url: String,
+    avatar_emoji: Option<String>,
+    banner_color: Option<String>,
+    status: Option<String>,
+    crop: Option<Value>,
+}
+
+async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<ProfileReq>) -> R<User> {
+    let user = require(&st, &headers)?;
+    let name: String = r.display_name.trim().chars().take(24).collect();
+    if name.is_empty() {
+        return Err(bad("Tên hiển thị không được trống"));
+    }
+    let a = &r.accent;
+    if a.len() != 7 || !a.starts_with('#') || !a[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err(bad("Màu không hợp lệ"));
+    }
+    if !["", "dark", "ocean", "sunset", "forest", "custom", "glass"].contains(&r.bg.as_str()) {
+        return Err(bad("Nền không hợp lệ"));
+    }
+    let u = &r.bg_url;
+    let local_ok = u
+        .strip_prefix("/backgrounds/")
+        .map(|f| !f.is_empty() && !f.contains('/') && !f.contains(".."))
+        .unwrap_or(false);
+    if !u.is_empty()
+        && (!(u.starts_with("https://") || local_ok) || u.len() > 500 || u.chars().any(|c| c.is_whitespace() || "\"'\\()".contains(c)))
+    {
+        return Err(bad("Link ảnh nền phải là https:// (hoặc ảnh đã tải lên) và không chứa ký tự đặc biệt"));
+    }
+    let db = st.db.lock().unwrap();
+    // Gộp mọi lệnh ghi vào một giao dịch: chỉ 1 lần commit/fsync thay vì mỗi trường một lần (nhanh hơn rõ rệt trên ổ đĩa mạng),
+    // và lỗi giữa chừng sẽ hoàn tác toàn bộ thay vì lưu dở.
+    let tx = db.unchecked_transaction().map_err(|_| e500())?;
+    tx.execute(
+        "UPDATE users SET display_name=?1, accent=?2, bg=?3, bg_url=?4 WHERE id=?5",
+        params![name, r.accent, r.bg, r.bg_url, user.id],
+    )
+    .map_err(|_| e500())?;
+    if let Some(c) = r.banner_color.as_ref() {
+        if !(c.is_empty() || (c.len() == 7 && c.starts_with('#') && c[1..].chars().all(|x| x.is_ascii_hexdigit()))) {
+            return Err(bad("Màu banner không hợp lệ"));
+        }
+        tx.execute("UPDATE users SET banner_color=?1 WHERE id=?2", params![c, user.id]).map_err(|_| e500())?;
+    }
+    // Tâm ảnh (x, y: 0-100 % khung), zoom (0.1-4, 1 = phủ kín khung) và tỉ lệ ảnh (rộng/cao) của avatar (a*) và banner (b*).
+    if let Some(c) = r.crop.as_ref() {
+        let mut out = serde_json::Map::new();
+        for (k, lo, hi, d) in [
+            ("bx", 0.0, 100.0, 50.0),
+            ("by", 0.0, 100.0, 50.0),
+            ("bz", 0.1, 4.0, 1.0),
+            ("ba", 0.0, 20.0, 0.0),
+            ("ax", 0.0, 100.0, 50.0),
+            ("ay", 0.0, 100.0, 50.0),
+            ("az", 0.1, 4.0, 1.0),
+            ("aa", 0.0, 20.0, 0.0),
+        ] {
+            let v: f64 = c.get(k).and_then(|x| x.as_f64()).filter(|x| x.is_finite()).unwrap_or(d).clamp(lo, hi);
+            out.insert(k.to_string(), json!((v * 100.0).round() / 100.0));
+        }
+        // Kiểu chữ trên hồ sơ (màu / bóng / độ đậm / độ rõ / cỡ chữ của từng chữ) lưu chung trong crop.tx để thẻ nhỏ, trang cá nhân,
+        // thẻ chia sẻ và người khác xem hồ sơ đều thấy đúng như trang Chỉnh sửa hồ sơ. Client cũ không gửi tx thì giữ nguyên bản đã lưu.
+        let old_tx: Option<Value> = tx
+            .query_row("SELECT crop FROM users WHERE id=?1", [user.id], |x| x.get::<_, String>(0))
+            .ok()
+            .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+            .and_then(|v| v.get("tx").cloned());
+        let new_tx: Option<Value> = c.get("tx").cloned().or(old_tx);
+        if let Some(t) = new_tx.as_ref().and_then(|t| t.as_object()) {
+            let mut tout = serde_json::Map::new();
+            for k in ["name", "un", "st", "fan", "fol", "like"] {
+                let Some(v) = t.get(k).and_then(|x| x.as_object()) else { continue };
+                let mut e = serde_json::Map::new();
+                if let Some(col) = v.get("c").and_then(|x| x.as_str()) {
+                    if col.len() == 7 && col.starts_with('#') && col[1..].chars().all(|ch| ch.is_ascii_hexdigit()) {
+                        e.insert("c".to_string(), json!(col.to_lowercase()));
+                    }
+                }
+                for (pk, lo, hi) in [("s", -5i64, 5i64), ("w", -5, 5), ("o", -60, 0), ("z", -30, 40)] {
+                    let n = v.get(pk).and_then(|x| x.as_f64()).filter(|x| x.is_finite()).map(|x| (x.round() as i64).clamp(lo, hi)).unwrap_or(0);
+                    if n != 0 {
+                        e.insert(pk.to_string(), json!(n));
+                    }
+                }
+                if !e.is_empty() {
+                    tout.insert(k.to_string(), Value::Object(e));
+                }
+            }
+            if !tout.is_empty() {
+                out.insert("tx".to_string(), Value::Object(tout));
+            }
+        }
+        tx.execute("UPDATE users SET crop=?1 WHERE id=?2", params![Value::Object(out).to_string(), user.id]).map_err(|_| e500())?;
+    }
+    if let Some(stt) = r.status.as_ref() {
+        let clean: String = stt.chars().filter(|c| !c.is_control()).collect::<String>().trim().chars().take(60).collect();
+        tx.execute("UPDATE users SET status=?1 WHERE id=?2", params![clean, user.id]).map_err(|_| e500())?;
+    }
+    if let Some(em) = r.avatar_emoji.filter(|e| !e.trim().is_empty() && e.chars().count() <= 4) {
+        tx.execute("UPDATE users SET avatar=?1 WHERE id=?2", params![em.trim(), user.id]).map_err(|_| e500())?;
+    }
+    let out = tx
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [user.id], row_to_user)
+        .map_err(|_| e500())?;
+    tx.commit().map_err(|_| e500())?;
+    Ok(Json(out))
+}
+
+// ---------- Quyền riêng tư Trang chủ hồ sơ ----------
+#[derive(Deserialize)]
+struct PrivacyReq {
+    home_public: bool,
+}
+
+async fn privacy_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let p: i64 = db.query_row("SELECT home_public FROM users WHERE id=?1", [user.id], |r| r.get(0)).unwrap_or(1);
+    Ok(Json(json!({ "home_public": p != 0 })))
+}
+
+async fn privacy_set(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<PrivacyReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET home_public=?1 WHERE id=?2", params![r.home_public as i64, user.id]).map_err(|_| e500())?;
+    Ok(Json(json!({ "home_public": r.home_public })))
+}
+
+// Trang chủ của người khác: trả về cả trạng thái bạn bè (để ẩn nút "Kết bạn") và, nếu họ để công khai, playlist + nhạc đã thích gần đây.
+async fn user_home(State(st): State<AppState>, headers: HeaderMap, Path(uid): Path<i64>) -> R<Value> {
+    let me_id: i64 = require(&st, &headers).map(|u| u.id).unwrap_or(-1);   // khách (chưa đăng nhập) vẫn xem được Trang chủ công khai
+    let db = st.db.lock().unwrap();
+    let public: i64 = db
+        .query_row("SELECT home_public FROM users WHERE id=?1", [uid], |r| r.get(0))
+        .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy người dùng".to_string()))?;
+    let friend = me_id == uid
+        || db.query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![me_id, uid], |_| Ok(())).is_ok();
+    if public == 0 && me_id != uid {
+        return Ok(Json(json!({ "friend": friend, "public": false })));
+    }
+    let mut pls: Vec<Value> = Vec::new();
+    if let Ok(mut stmt) = db.prepare("SELECT p.id, p.name, (SELECT COUNT(*) FROM playlist_tracks t WHERE t.playlist_id=p.id) FROM playlists p WHERE p.user_id=?1 ORDER BY p.id LIMIT 12") {
+        if let Ok(rows) = stmt.query_map([uid], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, i64>(2)?))) {
+            for (id, name, count) in rows.flatten() {
+                let mut covers: Vec<String> = Vec::new();
+                if let Ok(mut s2) = db.prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid LIMIT 24") {
+                    if let Ok(rows2) = s2.query_map([id], |r| r.get::<_, String>(0)) {
+                        for js in rows2.flatten() {
+                            if let Some(img) = serde_json::from_str::<Value>(&js).ok().and_then(|tv| tv.get("image").and_then(|x| x.as_str()).map(|s| s.to_string())) {
+                                if !img.is_empty() {
+                                    covers.push(img);
+                                    if covers.len() >= 4 {
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
-                if (sameCount > 5) {
-                    lostPoint += (3 + sameCount - 5);
-                }
+                pls.push(json!({ "id": id, "name": name, "count": count, "covers": covers }));
             }
         }
-
-        // LEVEL2
-
-        for (row = 0; row < moduleCount - 1; row++) {
-            for (col = 0; col < moduleCount - 1; col++) {
-                var count = 0;
-                if (qrCode.isDark(row,     col    ) ) count++;
-                if (qrCode.isDark(row + 1, col    ) ) count++;
-                if (qrCode.isDark(row,     col + 1) ) count++;
-                if (qrCode.isDark(row + 1, col + 1) ) count++;
-                if (count === 0 || count === 4) {
-                    lostPoint += 3;
-                }
-            }
-        }
-
-        // LEVEL3
-
-        for (row = 0; row < moduleCount; row++) {
-            for (col = 0; col < moduleCount - 6; col++) {
-                if (qrCode.isDark(row, col) && 
-                        !qrCode.isDark(row, col + 1) && 
-                         qrCode.isDark(row, col + 2) && 
-                         qrCode.isDark(row, col + 3) && 
-                         qrCode.isDark(row, col + 4) && 
-                        !qrCode.isDark(row, col + 5) && 
-                         qrCode.isDark(row, col + 6) ) {
-                    lostPoint += 40;
-                }
-            }
-        }
-
-        for (col = 0; col < moduleCount; col++) {
-            for (row = 0; row < moduleCount - 6; row++) {
-                if (qrCode.isDark(row, col) &&
-                        !qrCode.isDark(row + 1, col) &&
-                         qrCode.isDark(row + 2, col) &&
-                         qrCode.isDark(row + 3, col) &&
-                         qrCode.isDark(row + 4, col) &&
-                        !qrCode.isDark(row + 5, col) &&
-                         qrCode.isDark(row + 6, col) ) {
-                    lostPoint += 40;
-                }
-            }
-        }
-
-        // LEVEL4
-        
-        var darkCount = 0;
-
-        for (col = 0; col < moduleCount; col++) {
-            for (row = 0; row < moduleCount; row++) {
-                if (qrCode.isDark(row, col) ) {
-                    darkCount++;
-                }
-            }
-        }
-        
-        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
-        lostPoint += ratio * 10;
-
-        return lostPoint;       
     }
-
-};
-
-module.exports = QRUtil;
-
-};
-D['index']=function(module,exports,require){
-//---------------------------------------------------------------------
-// QRCode for JavaScript
-//
-// Copyright (c) 2009 Kazuhiko Arase
-//
-// URL: http://www.d-project.com/
-//
-// Licensed under the MIT license:
-//   http://www.opensource.org/licenses/mit-license.php
-//
-// The word "QR Code" is registered trademark of 
-// DENSO WAVE INCORPORATED
-//   http://www.denso-wave.com/qrcode/faqpatent-e.html
-//
-//---------------------------------------------------------------------
-// Modified to work in node for this project (and some refactoring)
-//---------------------------------------------------------------------
-
-var QR8bitByte = require('./QR8bitByte');
-var QRUtil = require('./QRUtil');
-var QRPolynomial = require('./QRPolynomial');
-var QRRSBlock = require('./QRRSBlock');
-var QRBitBuffer = require('./QRBitBuffer');
-
-function QRCode(typeNumber, errorCorrectLevel) {
-	this.typeNumber = typeNumber;
-	this.errorCorrectLevel = errorCorrectLevel;
-	this.modules = null;
-	this.moduleCount = 0;
-	this.dataCache = null;
-	this.dataList = [];
-}
-
-QRCode.prototype = {
-	
-	addData : function(data) {
-		var newData = new QR8bitByte(data);
-		this.dataList.push(newData);
-		this.dataCache = null;
-	},
-	
-	isDark : function(row, col) {
-		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
-			throw new Error(row + "," + col);
-		}
-		return this.modules[row][col];
-	},
-
-	getModuleCount : function() {
-		return this.moduleCount;
-	},
-	
-	make : function() {
-		// Calculate automatically typeNumber if provided is < 1
-		if (this.typeNumber < 1 ){
-			var typeNumber = 1;
-			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
-				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
-
-				var buffer = new QRBitBuffer();
-				var totalDataCount = 0;
-				for (var i = 0; i < rsBlocks.length; i++) {
-					totalDataCount += rsBlocks[i].dataCount;
-				}
-
-				for (var x = 0; x < this.dataList.length; x++) {
-					var data = this.dataList[x];
-					buffer.put(data.mode, 4);
-					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
-					data.write(buffer);
-				}
-				if (buffer.getLengthInBits() <= totalDataCount * 8)
-					break;
-			}
-			this.typeNumber = typeNumber;
-		}
-		this.makeImpl(false, this.getBestMaskPattern() );
-	},
-	
-	makeImpl : function(test, maskPattern) {
-		
-		this.moduleCount = this.typeNumber * 4 + 17;
-		this.modules = new Array(this.moduleCount);
-		
-		for (var row = 0; row < this.moduleCount; row++) {
-			
-			this.modules[row] = new Array(this.moduleCount);
-			
-			for (var col = 0; col < this.moduleCount; col++) {
-				this.modules[row][col] = null;//(col + row) % 3;
-			}
-		}
-	
-		this.setupPositionProbePattern(0, 0);
-		this.setupPositionProbePattern(this.moduleCount - 7, 0);
-		this.setupPositionProbePattern(0, this.moduleCount - 7);
-		this.setupPositionAdjustPattern();
-		this.setupTimingPattern();
-		this.setupTypeInfo(test, maskPattern);
-		
-		if (this.typeNumber >= 7) {
-			this.setupTypeNumber(test);
-		}
-	
-		if (this.dataCache === null) {
-			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
-		}
-	
-		this.mapData(this.dataCache, maskPattern);
-	},
-
-	setupPositionProbePattern : function(row, col)  {
-		
-		for (var r = -1; r <= 7; r++) {
-			
-			if (row + r <= -1 || this.moduleCount <= row + r) continue;
-			
-			for (var c = -1; c <= 7; c++) {
-				
-				if (col + c <= -1 || this.moduleCount <= col + c) continue;
-				
-				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
-                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
-                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
-					this.modules[row + r][col + c] = true;
-				} else {
-					this.modules[row + r][col + c] = false;
-				}
-			}		
-		}		
-	},
-	
-	getBestMaskPattern : function() {
-	
-		var minLostPoint = 0;
-		var pattern = 0;
-	
-		for (var i = 0; i < 8; i++) {
-			
-			this.makeImpl(true, i);
-	
-			var lostPoint = QRUtil.getLostPoint(this);
-	
-			if (i === 0 || minLostPoint >  lostPoint) {
-				minLostPoint = lostPoint;
-				pattern = i;
-			}
-		}
-	
-		return pattern;
-	},
-	
-	createMovieClip : function(target_mc, instance_name, depth) {
-	
-		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
-		var cs = 1;
-	
-		this.make();
-
-		for (var row = 0; row < this.modules.length; row++) {
-			
-			var y = row * cs;
-			
-			for (var col = 0; col < this.modules[row].length; col++) {
-	
-				var x = col * cs;
-				var dark = this.modules[row][col];
-			
-				if (dark) {
-					qr_mc.beginFill(0, 100);
-					qr_mc.moveTo(x, y);
-					qr_mc.lineTo(x + cs, y);
-					qr_mc.lineTo(x + cs, y + cs);
-					qr_mc.lineTo(x, y + cs);
-					qr_mc.endFill();
-				}
-			}
-		}
-		
-		return qr_mc;
-	},
-
-	setupTimingPattern : function() {
-		
-		for (var r = 8; r < this.moduleCount - 8; r++) {
-			if (this.modules[r][6] !== null) {
-				continue;
-			}
-			this.modules[r][6] = (r % 2 === 0);
-		}
-	
-		for (var c = 8; c < this.moduleCount - 8; c++) {
-			if (this.modules[6][c] !== null) {
-				continue;
-			}
-			this.modules[6][c] = (c % 2 === 0);
-		}
-	},
-	
-	setupPositionAdjustPattern : function() {
-	
-		var pos = QRUtil.getPatternPosition(this.typeNumber);
-		
-		for (var i = 0; i < pos.length; i++) {
-		
-			for (var j = 0; j < pos.length; j++) {
-			
-				var row = pos[i];
-				var col = pos[j];
-				
-				if (this.modules[row][col] !== null) {
-					continue;
-				}
-				
-				for (var r = -2; r <= 2; r++) {
-				
-					for (var c = -2; c <= 2; c++) {
-					
-						if (Math.abs(r) === 2 || 
-                            Math.abs(c) === 2 ||
-                            (r === 0 && c === 0) ) {
-							this.modules[row + r][col + c] = true;
-						} else {
-							this.modules[row + r][col + c] = false;
-						}
-					}
-				}
-			}
-		}
-	},
-	
-	setupTypeNumber : function(test) {
-	
-		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
-        var mod;
-	
-		for (var i = 0; i < 18; i++) {
-			mod = (!test && ( (bits >> i) & 1) === 1);
-			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
-		}
-	
-		for (var x = 0; x < 18; x++) {
-			mod = (!test && ( (bits >> x) & 1) === 1);
-			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
-		}
-	},
-	
-	setupTypeInfo : function(test, maskPattern) {
-	
-		var data = (this.errorCorrectLevel << 3) | maskPattern;
-		var bits = QRUtil.getBCHTypeInfo(data);
-        var mod;
-	
-		// vertical		
-		for (var v = 0; v < 15; v++) {
-	
-			mod = (!test && ( (bits >> v) & 1) === 1);
-	
-			if (v < 6) {
-				this.modules[v][8] = mod;
-			} else if (v < 8) {
-				this.modules[v + 1][8] = mod;
-			} else {
-				this.modules[this.moduleCount - 15 + v][8] = mod;
-			}
-		}
-	
-		// horizontal
-		for (var h = 0; h < 15; h++) {
-	
-			mod = (!test && ( (bits >> h) & 1) === 1);
-			
-			if (h < 8) {
-				this.modules[8][this.moduleCount - h - 1] = mod;
-			} else if (h < 9) {
-				this.modules[8][15 - h - 1 + 1] = mod;
-			} else {
-				this.modules[8][15 - h - 1] = mod;
-			}
-		}
-	
-		// fixed module
-		this.modules[this.moduleCount - 8][8] = (!test);
-	
-	},
-	
-	mapData : function(data, maskPattern) {
-		
-		var inc = -1;
-		var row = this.moduleCount - 1;
-		var bitIndex = 7;
-		var byteIndex = 0;
-		
-		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
-	
-			if (col === 6) col--;
-	
-			while (true) {
-	
-				for (var c = 0; c < 2; c++) {
-					
-					if (this.modules[row][col - c] === null) {
-						
-						var dark = false;
-	
-						if (byteIndex < data.length) {
-							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
-						}
-	
-						var mask = QRUtil.getMask(maskPattern, row, col - c);
-	
-						if (mask) {
-							dark = !dark;
-						}
-						
-						this.modules[row][col - c] = dark;
-						bitIndex--;
-	
-						if (bitIndex === -1) {
-							byteIndex++;
-							bitIndex = 7;
-						}
-					}
-				}
-								
-				row += inc;
-	
-				if (row < 0 || this.moduleCount <= row) {
-					row -= inc;
-					inc = -inc;
-					break;
-				}
-			}
-		}
-		
-	}
-
-};
-
-QRCode.PAD0 = 0xEC;
-QRCode.PAD1 = 0x11;
-
-QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
-	
-	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
-	
-	var buffer = new QRBitBuffer();
-	
-	for (var i = 0; i < dataList.length; i++) {
-		var data = dataList[i];
-		buffer.put(data.mode, 4);
-		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
-		data.write(buffer);
-	}
-
-	// calc num max data.
-	var totalDataCount = 0;
-	for (var x = 0; x < rsBlocks.length; x++) {
-		totalDataCount += rsBlocks[x].dataCount;
-	}
-
-	if (buffer.getLengthInBits() > totalDataCount * 8) {
-		throw new Error("code length overflow. (" + 
-            buffer.getLengthInBits() + 
-            ">" +  
-            totalDataCount * 8 + 
-            ")");
-	}
-
-	// end code
-	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
-		buffer.put(0, 4);
-	}
-
-	// padding
-	while (buffer.getLengthInBits() % 8 !== 0) {
-		buffer.putBit(false);
-	}
-
-	// padding
-	while (true) {
-		
-		if (buffer.getLengthInBits() >= totalDataCount * 8) {
-			break;
-		}
-		buffer.put(QRCode.PAD0, 8);
-		
-		if (buffer.getLengthInBits() >= totalDataCount * 8) {
-			break;
-		}
-		buffer.put(QRCode.PAD1, 8);
-	}
-
-	return QRCode.createBytes(buffer, rsBlocks);
-};
-
-QRCode.createBytes = function(buffer, rsBlocks) {
-
-	var offset = 0;
-	
-	var maxDcCount = 0;
-	var maxEcCount = 0;
-	
-	var dcdata = new Array(rsBlocks.length);
-	var ecdata = new Array(rsBlocks.length);
-	
-	for (var r = 0; r < rsBlocks.length; r++) {
-
-		var dcCount = rsBlocks[r].dataCount;
-		var ecCount = rsBlocks[r].totalCount - dcCount;
-
-		maxDcCount = Math.max(maxDcCount, dcCount);
-		maxEcCount = Math.max(maxEcCount, ecCount);
-		
-		dcdata[r] = new Array(dcCount);
-		
-		for (var i = 0; i < dcdata[r].length; i++) {
-			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
-		}
-		offset += dcCount;
-		
-		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
-		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
-
-		var modPoly = rawPoly.mod(rsPoly);
-		ecdata[r] = new Array(rsPoly.getLength() - 1);
-		for (var x = 0; x < ecdata[r].length; x++) {
-            var modIndex = x + modPoly.getLength() - ecdata[r].length;
-			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
-		}
-
-	}
-	
-	var totalCodeCount = 0;
-	for (var y = 0; y < rsBlocks.length; y++) {
-		totalCodeCount += rsBlocks[y].totalCount;
-	}
-
-	var data = new Array(totalCodeCount);
-	var index = 0;
-
-	for (var z = 0; z < maxDcCount; z++) {
-		for (var s = 0; s < rsBlocks.length; s++) {
-			if (z < dcdata[s].length) {
-				data[index++] = dcdata[s][z];
-			}
-		}
-	}
-
-	for (var xx = 0; xx < maxEcCount; xx++) {
-		for (var t = 0; t < rsBlocks.length; t++) {
-			if (xx < ecdata[t].length) {
-				data[index++] = ecdata[t][xx];
-			}
-		}
-	}
-
-	return data;
-
-};
-
-module.exports = QRCode;
-
-};
-const QRCode=R('index');
-return function(text){ const q=new QRCode(-1,2); q.addData(text); q.make(); const n=q.getModuleCount(); const m=[]; for(let r=0;r<n;r++){ const row=[]; for(let c=0;c<n;c++) row.push(q.isDark(r,c)); m.push(row); } return m; };
-})();
-
-/* ĐĂNG NHẬP BẰNG QR: thiết bị mới hiện mã QR, thiết bị đã đăng nhập quét và bấm "Cho phép" (Cài đặt → Quét QR đăng nhập,
-   hoặc quét bằng camera điện thoại rồi mở liên kết). Không còn hộp thoại nhập mã của trình duyệt. */
-function qrDraw(cv,text){
-  const m=bbQR(text), n=m.length, q=4, px=Math.max(3,Math.floor(560/(n+q*2))), S=(n+q*2)*px;
-  cv.width=cv.height=S; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,S,S); g.fillStyle='#000';
-  for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(m[r][c]) g.fillRect((c+q)*px,(r+q)*px,px,px);
-}
-function qrLoginDialog(){
-  const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Đăng nhập nhanh</h3><p>Trên thiết bị đã đăng nhập BBeat, vào Cài đặt → Quét QR đăng nhập rồi quét mã này.</p><canvas style="width:240px;height:240px;margin:16px auto 0;display:block;border-radius:14px;image-rendering:pixelated;background:#fff"></canvas><p class="qrmsg" style="margin-top:12px">Đang tạo mã…</p><div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><p style="margin:0">Hoặc nhập mã ghép (6 số)</p><div style="display:flex;gap:8px;margin-top:8px"><input class="pcIn" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code" style="margin-top:0;text-align:center;letter-spacing:.2em;font-size:18px"><button class="pri pcGo" style="padding:0 18px">Vào</button></div><p class="pcErr" style="color:#ff6b6b;margin:6px 0 0;min-height:1em"></p></div><div class="dlgb"><button class="qrnew" style="display:none">Tạo mã mới</button><button class="dlgo">Đóng</button></div></div>';
-  document.body.appendChild(ov);
-  const cv=ov.querySelector('canvas'), msg=ov.querySelector('.qrmsg'), nb=ov.querySelector('.qrnew');
-  let closed=false, tm=0;
-  const close=()=>{ closed=true; clearTimeout(tm); document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  ov.querySelector('.dlgo').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
-  const expired=t=>{ cv.style.opacity='.25'; msg.textContent=t||'Mã đã hết hạn.'; nb.style.display=''; };
-  async function make(){
-    clearTimeout(tm); nb.style.display='none'; cv.style.opacity='1'; msg.textContent='Đang tạo mã…';
-    let r; try{ r=await api('/api/qr/new',{method:'POST'}); }catch(e){ if(!closed) expired(errTxt(e)||'Không tạo được mã QR – kiểm tra mạng.'); return; }
-    if(closed) return;
-    qrDraw(cv,(r.base||location.origin)+'/?qr='+r.id); msg.textContent='Đang chờ quét… (mã có hiệu lực 3 phút)';
-    const end=Date.now()+(r.expires_in||180)*1000;
-    const poll=async()=>{
-      if(closed) return;
-      if(Date.now()>end) return expired();
-      try{
-        const p=await api('/api/qr/poll/'+r.id);
-        if(p&&p.status==='ok'){ close(); token=p.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; start(p.user); return; }
-      }catch(e){ if(!closed&&!e.net) return expired(); }
-      tm=setTimeout(poll,2000);
+    let likes = {
+        let mut stmt = db.prepare("SELECT track_json FROM favorites WHERE user_id=?1 ORDER BY rowid DESC LIMIT 6").map_err(|_| e500())?;
+        parse_rows(&mut stmt, [uid])?
     };
-    tm=setTimeout(poll,2000);
-  }
-  nb.onclick=make; make();
-  const pi=ov.querySelector('.pcIn'), pg=ov.querySelector('.pcGo'), pe=ov.querySelector('.pcErr');
-  pi.oninput=()=>{ const d=pi.value.replace(/\D/g,'').slice(0,6); pi.value=d.length>3?d.slice(0,3)+' '+d.slice(3):d; pe.textContent=''; };
-  const go=async()=>{ pe.textContent=''; pg.disabled=true; try{ await pairRedeem(pi.value); close(); }catch(e){ pe.textContent=(e&&e.message)||'Không đăng nhập được'; } pg.disabled=false; };
-  pg.onclick=go; pi.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
-}
-$('#aPairBtn').onclick=qrLoginDialog;
-/* Localhost: một chạm vào tài khoản admin (xin mã admin rồi đổi mã ngay; cổng nhà tự gắn ADMIN_PAIR_KEY). */
-(function(){
-  const b=$('#aAdminLocal'); if(!b||!/^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname)) return;
-  b.style.display='';
-  b.onclick=async()=>{
-    b.disabled=true; const t=b.textContent; b.textContent='Đang đăng nhập…';
-    try{ const r=await pairFetch('/api/admin/pair-code',{method:'POST'}); await pairRedeem(r.code); }
-    catch(e){ notify((e&&e.message)||'Không đăng nhập được admin'); }
-    b.disabled=false; b.textContent=t;
-  };
-})();
-/* MÃ GHÉP (pair code): mã 6 số dùng một lần do server cấp (hiện ở trang localhost của máy chạy server) → đăng nhập không cần mật khẩu.
-   Dùng fetch trực tiếp vì api() coi mọi 401 là "hết phiên" và bật lại màn hình đăng nhập. */
-async function pairFetch(path,opt){
-  const r=await fetch(path,opt); const t=await r.text();
-  if(!r.ok){ const e=new Error((t||'').trim()||('HTTP '+r.status)); e.status=r.status; throw e; }
-  try{ return JSON.parse(t); }catch{ return {}; }
-}
-async function pairRedeem(code){
-  const c=String(code||'').replace(/\D/g,''); if(c.length!==6) throw new Error('Mã gồm 6 chữ số');
-  const p=await pairFetch('/api/pair/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})});
-  token=p.token; LS.set('token',token); guest=false; LS.set('muse_guest','0'); $('#auth').style.display='none'; start(p.user);
-}
-/* TẠO MÃ GHÉP Ở CÀI ĐẶT: phải nhập lại mật khẩu mỗi lần tạo; mã 6 số + QR, dùng một lần, hết hạn sau 5 phút. */
-function pairMakeDialog(){
-  if(guest){ notify('Hãy đăng nhập để tạo mã ghép'); return; }
-  const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Tạo mã ghép đăng nhập</h3><p class="pmTxt">Nhập lại mật khẩu để xác nhận. Mã 6 số dùng một lần, hết hạn sau 5 phút, cho phép một thiết bị khác vào tài khoản này mà không cần mật khẩu.</p><input class="pmPw" type="password" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><div class="pmOut" style="display:none"><div class="pmCode" style="font:700 36px/1.4 Consolas,monospace;letter-spacing:.12em;margin-top:14px"></div><canvas class="pmQr" style="width:180px;height:180px;margin:8px auto 0;display:block;border-radius:12px;image-rendering:pixelated;background:#fff"></canvas><p class="pmLeft" style="margin-top:8px"></p></div><p class="pmErr" style="color:#ff6b6b;min-height:1em;margin:8px 0 0"></p><div class="dlgb"><button class="pmCp" style="display:none">Chép mã</button><button class="pmGo pri">Tạo mã</button><button class="dlgc">Đóng</button></div></div>';
-  document.body.appendChild(ov);
-  const q=s=>ov.querySelector(s); let tm=0, code='';
-  const close=()=>{ clearInterval(tm); document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  q('.dlgc').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
-  const pw=q('.pmPw'); pw.focus();
-  const go=async()=>{
-    const v=pw.value; if(!v){ q('.pmErr').textContent='Hãy nhập mật khẩu'; return; }
-    q('.pmErr').textContent=''; q('.pmGo').disabled=true;
-    try{
-      const r=await api('/api/pair/create',{json:{password:v}}); pw.value=''; code=r.code;
-      pw.style.display='none'; q('.pmTxt').textContent='Nhập mã này (hoặc quét QR) ở màn hình đăng nhập của thiết bị kia. Mã chỉ dùng được một lần.';
-      q('.pmOut').style.display=''; q('.pmCode').textContent=code.slice(0,3)+' '+code.slice(3);
-      qrDraw(q('.pmQr'),(r.base||location.origin)+'/?pair='+code);
-      q('.pmGo').style.display='none'; q('.pmCp').style.display='';
-      const end=Date.now()+(r.expires_in||300)*1000;
-      const tick=()=>{ const l=Math.max(0,Math.round((end-Date.now())/1000)); if(l<=0){ clearInterval(tm); q('.pmLeft').textContent='Mã đã hết hạn — đóng rồi tạo lại.'; q('.pmQr').style.opacity='.25'; return; } q('.pmLeft').textContent='Còn '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0'); };
-      tick(); tm=setInterval(tick,1000);
-    }catch(e){ q('.pmErr').textContent=(e&&e.message)||'Không tạo được mã'; q('.pmGo').disabled=false; }
-  };
-  q('.pmGo').onclick=go; pw.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
-  q('.pmCp').onclick=async()=>{ try{ await navigator.clipboard.writeText(code); notify('Đã chép mã ghép'); }catch{ notify('Mã ghép: '+code); } };
-}
-// Thiết bị đã đăng nhập: xác nhận cho thiết bị khác vào tài khoản này.
-function qrApprove(id){
-  const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true"><h3>Đăng nhập thiết bị khác?</h3><p>Một thiết bị đang xin đăng nhập vào tài khoản “'+esc((me&&me.display_name)||'')+'”. Chỉ cho phép nếu chính bạn vừa mở mã QR đó.</p><div class="dlgb"><button class="dlgc">Từ chối</button><button class="dlgo">Cho phép</button></div></div>';
-  document.body.appendChild(ov);
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  ov.querySelector('.dlgc').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
-  ov.querySelector('.dlgo').onclick=async()=>{ try{ await api('/api/qr/approve',{json:{id}}); close(); notify('Đã cho phép thiết bị kia đăng nhập'); }catch(e){ close(); notify(errTxt(e)||'Mã QR đã hết hạn, hãy tạo mã mới ở thiết bị kia'); } };
-}
-let qrPending=(()=>{ try{ const v=new URLSearchParams(location.search).get('qr')||''; return /^[0-9a-f]{32}$/.test(v)?v:''; }catch{ return ''; } })();
-function qrHandleUrl(){
-  if(!qrPending||guest||!me||!me.id) return;
-  const id=qrPending; qrPending='';
-  try{ const u=new URL(location.href); u.searchParams.delete('qr'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); }catch{}
-  qrApprove(id);
-}
-// Quét QR bằng camera trong app (cần trình duyệt/WebView có BarcodeDetector; không có thì dùng camera điện thoại quét rồi mở liên kết).
-async function qrScanDialog(){
-  if(!('BarcodeDetector' in window)||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ notify('Máy này chưa hỗ trợ quét QR trong app. Hãy dùng camera điện thoại quét mã rồi mở liên kết bằng BBeat.'); return; }
-  let stream; try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); }catch{ notify('Chưa cấp quyền camera cho BBeat'); return; }
-  const ov=document.createElement('div'); ov.className='dlgov';
-  ov.innerHTML='<div class="dlg" role="dialog" aria-modal="true" style="text-align:center"><h3>Quét QR đăng nhập</h3><video playsinline muted style="width:100%;margin-top:14px;border-radius:14px;background:#000"></video><p>Đưa mã QR ở màn hình đăng nhập của thiết bị kia vào khung hình.</p><div class="dlgb"><button class="dlgo">Đóng</button></div></div>';
-  document.body.appendChild(ov);
-  const v=ov.querySelector('video'); v.srcObject=stream; v.play().catch(()=>{});
-  let closed=false; const det=new BarcodeDetector({formats:['qr_code']});
-  const close=()=>{ closed=true; try{ stream.getTracks().forEach(t=>t.stop()); }catch{} ov.remove(); };
-  ov.querySelector('.dlgo').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
-  const loop=async()=>{
-    if(closed) return;
-    try{ const r=await det.detect(v); const m=r&&r[0]&&/[?&]qr=([0-9a-f]{32})/.exec(r[0].rawValue||''); if(m){ close(); qrApprove(m[1]); return; } }catch{}
-    setTimeout(loop,300);
-  };
-  loop();
-}
-$('#aPass').onkeydown=e=>{ if(e.key==='Enter') $('#aGo').click(); };
-async function logout(){
-  if(guest){ goLogin(); return; }
-  /* Đăng xuất phải luôn chạy được dù mạng / server chính chậm: đồng bộ chờ tối đa 2,5s, xoá token trên máy ngay,
-     còn báo server huỷ phiên thì chạy nền (không chờ, không để kẹt nút). */
-  const old=token;
-  try{ clearTimeout(syncTm); syncBusy=false; await Promise.race([syncNow(),new Promise(r=>setTimeout(r,2500))]); }catch{}
-  try{ localStorage.removeItem('token'); localStorage.setItem('muse_guest','0'); }catch{}
-  token='';
-  try{ if(old) fetch('/api/logout',{method:'POST',headers:{Authorization:'Bearer '+old},keepalive:true}).catch(()=>{}); }catch{}
-  setTimeout(()=>location.reload(),150);
+    Ok(Json(json!({ "friend": friend, "public": true, "playlists": pls, "likes": likes })))
 }
 
-const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
-/* Tài khoản chưa chọn màu có accent cũ #31c27c (xanh lá, mặc định cũ của server). Với MÌNH app đã đổi sang màu mới lúc đăng nhập; với NGƯỜI KHÁC cũng phải đổi như vậy, nếu không thẻ/trang của họ luôn ra xanh lá. */
-const normAcc=a=>(!a||String(a).toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:a;
-function paintTheme(acc,bg,url){
-  const rt=document.documentElement.style; rt.setProperty('--accent',acc);
-  const n=parseInt(acc.slice(1),16), l=((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/255000; rt.setProperty('--on',l>.6?'#07131d':'#ffffff');
-  [...document.body.classList].filter(c=>c.startsWith('skin-')).forEach(c=>document.body.classList.remove(c));
-  document.body.classList.add('skin-'+(bg||'default'));
-  const frz=!GIF_LIVE&&bg==='custom'&&url&&GIF_RE.test(url);
-  document.body.style.backgroundImage=(bg==='custom'&&url&&!frz)?`url("${url}")`:'';
-  if(frz) freezeUrl(url).then(b=>{ if(b&&document.body.classList.contains('skin-custom')) document.body.style.backgroundImage=`url("${b}")`; });
-}
-const libTitle=()=>(guest||!me||!me.id)?'Thư viện của bạn':'Thư viện của '+(me.display_name||me.username||'bạn');
-function paintLibTitle(){ const sp=document.getElementById('libTitleTx'); if(!sp) return; const t=libTitle(); sp.textContent=t; if(sp.parentNode) sp.parentNode.title=t; }
-function applyUser(u){
-  const acc=(!u.accent||u.accent.toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:u.accent; u.accent=acc; me=u;
-  try{ if(!guest&&u.id) LS.set('muse_me',JSON.stringify(u)); }catch{}   /* bản lưu sẵn trong máy luôn là hồ sơ mới nhất */
-  paintTheme(acc,u.bg,u.bg_url);
-  $('#meAv').innerHTML=avU(u);
-  paintLibTitle();
-  warmProfile({...u,online:true},true);
+fn sniff_image(b: &[u8]) -> Option<&'static str> {
+    if b.len() > 12 && (b.starts_with(b"GIF87a") || b.starts_with(b"GIF89a")) { Some("gif") }
+    else if b.starts_with(&[0x89, b'P', b'N', b'G']) { Some("png") }
+    else if b.starts_with(&[0xFF, 0xD8, 0xFF]) { Some("jpg") }
+    else if b.len() > 12 && &b[0..4] == b"RIFF" && &b[8..12] == b"WEBP" { Some("webp") }
+    else { None }
 }
 
-function openCrop(o){ return new Promise(resolve=>{
-  const FW=o.kind==='a'?260:480, FH=o.kind==='a'?260:240, fa=FW/FH, im=new Image();
-  im.onerror=()=>{ notify('Không đọc được ảnh này'); resolve(null); };
-  im.onload=()=>{
-    const ar=(im.naturalWidth/im.naturalHeight)||1, zmin=1;
-    const s={x:o.crop.x,y:o.crop.y,z:Math.min(4,Math.max(zmin,o.crop.z))}, d=document.createElement('div'); d.id='cm';
-    const row=(k,l,min,max,step)=>`<label class="crl"><span>${l}</span><input type="range" id="c${k}" min="${min}" max="${max}" step="${step}"><output id="c${k}o"></output></label>`;
-    d.innerHTML=`<div class="cbox" role="dialog" aria-modal="true" aria-label="${esc(o.title)}"><div class="cx"><h3>${esc(o.title)}</h3><button class="ico" id="cmX" title="Đóng">${ic('x')}</button></div>
-      <div class="cstage" id="cmStage"><div class="cfr" style="width:${FW}px;height:${FH}px"><div class="cbg" style="background:${esc(o.color)}"></div><div class="cimg"><img id="cmImg" src="${esc(o.src)}" alt="" draggable="false"></div><div class="cmask ${o.kind==='a'?'rnd':''}"></div></div></div>
-      <div class="csl">${row('x','X',0,100,1)}${row('y','Y',0,100,1)}${row('z','Zoom',zmin.toFixed(2),4,.01)}</div>
-      <small class="hint">Kéo ảnh để di chuyển · cuộn chuột để zoom · ảnh luôn phủ kín khung.</small>
-      <div class="cft"><button class="lnk" id="cmReset">Đặt lại</button><span style="flex:1"></span><button id="cmNo">Hủy bỏ</button><button class="pri" id="cmOk">Áp dụng</button></div></div>`;
-    document.body.appendChild(d);
-    const img=d.querySelector('#cmImg'), q=x=>d.querySelector(x), clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-    const paint=()=>{ [s.x,s.y]=cropClamp(s.x,s.y,s.z,ar,fa); img.setAttribute('style',cropStyle(s.x,s.y,s.z,ar,fa));
-      const g=cropRange(s.z,ar,fa); q('#cx').min=g.x[0].toFixed(2); q('#cx').max=g.x[1].toFixed(2); q('#cy').min=g.y[0].toFixed(2); q('#cy').max=g.y[1].toFixed(2);
-      for(const k of ['x','y','z']){ const el=q('#c'+k); el.value=s[k]; const sp=(el.max-el.min)||1; el.style.setProperty('--p',(s[k]-el.min)/sp*100+'%'); q('#c'+k+'o').textContent=k==='z'?s.z.toFixed(2)+'×':Math.round(s[k])+'%'; } };
-    const done=v=>{ document.removeEventListener('keydown',onKey); d.remove(); resolve(v); };
-    const onKey=e=>{ if(e.key==='Escape') done(null); }; document.addEventListener('keydown',onKey);
-    ['x','y','z'].forEach(k=>q('#c'+k).oninput=e=>{ s[k]=+e.target.value; paint(); });
-    q('#cmReset').onclick=()=>{ s.x=50; s.y=50; s.z=1; paint(); };
-    q('#cmX').onclick=q('#cmNo').onclick=()=>done(null);
-    q('#cmOk').onclick=()=>done({x:+s.x.toFixed(2),y:+s.y.toFixed(2),z:+s.z.toFixed(3),ar:+ar.toFixed(4)});
-    const st=q('#cmStage'); let drag=null;
-    st.onpointerdown=e=>{ drag={px:e.clientX,py:e.clientY,x:s.x,y:s.y}; st.setPointerCapture(e.pointerId); };
-    st.onpointermove=e=>{ if(!drag) return; s.x=clamp(drag.x+(e.clientX-drag.px)/FW*100,0,100); s.y=clamp(drag.y+(e.clientY-drag.py)/FH*100,0,100); paint(); };
-    st.onpointerup=st.onpointercancel=()=>{ drag=null; };
-    st.addEventListener('wheel',e=>{ e.preventDefault(); s.z=clamp(s.z*(1-e.deltaY*.0015),zmin,4); paint(); },{passive:false});
-    paint(); q('#cmOk').focus();
-  };
-  im.src=o.src;
-}); }
-
-const GIF_LIVE=LS.get('gif_live','1')==='1';
-const GIF_RE=/^\/(avatars|banners|backgrounds)\/[\w.-]+\.gif(\?.*)?$/i;
-const gifFrozen=new Map();
-function freezeUrl(u){
-  if(gifFrozen.has(u)) return gifFrozen.get(u);
-  const p=new Promise(res=>{ const im=new Image();
-    im.onload=()=>{ try{ const w=im.naturalWidth,h=im.naturalHeight; if(!w||!h) return res(null); const sc=Math.min(1,640/Math.max(w,h)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(w*sc)); c.height=Math.max(1,Math.round(h*sc)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); c.toBlob(b=>res(b?URL.createObjectURL(b):null),'image/webp',.85); }catch{ res(null); } };
-    im.onerror=()=>res(null); im.src=u; });
-  gifFrozen.set(u,p); return p;
-}
-function freezeImg(img){
-  if(GIF_LIVE||img.dataset.fz||img.closest('.imgv')) return;
-  const s=img.getAttribute('src')||''; if(!GIF_RE.test(s)) return;
-  img.dataset.fz='1';
-  freezeUrl(s).then(b=>{ if(b&&img.getAttribute('src')===s) img.src=b; });
-}
-if(!GIF_LIVE){
-  const scan=n=>{ if(n.nodeType!==1) return; if(n.tagName==='IMG') freezeImg(n); else if(n.querySelectorAll) n.querySelectorAll('img').forEach(freezeImg); };
-  new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='attributes') scan(m.target); else m.addedNodes.forEach(scan); } }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
-}
-const vidBlob=new Map();
-const vidSrc=v=>vidBlob.get(v)||v;
-function vidOf(u){ const m=/^(\/(?:avatars|banners)\/[\w-]+)\.v\.(?:webp|gif)$/i.exec(u||''); return m?m[1]+'.mp4':''; }
-function gvHtml(src,style){ const v=GIF_LIVE?vidOf(src):'';
-  return v?`<video class="gv" data-gv="1" data-img="${esc(src)}" src="${esc(vidSrc(v))}" poster="${esc(src)}" muted loop autoplay playsinline disablepictureinpicture preload="auto" style="${style}" onerror="gvFail(this)"></video>`
-          :`<img src="${esc(src)}" alt="" decoding="async" style="${style}">`; }
-function gvFail(v){ const i=document.createElement('img'); i.src=v.dataset.img||''; i.alt=''; i.decoding='async'; i.setAttribute('style',v.getAttribute('style')||''); v.replaceWith(i); }
-function gvKick(v){ try{ if(v.closest&&v.closest('.pcwarm')) return; v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!document.body.classList.contains('imgv-open')) document.querySelectorAll('video[data-gv]').forEach(gvKick); });
-new MutationObserver(ms=>{ for(const m of ms) m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return;
-  if(n.matches&&n.matches('video[data-gv]')) gvKick(n); else if(n.querySelectorAll) n.querySelectorAll('video[data-gv]').forEach(gvKick); }); }).observe(document.documentElement,{childList:true,subtree:true});
-const okImgUrl=u=>/^(\/(banners|backgrounds|avatars)\/[\w.-]+|https:\/\/[^\s"'()\\]+|blob:[^\s"'()\\]+)$/.test(u||'');
-/* Tải trước banner + avatar (của mình và bạn bè) ngay khi mở app, để lúc bấm vào thẻ hồ sơ ảnh đã nằm sẵn trong bộ nhớ đệm
-   thay vì mới bắt đầu tải (5–10 giây). File upload có tên UUID và server gửi Cache-Control immutable nên chỉ tải đúng 1 lần. */
-const upSeen=new Set();
-function warmBanners(users){
-  try{
-    for(const u of (users||[])){
-      if(!u) continue;
-      for(const s of [u.banner,u.avatar]){
-        if(!s||!/^\/(banners|avatars)\/[\w.-]+$/.test(s)||upSeen.has(s)) continue;
-        upSeen.add(s);
-        const i=new Image(); i.decoding='async'; i.src=s; if(i.decode) i.decode().catch(()=>{}); // giải mã sẵn luôn
-        const v=GIF_LIVE?vidOf(s):''; if(v&&!vidBlob.has(v)){ vidBlob.set(v,''); vidBlob.delete(v); // bản video của GIF: tải về RAM, lúc bấm vào phát ngay từ blob (không chờ mạng)
-          fetch(v,{cache:'force-cache'}).then(r=>r.ok?r.blob():null).then(b=>{ if(b) vidBlob.set(v,URL.createObjectURL(b)); }).catch(()=>{}); }
-      }
+// ---------- Tối ưu GIF khi tải lên: gifsicle (nén) → gif2webp (WebP động, giải mã nhẹ hơn GIF) ----------
+// Thiếu công cụ hoặc có lỗi → giữ nguyên file gốc, việc tải ảnh lên không bao giờ bị hỏng.
+// Đường dẫn tuỳ chọn: biến môi trường GIFSICLE_PATH / GIF2WEBP_PATH (mặc định tìm trong PATH).
+async fn run_tool(prog: &str, args: &[&str]) -> bool {
+    let mut cmd = tokio::process::Command::new(prog);
+    cmd.args(args)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true);
+    match tokio::time::timeout(Duration::from_secs(90), cmd.status()).await {
+        Ok(Ok(st)) => st.success(),
+        _ => false,
     }
-    if(upSeen.size>400) upSeen.clear();
-  }catch{}
 }
-function profileCard(u,o={}){
-  const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
-  const ac=normAcc(u.accent), col=esc(o.big?(/^#[0-9a-f]{6}$/i.test(ac)?ac:'#8ecbff'):(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(ac||'#5865f2')));
-  return `<div class="pc${o.full?' full':''}"${txAttr(u)}><div class="pc-ban" style="background:${col}">${ban}
-    <div class="pc-hd"><div class="pc-av${o.mine?' ed':(isImg(u.avatar)?' zm':'')}"${o.mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${o.mine?`<span class="av-pen">${ic('pen')}</span>`:''}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
-    </div><div class="pc-body">${o.extra||''}</div></div>`;
-}
-function openImgView(src,name){
-  document.querySelectorAll('.imgv').forEach(x=>x.remove()); document.body.classList.remove('imgv-open'); document.querySelectorAll('video[data-gv]').forEach(gvKick);
-  const o=document.createElement('div'); o.className='imgv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',name||'');
-  o.innerHTML=`<img alt="" decoding="async"><button class="imgv-x" aria-label="Đóng" title="Đóng">${ic('x')}</button>`;
-  const vs=GIF_LIVE?vidOf(src):'';
-  if(vs){ const v=document.createElement('video'); v.src=vidSrc(vs); v.poster=src; v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true; v.setAttribute('playsinline',''); v.dataset.gvv='1';
-    v.onerror=()=>{ const i=document.createElement('img'); i.alt=''; i.src=src; v.replaceWith(i); }; o.querySelector('img').replaceWith(v); gvKick(v); }
-  else o.querySelector('img').src=/\.gif(\?|$)/i.test(src)&&!/^(blob:|data:)/.test(src)?src+(src.includes('?')?'&':'?')+'_v='+Date.now():src;
-  document.querySelectorAll('video[data-gv]').forEach(v=>v.pause());
-  document.body.classList.add('imgv-open');
-  let closing=false;
-  const close=()=>{ if(closing) return; closing=true; document.removeEventListener('keydown',onKey,true);
-    document.body.classList.remove('imgv-open');
-    /* Video avatar/banner bị ẩn (display:none) khi xem ảnh nên trình duyệt đã dừng chúng: phải cho chạy lại, sau khi đã hiện lại. */
-    requestAnimationFrame(()=>document.querySelectorAll('video[data-gv]').forEach(gvKick));
-    setTimeout(()=>document.querySelectorAll('video[data-gv]').forEach(gvKick),250);
-    o.remove(); };
-  const onKey=e=>{ if(e.key==='Escape'){ e.stopPropagation(); close(); } };
-  o.onclick=e=>{ e.stopPropagation(); if(e.target.tagName!=='IMG'&&e.target.tagName!=='VIDEO') close(); };
-  document.addEventListener('keydown',onKey,true);
-  document.body.appendChild(o);
-}
-/* THẺ HỒ SƠ DỰNG SẴN: dựng trước thẻ của mình và của bạn bè trong một khung ẩn (vẫn được vẽ nên ảnh/video đã giải mã sẵn),
-   lúc bấm vào chỉ việc chuyển thẻ đó sang popup → banner + avatar hiện ngay, không còn khoảng chớp icon. Video trong khung ẩn
-   đứng ở khung hình đầu (không tốn pin), chuyển sang popup mới chạy. */
-const pcPool=new Map(); let pcHost=null;
-const pcFull=()=>false;   /* Nút 'Đổi kiểu thẻ' đã gỡ: luôn dùng banner thấp 2:1 như trước (kiểu toàn nền 3:4 làm thẻ quá cao, nhất là khi có khối LV). Muốn bật lại: trả về LS.get('pc_full','0')==='1' */
-const pcKey=(u,mine)=>JSON.stringify([!!mine,pcFull(),u.id,u.display_name,u.username,u.avatar,u.banner,u.banner_color,u.accent,u.status,u.crop,u.supporter|0,u.online===false]);
-const pcExtra=(mine,u)=>`<div class="pc-act">${guest?'':'<button class="pri sm" data-x="card">Thẻ chia sẻ</button><button class="out sm" data-x="page">Trang cá nhân</button>'}${mine?'<button class="pri sm" data-x="edit">Chỉnh sửa hồ sơ</button><button class="out sm" data-x="out">Đăng xuất</button>':''}</div>`;
-function warmProfile(u,mine){
-  try{
-    if(!u||guest&&!mine) return;
-    const k=pcKey(u,mine); if(pcPool.has(k)) return;
-    if(!pcHost){ pcHost=document.createElement('div'); pcHost.className='pcwarm'; pcHost.setAttribute('aria-hidden','true'); document.body.appendChild(pcHost); }
-    const t=document.createElement('div'); t.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull(),mine});
-    const pc=t.firstElementChild; if(!pc) return;
-    pc.querySelectorAll('video').forEach(v=>{ v.removeAttribute('autoplay'); v.autoplay=false; });
-    for(const [ok,o] of [...pcPool]){ if(pcSame(ok,u,mine)){ pcPool.delete(ok); o.remove(); } }   // bản cũ của chính người này (đổi avatar/banner...) bỏ đi
-    pc.dataset.mine=mine?'1':''; pc.dataset.uid=String(u.id);
-    pcHost.appendChild(pc); pcPool.set(k,pc);
-    pc.querySelectorAll('video').forEach(v=>{ try{ v.load(); }catch{} });
-    pc.querySelectorAll('img').forEach(i=>{ try{ if(i.decode) i.decode().catch(()=>{}); }catch{} });   /* giải mã sẵn dù khung đang ẩn → bấm vào thẻ vẫn hiện ảnh ngay */
-    while(pcPool.size>16){ const [ok,o]=pcPool.entries().next().value; pcPool.delete(ok); o.remove(); }
-  }catch{}
-}
-function pcSame(k,u,mine){ try{ const a=JSON.parse(k); return a[2]===u.id&&a[0]===!!mine; }catch{ return false; } }
 
-/* THẺ CHIA SẺ HỒ SƠ (kiểu thẻ "FANS NO." của Bilibili) — ai đã đăng nhập cũng dùng được; người ủng hộ Ko-fi (u.supporter: 1 = thành viên nhỏ, 2 = thành viên lớn) có thêm nhãn hạng trên thẻ.
-   Vẽ bằng canvas, tải về / chép ảnh để gửi cho bạn bè. */
-function shareCard(u,opt){
-  const silent=!!(opt&&opt.silent);
-  if(guest||!u||!u.id){ notify('Hãy đăng nhập để dùng thẻ chia sẻ'); return; }
-  const W=1200,H=548,ov=document.createElement('div'); ov.className='shc-ov';
-  ov.innerHTML='<div class="shc-box"><canvas width="'+W+'" height="'+H+'"></canvas><div class="shc-row">'+((me&&me.id&&u.id===me.id)?'<button class="pri sm" data-a="sh">Chép link</button><button class="out sm" data-a="cp">Chép ảnh</button>':'<button class="pri sm" data-a="cp">Chép ảnh</button>')+((me&&me.id&&u.id===me.id)?'<button class="out sm" data-a="bg">Đổi hình</button><button class="out sm" data-a="bgx" style="display:none">Hình mặc định</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>':'')+'<button class="out sm" data-a="dl">Tải ảnh</button><button class="out sm" data-a="x">Đóng</button></div>'+'</div>';
-  if(!silent) document.body.appendChild(ov);
-  const cv=ov.querySelector('canvas'); let g=cv.getContext('2d');
-  const mine=!!(me&&me.id&&u.id===me.id);
-  // Tải ảnh thẻ (JPEG, nhẹ) lên ngay khi thẻ vẽ xong → lúc bấm Chia sẻ link thường đã xong, mở bảng chia sẻ ngay.
-  let upP=null;
-  const upload=()=>{ if(upP) return upP; upP=new Promise(res=>{ const o=document.createElement('canvas'); o.width=W; o.height=H; const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,W,H); x.drawImage(cv,0,0);
-    o.toBlob(b=>{ if(!b){ upP=null; return res(null); } api('/api/card',{method:'POST',headers:{'Content-Type':'image/jpeg'},body:b}).then(r=>{ if(r){ try{ LS.set('muse_cardup_'+((me&&me.id)||''),'1'); }catch{} } res(r); },()=>{ upP=null; res(null); }); },'image/jpeg',.86); }); return upP; };
-  const load=src=>new Promise(res=>{ if(!src||!okImgUrl(src)) return res(null); const im=new Image(); if(/^https:/.test(src)) im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
-  const rr=(x,y,w,h,r)=>{ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); };
-  const cover=(im,x,y,w,h,cr)=>{ const ar=im.width/im.height, br=w/h; let sw=im.width,sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
-    const z=Math.max(1,cr.bz||1); sw/=z; sh/=z; const sx=Math.min(Math.max(0,(im.width-sw)*(cr.bx??50)/100),im.width-sw), sy=Math.min(Math.max(0,(im.height-sh)*(cr.by??50)/100),im.height-sh);
-    g.drawImage(im,sx,sy,sw,sh,x,y,w,h); };
-  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:normAcc(u.accent||'#5865f2');
-  let no='0'; const d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
-  const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-  /* Chỉnh chữ trên thẻ (chỉ thẻ của mình, lưu trên máy; ảnh thẻ gửi đi / link chia sẻ có kiểu chữ này). Banner + avatar vẫn đi theo ảnh của người dùng. 0/100 = giữ như mặc định cũ. */
-  const SHK=[['nm','Tên'],['fl','FANS NO.'],['fn','Số'],['dl','DATE'],['dv','Ngày']], shKey='muse_shtx_'+((me&&me.id)||'');
-  const shCl=(x,lo,hi,d)=>{ x=+x; return Number.isFinite(x)?Math.min(hi,Math.max(lo,x)):d; };
-  /* Kiểu chữ lấy từ hồ sơ (cùng dữ liệu với trang Chỉnh sửa hồ sơ): Tên → tên trên thẻ, Fan → số FANS NO. Các chữ còn lại giữ mặc định. */
-  const TXu=txOf(mine?me:u), TD={c:'',s:0,w:0,o:0,z:0}, SH={nm:TXu.name,fl:TD,fn:TXu.fan,dl:TD,dv:TD};
-  const shSet=(k,fill,wgt,px,fam)=>{ const v=SH[k]||TD; g.fillStyle=v.c||fill; g.globalAlpha=(100+v.o)/100; g.font=Math.max(300,Math.min(900,wgt+v.w*100))+' '+Math.round(px*(100+v.z)/100)+'px '+fam;
-    if(5+v.s<=0){ g.shadowColor='transparent'; g.shadowBlur=0; g.shadowOffsetY=0; } else { g.shadowColor='rgba(0,0,0,'+Math.min(.95,.45+.07*v.s).toFixed(2)+')'; g.shadowBlur=Math.max(1,12+v.s*2.4); g.shadowOffsetY=v.s>0?v.s*.4:0; } };
-  // FANS NO. = số nghệ sĩ đã theo dõi (của chính mình lấy từ máy, của người khác hỏi server)
-  const fansP=mine?Promise.resolve(followGet().length):api('/api/fans/'+u.id).then(r=>+r.n||0,()=>0);
-  let ban=null, av=null, custom=null;   // custom = hình nền do chính người dùng chọn cho thẻ (lưu trên máy này, key card_bg)
-  const ax=56,ay=44,ar=58; let layer=null, raf=0;
-  /* Lớp tĩnh (nền + lớp tối + avatar) chỉ vẽ 1 lần, cache lại; kéo thanh chỉnh chỉ vẽ lại phần chữ → nhẹ hơn nhiều */
-  const buildLayer=()=>{ const L=document.createElement('canvas'); L.width=W; L.height=H; const g0=g; g=L.getContext('2d');
-    g.save(); rr(0,0,W,H,44); g.clip();
-    g.fillStyle=col; g.fillRect(0,0,W,H);
-    const bg=custom||ban;
-    if(bg) cover(bg,0,0,W,H,custom?{bx:50,by:50,bz:1}:(cropOf(u).bz?{bx:cropOf(u).bx,by:cropOf(u).by,bz:1}:{bx:50,by:50,bz:1}));
-    // lớp tối nhẹ phía trên + bên trái để chữ trắng đọc được, ảnh lộ dần
-    const lg=g.createLinearGradient(0,0,W,0); lg.addColorStop(0,'rgba(0,0,0,.5)'); lg.addColorStop(.6,'rgba(0,0,0,.16)'); lg.addColorStop(1,'rgba(0,0,0,0)');
-    g.fillStyle=lg; g.fillRect(0,0,W,H);
-    g.restore();
-    // avatar + tên
-    g.save(); g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.clip(); g.fillStyle='#ffffff33'; g.fillRect(ax,ay,ar*2,ar*2);
-    if(av) cover(av,ax,ay,ar*2,ar*2,{bx:50,by:50,bz:1}); else { g.font='84px '+ft; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(isImg(u.avatar)?'🎧':(u.avatar||'🎧'),ax+ar,ay+ar+4); }
-    g.restore(); g.lineWidth=5; g.strokeStyle='#ffffffcc'; g.beginPath(); g.arc(ax+ar,ay+ar,ar,0,Math.PI*2); g.stroke();
-    g=g0; return L; };
-  const paint=()=>{
-    if(!layer) layer=buildLayer();
-    g.clearRect(0,0,W,H); g.globalAlpha=1; g.shadowOffsetY=0; g.shadowColor='transparent'; g.shadowBlur=0; g.textAlign='left'; g.textBaseline='alphabetic';
-    g.drawImage(layer,0,0);
-    g.textAlign='left'; g.textBaseline='alphabetic'; g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=12;
-    // chữ cao hơn: kéo giãn theo chiều dọc
-    const SY=1.22;
-    shSet('nm','#fff',700,56,ft); let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
-    g.save(); g.translate(0,ay+ar+20); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+32,0); g.restore(); g.globalAlpha=1;
-    // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
-    const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
-    const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
-    shSet('fl','#ffffffcc',600,28,ft); sp('FANS NO.',60,288,8); g.globalAlpha=1;
-    shSet('fn','#fff',700,120,'"SF Mono",Consolas,"Courier New",monospace'); sp(no,54,402,24); g.globalAlpha=1;
-    shSet('dl','#ffffffcc',600,26,ft); sp('DATE',60,462,8); g.globalAlpha=1;
-    shSet('dv','#fff',600,36,ft); sp(date,60,510,5); g.globalAlpha=1;
-    // hạng thành viên (donate Ko-fi)
-    if(u.supporter>0){   // chỉ người ủng hộ Ko-fi (hoặc admin) mới có nhãn hạng
-      const tier=u.supporter>=2?'THÀNH VIÊN LỚN':'THÀNH VIÊN NHỎ';
-      g.font='700 28px '+ft; const tw=spw(tier,5), bx=W-70-tw-44;
-      g.shadowColor='transparent'; g.fillStyle='rgba(255,255,255,.26)'; rr(bx,50,tw+44,52,26); g.fill();
-      g.fillStyle='#fff'; sp(tier,bx+22,86,5);
+fn tool_path(env: &str, default: &str) -> String {
+    std::env::var(env).ok().filter(|p| !p.trim().is_empty()).unwrap_or_else(|| default.to_string())
+}
+
+async fn optimize_gif_files(
+    body: &[u8],
+    src: &std::path::Path,
+    opt: &std::path::Path,
+    web: &std::path::Path,
+    vid: &std::path::Path,
+    max_px: u32,
+    want_video: bool,
+) -> Option<(Vec<u8>, &'static str, Option<Vec<u8>>)> {
+    tokio::fs::write(src, body).await.ok()?;
+    let (s, o, w, vp) = (src.to_str()?, opt.to_str()?, web.to_str()?, vid.to_str()?);
+    let gifsicle = tool_path("GIFSICLE_PATH", "gifsicle");
+    let gif2webp = tool_path("GIF2WEBP_PATH", "gif2webp");
+    let ffmpeg = tool_path("FFMPEG_PATH", "ffmpeg");
+
+    // 1) gifsicle: thu nhỏ nếu ảnh to hơn max_px (chỉ thu nhỏ, không phóng to) rồi nén nhẹ (lossy=40, gần như không thấy artifact).
+    //    Số điểm ảnh mỗi khung là thứ làm điện thoại lag nhiều nhất, nên đây là bước quan trọng nhất. Không hỗ trợ lossy thì nén không mất dữ liệu.
+    let fit = format!("{max_px}x{max_px}");
+    let mut best_gif: Vec<u8> = body.to_vec();
+    let mut webp_input = s;
+    let packed = run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O2", "--lossy=40", s, "-o", o]).await
+        || run_tool(&gifsicle, &["-w", "--resize-fit", fit.as_str(), "-O2", s, "-o", o]).await;
+    if packed {
+        if let Ok(b) = tokio::fs::read(opt).await {
+            if matches!(sniff_image(&b), Some("gif")) && b.len() < best_gif.len() {
+                best_gif = b;
+                webp_input = o;
+            }
+        }
     }
-  };
-  const sched=()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; paint(); }); };
-  const bgx=ov.querySelector('[data-a="bgx"]'), bgf=ov.querySelector('input[type=file]');
-  const loadCustom=()=>new Promise(res=>{ let d=''; try{ d=mine?LS.get('card_bg',''):''; }catch{} if(!/^data:image\/jpeg;base64,/.test(d)) return res(null); const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=d; });
-  Promise.all([load(u.banner),load(isImg(u.avatar)?u.avatar:''),fansP,loadCustom()]).then(([b,a,fn,c])=>{
-    ban=b; av=a; custom=c; no=String(fn||0);
-    paint(); if(bgx&&custom) bgx.style.display='';
-    if(mine) upload();
-    if(silent) Promise.resolve(upP).finally(()=>{ cancelAnimationFrame(raf); });
-  });
-  // Đổi hình thẻ: chọn ảnh từ máy → cắt giữa theo khung dài, thu nhỏ còn 1200×548 (JPEG) rồi lưu trên máy; thẻ + link chia sẻ dùng hình này.
-  const setBg=async f=>{
-    if(!f) return;
-    if(!/^image\//.test(f.type)) return notify('Hãy chọn file ảnh');
-    if(f.size>10*1048576) return notify('Ảnh tối đa 10MB');
-    const url=URL.createObjectURL(f);
-    try{
-      const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('img')); i.src=url; });
-      const o=document.createElement('canvas'); o.width=W; o.height=H; const x=o.getContext('2d'); x.fillStyle='#0b0b10'; x.fillRect(0,0,W,H);
-      const ar=im.width/im.height, br=W/H; let sw=im.width, sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
-      x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,0,0,W,H);
-      const d=o.toDataURL('image/jpeg',.85);
-      LS.set('card_bg',d); if(LS.get('card_bg','')!==d) return notify('Máy không đủ chỗ lưu hình này');
-      const c=new Image(); await new Promise(r=>{ c.onload=r; c.onerror=r; c.src=d; });
-      custom=c; layer=null; upP=null; paint(); if(bgx) bgx.style.display=''; if(mine) upload();
-    }catch{ notify('Không đọc được ảnh này'); }
-    finally{ URL.revokeObjectURL(url); }
-  };
-  if(bgf) bgf.onchange=e=>{ const f=e.target.files[0]; e.target.value=''; setBg(f); };
-  const done=()=>{ cancelAnimationFrame(raf); document.removeEventListener('keydown',esc_,true); ov.remove(); };
-  const esc_=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(); } };
-  if(!silent) document.addEventListener('keydown',esc_,true);
-  // Chép: ảnh thẻ + (của mình) link hồ sơ vào clipboard cùng một lúc. Người nhận bấm link → vào thẳng hồ sơ trong app (Android) / trang hồ sơ (web), không qua trang trung gian.
-  const doCopy=async withLink=>{
-    const pngP=new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('png')),'image/png'));
-    const linkP=withLink?upload().then(r=>{ if(!r) throw new Error('nolink'); return cardLinkFrom(r); }):null;
-    if(linkP&&!upP) notify('Đang tạo link…');
-    try{
-      const items={'image/png':pngP};
-      if(linkP) items['text/plain']=linkP.then(l=>new Blob([l],{type:'text/plain'}));
-      await navigator.clipboard.write([new ClipboardItem(items)]);
-      notify(linkP?'Đã chép link + ảnh thẻ':'Đã chép ảnh thẻ'); return;
-    }catch(e){}
-    if(linkP){
-      try{ const l=await linkP; try{ await navigator.clipboard.writeText(l); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',l); } }
-      catch{ notify('Không tạo được link, thử lại nhé'); }
-    } else notify('Trình duyệt không cho chép ảnh — hãy bấm Tải ảnh');
-  };
-  const copyLink=async()=>{ if(!upP) notify('Đang tạo link…');
-    try{ const r=await upload(); if(!r) throw new Error('nolink'); const l=cardLinkFrom(r);
-      try{ await navigator.clipboard.writeText(l); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',l); } }
-    catch{ notify('Không tạo được link, thử lại nhé'); } };
-  ov.onclick=async e=>{ e.stopPropagation(); const a=e.target.dataset&&e.target.dataset.a; if(e.target===ov||a==='x') return done();
-    if(!a) return;
-    if(a==='bg'){ if(bgf) bgf.click(); return; }
-    if(a==='bgx'){ try{ localStorage.removeItem('card_bg'); }catch{} custom=null; layer=null; upP=null; paint(); if(bgx) bgx.style.display='none'; if(mine) upload(); return; }
-    if(a==='sh'){ if(!mine) return; return copyLink(); }   // chỉ chép LINK: dán vào Discord ra khối xem trước (ảnh thẻ + tiêu đề bấm được), không bị tải ảnh lên như file đính kèm
-    if(a==='cp') return doCopy(false);
-    cv.toBlob(async b=>{ if(!b) return notify('Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.');
-      const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download='bbeat-card-'+no+'.png'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(l.href),4000); },'image/png'); };
-}
-/* CẤP ĐỘ NGHE NHẠC: tổng thời gian nghe thật (server cộng dồn) → LV0..LV6, mỗi cấp mở một huy hiệu. */
-const LV_H=[0,2,10,40,120,300,800];   // số giờ cần để đạt LV0..LV6
-const LV_INFO=[['Mới nghe','#8b8f98','🎧'],['Tập sự','#43b581','🎵'],['Mê nhạc','#3ba5ff','🎶'],['Sành nghe','#9b6bff','🎤'],['Cao thủ','#ff9f1a','💿'],['Bậc thầy','#ff5c7a','🏆'],['Huyền thoại','#f5c518','👑']];
-function lvOf(secs){ const h=secs/3600; let l=0; for(let i=1;i<LV_H.length;i++) if(h>=LV_H[i]) l=i; const nx=l<LV_H.length-1?LV_H[l+1]:null;
-  return {l,h,next:nx,pct:nx==null?1:Math.max(0,Math.min(1,(h-LV_H[l])/(nx-LV_H[l])))}; }
-const fmtListen=s=>s<3600?Math.floor(s/60)+' phút':(s/3600).toFixed(1)+' giờ';
-const lvCache=new Map();
-async function lvGet(id){ const c=lvCache.get(id); if(c&&Date.now()-c.t<60000) return c.s;
-  try{ const r=await api('/api/lv/'+id); const s=+r.secs||0; lvCache.set(id,{s,t:Date.now()}); return s; }catch{ return null; } }
-async function fillLevel(d,u){
-  const box=d.querySelector('.pc-lv'); if(!box||!u||!u.id) return;
-  const s=await lvGet(u.id); if(s==null||!box.isConnected) return;
-  const L=lvOf(s), I=LV_INFO[L.l];
-  const bs=LV_INFO.slice(1,L.l+1).map((x,i)=>`<span class="lvb" style="background:${x[1]}" title="LV${i+1} · ${esc(x[0])}">${x[2]}</span>`).join('');
-  box.innerHTML=`<div class="lvrow"><span class="lvpill" style="background:${I[1]}">LV${L.l}</span><b>${esc(I[0])}</b><small>Đã nghe ${fmtListen(s)}</small></div><div class="lvbar"><i style="width:${Math.round(L.pct*100)}%;background:${I[1]}"></i></div>`
-    +(L.next!=null?`<small class="lvnx">Còn ${Math.max(0.1,L.next-L.h).toFixed(1)} giờ nữa lên LV${L.l+1} · ${esc(LV_INFO[L.l+1][0])}</small>`:'<small class="lvnx">Đã đạt cấp cao nhất</small>')
-    +(bs?`<div class="lvbs">${bs}</div>`:'');
-}
-/* Đếm giờ nghe thật: cộng dồn khi đang phát, gửi lên server mỗi ~60 giây. */
-let lsAcc=0, lsLast=0;
-function startListenTimer(){
-  lsLast=Date.now();
-  setInterval(async()=>{
-    const now=Date.now(), dt=Math.min(65,(now-lsLast)/1000); lsLast=now;
-    if(playing&&cur) lsAcc+=dt;
-    if(lsAcc>=60){ const n=Math.floor(lsAcc); try{ await api('/api/listen',{json:{secs:n}}); lsAcc-=n; if(me) lvCache.delete(me.id); }catch{ if(lsAcc>900) lsAcc=900; } }
-  },5000);
-}
-/* CHIA SẺ THẺ BẰNG LINK: tải ảnh thẻ lên server → link /u/<tên> có thẻ xem trước (ảnh thẻ + tên) khi dán vào chat.
-   Trên Android bấm link sẽ mở thẳng vào app (intent-filter), app tự hiện thẻ hồ sơ của người đó. */
-function cardLinkFrom(r){
-  const pubBase=(r.base&&!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(r.base))?String(r.base).replace(/\/+$/,''):location.origin;
-  return pubBase+r.path+'?v='+(r.v||Date.now());
-}
-async function shareCardLink(u,r,no){
-  const pubBase=(r.base&&!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(r.base))?String(r.base).replace(/\/+$/,''):location.origin, link=pubBase+r.path+'?v='+(r.v||Date.now()), title=(u.display_name||'BBeat')+' trên BBeat', text=title+' · FANS NO. '+no+'\n'+link;
-  try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
-  try{ if(navigator.share){ await navigator.share({title,text:title+' · FANS NO. '+no,url:link}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
-  try{ await navigator.clipboard.writeText(link); notify('Đã chép link thẻ'); }catch{ await askText('Link thẻ của bạn',link); }
-}
-async function openUserCard(name){
-  name=String(name||'').trim(); if(!/^[A-Za-z0-9_.\-]{1,64}$/.test(name)) return;
-  if(window.__ouN===name&&Date.now()-(window.__ouT||0)<4000) return;   /* nhiều đường (bbeat://, cổng nhà) cùng báo một link → chỉ mở một lần */
-  window.__ouN=name; window.__ouT=Date.now();
-  let u=null; try{ const r=await fetch('/api/u/'+encodeURIComponent(name)); if(r.ok) u=await r.json(); else { notify('Không tìm thấy thẻ này'); return; } }catch{ notify(NET_ERR); return; }
-  const mine=!!(me&&me.id&&me.id===u.id);
-  if(guest&&!mine){ try{ openProfilePage(u,false); return; }catch{} }   /* khách: vào thẳng Trang chủ của người này */
-  showBigCard(mine?{...me,online:true}:u,mine);
-}
-window.museOpenUser=openUserCard;
-/* Link thẻ trên web → app ĐANG CHẠY tự hiện thẻ, không cần Windows đăng ký bbeat://:
-   trang /u/<tên> báo cho cổng nhà (127.0.0.1) tên cần mở, giao diện app hỏi cổng nhà mỗi ~1,5 giây. Không phải app desktop (không có cổng nhà) thì tự dừng. */
-(function(){
-  if(window.ANDROID_APP||!/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) return;
-  let miss=0, busy=false;
-  const tick=async()=>{
-    if(busy||miss>=3) return; busy=true;
-    try{
-      const r=await fetch('/api/local/pending-user',{cache:'no-store'});
-      if(!r.ok){ miss++; return; }
-      miss=0; const j=await r.json(), n=j&&j.name;
-      if(n){ try{ const p=window.__TAURI__&&window.__TAURI__.core&&window.__TAURI__.core.invoke('win_focus'); if(p&&p.catch) p.catch(()=>{}); }catch{} openUserCard(n); }
-    }catch{ miss++; } finally{ busy=false; }
-  };
-  setTimeout(()=>setInterval(tick,1500),3000);
-})();
-function openPendingUser(){
-  let n=''; try{ const q=new URLSearchParams(location.search).get('u')||''; if(q){ n=q; const x=new URL(location.href); x.searchParams.delete('u'); history.replaceState(null,'',x.pathname+(x.search||'')+x.hash); } }catch{}
-  try{ if(!n&&window.MuseNative&&typeof MuseNative.takePendingUser==='function') n=String(MuseNative.takePendingUser()||''); }catch{}
-  if(n) setTimeout(()=>openUserCard(n),600);
-}
-function showBigCard(u,mine){
-  document.querySelectorAll('.pcpop,.pop,.pcov').forEach(x=>x.remove());
-  const ov=document.createElement('div'); ov.className='pcov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
-  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
-  ov.innerHTML=profileCard(u,{extra,full:false,mine,big:true});
-  const card=ov.firstElementChild; card.insertAdjacentHTML('beforeend','<button class="pcov-x" data-x="close" aria-label="Đóng">✕</button>');
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
-  function onKey(e){ if(ov.style.display==='none'||!ov.isConnected){ if(!ov.isConnected) document.removeEventListener('keydown',onKey,true); return; } if(e.key==='Escape'&&!document.querySelector('.imgv,.dlgov,.shc-ov,.bp')){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  ov.onclick=async e=>{
-    if(e.target===ov){ close(); return; }
-    const x=e.target.closest('[data-x]');
-    if(!x){
-      if(e.target.closest('.pc-av')){ if(mine){ close(); go('profile'); return; } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
-      if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
-      return; }
-    const act=x.dataset.x;
-    if(act==='close') close();
-    else if(act==='page'){   /* xem Trang chủ của người này: ẩn thẻ tạm thời, thoát trang chủ thì thẻ hiện lại */
-      ov.style.display='none'; openProfilePage(u,mine);
-      if(!document.querySelector('.bp')){ ov.style.display=''; return; }
-      const mo=new MutationObserver(()=>{ if(!ov.isConnected){ mo.disconnect(); return; } if(!document.querySelector('.bp')){ mo.disconnect(); ov.style.display=''; } });
-      mo.observe(document.body,{childList:true}); }
-    else if(act==='friend'){ try{ x.disabled=true; const r=await api('/api/friends',{json:{code:u.username||u.code}}); const ok=r&&r.status==='accepted'; notify(ok?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); x.textContent=ok?'Đã là bạn bè':'Đã gửi lời mời'; }catch(er){ x.disabled=false; notify((er&&er.message)||'Không gửi được lời mời'); } }
-    else if(act==='card'){ shareCard(u); }   /* thẻ chia sẻ mở đè lên, đóng lại vẫn còn thẻ */
-    else if(act==='edit'){ close(); go('profile'); } };
-  document.body.appendChild(ov);
-  api('/api/fans/'+u.id).then(r=>{ const el=ov.querySelector('#pcvS1'); if(el) el.textContent=String(+r.n||0); },()=>{});
-  try{ fillLevel(ov,u); }catch{}
-}
-function showProfilePop(u,anchor,mine){
-  document.querySelectorAll('.pcpop,.pop').forEach(x=>x.remove());
-  const d=document.createElement('div'); d.className='pcpop';
-  const wk=pcKey(u,mine), warm=pcPool.get(wk);
-  if(warm){ pcPool.delete(wk); d.appendChild(warm); setTimeout(()=>warmProfile(u,mine),600); }   /* dùng thẻ dựng sẵn, rồi dựng lại một thẻ mới cho lần bấm sau */
-  else d.innerHTML=profileCard(u,{extra:pcExtra(mine,u),full:pcFull(),mine});
-  const r=anchor.getBoundingClientRect(); d.style.left=Math.max(8,Math.min(r.left,innerWidth-348))+'px'; d.style.top=Math.max(8,Math.min(r.bottom+8,innerHeight-(pcFull()?620:430)))+'px';
-  d.onclick=e=>{ e.stopPropagation(); const x=e.target.closest('[data-x]');
-    if(!x){
-      if(e.target.closest('.pc-av')){ if(mine){ d.remove(); go('profile'); return; } if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
-      if(e.target.closest('.pc-ban')&&!e.target.closest('.pc-id')&&okImgUrl(u.banner)) openImgView(u.banner,u.display_name);
-      return; }
-    const act=x.dataset.x;
-    if(act==='card'){ d.remove(); shareCard(u); return; }
-    if(act==='page'){ d.remove(); openProfilePage(u,mine); return; }
-    d.remove(); if(act==='edit') go('profile'); else logout(); };
-  document.body.appendChild(d); setTimeout(()=>document.addEventListener('click',()=>d.remove(),{once:true}),0);
-}
 
-/* ===== TRANG HỒ SƠ (kiểu Bilibili) + CHỈNH SỬA THÔNG TIN ===== */
-function profileRowsHtml(list,k,ro){
-  return '<div class="bp-trs">'+list.map((t,i)=>`<div class="bp-tr" data-l="${k}" data-i="${i}"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><div style="min-width:0"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div>${ro?'':`<button data-a="fav" title="Bỏ thích">${ic('heart','fill')}</button>`}</div>`).join('')+'</div>';
-}
-
-/* ===== MÀU TRANG HỒ SƠ =====
-   Lấy MÀU từ "Nền hồ sơ" (kiểu có sẵn hoặc ảnh riêng), rồi tới ảnh banner, rồi màu banner/màu chủ đạo. Tuyệt đối không dùng ảnh làm nền.
-   Màu thô từ ảnh người dùng có thể rất xấu (xám xịt, vàng rêu...) nên không dùng nguyên: chỉ giữ SẮC (hue), còn độ sáng/độ bão hòa
-   do mình dựng lại cho hợp nền tối; sắc rêu/vàng-xanh bị lệch về hổ phách hoặc xanh lá tươi; thêm vệt sáng thứ hai theo màu chủ đạo của tài khoản. */
-const PF_VARS=['--pf-top','--pf-mid','--pf-bot','--pf-glow','--pf-glow2','--pf-card','--pf-hover','--pf-line','--pf-ac','--pf-on','--pf-sub'];
-const PF_SKIN={ocean:{h:199,s:.5},sunset:{h:306,s:.42},forest:{h:122,s:.4}};
-const pfClamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const pfHex=x=>/^#[0-9a-f]{6}$/i.test(x||'');
-function pfRgb2Hsl(r,g,b){ r/=255; g/=255; b/=255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2; let h=0, s=0;
-  if(mx!==mn){ const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn); h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; } return [h,s,l]; }
-const pfHexHsl=x=>{ const n=parseInt(x.slice(1),16); return pfRgb2Hsl(n>>16&255,n>>8&255,n&255); };
-const pfImgCache=new Map();
-function pfImgColor(src){   // → {h,s} sắc chủ đạo của ảnh, hoặc null (ảnh xám/đen trắng, hoặc trình duyệt không cho đọc ảnh)
-  if(!src||!okImgUrl(src)) return Promise.resolve(null);
-  if(pfImgCache.has(src)) return pfImgCache.get(src);
-  const p=new Promise(res=>{
-    const im=new Image(); im.decoding='async'; if(/^https:/.test(src)) im.crossOrigin='anonymous';
-    im.onload=()=>{ try{
-      const W=40,H=40,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d',{willReadFrequently:true}); g.drawImage(im,0,0,W,H);
-      const d=g.getImageData(0,0,W,H).data, bins=new Array(24).fill(0), sat=new Array(24).fill(0); let tot=0;
-      for(let i=0;i<d.length;i+=4){ if(d[i+3]<128) continue; const [h,s,l]=pfRgb2Hsl(d[i],d[i+1],d[i+2]);
-        if(l<.1||l>.94||s<.14) continue;               // bỏ đen, trắng, xám
-        const w=s*(1-Math.abs(2*l-1)); const k=Math.floor(h/15)%24; bins[k]+=w; sat[k]+=s*w; tot+=w; }
-      if(tot<2.5) return res(null);                    // gần như không có màu
-      let best=0,bv=-1; for(let k=0;k<24;k++){ const v=bins[k]+.5*(bins[(k+23)%24]+bins[(k+1)%24]); if(v>bv){ bv=v; best=k; } }
-      const a=bins[(best+23)%24], b=bins[best], c2=bins[(best+1)%24], den=(a+b+c2)||1;
-      const h=((best*15+7.5+15*(c2-a)/den)%360+360)%360, s=(sat[best]+sat[(best+23)%24]+sat[(best+1)%24])/den;
-      res({h,s});
-    }catch{ res(null); } };
-    im.onerror=()=>res(null); im.src=src; });
-  pfImgCache.set(src,p); return p;
-}
-function pfPalette(c,accH){
-  let h=c.h, s=c.s;
-  if(h>=52&&h<=105) h=h<78?44:128;                       // vàng rêu → hổ phách hoặc xanh lá tươi
-  s=pfClamp(s,c.neutral?.1:.32,.78);
-  const dist=Math.min(Math.abs(accH-h),360-Math.abs(accH-h)), h2=dist>35?accH:h+34;   // vệt sáng thứ hai: màu chủ đạo của tài khoản (hoặc sắc kề bên)
-  const L=(l,sat,hh=h,a)=>`hsl(${Math.round(((hh%360)+360)%360)} ${Math.round(pfClamp(sat,0,1)*100)}% ${Math.round(l*100)}%${a==null?'':' / '+a})`;
-  return {
-    '--pf-top':L(.20,s*.62), '--pf-mid':L(.115,s*.5,h+8), '--pf-bot':L(.06,s*.4,h-8),
-    '--pf-glow':L(.46,s,h,.30), '--pf-glow2':L(.42,s*.9,h2,.20),
-    '--pf-card':L(.17,s*.4,h,.66), '--pf-hover':L(.62,s*.5,h,.14), '--pf-line':L(.6,s*.5,h,.18),
-    '--pf-ac':c.neutral?L(.72,.8,accH):L(.72,pfClamp(s+.2,.55,.92),h), '--pf-on':'#0b0a12', '--pf-sub':L(.78,s*.28,h,.78)
-  };
-}
-const pfApply=(el,pal)=>{ for(const k of PF_VARS) el.style.setProperty(k,pal[k]); };
-async function pfThemeApply(el,u,mine){
-  const A=pfHex(u.accent)?pfHexHsl(u.accent):[205,.8,.7], accH=A[0], bg=mine?(u.bg||''):'';
-  const fb=pfHex(u.banner_color)?pfHexHsl(u.banner_color):A;                  // đúng màu banner đang thấy khi chưa có ảnh
-  let fixed=null; const imgs=[];
-  if(bg==='dark') fixed={h:accH,s:.16,neutral:1};
-  else if(PF_SKIN[bg]) fixed=PF_SKIN[bg];
-  else { if(bg==='custom'&&okImgUrl(u.bg_url)) imgs.push(u.bg_url); if(okImgUrl(u.banner)) imgs.push(u.banner); }
-  pfApply(el,pfPalette(fixed||{h:fb[0],s:fb[1]},accH));                       // vẽ ngay bằng màu có sẵn, không chờ ảnh
-  if(fixed) return;
-  for(const src of imgs){ const c=await pfImgColor(src); if(!el.isConnected) return; if(c){ pfApply(el,pfPalette(c,accH)); return; } }
-}
-// "Thẻ danh tính": UID — dạng chip dưới tên
-function pfIdChips(u,mine){
-  const ch=[];
-  const add=(cls,glyph,txt,x,tip)=>ch.push(`<${mine?'button':'span'} class="bp-chip ${cls}"${mine?` data-x="${x||'edit'}"`:''}${tip?` title="${esc(tip)}"`:''}><i>${glyph}</i><span>${esc(txt)}</span></${mine?'button':'span'}>`);
-  const code=mine?me.code:(u.code||'');
-  if(code) ch.push(`<button class="bp-chip uid" data-x="copyuid" data-c="${esc(code)}" title="Bấm để chép UID"><i>#</i><span>${esc(code)}</span></button>`);
-  return ch.join('');
-}
-function openProfilePage(u,mine){
-  document.querySelectorAll('.pcpop,.pop,.bp,.bp-ed').forEach(x=>x.remove());
-  if(u&&!mine) u={...u,accent:normAcc(u.accent)};   /* người khác chưa chọn màu → màu mặc định mới, không phải xanh lá cũ */
-  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:normAcc(u.accent||'#5865f2');
-  const ban=okImgUrl(u.banner)?gvHtml(u.banner,''):'';
-  const tier=u.supporter>=2?'Thành viên lớn':u.supporter>=1?'Thành viên nhỏ':'';
-  const d=document.createElement('div'); d.className='bp themed'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||'')); pfThemeApply(d,u,mine);
-  d.innerHTML=`<div class="bp-w"><div class="bp-hero">
-    <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
-    <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
-      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st${mine?' clk':''}"${mine?' data-t="follow" role="button" tabindex="0"':''}><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st${mine?' clk':''}"${mine?' data-t="fav" role="button" tabindex="0"':' data-t="home" role="button" tabindex="0"'}><b id="bpS3">–</b><span>Lượt thích</span></div></div>
-        </div>
-    <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine&&!guest?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
-      <div class="bp-chips" id="bpChips">${pfIdChips(u,mine)}</div>
-      <div class="bp-bio"><span class="bp-q">${esc(u.status||'Không có mô tả')}</span>${mine&&!guest?'<a data-x="edit">Chi tiết</a>':''}</div></div></div></div>
-    ${mine&&guest?'':mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs" id="bpFr" style="display:none"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}
-    <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button>${mine?'<button class="bp-tab" data-t="follow">Đã theo dõi</button>':''}</div>
-    <div id="bpBody"></div><div class="bp-pad"></div></div>`;
-  document.body.appendChild(d);
-  try{ txApplyBp(d,u); }catch{}
-  { const hero=d.querySelector('.bp-hero'), cr=cropOf(u);   /* áp dụng X/Y/zoom đã chỉnh theo đúng tỉ lệ khung banner hiện tại */
-    const fit=()=>{ const m=d.querySelector('.bp-ban>img,.bp-ban>video'); if(!m||!hero.clientHeight) return; m.setAttribute('style',cropStyle(cr.bx,cr.by,cr.bz,cr.ba,hero.clientWidth/hero.clientHeight)); };
-    fit(); if(window.ResizeObserver) new ResizeObserver(fit).observe(hero); }
-  d.addEventListener('pfx',()=>{ const c=d.querySelector('#bpChips'); if(c) c.innerHTML=pfIdChips(u,mine);
-    if(mine){ const bs=d.querySelector('.bp-bio .bp-q'); if(bs) bs.textContent=me.status||'Không có mô tả'; const nb=d.querySelector('.bp-nm b'); if(nb) nb.textContent=me.display_name; } });
-  const body=d.querySelector('#bpBody'); let favList=null, pls=null;
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); };
-  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.imgv,.shc-ov,.bp-ed')){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  const priv='<p class="bp-empty">Chỉ chủ hồ sơ mới xem được mục này.</p>';
-  let other=null;   /* người khác: {friend, public, playlists, likes} — Trang chủ công khai mặc định, chủ hồ sơ có thể chuyển riêng tư */
-  const loadOther=()=>other?Promise.resolve(other):api('/api/users/'+u.id+'/home').then(r=>other=r).catch(()=>null);
-  if(!mine&&!guest){ loadOther().then(r=>{ const fr=d.querySelector('#bpFr'); if(fr&&!(r&&r.friend)) fr.style.display=''; }); }   /* đã là bạn bè → không hiện nút Kết bạn */
-  async function showHome(){
-    if(!mine){
-      body.innerHTML='<p class="bp-empty">Đang tải…</p>';
-      const r=await loadOther();
-      if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='home') return;
-      if(!r||r.public===false){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
-      const pl=r.playlists||[], recent=r.likes||[], k=recent.length?reg(recent,'Yêu thích'):0;
-      body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Playlist</b><small>${pl.length}</small></div></div>
-        ${pl.length?`<div class="bp-pls">${pl.map(p=>`<div class="bp-pl"><div class="tile">${plCover(p)}</div><div class="m"><b>${esc(p.name)}</b><span>${p.count||0} bài hát</span></div></div>`).join('')}</div>`:'<p class="bp-empty">Chưa có playlist nào.</p>'}</div>
-        <div class="bp-sec"><div class="bp-sh"><div><b>Nhạc gần đây đã thích</b></div></div>
-        ${recent.length?profileRowsHtml(recent,k,true):'<p class="bp-empty">Chưa thích bài nào.</p>'}</div>`;
-      return; }
-    body.innerHTML='<p class="bp-empty">Đang tải…</p>';
-    if(!pls) pls=await api('/api/playlists').catch(()=>playlists||[]);
-    if(!favList) favList=await api('/api/favorites').then(a=>Array.isArray(a)?a:[]).catch(()=>[]);
-    if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='home') return;
-    const recent=favList.slice(0,6), k=reg(recent,'Yêu thích');
-    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Playlist</b><small>${pls.length}</small></div></div>
-      ${pls.length?`<div class="bp-pls">${pls.slice(0,6).map(p=>`<div class="bp-pl" data-pl="${p.id}"><div class="tile">${plCover(p)}</div><div class="m"><b>${esc(p.name)}</b><span>${p.count||0} bài hát</span></div></div>`).join('')}</div>`:'<p class="bp-empty">Chưa có playlist nào.</p>'}</div>
-      <div class="bp-sec"><div class="bp-sh"><div><b>Nhạc gần đây đã thích</b></div>${favList.length>6?'<a data-t="fav">Thêm ›</a>':''}</div>
-      ${recent.length?profileRowsHtml(recent,k):'<p class="bp-empty">Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.</p>'}</div>`;
-  }
-  async function showFav(){
-    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
-    body.innerHTML='<p class="bp-empty">Đang tải…</p>';
-    if(!favList) favList=await api('/api/favorites').then(a=>Array.isArray(a)?a:[]).catch(()=>[]);
-    if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='fav') return;
-    const k=reg(favList,'Yêu thích');
-    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Nhạc đã thích</b><small>${favList.length}</small></div></div>${favList.length?profileRowsHtml(favList,k):'<p class="bp-empty">Bạn chưa thích bài nào.</p>'}</div>`;
-  }
-  async function showFollow(){
-    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
-    const a=followGet();
-    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Nghệ sĩ đã theo dõi</b><small>${a.length}</small></div></div>${a.length?`<div class="bp-trs">${a.map(n=>`<div class="bp-tr" data-ar="${esc(n)}"><div class="bp-avt">${esc(String(n).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><div class="t1">${esc(n)}</div><div class="t2">Nghệ sĩ</div></div><button data-un="${esc(n)}" title="Bỏ theo dõi">${ic('x')}</button></div>`).join('')}</div>`:'<p class="bp-empty">Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.</p>'}</div>`;
-  }
-  const tab=t=>{ d.querySelectorAll('.bp-tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); (t==='fav'?showFav:t==='follow'?showFollow:showHome)(); };
-  d.onclick=async e=>{
-    const tb=e.target.closest('[data-t]'); if(tb){ tab(tb.dataset.t); if(tb.classList.contains('bp-st')){ const bar=d.querySelector('.bp-tabs'); if(bar&&bar.scrollIntoView) bar.scrollIntoView({behavior:'smooth',block:'start'}); } return; }
-    const un=e.target.closest('[data-un]'); if(un){ toggleFollow(un.dataset.un); const s=d.querySelector('#bpS2'); if(s) s.textContent=String(followGet().length); showFollow(); return; }
-    const ar=e.target.closest('[data-ar]'); if(ar){ close(); go('search',ar.dataset.ar); return; }
-    const pl=e.target.closest('[data-pl]'); if(pl){ close(); go('playlist',+pl.dataset.pl||pl.dataset.pl); return; }
-    const tr=e.target.closest('.bp-tr');
-    if(tr){ const list=lists[tr.dataset.l], i=+tr.dataset.i, t=list&&list[i]; if(!t) return;
-      if(e.target.closest('[data-a=fav]')){ await toggleFav(t); if(!favs.has(key(t))){ tr.remove(); favList=favList&&favList.filter(x=>key(x)!==key(t)); const s=d.querySelector('#bpS3'); if(s) s.textContent=String(favs.size); } }
-      else playList(list,i,lnames[tr.dataset.l]);
-      return; }
-    const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
-    if(a==='back') return close();
-    if(a==='av'){ if(isImg(u.avatar)) openImgView(u.avatar,u.display_name); return; }
-    if(a==='scan') return qrScanDialog();
-    if(a==='edit') return openProfileEdit(d);
-    if(a==='copyuid'){ const c=x.dataset.c||''; try{ await navigator.clipboard.writeText(c); notify('Đã chép UID'); }catch{ await askText('UID',c); } return; }
-    if(a==='rename'){ try{
-      const v=await askText('Tên hiển thị',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
-      const nu=await api('/api/account/name',{json:{display_name:v}}); applyUser(nu); u.display_name=me.display_name;
-      const nb=d.querySelector('.bp-nm b'); if(nb) nb.textContent=me.display_name; d.setAttribute('aria-label','Hồ sơ '+me.display_name);
-      notify('Đã lưu tên hiển thị');
-    }catch(er){ notify((er&&er.message)||'Không lưu được'); } return; }
-    if(a==='edprof') return openProfileDesign(d);
-    if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
-  };
-  d.addEventListener('keydown',e=>{ const st=e.target.closest&&e.target.closest('.bp-st.clk'); if(st&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); st.click(); } });
-  tab('home');
-  // Số liệu
-  (async()=>{
-    const set=(id,t)=>{ const el=d.querySelector('#'+id); if(el) el.textContent=t; };
-    if(mine){ set('bpS2',String(followGet().length)); set('bpS3',String(favs.size)); }
-    api('/api/fans/'+u.id).then(r=>set('bpS1',String(+r.n||0)),()=>{});
-  })();
-}
-/* Chỉnh sửa hồ sơ (avatar, banner, nền, màu chủ đạo, trạng thái) mở ngay trong trang cá nhân */
-function openProfileDesign(parent){
-  document.querySelectorAll('.bp-ds').forEach(x=>x.remove());
-  const d=document.createElement('div'); d.className='bp-ed bp-ds'; d.setAttribute('role','dialog');
-  let mo=null;
-  if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed');
-    const sync=()=>{ for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); };
-    sync(); mo=new MutationObserver(sync); mo.observe(parent,{attributes:true,attributeFilter:['style']}); }
-  const snap=()=>JSON.stringify([me.display_name,me.status,me.avatar,me.banner,me.banner_color,me.accent,me.bg,me.bg_url,me.crop]), before=snap();
-  d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Chỉnh sửa hồ sơ</div><div class="bp-dsb"></div></div>`;
-  document.body.appendChild(d);
-  presEdit=1; pushPresence();
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); if(mo) mo.disconnect();
-    presEdit=0; pushPresence();
-    if(appPrev){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
-    d.remove();
-    if(parent&&parent.isConnected&&snap()!==before) openProfilePage({...me,online:true},true); };   /* hồ sơ đã đổi → vẽ lại trang cá nhân */
-  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov,#cm')){ e.preventDefault(); e.stopImmediatePropagation(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  d.querySelector('[data-x=back]').onclick=close;
-  pages.profile(d.querySelector('.bp-dsb')).catch(er=>{ notify((er&&er.message)||'Không mở được'); close(); });
-}
-function openProfileEdit(parent){
-  if(guest){ notify('Đăng nhập để chỉnh sửa hồ sơ'); return; }
-  document.querySelectorAll('.bp-ed').forEach(x=>x.remove());
-  const d=document.createElement('div'); d.className='bp-ed'; d.setAttribute('role','dialog');
-  if(parent&&parent.classList&&parent.classList.contains('themed')){ d.classList.add('themed'); for(const k of PF_VARS) d.style.setProperty(k,parent.style.getPropertyValue(k)); }
-  let homePub=null;   /* null = đang tải; true = công khai (mặc định); false = riêng tư */
-  const paint=()=>{
-    d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Thông tin tài khoản</div>
-      <div class="bp-grp">
-        <div class="bp-rw" data-x="name"><span>Biệt danh</span><em>${esc(me.display_name)}</em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="bio"><span>Chữ ký cá nhân</span><em>${esc(me.status||'Không có mô tả')}</em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="theme"><span>Banner &amp; nền hồ sơ</span><em></em>${ic('chev')}</div>
-        <div class="bp-rw" data-x="homepriv"><span>Trang chủ hồ sơ</span><em>${homePub==null?'…':homePub?'Công khai':'Riêng tư'}</em>${ic('chev')}</div>
-      </div>
-      <div class="bp-grp">
-        <div class="bp-rw" data-x="uid"><span>UID</span><em>${esc(me.code||'')}</em></div>
-        <div class="bp-rw" data-x="card"><span>Danh thiếp QR code</span><em></em>${ic('chev')}</div>
-      </div></div>`;
-  };
-  paint(); document.body.appendChild(d);
-  api('/api/profile/privacy').then(r=>{ homePub=!(r&&r.home_public===false); if(d.isConnected) paint(); }).catch(()=>{ homePub=true; if(d.isConnected) paint(); });
-  const close=()=>{ document.removeEventListener('keydown',onKey,true); d.remove(); if(parent&&parent.dispatchEvent) parent.dispatchEvent(new Event('pfx')); };
-  function onKey(e){ if(e.key==='Escape'&&!document.querySelector('.dlgov,.shc-ov')){ e.preventDefault(); close(); } }
-  document.addEventListener('keydown',onKey,true);
-  d.onclick=async e=>{
-    const x=e.target.closest('[data-x]'); if(!x) return; const a=x.dataset.x;
-    try{
-      if(a==='back') return close();
-      if(a==='name'){ const v=await askText('Biệt danh',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return;
-        const u=await api('/api/account/name',{json:{display_name:v}}); applyUser(u); notify('Đã lưu biệt danh'); paint(); }
-      else if(a==='bio'){ const v=await askText('Chữ ký cá nhân',me.status||''); if(v==null) return;
-        const c=cropOf(me); const u=await api('/api/profile',{json:{display_name:me.display_name,accent:me.accent,bg:me.bg||'',bg_url:me.bg==='custom'?(me.bg_url||''):'',banner_color:me.banner_color||'',status:v.trim().slice(0,60),crop:c}});
-        if(u&&u.id) applyUser(u); else me.status=v.trim().slice(0,60); notify('Đã lưu chữ ký'); paint(); }
-      else if(a==='homepriv'){ if(homePub==null) return; const nv=!homePub;
-        const r=await api('/api/profile/privacy',{json:{home_public:nv}}); homePub=!(r&&r.home_public===false);
-        notify(homePub?'Trang chủ hồ sơ: công khai':'Trang chủ hồ sơ: riêng tư'); paint(); }
-      else if(a==='theme'){ close(); document.querySelectorAll('.bp').forEach(p=>p.remove()); go('profile'); }
-      else if(a==='uid'){ try{ await navigator.clipboard.writeText(me.code||''); notify('Đã chép UID'); }catch{ await askText('UID',me.code||''); } }
-      else if(a==='card'){ shareCard({...me,online:true}); }
-    }catch(er){ notify((er&&er.message)||'Không lưu được'); }
-  };
-}
-
-const ytCache={};
-const ycKey=q=>'muse_yc2_'+(me&&me.id||0)+(S&&S.explicit?'e':'')+'_'+q;
-const ART_TPL={
-  hear:['Vì bạn hay nghe {n}','Dành cho người hâm mộ {n}'],
-  sim:['Nếu bạn thích {n}','Cùng gu với {n}','Fan {n} cũng nghe'],
-  new:['{n} · bài mới','Mới từ {n}'],
-  disc:['Khám phá {n}']
-};
-const ART_GENERIC={hear:'Từ nghệ sĩ bạn hay nghe',sim:'Nghệ sĩ tương tự',new:'Bài mới từ nghệ sĩ bạn nghe',disc:'Khám phá thêm'};
-function artTitle(kind,n){
-  n=String(n||'').trim();
-  if(!n||n.length>26||!/\p{L}/u.test(n)||/https?:|www\./i.test(n)) return ART_GENERIC[kind]||ART_GENERIC.sim;
-  const a=ART_TPL[kind]||ART_TPL.sim;
-  return a[strHash(kind+n.toLowerCase())%a.length].replace('{n}',n);
-}
-const ARTIST_GENRE={'saki hanami':'edm'};
-const FRESH_DAYS=14;
-const ytFetch=q=>{
-  if(q.startsWith('new:')){ const n=q.slice(4);
-    return api('/api/yt/fresh?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks.filter(t=>(t.age??999)<=FRESH_DAYS):[]).catch(()=>[]); }
-  if(q.startsWith('sim:')){ const n=q.slice(4), g=ARTIST_GENRE[n.toLowerCase()]||'';
-    return api('/api/yt/similar?artist='+encodeURIComponent(n)+(g?'&genre='+encodeURIComponent(g):'')).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>[]); }
-  return api('/api/yt/search?q='+encodeURIComponent(q)).then(r=>Array.isArray(r)?r:[]);
-};
-function ytSearch(q,swr){
-  if(ytCache[q]) return ytCache[q];
-  const save=r=>{ if(swr&&r.length) LS.set(ycKey(q),JSON.stringify({t:Date.now(),r})); return r; };
-  if(swr){
-    let hit=null; try{ hit=JSON.parse(LS.get(ycKey(q),'null')); }catch{}
-    if(hit&&Array.isArray(hit.r)&&hit.r.length&&Date.now()-hit.t<864e5){
-      ytCache[q]=Promise.resolve(hit.r);
-      if(Date.now()-hit.t>6e5) ytFetch(q).then(save).catch(()=>{});
-      return ytCache[q];
+    // 2) + 3) Video MP4 (ffmpeg) và WebP động (gif2webp) chỉ cùng đọc webp_input, không phụ thuộc nhau → chạy SONG SONG
+    //    thay vì nối đuôi (trước đây tổng thời gian = cộng hai bước, giờ chỉ còn bước lâu hơn).
+    //    Video: MP4 (H.264) tắt tiếng, tối đa 25 khung/giây, điện thoại giải mã bằng phần cứng nên nhẹ hơn ảnh động nhiều.
+    //    Nền trong suốt của GIF sẽ thành màu đen. Thiếu ffmpeg thì bỏ qua bước này.
+    //    WebP: ảnh dự phòng khi video không phát được, và là ảnh dùng ở các chỗ không dùng video (danh sách, nền).
+    let make_video = async {
+        if !want_video {
+            return None;
+        }
+        let made = run_tool(
+            &ffmpeg,
+            &[
+                "-v", "error", "-y", "-i", webp_input, "-an", "-vf", "fps=25,scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                "-c:v", "libx264", "-profile:v", "main", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "26",
+                "-movflags", "+faststart", vp,
+            ],
+        )
+        .await;
+        if !made {
+            return None;
+        }
+        match tokio::fs::read(vid).await {
+            Ok(b) if b.len() > 12 && &b[4..8] == b"ftyp" => Some(b),
+            _ => None,
+        }
+    };
+    let make_webp = async {
+        // -m 2 (thay vì 4): nén nhanh hơn nhiều, file chỉ nhỉnh hơn một chút.
+        let converted = run_tool(
+            &gif2webp,
+            &["-quiet", "-mixed", "-q", "80", "-m", "2", "-mt", "-kmin", "3", "-kmax", "5", webp_input, "-o", w],
+        )
+        .await;
+        if !converted {
+            return None;
+        }
+        match tokio::fs::read(web).await {
+            // Chỉ dùng WebP khi hợp lệ và không to hơn GIF đã nén quá 1,5 lần
+            Ok(b) if matches!(sniff_image(&b), Some("webp")) && b.len() <= best_gif.len() + best_gif.len() / 2 => Some((b, "webp")),
+            _ => None,
+        }
+    };
+    let (video, webp) = tokio::join!(make_video, make_webp);
+    let mut image: Option<(Vec<u8>, &'static str)> = webp;
+    if image.is_none() && best_gif.len() < body.len() {
+        image = Some((best_gif, "gif"));
     }
-  }
-  ytCache[q]=ytFetch(q).then(save).catch(e=>{ delete ytCache[q]; throw e; });
-  return ytCache[q];
+    match (image, video) {
+        (Some((b, e)), v) => Some((b, e, v)),
+        (None, Some(v)) => Some((body.to_vec(), "gif", Some(v))),
+        (None, None) => None,
+    }
 }
-async function ytInfo(id){
-  try{ const j=await (await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+id))).json();
-    return {src:'yt',id,title:j.title,artist:j.author_name,image:j.thumbnail_url,url:'',dur:0}; }
-  catch{ return {src:'yt',id,title:'YouTube '+id,artist:'YouTube',image:`https://i.ytimg.com/vi/${id}/hqdefault.jpg`,url:'',dur:0}; }
-}
-const ytId=v=>{v=v.trim();const m=v.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||v.match(/^([\w-]{11})$/);return m&&m[1]};
 
-const cardHtml=(t,k,i)=>`<div class="card ${isWide(t)?'wide':''}" data-l="${k}" data-i="${i}" data-tk="${esc(key(t))}" tabindex="0"><div class="cvw"><img src="${esc(thumb(t.image,isWide(t)?300:360))}" loading="${IMG_LOAD}" decoding="async" alt=""><button class="pl" data-a="play" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(t.title)}</div><div class="ca">${esc(t.artist)}</div></div>`;
-const gridHtml=(list,name)=>{const k=reg(list,name);return `<div class="grid">${list.map((t,i)=>cardHtml(t,k,i)).join('')}</div>`};
-const skel=n=>`<div class="grid">${'<div class="card sk"><div class="cvw"></div><div class="ct">&nbsp;</div></div>'.repeat(n)}</div>`;
-function fill4(im){
-  const n=im.length;
-  if(n>=4) return im.slice(0,4);
-  if(n===3) return [im[0],im[1],im[2],im[0]];
-  if(n===2) return [im[0],im[1],im[1],im[0]];
-  return im;
+// max_px: cạnh dài tối đa (điểm ảnh) cho GIF; want_video: có tạo thêm video MP4 hay không. PNG/JPG/WEBP giữ nguyên.
+async fn optimize_upload(body: Bytes, ext: &'static str, max_px: u32, want_video: bool) -> (Vec<u8>, &'static str, Option<Vec<u8>>) {
+    if ext != "gif" {
+        return (body.to_vec(), ext, None);
+    }
+    let id = uuid::Uuid::new_v4().simple().to_string();
+    let dir = std::env::temp_dir();
+    let src = dir.join(format!("muse-{id}-in.gif"));
+    let opt = dir.join(format!("muse-{id}-opt.gif"));
+    let web = dir.join(format!("muse-{id}-out.webp"));
+    let vid = dir.join(format!("muse-{id}-out.mp4"));
+    // Giới hạn tổng 40 giây cho việc nén (gifsicle + gif2webp có thể mỗi bước 90 giây trên Render yếu → vượt thời gian chờ của cổng nhà
+    // → 502). Quá 40 giây thì bỏ nén, lưu nguyên GIF gốc (vẫn chuyển động); kill_on_drop tự dừng các tiến trình nén còn dang dở.
+    let result = tokio::time::timeout(Duration::from_secs(40), optimize_gif_files(&body, &src, &opt, &web, &vid, max_px, want_video))
+        .await
+        .unwrap_or(None);
+    for p in [&src, &opt, &web, &vid] {
+        let _ = tokio::fs::remove_file(p).await;
+    }
+    result.unwrap_or_else(|| (body.to_vec(), ext, None))
 }
-function collage(list){
-  const im=list.filter(t=>t.image).map(t=>t.image), f=fill4(im);
-  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,200))}" alt="">`).join('')}</div>`;
-  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],400))}" alt=""></div>`;
-  return `<div class="collage one">${ic('note','lg')}</div>`;
-}
-function tracksHtml(list,inPl,name,col){
-  if(!inPl&&list.some(isUnplay)) list=list.filter(t=>!isUnplay(t)||(cur&&key(cur)===key(t))); // trong playlist của bạn vẫn hiện (chỉ mờ đi), không xoá
-  if(!list.length) return '<p class="empty">Chưa có bài nào. Hãy tìm một bài và bấm ♡ hoặc thêm vào playlist.</p>';
-  const k=reg(list,name);
-  return list.map((t,i)=>{ const kk=key(t), f=favs.has(kk);
-    return `<div class="tr" data-l="${k}" data-i="${i}" data-tk="${esc(kk)}"><span class="n">${i+1}</span><div class="cvx"><img src="${esc(thumb(t.image,96))}" loading="lazy" alt=""><span class="pbtn">${ic('play','fill sm')}</span></div><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="ar">${esc(col?col(t):t.artist)}</div><span class="du">${t.dur?fmt(t.dur):''}</span><div class="ac"><button class="ico ${f?'on':''}" data-a="fav" title="Yêu thích">${ic('heart',f?'fill':'')}</button><button class="ico" data-a="add" title="Thêm vào playlist">${ic('plus')}</button><button class="ico" data-a="dl" title="Tải nhạc">${ic('download')}</button>${inPl?`<button class="ico" data-a="rm" title="Xoá khỏi playlist">${ic('x')}</button>`:''}</div></div>`; }).join('');
-}
-function hero(title,sub,list,extra=''){
-  const k=reg(list,title);
-  return `<div class="hero"><div class="hcol">${collage(list)}</div><div><small>${esc(sub)}</small><h2>${esc(title)}</h2><div class="hb"><button class="pri" data-hp="${k}" data-sh="0">${ic('play','fill sm')} Phát</button><button class="out" data-hp="${k}" data-sh="1">${ic('shuffle','sm')} Xáo trộn</button><button class="out" data-hd="${k}">${ic('download','sm')} Tải tất cả</button>${extra}</div></div></div>`;
-}
-const sec=(id,title,kicker,more)=>`<section class="sec"><div class="sh"><div><h3>${esc(title)}</h3></div><div class="shr">${more||'<a class="more" hidden>Phát tất cả</a>'}<button class="nv" data-nv="-1" title="Cuộn trái">${ic('chev','flip sm')}</button><button class="nv" data-nv="1" title="Cuộn phải">${ic('chev','sm')}</button></div></div><div id="g${id}">${skel(7)}</div></section>`;
 
-let tiFrom='home';
-$('#main').addEventListener('click',e=>{
-  const ti=e.target.closest('[data-ti]');
-  if(ti){ const l=lists[ti.dataset.ti], x=l&&l[+ti.dataset.i]; if(x){ tiFrom=page==='bestartists'?'bestartists':'home'; go('thisis',{...x,auto:!!e.target.closest('.pl')}); } return; }
-  const en=e.target.closest('[data-ent]');
-  if(en){ const l=lists[en.dataset.ent], x=l&&l[+en.dataset.i]; if(x) go('ybrowse',x); return; }
-  const jb=e.target.closest('[data-jb]');
-  if(jb){ const x=jumpGet()[+jb.dataset.jb]; if(x) playList(x.tr.slice(),Math.min(x.i||0,x.tr.length-1),x.n); return; }
-  const hp=e.target.closest('[data-hp]');
-  if(hp){ const l=lists[hp.dataset.hp]; if(l&&l.length) playList(hp.dataset.sh==='1'?shuffled(l):l,0,lnames[hp.dataset.hp]); return; }
-  const hd=e.target.closest('[data-hd]');
-  if(hd){ downloadAll(lists[hd.dataset.hd],lnames[hd.dataset.hd]); return; }
-  const nv=e.target.closest('[data-nv]');
-  if(nv){ const g=nv.closest('.sec').querySelector('.grid'); if(g) g.scrollBy({left:+nv.dataset.nv*g.clientWidth*.8}); return; }
-  const go_=e.target.closest('[data-go]'); if(go_){ go(go_.dataset.go); return; }
-  const gs_=e.target.closest('[data-gs]'); if(gs_){ go('search',gs_.dataset.gs); return; }
-  if(e.target.closest('#sHist')) return;
-  if(shAct(e)) return;
-  const tile=e.target.closest('[data-q]'); if(tile){ shSave(tile.dataset.q); runSearch(tile.dataset.q,true); return; }
-  const mx=e.target.closest('[data-mix]'); if(mx){ startMix(mx.dataset.mix,mx.dataset.name); return; }
-  const el=e.target.closest('[data-l]'); if(!el) return;
-  const list=lists[el.dataset.l], i=+el.dataset.i, t=list&&list[i]; if(!t) return;
-  const ab=e.target.closest('[data-a]'), a=ab&&ab.dataset.a;
-  if(a==='fav') toggleFav(t);
-  else if(a==='add') addMenu(t,e);
-  else if(a==='dl') downloadTrack(t);
-  else if(a==='rm') removeFromPl(t);
-  else playList(list,i,lnames[el.dataset.l]);
-});
-const warmed={};
-/* Làm nóng luồng nhạc KHÔNG được chiếm kết nối: WebView chỉ mở ~6 kết nối/host, nếu YouTube chặn (502, ~22 s/lượt) thì các lượt
-   làm nóng treo hết kết nối và làm tìm kiếm phải xếp hàng. Nên: tối đa 2 lượt cùng lúc, tự huỷ sau 5 s, lỗi thì nghỉ 5 phút,
-   và huỷ hết khi người dùng bắt đầu tìm kiếm. */
-const WARM_MAX=2, WARM_TMO=5000, WARM_COOL=300000;
-const warmCtl=new Set(); let warmFailAt=0, searchBusyUntil=0;
-function warmAbortAll(){ for(const c of [...warmCtl]){ try{ c.abort(); }catch{} } warmCtl.clear(); }
-function warmTrack(t){
-  try{
-    if(!t||t.src!=='yt'||(warmed[t.id]&&Date.now()-warmed[t.id]<72e5)||!wantStream(t)||offSet.has(key(t))) return;
-    if(Date.now()-warmFailAt<WARM_COOL||Date.now()<searchBusyUntil||warmCtl.size>=WARM_MAX) return;
-    warmed[t.id]=Date.now();
-    if(window.MuseNative&&typeof MuseNative.prefetch==='function'){ MuseNative.prefetch(String(t.id),fxFmt); return; } // Android: lấy sẵn link bằng IP máy
-    const c=new AbortController(); warmCtl.add(c); const tm=setTimeout(()=>{ try{ c.abort(); }catch{} },WARM_TMO);
-    fetch('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'},signal:c.signal})
-      .then(r=>{ if(!r.ok){ warmFailAt=Date.now(); delete warmed[t.id]; } try{ c.abort(); }catch{} }) // đã có header là đủ, bỏ phần thân
-      .catch(()=>{ if(c.signal.aborted&&warmCtl.has(c)&&Date.now()<searchBusyUntil) delete warmed[t.id]; else if(c.signal.aborted) warmFailAt=Date.now(); })
-      .finally(()=>{ clearTimeout(tm); warmCtl.delete(c); });
-  }catch{}
+// Lưu ảnh tải lên. Có video đi kèm thì ảnh đặt tên {stem}.v.{ext} và video là {stem}.mp4
+// (giao diện dựa vào đuôi ".v." để biết có video; video lỗi thì tự quay về ảnh).
+async fn save_upload(dir: &std::path::Path, img: &[u8], ext: &str, video: Option<Vec<u8>>) -> std::io::Result<String> {
+    let stem = uuid::Uuid::new_v4().simple().to_string();
+    let name = if video.is_some() { format!("{stem}.v.{ext}") } else { format!("{stem}.{ext}") };
+    tokio::fs::write(dir.join(&name), img).await?;
+    if let Some(v) = video {
+        let _ = tokio::fs::write(dir.join(format!("{stem}.mp4")), &v).await;
+    }
+    Ok(name)
 }
-/* Làm sẵn cho các bài đang hiện trên màn hình (như SimpMusic): lấy trước luồng nhạc + cover cỡ lớn (màn hình Đang phát) để
-   bấm vào là có cover và nhạc ngay. Xếp hàng, mỗi 450ms làm 1 bài – không bắn cả chục cuộc lấy luồng cùng lúc làm chậm bài đang bấm. */
-const warmQ=[]; let warmQTm=0;
-function warmTrackFull(t){ /* KHÔNG gọi warmTrack: không lấy luồng nhạc trước cho bài chỉ đang hiển thị/rê chuột (mỗi lượt là 1 request YouTube → dễ bị gắn cờ bot). Chỉ nạp ảnh. */ warmImgs([t],800,1); warmImgs([t],96,1); }
-function warmPump(){
-  warmQTm=0; const now=Date.now();
-  while(warmQ.length){ const x=warmQ.shift(); if(now-x.at>10000) continue; try{ warmTrackFull(x.t); }catch{} break; }
-  if(warmQ.length) warmQTm=setTimeout(warmPump,450);
-}
-function warmList(list,n=3){
-  const now=Date.now();
-  for(let i=warmQ.length-1;i>=0;i--) if(now-warmQ[i].at>10000) warmQ.splice(i,1);
-  for(const t of (list||[]).slice(0,n)){ if(!t||warmQ.length>=12||warmQ.some(x=>x.t.id===t.id)) continue; warmQ.push({t,at:now}); }
-  if(warmQ.length&&!warmQTm) warmQTm=setTimeout(warmPump,0);
-}
-$('#main').addEventListener('pointerdown',e=>{ const el=e.target.closest('.qk,.card[data-l],.tr[data-l]'); if(!el) return;
-  const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t) warmTrackFull(t); },{passive:true});
-function warmFirst(list,n=4){ warmList(list,n); }
-let warmNextTm=0;
-function warmNext(){
-  clearTimeout(warmNextTm);
-  warmNextTm=setTimeout(()=>{ try{
-    if(!cur||!queue.length||queue.length<2) return;
-    if(shuf){ return; }
-    if(everPlayed&&playing){ const t=queue[(qi+1)%queue.length]; if(t&&t!==cur&&!blocked(t)) warmTrack(t); } // chỉ 1 bài kế, và chỉ khi bài hiện tại đã phát được
-    // Nạp sẵn cover album của 2 bài kế (đúng kích thước thanh nhạc và màn hình Đang phát) → chuyển bài là cover hiện ngay.
-    const nx=[queue[(qi+1)%queue.length],queue[(qi+2)%queue.length]].filter(t=>t&&t!==cur&&!blocked(t));
-    warmImgs(nx,800,2); warmImgs(nx,96,2);
-  }catch{} },1500);
-}
-$('#main').addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.classList.contains('card')||e.target.classList.contains('qk'))) e.target.click(); });
 
-function closeMoodPop(){ document.querySelectorAll('.moodpop').forEach(x=>x.remove()); const b=$('#moodBtn'); if(b) b.setAttribute('aria-expanded','false'); }
-let moodOpen=false, chipScroll=0, chipsWheel=false;
-function bindChipsWheel(){
-  if(chipsWheel) return; chipsWheel=true; const el=$('#topChips');
-  el.addEventListener('wheel',e=>{
-    if(el.scrollWidth<=el.clientWidth) return;
-    const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(!d) return;
-    e.preventDefault(); el.scrollLeft+=d;
-  },{passive:false});
+// Xoá file ảnh tải lên, kèm video MP4 đi cùng nếu có.
+async fn remove_upload_file(dir: &std::path::Path, f: &str) {
+    let _ = tokio::fs::remove_file(dir.join(f)).await;
+    if let Some((stem, _)) = f.split_once(".v.") {
+        let _ = tokio::fs::remove_file(dir.join(format!("{stem}.mp4"))).await;
+    }
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMoodPop(); });
-/* Thanh trên cùng: nếu các nút không đủ chỗ (cửa sổ desktop nhỏ) thì chip "All"/tâm trạng xuống hàng riêng, giống bản điện thoại */
-(function(){
-  const top=document.getElementById('top'); if(!top||!window.ResizeObserver) return;
-  let busy=false, raf=0;
-  function fit(){
-    if(busy) return; busy=true;
-    try{
-      const was=top.classList.contains('tn');
-      top.classList.remove('tn');
-      const cs=getComputedStyle(top), gap=parseFloat(cs.columnGap)||10;
-      const avail=top.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
-      let need=0, n=0;
-      for(const c of top.children){
-        if(c.id==='topChips'||c.classList.contains('sp')) continue;
-        if(getComputedStyle(c).display==='none') continue;
-        need+=c.getBoundingClientRect().width; n++;
-      }
-      need+=n*gap;
-      const MINCHIPS=150;
-      const narrow=need+MINCHIPS>avail;
-      if(narrow) top.classList.add('tn'); else top.classList.remove('tn');
-      void was;
-    }finally{ busy=false; }
-  }
-  const sched=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; fit(); }); };
-  new ResizeObserver(sched).observe(top);
-  const cen=document.getElementById('center'); if(cen) new ResizeObserver(sched).observe(cen);
-  new MutationObserver(sched).observe(top,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style','class','hidden']});
-  window.addEventListener('resize',sched); sched();
-})();
-function fillQuick(list){
-  const q=$('#qp'); if(!q) return; const k=reg(list,'Chọn nhanh');
-  const row=(t,j)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" decoding="async" ${j<8?'fetchpriority="high"':'loading="lazy"'} alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
-  let cols=''; for(let a=0;a<list.length;a+=4) cols+=`<div class="qcol">${list.slice(a,a+4).map((t,j)=>row(t,a+j)).join('')}</div>`;
-  q.innerHTML=`<section class="sec"><div class="sh"><div><h3>Chọn nhanh đài phát</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a></div></div><div class="qpager">${cols}</div></section>`;
-  markNow(); warmFirst(list,5);
+
+// PNG/JPG/WEBP lưu nguyên file gốc; GIF được tối ưu (gifsicle → WebP động) qua optimize_upload, vẫn giữ chuyển động.
+async fn upload_avatar(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
+    let user = require(&st, &headers)?;
+    if body.len() > 10 * 1024 * 1024 {
+        return Err(bad("Avatar tối đa 10MB"));
+    }
+    let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP (tối đa 10MB)"))?;
+    let (body, ext, video) = optimize_upload(body, ext, 512, true).await;
+    let name = save_upload(&st.avatar_dir, &body, ext, video).await.map_err(|_| e500())?;
+    let url = format!("/avatars/{name}");
+    let old: String;
+    {
+        let db = st.db.lock().unwrap();
+        old = db.query_row("SELECT avatar FROM users WHERE id=?1", [user.id], |r| r.get(0)).unwrap_or_default();
+        db.execute("UPDATE users SET avatar=?1 WHERE id=?2", params![url, user.id]).map_err(|_| e500())?;
+    }
+    if let Some(f) = old.strip_prefix("/avatars/") {
+        if !f.contains('/') && !f.contains("..") {
+            remove_upload_file(&st.avatar_dir, f).await;
+        }
+    }
+    Ok(Json(User { avatar: url, ..user }))
 }
-let updShown=false;
-function showUpdateToast(v,url){
-  if(updShown) return; updShown=true;
-  const t=document.createElement('div'); t.className='toast';
-  t.innerHTML=`<div class="row"><div><b>BBeat v${esc(v)}</b> đã có bản cập nhật mới</div></div><div class="row"><button class="pri">Tải về</button><button>Để sau</button></div>`;
-  const [dl,later]=t.querySelectorAll('button'); dl.onclick=()=>{ t.remove(); openExt(url); }; later.onclick=()=>t.remove();
-  pushToast(t,'upd',30000);
+
+#[derive(Deserialize)]
+struct FriendReq {
+    code: String,
 }
-async function checkUpdate(manual){
-  if(!ABOUT.repo){ if(manual) notify('Chưa gắn kho GitHub cho BBeat (đặt ABOUT.repo trong index.html)'); return null; }
-  try{
-    const r=await fetch('https://api.github.com/repos/'+ABOUT.repo+'/releases/latest',{headers:{Accept:'application/vnd.github+json'}});
-    LS.set('bb_lastcheck',String(Date.now()));
-    if(r.status===404){ if(manual) notify('Chưa có bản phát hành nào trên GitHub'); return null; }
-    if(!r.ok) throw new Error('GitHub trả về lỗi '+r.status);
-    const j=await r.json(), latest=String(j.tag_name||'').replace(/^v/i,'');
-    const newer=!!latest&&bbCmp(latest,ABOUT.version)>0;
-    if(newer) showUpdateToast(latest,j.html_url); else if(manual) notify('Bạn đang dùng bản mới nhất (v'+ABOUT.version+')');
-    return {newer,latest,url:j.html_url};
-  }catch(e){ if(manual) notify('Không kiểm tra được cập nhật: '+e.message); return null; }
+
+fn notify_user(st: &AppState, uid: i64, msg: serde_json::Value) {
+    let tx = st.notify.lock().unwrap().get(&uid).cloned();
+    if let Some(tx) = tx {
+        let _ = tx.send(msg.to_string());
+    }
 }
-const autoUpdate=()=>{ if(LS.get('bb_autoupd','1')==='1') checkUpdate(false); };
-const GENRES=[
-  ['Anime & Game',/anime|opening|ending|\b(?:op|ed)\s?\d+\b|\bost\b|vocaloid|visual novel|galge|eroge|character song|tv size|ゲーム|アニメ|主題歌|挿入歌|サントラ|キャラクターソング|オープニング|エンディング/i,
-    [['Anime opening hay nhất','anime opening songs'],['Anime ending cảm xúc','anime ending songs'],['Visual novel & Game OST','visual novel opening songs'],['Vocaloid','vocaloid hits']]],
-  ['Nhạc Nhật',/j-?pop|j-?rock|city pop|nhạc nhật|jpop|シティポップ/i,
-    [['J-Pop thịnh hành','japanese pop hits'],['Anime opening hay nhất','anime opening songs'],['Visual novel & Game OST','visual novel opening songs'],['City Pop Nhật Bản','city pop japanese'],['Rock Nhật','japanese rock band songs']]],
-  ['Nhạc Hoa',/c-?pop|mandopop|nhạc hoa/i,
-    [['Nhạc Hoa hay nhất','nhạc hoa hay nhất'],['C-Pop thịnh hành','mandopop hits'],['Nhạc Hoa lời Việt','nhạc hoa lời việt']]],
-  ['K-Pop',/k-?pop|blackpink|\bbts\b|twice|newjeans|aespa|\(g\)i-?dle|stray kids|\bive\b|le sserafim/i,
-    [['K-Pop thịnh hành','kpop hits'],['K-Pop thế hệ mới','kpop 4th generation hits'],['K-Ballad','korean ballad']]],
-  ['Lofi / Chill',/lo-?fi|chill|study|relax/i,
-    [['Lofi chill','lofi chill beats'],['Lofi học bài','lofi study beats'],['Chill buổi tối','chill vibes evening']]],
-  ['EDM / Remix',/edm|remix|vinahouse|\bhouse\b|\bdj\b|nonstop|bass/i,
-    [['Vinahouse / EDM','vinahouse remix hot'],['EDM bùng nổ','edm party hits'],['Nonstop DJ','nonstop dj mix']]],
-  ['Rap / Hip-hop',/\brap\b|hip.?hop|trap|drill|rapper/i,
-    [['Rap Việt','rap việt hay nhất'],['Hip-hop hits','hip hop hits'],['Trap / Drill','trap drill hits']]],
-  ['Bolero',/bolero|rumba|nhạc vàng/i,
-    [['Bolero hay nhất','nhạc bolero hay nhất'],['Nhạc vàng bất hủ','nhạc vàng bất hủ'],['Trữ tình quê hương','nhạc trữ tình quê hương']]],
-  ['Ballad / Buồn',/ballad|buồn|chia tay|nhớ|khóc|tâm trạng/i,
-    [['Ballad buồn','ballad buồn nhạc việt'],['Sad songs','sad songs for crying'],['Tâm trạng','nhạc buồn tâm trạng']]],
-  ['Acoustic',/acoustic|guitar|cover/i,
-    [['Acoustic nhẹ nhàng','acoustic chill songs'],['Acoustic tình cảm','acoustic love songs'],['Guitar cover','guitar cover songs']]],
-  ['Piano / Không lời',/piano|instrumental|không lời|orchestra|classical/i,
-    [['Piano thư giãn','relaxing piano music'],['Nhạc không lời','instrumental focus music'],['Nhạc cổ điển','classical study music']]],
-  ['Nhạc Việt',/[ăâđêôơư]|[àáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i,
-    [['Nhạc Việt thịnh hành','nhạc việt hot'],['Nhạc trẻ mới nhất','nhạc trẻ mới nhất'],['Indie Việt','indie việt hay nhất']]]
-];
-function tasteTags(t){
-  const txt=(t.title||'')+' '+(t.artist||'')+' '+(t.album||'');
-  const tags=new Set();
-  GENRES.forEach(([n,re])=>{ if(re&&re.test(txt)) tags.add(n); });
-  const kana=/[぀-ヿ〜～]/.test(txt), hangul=/[가-힯]/.test(txt), han=/[一-鿿]/.test(txt);
-  if(kana){ tags.add('Nhạc Nhật'); if(/アニメ|ゲーム|主題歌/.test(txt)) tags.add('Anime & Game'); }
-  if(hangul) tags.add('K-Pop');
-  if(han&&!kana&&!hangul&&!tags.has('Anime & Game')) tags.add('Nhạc Hoa');
-  if(tags.has('Nhạc Nhật')&&tags.has('Nhạc Việt')) tags.delete('Nhạc Việt');
-  return tags;
+
+fn friend_from_row(r: &rusqlite::Row, online: &HashSet<i64>) -> rusqlite::Result<Friend> {
+    let id: i64 = r.get(0)?;
+    Ok(Friend {
+        id,
+        display_name: r.get(1)?,
+        avatar: r.get(2)?,
+        online: online.contains(&id),
+        accent: r.get(3)?,
+        banner: r.get(4)?,
+        banner_color: r.get(5)?,
+        status: r.get(6)?,
+        crop: r.get(7)?,
+        supporter: if r.get::<_, i64>(9)? != 0 { 2 } else { r.get(8)? },
+    })
 }
-const dayIdx=()=>Math.floor(Date.now()/864e5);
-const goodArtist=x=>{ x=String(x||'').trim(); return !!x&&/\p{L}/u.test(x)&&!/^[\d\s:.,·•\-–]+$/.test(x)&&!/^\d{1,3}(:\d{2}){1,2}\b/.test(x)&&!/\b(views?|plays?|lượt)\b/i.test(x)&&!/^(song|video)$/i.test(x); };
-const artNorm=s=>String(s||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');
-let ARTIST_ALIAS={abuse:'Abu-Se-Ken',abuseken:'Abu-Se-Ken','アブセケン':'Abu-Se-Ken'};
-const canonArtist=n=>{ n=String(n||'').trim(); return ARTIST_ALIAS[artNorm(n)]||n; };
-const splitArtists=s=>{ const seen=new Set(); return String(s||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i).map(x=>x.trim()).filter(x=>x.length>1&&x.length<40&&goodArtist(x)).map(canonArtist).filter(x=>{ const k=x.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; }); };
-const listenGet=()=>{ try{ const o=JSON.parse(LS.get('muse_listen_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-const devPlaysGet=()=>{ try{ const o=JSON.parse(LS.get('muse_plays_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-const playsAll=()=>{ const a=playsGet(), b=devPlaysGet(), o={...a}; for(const k in b){ if(!o[k]||(b[k].n||0)>(o[k].n||0)) o[k]=b[k]; } return o; };
-let tasteCache=null;
-function noteListen(t,sec,dur,auto){
-  try{
-    if(!t||!t.id||!(sec>=0)) return;
-    const d=dur>0?dur:(t.dur||0), ratio=d>0?sec/d:0;
-    let kind=0;
-    if(d>0?ratio>=.7:sec>=150) kind=1;
-    else if(!auto&&sec>=1.5&&sec<30&&(d<=0||ratio<.5)) kind=-1;
-    if(!kind) return;
-    const o=listenGet(), k=key(t), e=o[k]||{t:slim(t),ok:0,sk:0,last:0};
-    if(kind>0) e.ok++; else e.sk++;
-    e.t=slim(t); e.last=Date.now(); o[k]=e;
-    const ks=Object.keys(o); if(ks.length>600) ks.sort((x,y)=>o[x].last-o[y].last).slice(0,ks.length-600).forEach(x=>delete o[x]);
-    LS.set('muse_listen_dev',JSON.stringify(o)); tasteCache=null; syncDirty('listen');
-  }catch{}
+
+const FRIEND_COLS: &str = "u.id, u.display_name, u.avatar, u.accent, u.banner, u.banner_color, u.status, u.crop, u.supporter, u.is_admin";
+
+// Gửi lời mời kết bạn bằng mã bạn bè (hoặc tên đăng nhập). Nếu người kia đã mời mình trước thì tự chấp nhận.
+async fn add_friend(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<FriendReq>) -> Result<Json<serde_json::Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    let key = r.code.trim().to_string();
+    if key.is_empty() {
+        return Err(bad("Hãy nhập mã bạn bè hoặc tên đăng nhập"));
+    }
+    let result = {
+        let db = st.db.lock().unwrap();
+        let fid: Option<i64> = db
+            .query_row("SELECT id FROM users WHERE code=?1", [key.to_uppercase()], |r| r.get(0))
+            .ok()
+            .or_else(|| db.query_row("SELECT id FROM users WHERE username=?1", [&key], |r| r.get(0)).ok());
+        let Some(fid) = fid else { return Err((StatusCode::NOT_FOUND, "Không tìm thấy người dùng này".into())) };
+        if fid == user.id {
+            return Err(bad("Không thể tự kết bạn với chính mình"));
+        }
+        let already = db
+            .query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![user.id, fid], |_| Ok(()))
+            .is_ok();
+        if already {
+            return Err((StatusCode::CONFLICT, "Hai bạn đã là bạn bè rồi".into()));
+        }
+        let reverse = db
+            .query_row("SELECT 1 FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![fid, user.id], |_| Ok(()))
+            .is_ok();
+        if reverse {
+            for (a, b) in [(user.id, fid), (fid, user.id)] {
+                db.execute("INSERT OR IGNORE INTO friends(user_id,friend_id) VALUES(?1,?2)", params![a, b])
+                    .map_err(|_| e500())?;
+            }
+            db.execute(
+                "DELETE FROM friend_requests WHERE (from_id=?1 AND to_id=?2) OR (from_id=?2 AND to_id=?1)",
+                params![user.id, fid],
+            )
+            .map_err(|_| e500())?;
+            (fid, "accepted")
+        } else {
+            let n = db
+                .execute("INSERT OR IGNORE INTO friend_requests(from_id,to_id) VALUES(?1,?2)", params![user.id, fid])
+                .map_err(|_| e500())?;
+            if n == 0 {
+                return Err((StatusCode::CONFLICT, "Bạn đã gửi lời mời cho người này rồi".into()));
+            }
+            (fid, "pending")
+        }
+    };
+    let (fid, status) = result;
+    if status == "pending" {
+        notify_user(&st, fid, json!({ "type": "friend_request", "from": user.display_name, "avatar": user.avatar }));
+    } else {
+        notify_user(&st, fid, json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": true }));
+    }
+    Ok(Json(json!({ "status": status })))
 }
-const recW=ts=>ts?Math.max(.15,Math.pow(.5,(Date.now()-ts)/(30*864e5))):.5;
-function buildProfile(gc,ac,seen,n,skipKeys){
-  const pos=Object.values(gc).reduce((s,c)=>s+Math.max(0,c),0)||1;
-  const early=n<10;
-  const top=Object.entries(gc).filter(([nm,c])=>c>=(early?1:2)&&c/pos>=.08&&GENRES.some(g=>g[0]===nm)).sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>x[0]);
-  const avoidGenres=new Set(Object.entries(gc).filter(([nm,c])=>c<=-3&&!top.includes(nm)).map(x=>x[0]));
-  const aList=Object.values(ac).filter(a=>a&&goodArtist(a.n));
-  const arts=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,8);
-  const artsAll=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,16);
-  const avoid=new Set(aList.filter(a=>a.c<=-2.5).map(a=>a.n.toLowerCase()));
-  const mx=arts.length?arts[0].c:1, artW={}; arts.forEach(a=>{ artW[a.n.toLowerCase()]=a.c/mx; });
-  return {top,arts,artsAll,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc};
+
+async fn list_friends(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Friend>> {
+    let user = require(&st, &headers)?;
+    let online: HashSet<i64> = st.notify.lock().unwrap().keys().cloned().collect();
+    let db = st.db.lock().unwrap();
+    let sql = format!("SELECT {FRIEND_COLS} FROM friends f JOIN users u ON u.id=f.friend_id WHERE f.user_id=?1 ORDER BY u.display_name COLLATE NOCASE");
+    let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+    let rows = stmt.query_map([user.id], |r| friend_from_row(r, &online)).map_err(|_| e500())?;
+    let list: Vec<Friend> = rows.filter_map(|x| x.ok()).collect();
+    Ok(Json(list))
 }
-const TASTE_KEY='muse_taste3_dev';
-let tasteLast=null; // hồ sơ gần nhất đã tính xong (kể cả khi tasteCache đã bị xoá do vừa nghe bài)
-function tasteSaved(){ try{ const o=JSON.parse(LS.get(TASTE_KEY,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; }
-// Lấy hồ sơ gu nghe NGAY (đồng bộ, không chờ mạng) để vẽ Home tức thì; null nếu chưa có gì.
-function tasteQuick(){ return (tasteCache&&tasteCache.v)||tasteLast||tasteSaved(); }
-async function tasteProfile(){
-  if(tasteCache&&Date.now()-tasteCache.at<300000) return tasteCache.v;
-  const tk=TASTE_KEY;
-  const saved=tasteSaved;
-  const empty=buildProfile({},{},new Set(),0);
-  const got=await Promise.race([
-    Promise.all([api('/api/history').catch(()=>[]),api('/api/favorites').catch(()=>[])]),
-    new Promise(r=>setTimeout(()=>r(null),saved()?1500:12000)) // chưa có hồ sơ lưu (mới cài app / server đang khởi động): chờ lâu hơn thay vì bỏ trống mục gợi ý
-  ]);
-  if(!got) return saved()||empty;
-  const hist=Array.isArray(got[0])?got[0].slice(0,300):[], fav=Array.isArray(got[1])?got[1]:[];
-  let dls=[]; try{ dlLoad(); dls=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); }catch{}
-  const L=listenGet(), P=playsAll();
-  const all=[
-    ...hist.map((t,i)=>[t,1.6*Math.max(.35,Math.pow(.5,i/50))]),
-    ...fav.map(t=>[t,3]),
-    ...dls.map(t=>[t,1.5]),
-    ...Object.values(P).filter(e=>e&&e.t).map(e=>[e.t,(1+1.5*Math.log1p(e.n))*(e.last?.4+.6*recW(e.last):.7)]),
-    ...Object.values(L).filter(e=>e&&e.t).map(e=>[e.t,Math.max(-6,Math.min(6,(1.2*(e.ok||0)-1.8*(e.sk||0))*recW(e.last)))])
-  ];
-  if(all.filter(x=>x[1]>0).length<1) return saved()||empty;
-  const gc={}, ac={}, seen=new Set(), skipKeys=new Set();
-  for(const [t,w] of all){
-    if(!t) continue; seen.add(key(t));
-    tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; });
-    splitArtists(t.artist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
-  }
-  followGet().filter(goodArtist).map(canonArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
-  Object.entries(L).forEach(([k,e])=>{ if(e&&(e.sk||0)>(e.ok||0)) skipKeys.add(k); });
-  try{
-    const al=Object.values(ac).sort((x,y)=>y.c-x.c), keep=al.slice(0,24).concat(al.slice(-6).filter(a=>a.c<0));
-    const gk=Object.entries(gc).sort((x,y)=>y[1]-x[1]), gs={}; gk.slice(0,12).concat(gk.slice(-3).filter(x=>x[1]<0)).forEach(([k,v])=>{ gs[k]=v; });
-    LS.set(tk,JSON.stringify({gc:gs,ac:keep,n:all.length}));
-  }catch{}
-  const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; tasteLast=v; return v;
+
+// Lời mời đang chờ: incoming = người khác mời mình, outgoing = mình đã mời.
+async fn list_requests(State(st): State<AppState>, headers: HeaderMap) -> Result<Json<serde_json::Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    let online: HashSet<i64> = st.notify.lock().unwrap().keys().cloned().collect();
+    let db = st.db.lock().unwrap();
+    let q = |sql: String| -> Result<Vec<Friend>, ApiErr> {
+        let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+        let rows = stmt.query_map([user.id], |r| friend_from_row(r, &online)).map_err(|_| e500())?;
+        let list: Vec<Friend> = rows.filter_map(|x| x.ok()).collect();
+        Ok(list)
+    };
+    let incoming = q(format!("SELECT {FRIEND_COLS} FROM friend_requests q JOIN users u ON u.id=q.from_id WHERE q.to_id=?1 ORDER BY q.created_at DESC"))?;
+    let outgoing = q(format!("SELECT {FRIEND_COLS} FROM friend_requests q JOIN users u ON u.id=q.to_id WHERE q.from_id=?1 ORDER BY q.created_at DESC"))?;
+    Ok(Json(json!({ "incoming": incoming, "outgoing": outgoing })))
 }
-const strHash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
-const rngMake=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; };
-function pickW(items,wf,rnd,n){
-  const pool=items.map(x=>({x,w:Math.max(0,wf(x))})).filter(o=>o.w>0), out=[];
-  while(out.length<n&&pool.length){ const tot=pool.reduce((s,o)=>s+o.w,0); let r=rnd()*tot, i=0; for(;i<pool.length-1;i++){ r-=pool[i].w; if(r<=0) break; } out.push(pool[i].x); pool.splice(i,1); }
-  return out;
+
+#[derive(Deserialize)]
+struct RespondReq {
+    user_id: i64,
+    action: String, // accept | decline | cancel
 }
-const ADJ={'Nhạc Việt':['Ballad / Buồn','Acoustic','Bolero','Rap / Hip-hop','Lofi / Chill'],'Ballad / Buồn':['Nhạc Việt','Acoustic','Piano / Không lời','Bolero'],'Acoustic':['Ballad / Buồn','Lofi / Chill','Piano / Không lời','Nhạc Việt'],'Bolero':['Nhạc Việt','Ballad / Buồn'],
-  'K-Pop':['Nhạc Nhật','Nhạc Hoa','EDM / Remix','Anime & Game'],'Nhạc Nhật':['Anime & Game','K-Pop','Nhạc Hoa','Lofi / Chill'],'Anime & Game':['Nhạc Nhật','K-Pop','Lofi / Chill','Piano / Không lời'],'Nhạc Hoa':['K-Pop','Nhạc Nhật','Ballad / Buồn'],
-  'Lofi / Chill':['Acoustic','Piano / Không lời','Ballad / Buồn'],'Piano / Không lời':['Lofi / Chill','Acoustic','Anime & Game'],'EDM / Remix':['Rap / Hip-hop','K-Pop','Nhạc Việt'],'Rap / Hip-hop':['EDM / Remix','Nhạc Việt']};
-const explorePool=Y=>{ const M=new Date().getMonth()+1; return [
-  ['Nhạc Việt thịnh hành','nhạc việt hot','Nhạc Việt'],['Nhạc trẻ mới nhất',`nhạc trẻ mới nhất ${Y}`,'Nhạc Việt'],['Indie Việt','indie việt hay nhất','Nhạc Việt'],['Nhạc Việt 8x 9x','nhạc việt 8x 9x','Nhạc Việt'],
-  ['Rap Việt','rap việt hay nhất','Rap / Hip-hop'],['Hip-hop hits','hip hop hits','Rap / Hip-hop'],['Ballad buồn','ballad buồn nhạc việt','Ballad / Buồn'],['Nhạc tình yêu','nhạc tình yêu hay nhất','Ballad / Buồn'],
-  ['Bolero hay nhất','nhạc bolero hay nhất','Bolero'],['Nhạc xưa bất hủ','nhạc xưa bất hủ','Bolero'],['K-Pop thịnh hành','kpop hits','K-Pop'],['J-Pop & City Pop','japanese pop hits','Nhạc Nhật'],['Anime opening','anime opening songs','Anime & Game'],['Nhạc Hoa hay nhất','nhạc hoa hay nhất','Nhạc Hoa'],
-  ['Lofi chill','lofi chill beats','Lofi / Chill'],['Lofi học bài','lofi study beats','Lofi / Chill'],['Chill buổi tối','chill vibes evening','Lofi / Chill'],['Acoustic nhẹ nhàng','acoustic chill songs','Acoustic'],['Piano thư giãn','relaxing piano music','Piano / Không lời'],
-  ['Vinahouse / EDM','vinahouse remix hot','EDM / Remix'],['EDM bùng nổ','edm party hits','EDM / Remix'],
-  ['Mới ra mắt tháng '+M,`nhạc mới ra mắt tháng ${M} ${Y}`,null],['Viral mạng xã hội',`nhạc viral tiktok ${Y}`,null],['Top hits quốc tế','top global hits',null],['Pop Âu Mỹ',`pop hits ${Y}`,null],['R&B / Soul','r&b soul hits',null],['Rock mạnh mẽ','rock energy songs',null],['Jazz nhẹ nhàng','smooth jazz classics',null],['Indie / Alternative','indie alternative hits',null],['Nhạc phim & OST','movie soundtrack songs',null],['Hits thập niên 2000','2000s hits',null]
-].map(([t,q,g])=>({t,q,g})); };
-let homeSeed=(Math.random()*4294967296)>>>0;
-const rollSeed=()=>{ homeSeed=(Math.random()*4294967296)>>>0; };
-let homeShuf=false, rfBusy=false;
-function seededShuffle(a,seed){ const r=rngMake(seed), o=a.slice(); for(let i=o.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [o[i],o[j]]=[o[j],o[i]]; } return o; }
-function dropHomeCache(){
-  Object.keys(ytCache).forEach(k=>{ if(!k.startsWith('f:')) delete ytCache[k]; });
-  try{ LS.set(uKey('muse_newdaily'),'null'); }catch{}
-  try{ const re=new RegExp('^muse_yc2_'+(me&&me.id||0)+'e?_'); Object.keys(localStorage).filter(k=>re.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
+
+async fn respond_request(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<RespondReq>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    {
+        let db = st.db.lock().unwrap();
+        match r.action.as_str() {
+            "accept" => {
+                let n = db
+                    .execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![r.user_id, user.id])
+                    .map_err(|_| e500())?;
+                if n == 0 {
+                    return Err((StatusCode::NOT_FOUND, "Lời mời không còn tồn tại".into()));
+                }
+                for (a, b) in [(user.id, r.user_id), (r.user_id, user.id)] {
+                    db.execute("INSERT OR IGNORE INTO friends(user_id,friend_id) VALUES(?1,?2)", params![a, b])
+                        .map_err(|_| e500())?;
+                }
+            }
+            "decline" => {
+                db.execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![r.user_id, user.id])
+                    .map_err(|_| e500())?;
+            }
+            "cancel" => {
+                db.execute("DELETE FROM friend_requests WHERE from_id=?1 AND to_id=?2", params![user.id, r.user_id])
+                    .map_err(|_| e500())?;
+            }
+            _ => return Err(bad("Thao tác không hợp lệ")),
+        }
+    }
+    notify_user(
+        &st,
+        r.user_id,
+        json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": r.action == "accept" }),
+    );
+    Ok(StatusCode::OK)
 }
-async function refreshHome(){
-  if(rfBusy) return; rfBusy=true;
-  try{ rollSeed(); homeShuf=true; dropHomeCache(); await go('home'); notify('Đã làm mới gợi ý'); }
-  finally{ rfBusy=false; }
+
+async fn remove_friend(State(st): State<AppState>, headers: HeaderMap, Path(fid): Path<i64>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    {
+        let db = st.db.lock().unwrap();
+        db.execute(
+            "DELETE FROM friends WHERE (user_id=?1 AND friend_id=?2) OR (user_id=?2 AND friend_id=?1)",
+            params![user.id, fid],
+        )
+        .map_err(|_| e500())?;
+    }
+    notify_user(&st, fid, json!({ "type": "friend_update", "from": user.display_name, "avatar": user.avatar, "accepted": false }));
+    Ok(StatusCode::OK)
 }
-function hourBoost(g){
-  const h=new Date().getHours();
-  const set=h>=5&&h<11?['Acoustic','Lofi / Chill','Piano / Không lời']:h>=17&&h<22?['EDM / Remix','Rap / Hip-hop','K-Pop']:(h>=22||h<5)?['Lofi / Chill','Ballad / Buồn','Piano / Không lời','Acoustic']:[];
-  return set.includes(g)?1.5:1;
+
+#[derive(Deserialize)]
+struct WsQ {
+    ticket: String,
 }
-function planHome(tp,Y){
-  const rnd=rngMake(homeSeed);
-  const topSet=new Set(tp.top), arts=tp.arts||[], hasTaste=topSet.size>0||arts.length>0;
-  const TOTAL=6, nT=!hasTaste?0:tp.n>=8?4:3;
-  const taste=[], usedQ=new Set();
-  if(nT){
-    const nA=Math.min(arts.length,nT>=4&&arts.length>=5?3:nT>=4?2:1);
-    const artShelves=pickW(arts,a=>Math.sqrt(a.c),rnd,nA).map(a=>{
-      const n=a.n, lat=!/[^\x00-ɏ]/.test(n);
-      const tpl=[[artTitle('hear',n),lat?n+' hay nhất':n+' best songs',true],[artTitle('sim',n),'sim:'+n,false],[artTitle('new',n),'new:'+n,false]];
-      const w=[.5,.3,.2], pick=pickW(tpl.map((x,i)=>({x,w:w[i]})),o=>o.w,rnd,1)[0].x;
-      return [pick[0],pick[1],n,!!pick[2]];
+
+fn now_secs() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+// POST /api/ws-ticket (Authorization: Bearer ...) -> { ticket }: vé dùng một lần cho /ws/:room và /ws-user.
+async fn ws_ticket(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let ticket = new_token();
+    let now = now_secs();
+    let mut g = st.ws_tickets.lock().unwrap();
+    g.retain(|_, (_, exp)| *exp > now);
+    if g.len() > 5000 {
+        return Err((StatusCode::TOO_MANY_REQUESTS, "Quá nhiều yêu cầu".into()));
+    }
+    g.insert(ticket.clone(), (user, now + 30));
+    Ok(Json(json!({ "ticket": ticket })))
+}
+
+fn take_ws_ticket(st: &AppState, ticket: &str) -> Option<User> {
+    let (u, exp) = st.ws_tickets.lock().unwrap().remove(ticket)?;
+    if exp > now_secs() { Some(u) } else { None }
+}
+
+// Mã ghép thiết bị dùng một lần: chỉ máy đang chạy server mới tạo được mã (loopback),
+// để đăng nhập nhanh tài khoản ADMIN_USER trên desktop/Android khác mà không cần gõ mật khẩu
+// và không bao giờ đóng mật khẩu/token vào các bản build phân phát chung.
+// "Chính máy chạy server" = kết nối đến từ loopback, KHÔNG đi qua reverse proxy/tunnel (Caddy, nginx, cloudflared, ngrok... đều
+// kết nối từ 127.0.0.1 nhưng gắn header chuyển tiếp) và Host là localhost. Chỉ kiểm tra IP thì khi Caddy chạy cùng máy,
+// MỌI người trên internet đều bị coi là "localhost" và tự lấy được mã admin.
+fn is_local_request(addr: &std::net::SocketAddr, h: &HeaderMap) -> bool {
+    if !addr.ip().is_loopback() {
+        return false;
+    }
+    for k in ["x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip", "forwarded", "via", "cf-connecting-ip", "true-client-ip"] {
+        if h.contains_key(k) {
+            return false;
+        }
+    }
+    let host = h.get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_lowercase();
+    let name = if let Some(rest) = host.strip_prefix('[') { rest.split(']').next().unwrap_or("") } else { host.split(':').next().unwrap_or("") };
+    matches!(name, "localhost" | "127.0.0.1" | "::1")
+}
+
+#[derive(Deserialize)]
+struct PairRedeem {
+    code: String,
+}
+
+// ---- Đăng nhập bằng QR ----
+// Thiết bị mới: POST /api/qr/new -> { id, url } rồi hiện QR chứa url, đồng thời hỏi GET /api/qr/poll/:id mỗi 2 giây.
+// Thiết bị đã đăng nhập (quét QR): POST /api/qr/approve { id } -> server tạo phiên mới cho tài khoản đó và giao cho thiết bị mới (một lần).
+struct QrEntry {
+    exp: u64,
+    done: Option<(String, User)>,
+}
+static QR_SESSIONS: std::sync::OnceLock<Mutex<HashMap<String, QrEntry>>> = std::sync::OnceLock::new();
+fn qr_map() -> &'static Mutex<HashMap<String, QrEntry>> {
+    QR_SESSIONS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+async fn qr_new(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
+    let ikey = format!("qrnew:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ikey, 30, 600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &ikey, 600);
+    let now = now_secs();
+    let id = uuid::Uuid::new_v4().simple().to_string();
+    {
+        let mut g = qr_map().lock().unwrap();
+        g.retain(|_, e| e.exp > now);
+        if g.len() >= 2000 {
+            return Err(too_many());
+        }
+        g.insert(id.clone(), QrEntry { exp: now + 180, done: None });
+    }
+    let base = std::env::var("PUBLIC_URL").unwrap_or_default();
+    Ok(Json(json!({ "id": id, "expires_in": 180, "base": base.trim().trim_end_matches('/') })))
+}
+async fn qr_poll(Path(id): Path<String>) -> R<Value> {
+    let now = now_secs();
+    let mut g = qr_map().lock().unwrap();
+    g.retain(|_, e| e.exp > now);
+    let Some(e) = g.get_mut(&id) else {
+        return Err((StatusCode::GONE, "Mã QR đã hết hạn".into()));
+    };
+    if let Some((token, user)) = e.done.take() {
+        g.remove(&id);
+        return Ok(Json(json!({ "status": "ok", "token": token, "user": user })));
+    }
+    Ok(Json(json!({ "status": "wait" })))
+}
+#[derive(Deserialize)]
+struct QrApproveReq {
+    id: String,
+}
+async fn qr_approve(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<QrApproveReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let now = now_secs();
+    {
+        let mut g = qr_map().lock().unwrap();
+        g.retain(|_, e| e.exp > now);
+        match g.get(r.id.trim()) {
+            Some(e) if e.done.is_none() => {}
+            _ => return Err((StatusCode::GONE, "Mã QR đã hết hạn hoặc đã được dùng".into())),
+        }
+    }
+    let token = new_token();
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), user.id]).map_err(|_| e500())?;
+    }
+    let name = user.display_name.clone();
+    let mut g = qr_map().lock().unwrap();
+    match g.get_mut(r.id.trim()) {
+        Some(e) if e.done.is_none() => e.done = Some((token, user)),
+        _ => return Err((StatusCode::GONE, "Mã QR đã hết hạn hoặc đã được dùng".into())),
+    }
+    Ok(Json(json!({ "ok": true, "name": name })))
+}
+
+// ---- Ủng hộ qua Ko-fi: webhook ghi nhận donate -> mở khoá "Thẻ chia sẻ" (FANS NO.) ----
+// Cấu hình: KOFI_TOKEN (Verification Token trong Ko-fi > More > API), KOFI_SMALL_MIN (mặc định 1), KOFI_BIG_MIN (mặc định 10).
+// Người donate ghi MÃ KẾT BẠN (hoặc tên đăng nhập) của tài khoản BBeat vào lời nhắn Ko-fi để server khớp tài khoản.
+// Tổng tiền donate >= KOFI_BIG_MIN -> thành viên lớn (2), >= KOFI_SMALL_MIN -> thành viên nhỏ (1). Chỉ tăng, không tự hạ.
+fn tier_for_total(total: f64) -> i64 {
+    let envf = |k: &str, d: f64| std::env::var(k).ok().and_then(|v| v.trim().parse::<f64>().ok()).unwrap_or(d);
+    if total >= envf("KOFI_BIG_MIN", 10.0) {
+        2
+    } else if total >= envf("KOFI_SMALL_MIN", 1.0) {
+        1
+    } else {
+        0
+    }
+}
+fn same_secret(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    a.len() == b.len() && a.iter().zip(b.iter()).fold(0u8, |d, (x, y)| d | (x ^ y)) == 0
+}
+#[derive(Deserialize)]
+struct KofiForm {
+    data: String,
+}
+async fn kofi_webhook(State(st): State<AppState>, axum::extract::Form(f): axum::extract::Form<KofiForm>) -> Result<StatusCode, ApiErr> {
+    let secret = std::env::var("KOFI_TOKEN").unwrap_or_default();
+    let secret = secret.trim();
+    if secret.is_empty() {
+        return Err(bad("Server chưa đặt KOFI_TOKEN"));
+    }
+    let v: Value = serde_json::from_str(&f.data).map_err(|_| bad("Dữ liệu không hợp lệ"))?;
+    let tok = v.get("verification_token").and_then(|x| x.as_str()).unwrap_or("");
+    if !same_secret(tok, secret) {
+        return Err((StatusCode::FORBIDDEN, "Sai token".into()));
+    }
+    let kind = v.get("type").and_then(|x| x.as_str()).unwrap_or("");
+    if kind != "Donation" && kind != "Subscription" {
+        return Ok(StatusCode::OK);
+    }
+    let txn = v.get("kofi_transaction_id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    if txn.is_empty() {
+        return Err(bad("Thiếu mã giao dịch"));
+    }
+    let amount: f64 = v.get("amount").and_then(|x| x.as_str()).and_then(|a| a.trim().parse().ok()).unwrap_or(0.0);
+    let currency = v.get("currency").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let from_name = v.get("from_name").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let message: String = v.get("message").and_then(|x| x.as_str()).unwrap_or("").chars().take(500).collect();
+    let db = st.db.lock().unwrap();
+    // Khớp tài khoản: từ nào trong lời nhắn trùng mã kết bạn (8 ký tự) hoặc tên đăng nhập.
+    let mut uid: Option<i64> = None;
+    for w in message.split(|c: char| !(c.is_alphanumeric() || c == '_' || c == '-' || c == '.')).filter(|w| !w.is_empty()) {
+        if let Ok(id) = db.query_row(
+            "SELECT id FROM users WHERE code=?1 COLLATE NOCASE OR username=?1 COLLATE NOCASE",
+            [w],
+            |r| r.get::<_, i64>(0),
+        ) {
+            uid = Some(id);
+            break;
+        }
+    }
+    let inserted = db
+        .execute(
+            "INSERT OR IGNORE INTO kofi_donations(txn_id,user_id,amount,currency,from_name,message) VALUES(?1,?2,?3,?4,?5,?6)",
+            params![txn, uid, amount, currency, from_name, message],
+        )
+        .map_err(|_| e500())?;
+    if inserted > 0 {
+        if let Some(id) = uid {
+            let total: f64 = db
+                .query_row("SELECT COALESCE(SUM(amount),0) FROM kofi_donations WHERE user_id=?1", [id], |r| r.get(0))
+                .unwrap_or(0.0);
+            let tier = tier_for_total(total);
+            if tier > 0 {
+                let _ = db.execute("UPDATE users SET supporter=MAX(supporter,?1) WHERE id=?2", params![tier, id]);
+            }
+        }
+    }
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct SupporterReq {
+    username: String,
+    tier: i64,
+}
+// Admin gán tay (khi người donate quên ghi mã vào lời nhắn): POST /api/admin/supporter { username, tier: 0|1|2 }
+async fn admin_set_supporter(State(st): State<AppState>, h: HeaderMap, Json(r): Json<SupporterReq>) -> R<Value> {
+    let me = require(&st, &h)?;
+    if !me.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin".into()));
+    }
+    if !(0..=2).contains(&r.tier) {
+        return Err(bad("tier chỉ là 0, 1 hoặc 2"));
+    }
+    let db = st.db.lock().unwrap();
+    let n = db
+        .execute("UPDATE users SET supporter=?1 WHERE username=?2 COLLATE NOCASE", params![r.tier, r.username.trim()])
+        .map_err(|_| e500())?;
+    if n == 0 {
+        return Err(bad("Không có tài khoản này"));
+    }
+    Ok(Json(json!({ "ok": true, "tier": r.tier })))
+}
+
+
+#[derive(Deserialize)]
+struct AdminUserTarget {
+    username: String,
+}
+
+// Admin cảnh cáo avatar bậy bạ: trả avatar về mặc định (🎧), không đụng tài khoản/dữ liệu khác.
+// POST /api/admin/users/reset-avatar { username }
+async fn admin_reset_avatar(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<AdminUserTarget>) -> R<Value> {
+    let me = require(&st, &headers)?;
+    if !me.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin".into()));
+    }
+    let name = r.username.trim();
+    if name.is_empty() {
+        return Err(bad("Thiếu username"));
+    }
+    let (uid, old_avatar): (i64, String) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT id, avatar FROM users WHERE username=?1 COLLATE NOCASE", [name], |r| Ok((r.get(0)?, r.get(1)?)))
+            .map_err(|_| bad("Không có tài khoản này"))?
+    };
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("UPDATE users SET avatar='🎧' WHERE id=?1", [uid]).map_err(|_| e500())?;
+    }
+    if let Some(f) = old_avatar.strip_prefix("/avatars/") {
+        if !f.contains('/') && !f.contains("..") {
+            remove_upload_file(&st.avatar_dir, f).await;
+        }
+    }
+    Ok(Json(json!({ "ok": true })))
+}
+
+// POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
+fn ct_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().zip(b.iter()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
+// Hai cách được cấp mã admin: (1) gọi từ chính máy chạy server (loopback, không qua proxy); (2) kèm header x-pair-key khớp biến môi trường
+// ADMIN_PAIR_KEY (chuỗi ngẫu nhiên >= 24 ký tự, chỉ đặt trong env của server chính và của máy nhà chạy cổng nhà — KHÔNG đưa vào repo).
+// Cách (2) là đường của cổng nhà: giao diện mở ở http://127.0.0.1:PORT, cổng nhà tự kiểm tra là máy mình rồi gắn khoá khi chuyển tiếp lên server chính.
+async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
+    if rl_blocked(&st, "pairkey:all", 10, 600) {
+        return Err(too_many());
+    }
+    let key_ok = match (std::env::var("ADMIN_PAIR_KEY").ok(), headers.get("x-pair-key").and_then(|v| v.to_str().ok())) {
+        (Some(k), Some(v)) => {
+            let k = k.trim();
+            k.len() >= 24 && ct_eq(v.trim(), k)
+        }
+        _ => false,
+    };
+    if headers.contains_key("x-pair-key") && !key_ok {
+        rl_hit(&st, "pairkey:all", 600);
+    }
+    if !key_ok && !is_local_request(&addr, &headers) {
+        return Err((StatusCode::FORBIDDEN, "Server từ chối: chỉ tạo được mã ở chính máy chạy server, hoặc đặt cùng một ADMIN_PAIR_KEY (≥ 24 ký tự) ở server chính và ở máy chạy cổng nhà".into()));
+    }
+    let Ok(admin_user) = std::env::var("ADMIN_USER") else {
+        return Err(bad("Chưa đặt ADMIN_USER"));
+    };
+    let admin_user = admin_user.trim().to_lowercase();
+    let uid: i64 = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT id FROM users WHERE username=?1 AND is_admin=1", [&admin_user], |r| r.get(0))
+            .map_err(|_| bad("Chưa có tài khoản admin (kiểm tra ADMIN_USER/ADMIN_PASS rồi khởi động lại server)"))?
+    };
+    let now = now_secs();
+    let mut g = st.pair_codes.lock().unwrap();
+    g.retain(|_, (_, exp)| *exp > now);
+    // Chỉ giữ một mã hiệu lực tại một thời điểm: tạo mã mới thì mã cũ (nếu còn) mất hiệu lực.
+    g.retain(|_, (u, _)| *u != uid);
+    let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
+    let exp = now + 300;
+    g.insert(code.clone(), (uid, exp));
+    // base: domain public (nếu có PUBLIC_URL) để link redeem dùng được từ máy khác, không chỉ trên localhost.
+    let base = std::env::var("PUBLIC_URL").unwrap_or_default().trim().trim_end_matches('/').to_string();
+    Ok(Json(json!({ "code": code, "expires_in": 300, "base": base })))
+}
+
+#[derive(Deserialize)]
+struct PairCreateReq {
+    password: String,
+}
+
+// POST /api/pair/create { password } — đã đăng nhập VÀ nhập lại mật khẩu → mã ghép 6 số cho CHÍNH tài khoản này (dùng ở Cài đặt).
+async fn pair_create(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap, Json(r): Json<PairCreateReq>) -> R<Value> {
+    let user = require(&st, &headers)?;
+    let ukey = format!("pc:{}", user.id);
+    let ikey = format!("pcip:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ukey, 5, 600) || rl_blocked(&st, &ikey, 20, 600) {
+        return Err(too_many());
+    }
+    let hash: String = {
+        let db = st.db.lock().unwrap();
+        let x = db.query_row("SELECT pass_hash FROM users WHERE id=?1", [user.id], |row| row.get::<_, String>(0)).map_err(|_| e500())?;
+        x
+    };
+    let pw = r.password.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
+    if !ok {
+        rl_hit(&st, &ukey, 600);
+        rl_hit(&st, &ikey, 600);
+        return Err(bad("Sai mật khẩu"));
+    }
+    rl_clear(&st, &ukey);
+    // Server chạy ở máy nhà (localhost) nhưng ứng dụng đăng nhập vào server chính: đặt PAIR_REMOTE=<địa chỉ server chính> và cùng ADMIN_PAIR_KEY
+    // ở hai nơi thì mã được xin THẲNG từ server chính (tài khoản ADMIN_USER của server chính), nên nhập ở ứng dụng là vào được.
+    // Chỉ admin của server này, hoặc người đang ngồi ở chính máy này (localhost), mới dùng được đường này.
+    if let (Ok(remote), Ok(key)) = (std::env::var("PAIR_REMOTE"), std::env::var("ADMIN_PAIR_KEY")) {
+        let (remote, key) = (remote.trim().trim_end_matches('/').to_string(), key.trim().to_string());
+        if !remote.is_empty() && key.len() >= 24 && (user.is_admin || is_local_request(&addr, &headers)) {
+            let resp = st
+                .http
+                .post(format!("{remote}/api/admin/pair-code"))
+                .header("x-pair-key", key)
+                .send()
+                .await
+                .map_err(|e| (StatusCode::BAD_GATEWAY, format!("Không nối được server chính {remote}: {e}")))?;
+            let status = resp.status();
+            if !status.is_success() {
+                let t = resp.text().await.unwrap_or_default();
+                return Err((StatusCode::BAD_GATEWAY, format!("Server chính từ chối ({}): {}", status.as_u16(), t.trim())));
+            }
+            let mut j = resp.json::<Value>().await.map_err(|_| (StatusCode::BAD_GATEWAY, "Server chính trả dữ liệu lạ".to_string()))?;
+            if let Some(o) = j.as_object_mut() {
+                let empty = o.get("base").and_then(|b| b.as_str()).map(|b| b.is_empty()).unwrap_or(true);
+                if empty {
+                    o.insert("base".into(), json!(remote));
+                }
+            }
+            return Ok(Json(j));
+        }
+    }
+    let now = now_secs();
+    let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
+    {
+        let mut g = st.pair_codes.lock().unwrap();
+        g.retain(|_, (u, exp)| *exp > now && *u != user.id);
+        g.insert(code.clone(), (user.id, now + 300));
+    }
+    Ok(Json(json!({ "code": code, "expires_in": 300, "base": card_base_url(&headers) })))
+}
+
+// POST /api/pair/redeem { code } -> { token, user }: dùng mã trên để đăng nhập, không cần mật khẩu. Dùng một lần.
+async fn pair_redeem(
+    State(st): State<AppState>,
+    ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
+    headers: HeaderMap,
+    Json(r): Json<PairRedeem>,
+) -> R<AuthResp> {
+    let ikey = format!("pair:{}", client_key(&headers, &addr));
+    if rl_blocked(&st, &ikey, 10, 600) {
+        return Err(too_many());
+    }
+    rl_hit(&st, &ikey, 600);
+    // Khoá toàn cục theo số lần SAI (không phụ thuộc IP/header, nên không né được bằng X-Forwarded-For giả).
+    if rl_blocked(&st, "pairfail:all", 20, 300) {
+        return Err(too_many());
+    }
+    let code = r.code.trim();
+    let now = now_secs();
+    let found = {
+        let mut g = st.pair_codes.lock().unwrap();
+        g.retain(|_, (_, exp)| *exp > now);
+        g.remove(code)
+    };
+    let Some((uid, _)) = found else {
+        rl_hit(&st, "pairfail:all", 300);
+        return Err((StatusCode::UNAUTHORIZED, "Mã sai hoặc đã hết hạn".into()));
+    };
+    let db = st.db.lock().unwrap();
+    let user = db
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [uid], row_to_user)
+        .map_err(|_| (StatusCode::UNAUTHORIZED, "Tài khoản không còn tồn tại".into()))?;
+    let token = new_token();
+    db.execute("INSERT INTO sessions(token,user_id) VALUES(?1,?2)", params![tok_hash(&token), uid]).map_err(|_| e500())?;
+    Ok(Json(AuthResp { token, user }))
+}
+
+async fn ws_handler(ws: WebSocketUpgrade, Path(room): Path<String>, Query(q): Query<WsQ>, State(st): State<AppState>) -> Response {
+    let Some(user) = take_ws_ticket(&st, &q.ticket) else { return StatusCode::UNAUTHORIZED.into_response() };
+    if room.is_empty() || room.len() > 40 {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    ws.on_upgrade(move |s| handle_socket(s, room, user, st))
+}
+
+async fn handle_socket(socket: WebSocket, room: String, user: User, st: AppState) {
+    let (mut sender, mut receiver) = socket.split();
+    // Vào phòng: đăng ký kết nối. `first` = đây là kết nối đầu tiên của người này (không phải kết nối lại sau khi chập chờn mạng).
+    let (tx, mut rx, last, first) = {
+        let mut g = st.rooms.lock().unwrap();
+        let r = g
+            .entry(room.clone())
+            .or_insert_with(|| Room { tx: broadcast::channel(64).0, last_state: None, members: HashMap::new() });
+        let first = !r.members.contains_key(&user.id);
+        *r.members.entry(user.id).or_insert(0) += 1;
+        (r.tx.clone(), r.tx.subscribe(), r.last_state.clone(), first)
+    };
+    if let Some(s) = last {
+        let _ = sender.send(Message::Text(s)).await;
+    }
+    let mut send_task = tokio::spawn(async move {
+        while let Ok(m) = rx.recv().await {
+            if sender.send(Message::Text(m)).await.is_err() {
+                break;
+            }
+        }
     });
-    const gl=tp.top.map(n=>GENRES.find(g=>g[0]===n)).filter(Boolean), genShelves=[];
-    const need=nT-artShelves.length;
-    pickW(gl,g=>Math.max(.1,tp.gc[g[0]]),rnd,need).forEach(g=>{ const l=g[2]; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); });
-    for(let r=0;genShelves.length+artShelves.length<nT&&gl.length&&r<6;r++){ const g=gl[0], l=g[2].filter(x=>!genShelves.some(y=>y[1]===x[1])); if(!l.length) break; const s0=l[Math.floor(rnd()*l.length)]; genShelves.push([s0[0],s0[1],g[0]]); }
-    for(let i=0;i<Math.max(artShelves.length,genShelves.length);i++){
-      if(artShelves[i]) taste.push([artShelves[i][0],artShelves[i][1],'','taste',artShelves[i][2],artShelves[i][3]]);
-      if(genShelves[i]) taste.push([genShelves[i][0],genShelves[i][1],'','taste']);
+    let recv_room = room.clone();
+    let recv_st = st.clone();
+    let recv_user = user.clone();
+    let recv_tx = tx.clone();
+    let mut recv_task = tokio::spawn(async move {
+        let (st, room, user, tx) = (recv_st, recv_room, recv_user, recv_tx);
+        // Mỗi kết nối chỉ được báo "vào phòng" tối đa 1 lần, và chỉ khi là kết nối đầu tiên của người đó.
+        let mut announce = first;
+        while let Some(Ok(msg)) = receiver.next().await {
+            let Message::Text(t) = msg else { continue };
+            if t.len() > 4096 {
+                continue;
+            }
+            let Ok(mut v) = serde_json::from_str::<serde_json::Value>(&t) else { continue };
+            let ty = v.get("type").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            if !["hello", "chat", "state"].contains(&ty.as_str()) {
+                continue;
+            }
+            if ty == "hello" {
+                if !announce {
+                    continue;
+                }
+                announce = false;
+            }
+            // Server tự gắn danh tính để không ai giả mạo người khác.
+            v["from"] = json!(user.display_name);
+            v["avatar"] = json!(user.avatar);
+            let out = v.to_string();
+            if ty == "state" {
+                let mut g = st.rooms.lock().unwrap();
+                if let Some(r) = g.get_mut(&room) {
+                    r.last_state = Some(out.clone());
+                }
+            }
+            let _ = tx.send(out);
+        }
+    });
+    tokio::select! {
+        _ = &mut send_task => recv_task.abort(),
+        _ = &mut recv_task => send_task.abort(),
     }
-    taste.forEach(x=>usedQ.add(x[1]));
-  }
-  const strong=tp.n>=8&&(topSet.size>0||arts.length>0);
-  const viRe=(GENRES.find(g=>g[0]==='Nhạc Việt')||[])[1];
-  const viTaste=['Nhạc Việt','Bolero','Ballad / Buồn'].some(g=>topSet.has(g))||!!(viRe&&arts.some(a=>viRe.test(a.n)));
-  const isVi=x=>x.g==='Nhạc Việt'||x.g==='Bolero'||(x.g!=='Nhạc Hoa'&&/nhạc|việt|vinahouse|bolero/i.test(x.q));
-  const expW=x=>{ let w=x.g?(strong?.5:1):(strong?.8:1.2); if(x.g){ if(topSet.has(x.g)) w=.4; else if(tp.top.some(n=>(ADJ[n]||[]).includes(x.g))) w=2.4; if(tp.avoidGenres.has(x.g)) w*=.1; w*=hourBoost(x.g); } return w; };
-  const nE=TOTAL-taste.length;
-  const explore=pickW(explorePool(Y).filter(x=>!usedQ.has(x.q)&&!taste.some(y=>y[0]===x.t)&&!(strong&&!viTaste&&isVi(x))),expW,rnd,nE).map(x=>[x.t,x.q,'','explore']);
-  const out=[]; let ti=0, ei=0;
-  while(ti<taste.length||ei<explore.length){
-    for(let k=0;k<2&&ti<taste.length;k++) out.push(taste[ti++]);
-    if(ei<explore.length) out.push(explore[ei++]);
-    if(ti>=taste.length) while(ei<explore.length) out.push(explore[ei++]);
-  }
-  return out;
+    // Rời phòng: hết kết nối nào của người này thì chờ vài giây (để app kịp nối lại khi mạng chập chờn) rồi mới báo "thoát phòng".
+    let left_to_zero = {
+        let mut g = st.rooms.lock().unwrap();
+        match g.get_mut(&room).and_then(|r| r.members.get_mut(&user.id)) {
+            Some(c) => {
+                *c = c.saturating_sub(1);
+                *c == 0
+            }
+            None => false,
+        }
+    };
+    if left_to_zero {
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_secs(6)).await;
+            let mut g = st.rooms.lock().unwrap();
+            let Some(r) = g.get_mut(&room) else { return };
+            if r.members.get(&user.id) == Some(&0) {
+                r.members.remove(&user.id);
+                let _ = r.tx.send(json!({ "type": "leave", "from": user.display_name, "avatar": user.avatar }).to_string());
+                // Phòng trống hẳn thì dọn luôn để không rò bộ nhớ.
+                if r.members.is_empty() && r.tx.receiver_count() == 0 {
+                    g.remove(&room);
+                }
+            }
+        });
+    }
 }
-const artistHit=(t,name)=>{ const la=canonArtist(name).toLowerCase(); return splitArtists(t.artist).some(x=>{ x=x.toLowerCase(); return x===la||x.includes(la)||(x.length>=3&&la.includes(x)); }); };
-function cleanShelf(r,tp,kind,shown,art){
-  const an=new Set((tp.arts||[]).map(a=>a.n.toLowerCase()));
-  if(an.size) r=r.filter(t=>!an.has(String(t.title||'').trim().toLowerCase())||splitArtists(t.artist).some(x=>an.has(x.toLowerCase())));
-  if(art) r=r.filter(t=>artistHit(t,art));
-  let a=r.filter(t=>t&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase())));
-  if(a.length>=10) r=a;
-  if(kind==='taste'){ const f=r.filter(t=>!tp.seen.has(key(t))); if(f.length>=14) r=f; }
-  if(shown){ const f=r.filter(t=>!shown.has(key(t))); if(f.length>=12) r=f; r.slice(0,24).forEach(t=>shown.add(key(t))); }
-  return r;
+
+// Giờ của server (ms) – client dùng để căn đồng hồ, tránh lệch giờ giữa các máy.
+async fn time_now() -> Json<serde_json::Value> {
+    let ms = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+    Json(json!({ "t": ms }))
 }
-function rerankRec(list,tp){
-  const gS=new Set(tp.top);
-  const sc=list.map((t,i)=>{
-    if(!t||tp.skipKeys.has(key(t))) return null;
-    const as=splitArtists(t.artist).map(x=>x.toLowerCase());
-    if(as.some(x=>tp.avoid.has(x))) return null;
-    const aff=as.reduce((m,x)=>Math.max(m,tp.artW[x]||0),0), g=[...tasteTags(t)];
-    const s=1/(1+i/12)+.7*aff+(g.some(x=>gS.has(x))?.35:0)-(g.some(x=>tp.avoidGenres.has(x))?.6:0);
-    return [t,s,as[0]||''];
-  }).filter(Boolean).sort((x,y)=>y[1]-x[1]);
-  const per={}, out=[], rest=[];
-  for(const [t,,a] of sc){ per[a]=(per[a]||0)+1; (per[a]<=2?out:rest).push(t); }
-  return out.concat(rest);
+
+#[derive(Deserialize)]
+struct InviteReq {
+    friend_id: i64,
+    room: String,
 }
-const uniqTracks=l=>{ const s=new Set(); return l.filter(t=>{ if(!t||!t.id) return false; const k=key(t); if(s.has(k)) return false; s.add(k); return true; }); };
-function byArtistRR(l,rnd){ const g=new Map(); l.forEach(t=>{ const a=(splitArtists(t.artist)[0]||'?').toLowerCase(); if(!g.has(a)) g.set(a,[]); g.get(a).push(t); });
-  const qs=[...g.values()].sort(()=>rnd()-.5), out=[]; for(let r=0;out.length<l.length;r++){ let any=false; for(const q of qs){ if(q[r]){ out.push(q[r]); any=true; } } if(!any) break; } return out; }
-const collRow=(t,j,k)=>`<div class="qk" data-l="${k}" data-i="${j}" data-tk="${esc(key(t))}" tabindex="0"><img src="${esc(thumb(t.image,160))}" width="56" height="56" loading="lazy" alt=""><div class="qt"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div></div>`;
-function collCard(c){ const k=reg(c.tracks,c.title);
-  return `<div class="coll"><div class="ccv" data-hp="${k}" data-sh="0">${collage(c.tracks)}</div><div class="cch"><div class="cct"><b>${esc(c.title)}</b>${c.sub?`<span>${esc(c.sub)}</span>`:''}</div><button class="cpb" data-hp="${k}" data-sh="0" title="Phát">${ic('play','fill')}</button></div>${c.tracks.slice(0,3).map((t,j)=>collRow(t,j,k)).join('')}</div>`; }
-async function loadCollections(tp,render){
-  const rnd=rngMake(strHash('cl'+dayNum()+':'+((typeof me!=='undefined'&&me&&me.id)||0)));
-  const [fav,hist,rec]=await Promise.all([api('/api/favorites').catch(()=>[]),api('/api/history').catch(()=>[]),api('/api/recommend').catch(()=>[])]);
-  const A=x=>Array.isArray(x)?x:[], lib=uniqTracks([...A(fav),...A(hist)]);
-  const okT=t=>t&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
-  const slots=[]; const push=()=>render(slots.filter(Boolean));
-  const mixA=byArtistRR(uniqTracks([...A(fav).slice(0,40),...A(hist).slice(0,40),...A(rec).slice(0,20)]).filter(okT),rnd).slice(0,30);
-  if(mixA.length>=6){ slots[0]={title:'Siêu tuyển tập nhạc của tôi',sub:'',tracks:mixA}; push(); }
-  const arts=pickW((tp.artsAll||[]).slice(0,8),a=>Math.sqrt(Math.max(a.c,.05)),rnd,2);
-  const jobs=arts.map(async(a,i)=>{ try{ const own=lib.filter(t=>artistHit(t,a.n)&&okT(t)); let more=[]; try{ more=(await ytSearch(a.n+' songs',true)).filter(t=>artistHit(t,a.n)&&okT(t)); }catch{}
-      const tr=uniqTracks([...own,...more]).slice(0,25); if(tr.length>=6){ slots[1+i]={title:'Tuyển tập '+a.n,sub:'',tracks:tr}; push(); } }catch{} });
-  const gens=(tp.top||[]).map(n=>GENRES.find(g=>g[0]===n)).filter(Boolean).slice(0,2);
-  gens.forEach((g,i)=>jobs.push((async()=>{ try{ const own=lib.filter(t=>okT(t)&&[...tasteTags(t)].includes(g[0])); let more=[]; try{ const q=g[2][Math.floor(rnd()*g[2].length)][1]; more=(await ytSearch(q,true)).filter(okT); }catch{}
-      const tr=byArtistRR(uniqTracks([...own,...more]),rnd).slice(0,25); if(tr.length>=6){ slots[3+i]={title:'Tuyển tập '+g[0],sub:'',tracks:tr}; push(); } }catch{} })()));
-  await Promise.all(jobs);
+
+async fn invite(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<InviteReq>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    if r.room.is_empty() || r.room.len() > 40 || !r.room.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err(bad("Mã phòng không hợp lệ"));
+    }
+    let is_friend = {
+        let db = st.db.lock().unwrap();
+        let x = db
+            .query_row(
+                "SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2",
+                params![user.id, r.friend_id],
+                |_| Ok(()),
+            )
+            .is_ok();
+        x
+    };
+    if !is_friend {
+        return Err((StatusCode::FORBIDDEN, "Người này chưa là bạn của bạn".into()));
+    }
+    let tx = st.notify.lock().unwrap().get(&r.friend_id).cloned();
+    let msg = json!({ "type": "invite", "from": user.display_name, "avatar": user.avatar, "room": r.room }).to_string();
+    match tx {
+        Some(tx) if tx.send(msg).is_ok() => Ok(StatusCode::OK),
+        _ => Err((StatusCode::CONFLICT, "Bạn ấy đang offline".into())),
+    }
 }
-async function loadForgotten(tp){
-  const f=await api('/api/favorites').catch(()=>[]); if(!Array.isArray(f)||f.length<6) return [];
-  const hist=await api('/api/history').catch(()=>[]), recent=new Set((Array.isArray(hist)?hist.slice(0,40):[]).map(key));
-  const P=playsAll(), cut=Date.now()-30*864e5, rnd=rngMake(strHash('fg'+dayNum()));
-  const sc=f.map((t,i)=>[t,(Math.max(0,...splitArtists(t.artist).map(x=>tp.artW[x.toLowerCase()]||0)))+.6*(i/f.length)+.4*rnd()]);
-  return sc.filter(([t])=>{ const k=key(t); if(recent.has(k)||tp.skipKeys.has(k)) return false; const e=P[k]; return !e||!e.last||e.last<cut; }).sort((x,y)=>y[1]-x[1]).map(x=>x[0]).slice(0,20);
+
+async fn ws_user(ws: WebSocketUpgrade, Query(q): Query<WsQ>, State(st): State<AppState>) -> Response {
+    let Some(user) = take_ws_ticket(&st, &q.ticket) else { return StatusCode::UNAUTHORIZED.into_response() };
+    ws.on_upgrade(move |s| handle_user_socket(s, user.id, st))
 }
-const blendPage=async function(m,fid){
-  if(guest) return guestCta(m,'Hoà trộn gu');
-  if(!fid){
-    const fr=await api('/api/friends').catch(()=>[]);
-    m.innerHTML=`<h2>Hoà trộn gu</h2><p class="sub" style="margin-top:-8px">Chọn một người bạn để tạo danh sách phát gộp gu nghe của hai người.</p>`+(fr.length
-      ?`<div class="libL">${fr.map(f=>`<div class="li" data-bf="${f.id}" tabindex="0"><div class="tile">${avU(f)}</div><div class="meta"><b>${esc(f.display_name)}</b><span>Hoà trộn với bạn</span></div></div>`).join('')}</div>`
-      :`<p class="empty">Bạn chưa có bạn bè nào. <a class="more" data-go="friends">Thêm bạn</a></p>`);
-    m.querySelectorAll('[data-bf]').forEach(n=>{ n.onclick=()=>go('blend',n.dataset.bf); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
-    return;
-  }
-  m.innerHTML='<div id="rows"><p class="empty">Đang hòa trộn…</p></div>';
-  const r=await api('/api/blend/'+encodeURIComponent(fid)), l=Array.isArray(r.tracks)?r.tracks:[], title=(me.display_name||'Bạn')+' & '+((r.friend&&r.friend.display_name)||'');
-  $('#rows').innerHTML=l.length
-    ?hero(title,'Hoà trộn gu · '+(r.shared||0)+' bài chung',l,`<button class="out" id="blSave">${ic('plus','sm')} Lưu thành danh sách phát</button>`)+`<p style="margin:10px 0"><a class="more" data-go="blend">Đổi bạn</a></p>`+tracksHtml(l,false,title)
-    :`<h2>Hoà trộn gu</h2><p class="empty">Hai bạn chưa có đủ dữ liệu nghe để hòa trộn.</p><p><a class="more" data-go="blend">Đổi bạn</a></p>`;
-  markNow();
-  const sv=$('#blSave'); if(sv) sv.onclick=async()=>{ sv.disabled=true;
-    try{ const p=await api('/api/playlists',{json:{name:'Hoà trộn: '+title}}); for(const t of l) await api(`/api/playlists/${p.id}/tracks`,{json:slim(t)}); await loadPlaylists(); notify('Đã lưu thành danh sách phát'); }
-    catch(e){ notify(errTxt(e)); } finally{ sv.disabled=false; } };
-};
-const dayNum=()=>{ const d=new Date(); return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(); };
-async function loadDaily(tp){
-  const ck=uKey('muse_daily'), today=dayNum();
-  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&Array.isArray(o.r)&&o.r.length>=8) return o.r.filter(t=>!tp.skipKeys.has(key(t))); }catch{}
-  const pool=(tp.artsAll||[]).slice(0,10);
-  if(!pool.length){ // chưa có lịch sử nghe: vẫn có gợi ý hằng ngày theo chủ đề thịnh hành, đổi mỗi ngày
-    const qs=['nhạc việt hot','top global hits','nhạc trẻ mới nhất','kpop hits','lofi chill beats'];
-    try{ return (await ytSearch(qs[today%qs.length],true)).filter(t=>t&&t.id&&!(tp.skipKeys&&tp.skipKeys.has(key(t)))).slice(0,24); }catch{ return []; }
-  }
-  const rnd=rngMake(strHash(today+':'+((typeof me!=='undefined'&&me&&me.id)||0)));
-  const picks=pickW(pool,a=>Math.sqrt(Math.max(a.c,.05)),rnd,Math.min(4,pool.length));
-  const fetched=await Promise.all(picks.map(a=>ytSearch('sim:'+a.n,true).then(r=>r.filter(t=>!artistHit(t,a.n))).catch(()=>[])));
-  const mine=new Set(pool.map(a=>a.n.toLowerCase()));
-  const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
-  let lists=fetched.map(l=>l.filter(okT));
-  const unheard=lists.map(l=>l.filter(t=>!tp.seen.has(key(t))));
-  if(unheard.reduce((s,l)=>s+l.length,0)>=12) lists=unheard;
-  const out=[], used=new Set(), per={};
-  for(let r=0;out.length<24&&r<12;r++){
-    for(const l of lists){ const t=l[r]; if(!t||used.has(key(t))) continue;
-      const a=(splitArtists(t.artist)[0]||'').toLowerCase(); if((per[a]||0)>=3) continue;
-      used.add(key(t)); per[a]=(per[a]||0)+1; out.push(t); if(out.length>=24) break; }
-  }
-  if(out.length>=8){ try{ const fav=picks[0], ex=(await ytSearch(fav.n+' best songs',true)).filter(t=>artistHit(t,fav.n)&&okT(t)&&!tp.seen.has(key(t))&&!used.has(key(t))).slice(0,2);
-    ex.forEach((t,i)=>out.splice(Math.min(out.length,3+i*5),0,t)); }catch{} }
-  const res=out.slice(0,24);
-  if(res.length>=8){ try{ LS.set(ck,JSON.stringify({d:today,r:res.map(slim)})); }catch{} }
-  return res;
+
+async fn handle_user_socket(socket: WebSocket, uid: i64, st: AppState) {
+    let (mut sender, mut receiver) = socket.split();
+    let mut rx = {
+        let mut g = st.notify.lock().unwrap();
+        g.entry(uid).or_insert_with(|| broadcast::channel(16).0).subscribe()
+    };
+    loop {
+        tokio::select! {
+            m = rx.recv() => match m {
+                Ok(t) => { if sender.send(Message::Text(t)).await.is_err() { break; } }
+                Err(broadcast::error::RecvError::Lagged(_)) => {}
+                Err(_) => break,
+            },
+            c = receiver.next() => match c {
+                Some(Ok(Message::Close(_))) | Some(Err(_)) | None => break,
+                _ => {}
+            },
+        }
+    }
+    drop(rx);
+    let mut g = st.notify.lock().unwrap();
+    if let Some(tx) = g.get(&uid) {
+        if tx.receiver_count() == 0 {
+            g.remove(&uid);
+        }
+    }
 }
-const ND_JUNK=/(\balbum\b(?!\s*version)|full album|tuyển tập|liên khúc|nonstop|non-stop|playlist|compilation|nhạc hot|hot tiktok|hot youtube|hot trend|\b\d{1,3}\s*(bài|songs|tracks)\b|top\s*\d+|bài hay nhất|best of|megamix)/i;
-const ND_CHANNEL=/\b(music|records?|entertainment|official|channel|tv|media|studio)\s*$/i;
-const ndJunk=(t,own)=>!t||!t.id||(t.dur>0&&t.dur>540)||ND_JUNK.test(String(t.title||''))||(!own&&ND_CHANNEL.test(String(t.artist||'').trim()));
-const ndTitleKey=t=>String(t.title||'').toLowerCase().replace(/[\(\[].*?[\)\]]/g,'').replace(/[^\p{L}\p{N}]+/gu,'');
-const freshRaw=n=>{ const k='f:fresh|'+n.toLowerCase(); return ytCache[k]||(ytCache[k]=api('/api/yt/fresh?artist='+encodeURIComponent(n)).then(r=>r&&Array.isArray(r.tracks)?r.tracks:[]).catch(()=>{ delete ytCache[k]; return []; })); };
-const ndSeenKey=()=>uKey('muse_nd_seen');
-const ndSeenGet=()=>{ try{ const o=JSON.parse(LS.get(ndSeenKey(),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-async function loadNewDaily(tp){
-  const ck=uKey('muse_newdaily'), today=dayNum(), uid=(typeof me!=='undefined'&&me&&me.id)||0;
-  try{ const o=JSON.parse(LS.get(ck,'null')); if(o&&o.d===today&&o.v===2&&Array.isArray(o.r)){ const c=o.r.filter(x=>x&&x.t&&x.a&&!tp.skipKeys.has(key(x.t))); if(c.length>=2) return c; } }catch{}
-  const rnd=rngMake(strHash('nd'+today+':'+uid+':'+(homeShuf?homeSeed:0)));
-  const dayOf=d=>{ const y=Math.floor(d/10000),m=Math.floor(d/100)%100-1,dd=d%100; return Math.floor(new Date(y,m,dd).getTime()/864e5); };
-  const seen=ndSeenGet(), nowD=dayOf(today);
-  Object.keys(seen).forEach(k=>{ if(nowD-dayOf(seen[k])>14) delete seen[k]; });
-  const ownL=(tp.artsAll||[]).filter(a=>goodArtist(a.n)).slice(0,14);
-  if(!ownL.length){ // chưa có lịch sử nghe: lấy nhạc mới thịnh hành
-    try{ const l=(await ytSearch('nhạc mới ra mắt '+new Date().getFullYear(),true)).filter(t=>t&&t.id&&!ndJunk(t,false)), out=[], per={};
-      for(const t of l){ const a=splitArtists(t.artist)[0]||''; if(!a||per[a]) continue; per[a]=1; out.push({t,a,w:'Thịnh hành hôm nay'}); if(out.length>=10) break; }
-      return out; }catch{ return []; }
-  }
-  const mx=Math.max(...ownL.map(a=>a.c),1), aff=a=>Math.sqrt(Math.max(a.c,.05)/mx);
-  const ownSet=new Set(ownL.map(a=>a.n.toLowerCase()));
-  const okT=t=>t&&t.id&&!tp.skipKeys.has(key(t))&&!tp.seen.has(key(t))&&!splitArtists(t.artist).some(x=>tp.avoid.has(x.toLowerCase()));
-  const ownPick=pickW(ownL,a=>aff(a)+.15,rnd,6);
-  const [ownRes,simRes]=await Promise.all([
-    Promise.all(ownPick.map(a=>freshRaw(a.n).then(l=>({a,l})))),
-    Promise.all(ownPick.slice(0,2).map(a=>api('/api/yt/similar?artist='+encodeURIComponent(a.n)).then(r=>({a,rel:(r&&Array.isArray(r.related)?r.related:[]).map(x=>x&&x.name).filter(n=>n&&goodArtist(n)&&n.length<40)})).catch(()=>({a,rel:[]}))))
-  ]);
-  const relPick=[]; const relSeen=new Set();
-  simRes.forEach(({a,rel})=>{ pickW(rel.filter(n=>!ownSet.has(canonArtist(n).toLowerCase())&&!tp.avoid.has(n.toLowerCase())&&!ND_CHANNEL.test(n)),()=>1,rnd,3).forEach(n=>{ const k=n.toLowerCase(); if(!relSeen.has(k)){ relSeen.add(k); relPick.push({n,from:a}); } }); });
-  const relRes=await Promise.all(relPick.slice(0,5).map(x=>freshRaw(x.n).then(l=>({x,l}))));
-  const cands=[];
-  ownRes.forEach(({a,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,true)&&artistHit(t,a.n)&&(t.age??999)<=30) cands.push({t,a:a.n,w:'Dành cho người hâm mộ '+a.n,own:true,s:aff(a)*(1/(1+(t.age??30)/8))+rnd()*.25}); }));
-  relRes.forEach(({x,l})=>l.forEach(t=>{ if(okT(t)&&!ndJunk(t,false)&&(t.age??999)<=21) cands.push({t,a:x.n,w:'Vì bạn nghe '+x.from.n,own:false,s:.55*aff(x.from)*(1/(1+(t.age??21)/8))+rnd()*.25}); }));
-  const pickFrom=(excludeToday)=>{
-    const out=[], used=new Set(), titles=new Set(), per={};
-    const blocked=k=>seen[k]!==undefined&&(excludeToday||seen[k]!==today);
-    for(const c of cands.slice().sort((x,y)=>y.s-x.s)){
-      const k=key(c.t), tk=ndTitleKey(c.t); if(used.has(k)||titles.has(tk)||blocked(k)) continue;
-      const an=c.a.toLowerCase(); if((per[an]||0)>=(c.own?2:1)) continue;
-      per[an]=(per[an]||0)+1; used.add(k); titles.add(tk); out.push(c); if(out.length>=10) break; }
-    return out;
-  };
-  let out=pickFrom(!!homeShuf); if(out.length<4) out=pickFrom(false);
-  const res=[]; const rest=out.slice(); while(rest.length){ const last=res.length?res[res.length-1].a:''; let i=rest.findIndex(x=>x.a!==last); if(i<0) i=0; res.push(rest.splice(i,1)[0]); }
-  if(res.length>=2){ try{ LS.set(ck,JSON.stringify({d:today,v:2,r:res.map(x=>({t:slim(x.t),a:x.a,w:x.w}))}));
-    res.forEach(x=>{ seen[key(x.t)]=today; }); const ks=Object.keys(seen); if(ks.length>150) ks.sort((p,q)=>seen[p]-seen[q]).slice(0,ks.length-150).forEach(k=>delete seen[k]); LS.set(ndSeenKey(),JSON.stringify(seen)); }catch{} }
-  return res.map(x=>({t:x.t,a:x.a,w:x.w}));
+
+// ---------- Yêu thích, lịch sử, playlist ----------
+fn track_key(v: &Value) -> Option<String> {
+    let src = v.get("src")?.as_str()?;
+    if src != "jm" && src != "yt" && src != "au" {
+        return None;
+    }
+    let id = match v.get("id")? {
+        Value::String(s) => s.clone(),
+        Value::Number(n) => n.to_string(),
+        _ => return None,
+    };
+    if id.is_empty() || id.len() > 64 {
+        return None;
+    }
+    Some(format!("{src}:{id}"))
 }
-let homeTg='';
-const pages={
-  async home(m,ci){
-    if(ci!==undefined) homeCi=ci; ci=homeCi;
-    const Y=new Date().getFullYear();
-    const sets=[
-      ['Tất cả',[['Nhạc Việt thịnh hành','nhạc việt hot'],['Nhạc trẻ mới nhất',`nhạc trẻ mới nhất ${Y}`],['Top hits quốc tế','top global hits'],['Chill / Lofi','lofi chill beats']]],
-      ['Thư giãn',[['Lofi chill','lofi chill beats'],['Acoustic nhẹ nhàng','acoustic chill songs'],['Piano thư giãn','relaxing piano music']],'🌿'],
-      ['Tập trung',[['Nhạc không lời','instrumental focus music'],['Lofi học bài','lofi study beats'],['Nhạc cổ điển','classical study music']],'🎯'],
-      ['Vui vẻ',[['Pop sôi động','upbeat pop songs'],['K-Pop','kpop hits'],['Nhạc Hoa','nhạc hoa hay nhất']],'😄'],
-      ['Buồn',[['Ballad buồn','ballad buồn nhạc việt'],['Sad songs','sad songs for crying'],['Tâm trạng','nhạc buồn tâm trạng']],'😢'],
-      ['Lãng mạn',[['Nhạc tình yêu','nhạc tình yêu hay nhất'],['Love songs','romantic love songs'],['Acoustic tình cảm','acoustic love songs']],'💖'],
-      ['Hoài niệm',[['Nhạc xưa','nhạc xưa bất hủ'],['Hits thập niên 2000','2000s hits'],['Nhạc Việt 8x 9x','nhạc việt 8x 9x']],'📼'],
-      ['Tràn năng lượng',[['Rock mạnh mẽ','rock energy songs'],['Rap / Hip-hop','hip hop hits'],['Nhạc điện tử','electronic energy']],'⚡'],
+fn valid_track(v: &Value) -> Result<(String, String), ApiErr> {
+    let k = track_key(v).ok_or_else(|| bad("Bài hát không hợp lệ"))?;
+    let s = v.to_string();
+    if s.len() > 4096 {
+        return Err(bad("Dữ liệu bài hát quá lớn"));
+    }
+    Ok((k, s))
+}
+fn parse_rows(stmt: &mut rusqlite::Statement, p: impl rusqlite::Params) -> Result<Vec<Value>, ApiErr> {
+    let rows = stmt.query_map(p, |r| r.get::<_, String>(0)).map_err(|_| e500())?;
+    let v: Vec<Value> = rows.filter_map(|x| x.ok()).filter_map(|s| serde_json::from_str::<Value>(&s).ok()).collect();
+    Ok(v)
+}
+fn owns(db: &Connection, pid: i64, uid: i64) -> bool {
+    db.query_row("SELECT 1 FROM playlists WHERE id=?1 AND user_id=?2", params![pid, uid], |_| Ok(())).is_ok()
+}
+
+// ===== Tài khoản: đổi tên hiển thị, đổi mật khẩu =====
+#[derive(Deserialize)]
+struct NameChange {
+    display_name: String,
+}
+
+async fn account_name(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<NameChange>) -> R<User> {
+    let user = require(&st, &headers)?;
+    let name: String = r.display_name.chars().filter(|c| !c.is_control()).collect::<String>().trim().chars().take(24).collect();
+    if name.is_empty() {
+        return Err(bad("Tên hiển thị không được trống"));
+    }
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET display_name=?1 WHERE id=?2", params![name, user.id]).map_err(|_| e500())?;
+    let out = db
+        .query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [user.id], row_to_user)
+        .map_err(|_| e500())?;
+    Ok(Json(out))
+}
+
+#[derive(Deserialize)]
+struct PwChange {
+    current: String,
+    new: String,
+}
+
+async fn account_password(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<PwChange>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    let token = bearer(&headers).ok_or_else(unauth)?;
+    if r.new.len() < 8 || r.new.len() > 128 {
+        return Err(bad("Mật khẩu mới từ 8 đến 128 ký tự"));
+    }
+    let old_hash: String = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT pass_hash FROM users WHERE id=?1", [user.id], |x| x.get(0)).map_err(|_| e500())?
+    };
+    let cur = r.current.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&cur, &old_hash)).await.unwrap_or(false);
+    if !ok {
+        return Err((StatusCode::FORBIDDEN, "Mật khẩu hiện tại không đúng".into()));
+    }
+    let newpw = r.new.clone();
+    let hash = tokio::task::spawn_blocking(move || hash_pw(&newpw)).await.map_err(|_| e500())?.map_err(|_| e500())?;
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET pass_hash=?1 WHERE id=?2", params![hash, user.id]).map_err(|_| e500())?;
+    // Đăng xuất mọi thiết bị khác, giữ phiên hiện tại.
+    let _ = db.execute("DELETE FROM sessions WHERE user_id=?1 AND token<>?2", params![user.id, tok_hash(&token)]);
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct AccDel {
+    password: String,
+}
+
+// Xóa tài khoản vĩnh viễn: cần nhập đúng mật khẩu. Xóa luôn bạn bè, yêu thích, lịch sử, playlist, dữ liệu đồng bộ (ON DELETE CASCADE) và ảnh đại diện/nền/banner.
+async fn account_delete(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<AccDel>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    let (hash, av, bg, bn): (String, String, String, String) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT pass_hash, avatar, bg_url, banner FROM users WHERE id=?1", [user.id], |x| Ok((x.get(0)?, x.get(1)?, x.get(2)?, x.get(3)?)))
+            .map_err(|_| e500())?
+    };
+    let pw = r.password.clone();
+    let ok = tokio::task::spawn_blocking(move || verify_pw(&pw, &hash)).await.unwrap_or(false);
+    if !ok {
+        return Err((StatusCode::FORBIDDEN, "Mật khẩu không đúng".into()));
+    }
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("DELETE FROM users WHERE id=?1", [user.id]).map_err(|_| e500())?;
+    }
+    for (prefix, dir) in [("/avatars/", &st.avatar_dir), ("/backgrounds/", &st.bg_dir), ("/banners/", &st.banner_dir)] {
+        for url in [&av, &bg, &bn] {
+            if let Some(f) = url.strip_prefix(prefix) {
+                if !f.contains('/') && !f.contains("..") && !f.is_empty() {
+                    remove_upload_file(&dir, f).await;
+                }
+            }
+        }
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ===== Cài đặt người dùng (lưu dạng JSON, chỉ nhận các khóa đã biết) =====
+const BOOL_SETTINGS: [&str; 11] = [
+    "track_history", "save_state", "crossfade", "explicit", "offline_pl", "proxy", "eq_on", "delay_on", "reverb_on", "discord_rpc", "show_errors",
+];
+// (khóa, nhỏ nhất, lớn nhất, mặc định)
+const NUM_SETTINGS: [(&str, i64, i64, i64); 6] = [
+    ("crossfade_secs", 1, 12, 5),
+    ("delay_ms", 50, 1000, 300),
+    ("delay_fb", 0, 90, 35),
+    ("delay_mix", 0, 100, 35),
+    ("reverb_mix", 0, 100, 30),
+    ("eq_pre", -12, 12, 0),
+];
+const REVERB_TYPES: [&str; 3] = ["room", "hall", "plate"];
+const EQ_BANDS: usize = 10;
+
+fn default_settings() -> serde_json::Map<String, Value> {
+    let mut m = serde_json::Map::new();
+    m.insert("track_history".into(), json!(true));
+    for k in BOOL_SETTINGS {
+        if k != "track_history" {
+            m.insert(k.into(), json!(false));
+        }
+    }
+    for (k, _, _, d) in NUM_SETTINGS {
+        m.insert(k.into(), json!(d));
+    }
+    m.insert("reverb_type".into(), json!("hall"));
+    m.insert("eq_gains".into(), json!(vec![0; EQ_BANDS]));
+    m
+}
+
+fn clean_gains(v: &Value) -> Option<Value> {
+    let a = v.as_array()?;
+    if a.len() != EQ_BANDS {
+        return None;
+    }
+    let mut out = Vec::new();
+    for x in a {
+        let n = x.as_f64()?;
+        out.push(json!((n.clamp(-12.0, 12.0) * 10.0).round() / 10.0));
+    }
+    Some(Value::Array(out))
+}
+
+fn load_settings(db: &Connection, uid: i64) -> serde_json::Map<String, Value> {
+    let raw: String = db.query_row("SELECT settings FROM users WHERE id=?1", [uid], |r| r.get(0)).unwrap_or_default();
+    let mut out = default_settings();
+    if let Ok(Value::Object(saved)) = serde_json::from_str::<Value>(&raw) {
+        for (k, v) in saved {
+            if !out.contains_key(&k) {
+                continue;
+            }
+            if k == "eq_gains" {
+                if let Some(g) = clean_gains(&v) {
+                    out.insert(k, g);
+                }
+            } else {
+                out.insert(k, v);
+            }
+        }
+    }
+    out
+}
+
+async fn settings_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    Ok(Json(Value::Object(load_settings(&db, u.id))))
+}
+
+async fn settings_set(State(st): State<AppState>, headers: HeaderMap, Json(patch): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Value::Object(patch) = patch else { return Err(bad("Dữ liệu không hợp lệ")) };
+    let db = st.db.lock().unwrap();
+    let mut cur = load_settings(&db, u.id);
+    for (k, v) in patch {
+        if BOOL_SETTINGS.contains(&k.as_str()) {
+            let Some(b) = v.as_bool() else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
+            if k == "discord_rpc" && b {
+                let linked: String = db
+                    .query_row("SELECT discord_id FROM users WHERE id=?1", [u.id], |r| r.get(0))
+                    .unwrap_or_default();
+                if linked.is_empty() {
+                    return Err(bad("Hãy đăng nhập Discord để liên kết tài khoản trước"));
+                }
+            }
+            if k == "show_errors" && b && !u.is_admin {
+                return Err((StatusCode::FORBIDDEN, "Chỉ admin mới bật được thông báo lỗi".into()));
+            }
+            cur.insert(k, json!(b));
+        } else if let Some((_, lo, hi, _)) = NUM_SETTINGS.iter().find(|x| x.0 == k.as_str()) {
+            let Some(n) = v.as_f64() else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
+            cur.insert(k, json!((n.round() as i64).clamp(*lo, *hi)));
+        } else if k == "reverb_type" {
+            let Some(t) = v.as_str().filter(|t| REVERB_TYPES.contains(t)) else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
+            cur.insert(k, json!(t));
+        } else if k == "eq_gains" {
+            let Some(g) = clean_gains(&v) else { return Err(bad("Giá trị cài đặt không hợp lệ")) };
+            cur.insert(k, g);
+        }
+    }
+    let s = Value::Object(cur.clone()).to_string();
+    db.execute("UPDATE users SET settings=?1 WHERE id=?2", params![s, u.id]).map_err(|_| e500())?;
+    Ok(Json(Value::Object(cur)))
+}
+
+// ===== Lịch sử =====
+async fn hist_clear(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("DELETE FROM history WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+    Ok(StatusCode::OK)
+}
+
+// ===== Sao lưu / khôi phục / nhập playlist =====
+const MAX_FAVS: usize = 5000;
+const MAX_PLAYLISTS: usize = 50;
+const MAX_PL_TRACKS: usize = 5000;
+
+async fn backup_export(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let favorites = {
+        let mut stmt = db.prepare("SELECT track_json FROM favorites WHERE user_id=?1 ORDER BY rowid").map_err(|_| e500())?;
+        let v = parse_rows(&mut stmt, [u.id])?;
+        v
+    };
+    let history = {
+        let mut stmt = db.prepare("SELECT track_json FROM history WHERE user_id=?1 ORDER BY rowid").map_err(|_| e500())?;
+        let v = parse_rows(&mut stmt, [u.id])?;
+        v
+    };
+    let mut playlists: Vec<Value> = Vec::new();
+    let pls: Vec<(i64, String)> = {
+        let mut stmt = db.prepare("SELECT id, name FROM playlists WHERE user_id=?1 ORDER BY id").map_err(|_| e500())?;
+        let rows = stmt.query_map([u.id], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?))).map_err(|_| e500())?;
+        let v: Vec<(i64, String)> = rows.filter_map(|x| x.ok()).collect();
+        v
+    };
+    for (pid, name) in pls {
+        let mut stmt = db.prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid").map_err(|_| e500())?;
+        let tracks = parse_rows(&mut stmt, [pid])?;
+        playlists.push(json!({ "name": name, "tracks": tracks }));
+    }
+    let settings = Value::Object(load_settings(&db, u.id));
+    let sync: serde_json::Map<String, Value> = sync_read(&db, u.id).into_iter().map(|(k, (v, _))| (k, v)).collect();
+    Ok(Json(json!({
+        "app": "muse",
+        "version": 1,
+        "sync": sync,
+        "exported_at": SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
+        "favorites": favorites,
+        "history": history,
+        "playlists": playlists,
+        "settings": settings,
+    })))
+}
+
+// Chèn danh sách playlist (mỗi phần tử {name, tracks:[...]}) cho người dùng; trả về (số playlist, số bài).
+fn insert_playlists(db: &Connection, uid: i64, list: &[Value]) -> Result<(usize, usize), ApiErr> {
+    let mut have: usize = db.query_row("SELECT COUNT(*) FROM playlists WHERE user_id=?1", [uid], |r| r.get::<_, i64>(0)).unwrap_or(0) as usize;
+    let (mut np, mut nt) = (0usize, 0usize);
+    for p in list {
+        if have >= MAX_PLAYLISTS {
+            break;
+        }
+        let name: String = p
+            .get("name")
+            .and_then(|x| x.as_str())
+            .unwrap_or("Playlist đã nhập")
+            .chars()
+            .filter(|c| !c.is_control())
+            .collect::<String>()
+            .trim()
+            .chars()
+            .take(40)
+            .collect();
+        let name = if name.is_empty() { "Playlist đã nhập".to_string() } else { name };
+        db.execute("INSERT INTO playlists(user_id,name) VALUES(?1,?2)", params![uid, name]).map_err(|_| e500())?;
+        let pid = db.last_insert_rowid();
+        have += 1;
+        np += 1;
+        if let Some(tracks) = p.get("tracks").and_then(|x| x.as_array()) {
+            for t in tracks.iter().take(MAX_PL_TRACKS) {
+                if let Ok((k, s)) = valid_track(t) {
+                    if db
+                        .execute("INSERT OR IGNORE INTO playlist_tracks(playlist_id,track_key,track_json) VALUES(?1,?2,?3)", params![pid, k, s])
+                        .map(|n| n > 0)
+                        .unwrap_or(false)
+                    {
+                        nt += 1;
+                    }
+                }
+            }
+        }
+    }
+    Ok((np, nt))
+}
+
+// Nhập thêm playlist (không xóa dữ liệu hiện có). Nhận {"playlists":[...]} hoặc một mảng playlist.
+async fn import_playlists(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let list: Vec<Value> = match &body {
+        Value::Array(a) => a.clone(),
+        Value::Object(o) => o.get("playlists").and_then(|x| x.as_array()).cloned().unwrap_or_default(),
+        _ => Vec::new(),
+    };
+    if list.is_empty() {
+        return Err(bad("Không tìm thấy danh sách phát nào trong file"));
+    }
+    let db = st.db.lock().unwrap();
+    let (np, nt) = insert_playlists(&db, u.id, &list)?;
+    Ok(Json(json!({ "playlists": np, "tracks": nt })))
+}
+
+// Khôi phục từ file sao lưu: thay thế yêu thích, lịch sử và playlist hiện có.
+async fn backup_restore(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    if body.get("app").and_then(|x| x.as_str()) != Some("muse") {
+        return Err(bad("Đây không phải file sao lưu của Muse"));
+    }
+    let favs: Vec<Value> = body.get("favorites").and_then(|x| x.as_array()).cloned().unwrap_or_default();
+    let hist: Vec<Value> = body.get("history").and_then(|x| x.as_array()).cloned().unwrap_or_default();
+    let pls: Vec<Value> = body.get("playlists").and_then(|x| x.as_array()).cloned().unwrap_or_default();
+    let mut db = st.db.lock().unwrap();
+    let tx = db.transaction().map_err(|_| e500())?;
+    tx.execute("DELETE FROM favorites WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+    tx.execute("DELETE FROM history WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+    tx.execute("DELETE FROM playlists WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+    let mut nf = 0usize;
+    for t in favs.iter().take(MAX_FAVS) {
+        if let Ok((k, s)) = valid_track(t) {
+            if tx.execute("INSERT OR IGNORE INTO favorites(user_id,track_key,track_json) VALUES(?1,?2,?3)", params![u.id, k, s]).map(|n| n > 0).unwrap_or(false) {
+                nf += 1;
+            }
+        }
+    }
+    for t in hist.iter().take(100) {
+        if let Ok((k, s)) = valid_track(t) {
+            let _ = tx.execute("INSERT OR IGNORE INTO history(user_id,track_key,track_json) VALUES(?1,?2,?3)", params![u.id, k, s]);
+        }
+    }
+    let (np, nt) = insert_playlists(&tx, u.id, &pls)?;
+    // Dữ liệu nghe đồng bộ (nếu file sao lưu có) cũng được khôi phục.
+    if let Some(sy) = body.get("sync").and_then(|x| x.as_object()) {
+        let now_ms = (SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0)) as i64;
+        tx.execute("DELETE FROM user_sync WHERE user_id=?1", [u.id]).map_err(|_| e500())?;
+        for key in SYNC_KEYS {
+            if let Some(v) = sy.get(key).and_then(|x| sync_clean(key, x)) {
+                let s = v.to_string();
+                if s.len() <= SYNC_MAX_BYTES {
+                    tx.execute("INSERT INTO user_sync(user_id,k,v,ts) VALUES(?1,?2,?3,?4)", params![u.id, key, s, now_ms]).map_err(|_| e500())?;
+                }
+            }
+        }
+    }
+    tx.commit().map_err(|_| e500())?;
+    Ok(Json(json!({ "favorites": nf, "playlists": np, "tracks": nt })))
+}
+
+async fn fav_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let mut stmt = db.prepare("SELECT track_json FROM favorites WHERE user_id=?1 ORDER BY rowid DESC").map_err(|_| e500())?;
+    let v = parse_rows(&mut stmt, [u.id])?;
+    Ok(Json(v))
+}
+
+async fn fav_toggle(State(st): State<AppState>, headers: HeaderMap, Json(t): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let (k, s) = valid_track(&t)?;
+    let db = st.db.lock().unwrap();
+    let n = db.execute("DELETE FROM favorites WHERE user_id=?1 AND track_key=?2", params![u.id, k]).map_err(|_| e500())?;
+    if n > 0 {
+        return Ok(Json(json!({ "fav": false })));
+    }
+    db.execute("INSERT INTO favorites(user_id,track_key,track_json) VALUES(?1,?2,?3)", params![u.id, k, s])
+        .map_err(|_| e500())?;
+    Ok(Json(json!({ "fav": true })))
+}
+
+// ===== Bình luận theo bài hát: chỉ lưu và hiển thị trong app này (không liên quan bình luận YouTube) =====
+#[derive(Deserialize)]
+struct CommentsQ {
+    key: String,
+}
+
+#[derive(Deserialize)]
+struct CommentReq {
+    key: String,
+    body: String,
+}
+
+fn valid_comment_key(k: &str) -> bool {
+    let ok_src = k.starts_with("yt:") || k.starts_with("jm:") || k.starts_with("au:") || k.starts_with("local:");
+    ok_src && k.len() <= 200 && !k.chars().any(|c| c.is_control())
+}
+
+fn comment_row(r: &rusqlite::Row, me: i64, admin: bool) -> rusqlite::Result<Value> {
+    let uid: i64 = r.get(1)?;
+    Ok(json!({
+        "id": r.get::<_, i64>(0)?,
+        "user_id": uid,
+        "body": r.get::<_, String>(2)?,
+        "created_at": r.get::<_, String>(3)?,
+        "display_name": r.get::<_, String>(4)?,
+        "avatar": r.get::<_, String>(5)?,
+        "accent": r.get::<_, String>(6)?,
+        "can_delete": uid == me || admin,
+    }))
+}
+
+const COMMENT_SQL: &str = "SELECT c.id, c.user_id, c.body, c.created_at, u.display_name, u.avatar, u.accent FROM comments c JOIN users u ON u.id=c.user_id";
+
+async fn comments_list(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<CommentsQ>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !valid_comment_key(&q.key) {
+        return Err(bad("Bài hát không hợp lệ"));
+    }
+    let db = st.db.lock().unwrap();
+    let total: i64 = db
+        .query_row("SELECT COUNT(*) FROM comments WHERE track_key=?1", [&q.key], |r| r.get(0))
+        .map_err(|_| e500())?;
+    let sql = format!("{COMMENT_SQL} WHERE c.track_key=?1 ORDER BY c.id DESC LIMIT 200");
+    let mut stmt = db.prepare(&sql).map_err(|_| e500())?;
+    let rows = stmt
+        .query_map([&q.key], |r| comment_row(r, user.id, user.is_admin))
+        .map_err(|_| e500())?;
+    let items: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
+    Ok(Json(json!({ "count": total, "items": items })))
+}
+
+async fn comments_add(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<CommentReq>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !valid_comment_key(&r.key) {
+        return Err(bad("Bài hát không hợp lệ"));
+    }
+    let body: String = r.body.trim().chars().take(500).collect();
+    if body.is_empty() {
+        return Err(bad("Bình luận không được trống"));
+    }
+    let db = st.db.lock().unwrap();
+    // chống spam: tối đa 5 bình luận / 30 giây / người
+    let recent: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM comments WHERE user_id=?1 AND created_at > datetime('now','-30 seconds')",
+            [user.id],
+            |r| r.get(0),
+        )
+        .map_err(|_| e500())?;
+    if recent >= 5 {
+        return Err(bad("Bạn bình luận hơi nhanh, đợi một chút nhé"));
+    }
+    db.execute(
+        "INSERT INTO comments(track_key,user_id,body) VALUES(?1,?2,?3)",
+        params![r.key, user.id, body],
+    )
+    .map_err(|_| e500())?;
+    let id = db.last_insert_rowid();
+    let sql = format!("{COMMENT_SQL} WHERE c.id=?1");
+    let item = db
+        .query_row(&sql, [id], |r| comment_row(r, user.id, user.is_admin))
+        .map_err(|_| e500())?;
+    let total: i64 = db
+        .query_row("SELECT COUNT(*) FROM comments WHERE track_key=?1", [&r.key], |r| r.get(0))
+        .map_err(|_| e500())?;
+    Ok(Json(json!({ "count": total, "item": item })))
+}
+
+async fn comments_delete(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let res = if user.is_admin {
+        db.execute("DELETE FROM comments WHERE id=?1", [id])
+    } else {
+        db.execute("DELETE FROM comments WHERE id=?1 AND user_id=?2", params![id, user.id])
+    };
+    let n = res.map_err(|_| e500())?;
+    if n == 0 {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy bình luận".into()));
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn hist_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let mut stmt = db
+        .prepare("SELECT track_json FROM history WHERE user_id=?1 ORDER BY rowid DESC LIMIT 100")
+        .map_err(|_| e500())?;
+    let v = parse_rows(&mut stmt, [u.id])?;
+    Ok(Json(v))
+}
+
+async fn hist_add(State(st): State<AppState>, headers: HeaderMap, Json(t): Json<Value>) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let (k, s) = valid_track(&t)?;
+    let db = st.db.lock().unwrap();
+    db.execute("INSERT OR REPLACE INTO history(user_id,track_key,track_json) VALUES(?1,?2,?3)", params![u.id, k, s])
+        .map_err(|_| e500())?;
+    let _ = db.execute(
+        "DELETE FROM history WHERE user_id=?1 AND rowid NOT IN (SELECT rowid FROM history WHERE user_id=?1 ORDER BY rowid DESC LIMIT 100)",
+        params![u.id],
+    );
+    Ok(StatusCode::OK)
+}
+
+// ===== Chuẩn hóa tên nghệ sĩ (alias) =====
+// YouTube hay gắn TÊN KÊNH (vd. "Abuse") thay cho tên nghệ sĩ thật ("Abu-Se-Ken"). Các tên này phải được tính là MỘT nghệ sĩ,
+// nếu không lịch sử nghe bị chia đôi và gợi ý sai. Khóa so khớp = tên viết thường, chỉ giữ chữ/số ("Abu Se Ken" == "abu-se-ken").
+// Muốn gộp thêm nghệ sĩ khác: thêm một dòng vào đây.
+const ARTIST_ALIASES: &[(&str, &[&str])] = &[("Abu-Se-Ken", &["Abuse", "Abu Se Ken", "AbuSeKen", "アブセケン"])];
+
+fn art_norm(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+
+fn alias_map() -> &'static HashMap<String, String> {
+    static M: std::sync::OnceLock<HashMap<String, String>> = std::sync::OnceLock::new();
+    M.get_or_init(|| {
+        let mut m = HashMap::new();
+        for (canon, aliases) in ARTIST_ALIASES {
+            m.insert(art_norm(canon), canon.to_string());
+            for a in aliases.iter() {
+                m.insert(art_norm(a), canon.to_string());
+            }
+        }
+        m
+    })
+}
+
+// Tên nghệ sĩ chuẩn (alias → tên chính); tên lạ giữ nguyên.
+fn canon_artist(name: &str) -> String {
+    let n = name.trim();
+    alias_map().get(&art_norm(n)).cloned().unwrap_or_else(|| n.to_string())
+}
+
+// Tách chuỗi nhiều nghệ sĩ ("A & B", "A feat. B", "A, B"...) thành danh sách tên chuẩn, không trùng.
+fn split_artists(s: &str) -> Vec<String> {
+    const SEPS: [&str; 11] = [",", "&", ";", "/", "、", "・", " x ", " ft. ", " ft ", " feat. ", " feat "];
+    let lower = s.to_ascii_lowercase(); // giữ nguyên độ dài byte nên cắt trên `s` theo vị trí của `lower` là an toàn
+    let mut parts: Vec<&str> = Vec::new();
+    let (mut start, mut i) = (0usize, 0usize);
+    while i < lower.len() {
+        if !lower.is_char_boundary(i) {
+            i += 1;
+            continue;
+        }
+        if let Some(sp) = SEPS.iter().find(|p| lower[i..].starts_with(**p)) {
+            parts.push(&s[start..i]);
+            i += sp.len();
+            start = i;
+        } else {
+            i += 1;
+        }
+    }
+    parts.push(&s[start..]);
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut out = Vec::new();
+    for p in parts {
+        let p = p.trim();
+        let n = p.chars().count();
+        if !(2..40).contains(&n) || !p.chars().any(|c| c.is_alphabetic()) {
+            continue;
+        }
+        let c = canon_artist(p);
+        if seen.insert(c.to_lowercase()) {
+            out.push(c);
+        }
+    }
+    out
+}
+
+fn track_artists(t: &Value) -> Vec<String> {
+    split_artists(t.get("artist").and_then(|x| x.as_str()).unwrap_or(""))
+}
+
+// ===== Đồng bộ dữ liệu nghe theo tài khoản =====
+// Client giữ bản trên máy (localStorage) và đẩy lên đây; server gộp rồi trả bản đã gộp.
+//  - listen: {khóa bài: {t, ok, sk, last}}  → từng bài lấy bản mới hơn (cùng mốc thì lấy số lớn hơn)
+//  - plays : {khóa bài: {t, n, last}}       → số lượt phát chỉ tăng nên lấy lớn nhất
+//  - dislike / follow / jump                → bản có mốc `ts` mới hơn thắng; cùng mốc thì hợp nhất
+const SYNC_KEYS: [&str; 5] = ["listen", "plays", "dislike", "follow", "jump"];
+const SYNC_MAX_BYTES: usize = 1_500_000;
+
+fn jnum(v: &Value, k: &str) -> i64 {
+    v.get(k).and_then(|x| x.as_i64().or_else(|| x.as_f64().map(|f| f as i64))).unwrap_or(0)
+}
+
+fn entry_ok(e: &Value) -> bool {
+    e.is_object() && e.get("t").map(|t| valid_track(t).is_ok()).unwrap_or(false)
+}
+
+// Làm sạch một giá trị client gửi lên; None nếu sai dạng.
+fn sync_clean(key: &str, v: &Value) -> Option<Value> {
+    match key {
+        "listen" | "plays" | "dislike" => {
+            let o = v.as_object()?;
+            let m: serde_json::Map<String, Value> = o.iter().filter(|(_, e)| entry_ok(e)).take(1500).map(|(k, e)| (k.clone(), e.clone())).collect();
+            Some(Value::Object(m))
+        }
+        "follow" => {
+            let a = v.as_array()?;
+            let mut seen: HashSet<String> = HashSet::new();
+            let out: Vec<Value> = a
+                .iter()
+                .filter_map(|x| x.as_str())
+                .map(|s| canon_artist(s))
+                .filter(|s| !s.is_empty() && s.chars().count() <= 60 && seen.insert(s.to_lowercase()))
+                .take(200)
+                .map(Value::String)
+                .collect();
+            Some(Value::Array(out))
+        }
+        "jump" => {
+            let a = v.as_array()?;
+            let out: Vec<Value> = a.iter().filter(|x| x.get("n").map(|n| n.is_string()).unwrap_or(false) && x.get("tr").map(|t| t.is_array()).unwrap_or(false)).take(10).cloned().collect();
+            Some(Value::Array(out))
+        }
+        _ => None,
+    }
+}
+
+fn merge_entries(stored: &Value, pushed: &Value, counters: &[&str], take_max: bool, cap_by: &str, cap: usize) -> Value {
+    let mut out: serde_json::Map<String, Value> = stored.as_object().cloned().unwrap_or_default();
+    if let Some(b) = pushed.as_object() {
+        for (k, nv) in b {
+            match out.get(k).cloned() {
+                None => {
+                    out.insert(k.clone(), nv.clone());
+                }
+                Some(old) => {
+                    let (a, b2) = (jnum(nv, "last"), jnum(&old, "last"));
+                    let mut base = if a >= b2 { nv.clone() } else { old.clone() };
+                    if let Some(m) = base.as_object_mut() {
+                        for c in counters {
+                            if take_max || a == b2 {
+                                m.insert((*c).to_string(), json!(jnum(nv, c).max(jnum(&old, c))));
+                            }
+                        }
+                        m.insert("last".into(), json!(a.max(b2)));
+                    }
+                    out.insert(k.clone(), base);
+                }
+            }
+        }
+    }
+    if out.len() > cap {
+        let mut ks: Vec<(String, i64)> = out.iter().map(|(k, e)| (k.clone(), jnum(e, cap_by))).collect();
+        ks.sort_by(|x, y| y.1.cmp(&x.1));
+        for (k, _) in ks.into_iter().skip(cap) {
+            out.remove(&k);
+        }
+    }
+    Value::Object(out)
+}
+
+fn merge_union(key: &str, a: &Value, b: &Value) -> Value {
+    match key {
+        "dislike" => {
+            let mut out: serde_json::Map<String, Value> = a.as_object().cloned().unwrap_or_default();
+            for (k, e) in b.as_object().into_iter().flatten() {
+                if out.get(k).map(|o| jnum(o, "at") < jnum(e, "at")).unwrap_or(true) {
+                    out.insert(k.clone(), e.clone());
+                }
+            }
+            Value::Object(out)
+        }
+        "follow" => {
+            let mut seen: HashSet<String> = HashSet::new();
+            let v: Vec<Value> = a.as_array().into_iter().flatten().chain(b.as_array().into_iter().flatten()).filter(|x| x.as_str().map(|s| seen.insert(s.to_lowercase())).unwrap_or(false)).take(200).cloned().collect();
+            Value::Array(v)
+        }
+        _ => {
+            // jump: giữ danh sách đã có, thêm mục chưa có theo tên
+            let mut seen: HashSet<String> = HashSet::new();
+            let v: Vec<Value> = a.as_array().into_iter().flatten().chain(b.as_array().into_iter().flatten()).filter(|x| seen.insert(x.get("n").and_then(|n| n.as_str()).unwrap_or("").to_string())).take(10).cloned().collect();
+            Value::Array(v)
+        }
+    }
+}
+
+fn sync_merge(key: &str, stored: Option<(Value, i64)>, pushed: Value, pts: i64) -> (Value, i64) {
+    let Some((sv, sts)) = stored else { return (pushed, pts) };
+    match key {
+        "listen" => (merge_entries(&sv, &pushed, &["ok", "sk"], false, "last", 800), sts.max(pts)),
+        "plays" => (merge_entries(&sv, &pushed, &["n"], true, "n", 800), sts.max(pts)),
+        _ => {
+            if pts > sts {
+                (pushed, pts)
+            } else if pts < sts {
+                (sv, sts)
+            } else {
+                (merge_union(key, &sv, &pushed), sts)
+            }
+        }
+    }
+}
+
+fn sync_read(db: &Connection, uid: i64) -> HashMap<String, (Value, i64)> {
+    let mut out = HashMap::new();
+    if let Ok(mut stmt) = db.prepare("SELECT k, v, ts FROM user_sync WHERE user_id=?1") {
+        if let Ok(it) = stmt.query_map([uid], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, i64>(2)?))) {
+            for (k, v, ts) in it.flatten() {
+                if let Ok(j) = serde_json::from_str::<Value>(&v) {
+                    out.insert(k, (j, ts));
+                }
+            }
+        }
+    }
+    out
+}
+
+async fn sync_get(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let mut out = serde_json::Map::new();
+    for (k, (v, ts)) in sync_read(&db, u.id) {
+        out.insert(k, json!({ "v": v, "ts": ts }));
+    }
+    Ok(Json(Value::Object(out)))
+}
+
+// Nhận {khóa: {v, ts}} (có thể rỗng), gộp với bản trên server rồi trả về toàn bộ bản đã gộp.
+async fn sync_post(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Value::Object(body) = body else { return Err(bad("Dữ liệu không hợp lệ")) };
+    let db = st.db.lock().unwrap();
+    let mut cur = sync_read(&db, u.id);
+    let mut out = serde_json::Map::new();
+    for key in SYNC_KEYS {
+        let stored = cur.remove(key);
+        let mut merged = stored.clone();
+        if let Some(e) = body.get(key) {
+            if let Some(pv) = e.get("v").and_then(|x| sync_clean(key, x)) {
+                let m = sync_merge(key, stored.clone(), pv, jnum(e, "ts"));
+                if m.0.to_string().len() <= SYNC_MAX_BYTES {
+                    if stored.as_ref().map(|s| s.0 != m.0 || s.1 != m.1).unwrap_or(true) {
+                        db.execute(
+                            "INSERT INTO user_sync(user_id,k,v,ts) VALUES(?1,?2,?3,?4) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, ts=excluded.ts",
+                            params![u.id, key, m.0.to_string(), m.1],
+                        )
+                        .map_err(|_| e500())?;
+                    }
+                    merged = Some(m);
+                }
+            }
+        }
+        if let Some((v, ts)) = merged {
+            out.insert(key.to_string(), json!({ "v": v, "ts": ts }));
+        }
+    }
+    Ok(Json(Value::Object(out)))
+}
+
+// ===== Gợi ý nhạc: item-item KNN với trọng số BM25 (ý tưởng từ thư viện `implicit`) =====
+// "Hàng" = mỗi tài khoản (yêu thích + lịch sử, yêu thích nặng hơn như độ tin cậy của ALS) và mỗi playlist.
+// Hai bài hay xuất hiện cùng nhau trong nhiều hàng thì giống nhau; bài chưa có trong thư viện của bạn
+// nhưng giống những bài bạn thích sẽ được xếp lên đầu.
+const BM25_K1: f64 = 100.0;
+const BM25_B: f64 = 0.8;
+
+type RecRows = std::collections::HashMap<String, std::collections::HashMap<String, f64>>;
+
+fn rec_load(
+    db: &Connection,
+    sql: &str,
+    prefix: &str,
+    w: f64,
+    me: i64,
+    rows: &mut RecRows,
+    meta: &mut std::collections::HashMap<String, String>,
+    mine: &mut std::collections::HashMap<String, f64>,
+    owned: &mut std::collections::HashSet<String>,
+) -> Result<(), ApiErr> {
+    let mut stmt = db.prepare(sql).map_err(|_| e500())?;
+    let it = stmt
+        .query_map([], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?)))
+        .map_err(|_| e500())?;
+    for (row_id, owner, key, js) in it.flatten() {
+        let rk = format!("{}{}", prefix, row_id);
+        *rows.entry(rk).or_default().entry(key.clone()).or_insert(0.0) += w;
+        meta.entry(key.clone()).or_insert(js);
+        if owner == me {
+            *mine.entry(key.clone()).or_insert(0.0) += w;
+            owned.insert(key);
+        }
+    }
+    Ok(())
+}
+
+// ----- "Radio" của YouTube Music cho một bài (danh sách bài liên quan do YouTube tính từ hành vi nghe của hàng triệu người) -----
+fn yt_panel_items<'a>(v: &'a Value, out: &mut Vec<&'a Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistPanelVideoRenderer") {
+                out.push(r);
+                return;
+            }
+            for x in m.values() {
+                yt_panel_items(x, out);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_panel_items(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn yt_panel_track(r: &Value) -> Option<Value> {
+    let id = r.get("videoId")?.as_str()?;
+    if id.len() != 11 {
+        return None;
+    }
+    let title = r.get("title").map(yt_text).unwrap_or_default();
+    if title.is_empty() {
+        return None;
+    }
+    let by = r.get("longBylineText").map(yt_text).unwrap_or_default();
+    let artist = by.split(" \u{2022} ").map(|x| x.trim()).find(|p| !yt_junk_part(p)).unwrap_or("").to_string();
+    let dur = r.get("lengthText").map(yt_text).and_then(|t| yt_dur(&t)).unwrap_or(0);
+    let image = r
+        .pointer("/thumbnail/thumbnails")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .map(|x| x.to_string())
+        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg"));
+    let explicit = r.get("badges").map(|b| b.to_string().contains("MUSIC_EXPLICIT_BADGE")).unwrap_or(false);
+    Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit }))
+}
+
+static RADIO_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
+fn radio_cache() -> &'static Mutex<HashMap<String, (u64, Vec<Value>)>> {
+    RADIO_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Bài của một nghệ sĩ (tìm "Tên songs", chỉ giữ bài mà nghệ sĩ – sau khi gộp alias – đúng là người đó), nhớ 6 giờ.
+static ARTSONG_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Vec<Value>)>>> = std::sync::OnceLock::new();
+async fn artist_songs(client: &reqwest::Client, name: &str) -> Vec<Value> {
+    let ck = art_norm(name);
+    let cache = ARTSONG_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Some((t, v)) = cache.lock().unwrap().get(&ck) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return v.clone();
+        }
+    }
+    let want = canon_artist(name).to_lowercase();
+    let mut list = yt_songs(client, &format!("{name} songs")).await;
+    list.retain(|t| track_artists(t).iter().any(|a| a.to_lowercase() == want));
+    list.truncate(30);
+    if !list.is_empty() {
+        let mut c = cache.lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ck, (now_secs(), list.clone()));
+    }
+    list
+}
+
+async fn yt_radio(client: &reqwest::Client, id: &str) -> Vec<Value> {
+    if let Some((t, v)) = radio_cache().lock().unwrap().get(id) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return v.clone();
+        }
+    }
+    let body = json!({
+        "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
+        "videoId": id,
+        "playlistId": format!("RDAMVM{id}"),
+        "isAudioOnly": true,
+    });
+    let resp = match client
+        .post("https://music.youtube.com/youtubei/v1/next?prettyPrint=false")
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(12))
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r,
+        _ => return Vec::new(),
+    };
+    let v: Value = match resp.json().await {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
+    let mut items: Vec<&Value> = Vec::new();
+    yt_panel_items(&v, &mut items);
+    let mut tracks: Vec<Value> = items
+        .into_iter()
+        .filter_map(yt_panel_track)
+        .filter(|t| t.get("id").and_then(|x| x.as_str()) != Some(id))
+        .collect();
+    tracks.truncate(30);
+    if !tracks.is_empty() {
+        let mut c = radio_cache().lock().unwrap();
+        if c.len() > 500 {
+            c.clear();
+        }
+        c.insert(id.to_string(), (now_secs(), tracks.clone()));
+    }
+    tracks
+}
+
+// Gợi ý cho bạn = item-item KNN kiểu `implicit` (BM25 + cosine) trên các "hàng" dữ liệu:
+//   - hàng của từng tài khoản (yêu thích ×3, nghe ×1 – như độ tin cậy c = 1 + α·r của ALS) và từng playlist,
+//   - hàng "radio" của vài bài bạn yêu thích nhất (YouTube Music cho biết bài nào hay được nghe cùng bài đó).
+// Nhờ hàng radio, tài khoản chỉ có một người dùng vẫn có dữ liệu "bài nào đi với bài nào".
+// Hoà trộn gu: gộp yêu thích + lịch sử của mình và của một người bạn thành một danh sách (bài chung xếp đầu, rồi xen kẽ hai bên).
+async fn blend(State(st): State<AppState>, headers: HeaderMap, Path(fid): Path<i64>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let is_friend: i64 = db
+        .query_row("SELECT COUNT(*) FROM friends WHERE user_id=?1 AND friend_id=?2", params![u.id, fid], |r| r.get(0))
+        .unwrap_or(0);
+    if is_friend == 0 {
+        return Err((StatusCode::NOT_FOUND, "Người này chưa là bạn của bạn".to_string()));
+    }
+    let fname: String = db.query_row("SELECT display_name FROM users WHERE id=?1", [fid], |r| r.get(0)).map_err(|_| e500())?;
+    let load = |uid: i64| -> Vec<(String, Value)> {
+        let mut out: Vec<(String, Value)> = Vec::new();
+        let mut seen: HashSet<String> = HashSet::new();
+        for tbl in ["favorites", "history"] {
+            let sql = format!("SELECT track_key, track_json FROM {tbl} WHERE user_id=?1 ORDER BY rowid DESC LIMIT 200");
+            if let Ok(mut stmt) = db.prepare(&sql) {
+                if let Ok(it) = stmt.query_map([uid], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))) {
+                    for (k, js) in it.flatten() {
+                        if seen.insert(k.clone()) {
+                            if let Ok(v) = serde_json::from_str::<Value>(&js) {
+                                out.push((k, v));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        out
+    };
+    let mine = load(u.id);
+    let theirs = load(fid);
+    let tset: HashSet<&String> = theirs.iter().map(|x| &x.0).collect();
+    let mut shared: Vec<Value> = Vec::new();
+    let mut used: HashSet<String> = HashSet::new();
+    for (k, v) in &mine {
+        if tset.contains(k) {
+            shared.push(v.clone());
+            used.insert(k.clone());
+        }
+    }
+    let a: Vec<&Value> = mine.iter().filter(|x| !used.contains(&x.0)).map(|x| &x.1).collect();
+    let b: Vec<&Value> = theirs.iter().filter(|x| !used.contains(&x.0)).map(|x| &x.1).collect();
+    let mut tracks: Vec<Value> = shared.clone();
+    for i in 0..a.len().max(b.len()) {
+        if let Some(x) = a.get(i) {
+            tracks.push((*x).clone());
+        }
+        if let Some(x) = b.get(i) {
+            tracks.push((*x).clone());
+        }
+    }
+    tracks.truncate(100);
+    Ok(Json(json!({ "friend": { "id": fid, "display_name": fname }, "shared": shared.len(), "tracks": tracks })))
+}
+
+async fn recommend(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
+    let u = require(&st, &headers)?;
+    let (allow_explicit, use_proxy) = user_net_prefs(&st, u.id);
+    let client = pick_client(&st, use_proxy);
+    let mut rows: RecRows = HashMap::new();
+    let mut meta: HashMap<String, String> = HashMap::new();
+    let mut mine: HashMap<String, f64> = HashMap::new();
+    let mut owned: HashSet<String> = HashSet::new();
+    {
+        let db = st.db.lock().unwrap();
+        rec_load(&db, "SELECT user_id, user_id, track_key, track_json FROM favorites", "u", 3.0, u.id, &mut rows, &mut meta, &mut mine, &mut owned)?;
+        rec_load(&db, "SELECT user_id, user_id, track_key, track_json FROM history", "u", 1.0, u.id, &mut rows, &mut meta, &mut mine, &mut owned)?;
+        rec_load(
+            &db,
+            "SELECT t.playlist_id, p.user_id, t.track_key, t.track_json FROM playlist_tracks t JOIN playlists p ON p.id=t.playlist_id",
+            "p",
+            2.0,
+            u.id,
+            &mut rows,
+            &mut meta,
+            &mut mine,
+            &mut owned,
+        )?;
+    }
+    if mine.is_empty() {
+        return Ok(Json(Vec::new()));
+    }
+
+    // Độ yêu thích từng NGHỆ SĨ (đã gộp alias: "Abuse" và "Abu-Se-Ken" là một) tính từ yêu thích + lịch sử + playlist của bạn.
+    let mut art_aff: HashMap<String, f64> = HashMap::new();
+    let mut art_name: HashMap<String, String> = HashMap::new();
+    let mut art_tracks: HashMap<String, Vec<String>> = HashMap::new();
+    for (k, w) in mine.iter() {
+        let Some(t) = meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()) else { continue };
+        for a in track_artists(&t) {
+            let lk = a.to_lowercase();
+            *art_aff.entry(lk.clone()).or_insert(0.0) += *w;
+            art_tracks.entry(lk.clone()).or_default().push(k.clone());
+            art_name.entry(lk).or_insert(a);
+        }
+    }
+    let mut top_arts: Vec<(String, f64)> = art_aff.iter().map(|(k, w)| (k.clone(), *w)).collect();
+    top_arts.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
+    top_arts.truncate(6);
+    let aff_max = top_arts.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
+
+    // Chọn tối đa 6 bài "hạt giống" trong 16 bài độ tin cậy cao nhất, xoay theo giờ để gợi ý không đứng yên.
+    let mut ranked_seeds: Vec<(String, f64)> = mine.iter().map(|(k, w)| (k.clone(), *w)).collect();
+    ranked_seeds.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(&b.0)));
+    ranked_seeds.truncate(16);
+    let hour = (now_secs() / 3600) as usize;
+    let n_s = ranked_seeds.len();
+    let picked: Vec<(String, String)> = (0..n_s.min(6))
+        .filter_map(|i| {
+            let (k, _) = &ranked_seeds[(i + hour) % n_s];
+            let v: Value = serde_json::from_str(meta.get(k)?).ok()?;
+            if v.get("src").and_then(|x| x.as_str()) != Some("yt") {
+                return None;
+            }
+            let id = v.get("id").and_then(|x| x.as_str())?.to_string();
+            Some((k.clone(), id))
+        })
+        .collect();
+    let radios = futures_util::future::join_all(picked.iter().map(|(_, id)| yt_radio(&client, id))).await;
+    for ((seed_key, id), list) in picked.iter().zip(radios.into_iter()) {
+        let row = rows.entry(format!("r{}", id)).or_default();
+        *row.entry(seed_key.clone()).or_insert(0.0) += 2.0;
+        for (rank, t) in list.iter().enumerate() {
+            let Some(k) = track_key(t) else { continue };
+            *row.entry(k.clone()).or_insert(0.0) += 1.0 / (1.0 + rank as f64 / 8.0);
+            meta.entry(k).or_insert_with(|| t.to_string());
+        }
+    }
+    // Hàng "nghệ sĩ": bài của vài nghệ sĩ bạn nghe nhiều nhất (xoay theo giờ) cùng các bài bạn đã nghe của họ,
+    // để bài khác của đúng nghệ sĩ đó (kể cả khi YouTube ghi tên kênh khác như "Abuse") được gợi ý.
+    let n_a = top_arts.len();
+    let art_pick: Vec<String> = (0..n_a.min(3)).map(|i| top_arts[(i + hour) % n_a].0.clone()).collect();
+    let art_names: Vec<String> = art_pick.iter().map(|lk| art_name.get(lk).cloned().unwrap_or_else(|| lk.clone())).collect();
+    let art_lists = futures_util::future::join_all(art_names.iter().map(|nm| artist_songs(&client, nm))).await;
+    for (lk, list) in art_pick.iter().zip(art_lists.into_iter()) {
+        let row = rows.entry(format!("a{}", lk)).or_default();
+        for k in art_tracks.get(lk).into_iter().flatten() {
+            *row.entry(k.clone()).or_insert(0.0) += 2.0;
+        }
+        for (rank, t) in list.iter().enumerate() {
+            let Some(k) = track_key(t) else { continue };
+            *row.entry(k.clone()).or_insert(0.0) += 1.0 / (1.0 + rank as f64 / 8.0);
+            meta.entry(k).or_insert_with(|| t.to_string());
+        }
+    }
+    if rows.len() < 2 {
+        return Ok(Json(Vec::new()));
+    }
+
+    // BM25: giảm trọng số bài quá phổ biến (idf) và chuẩn hóa theo độ dài hàng
+    let n = rows.len() as f64;
+    let mut df: HashMap<&str, f64> = HashMap::new();
+    for r in rows.values() {
+        for k in r.keys() {
+            *df.entry(k.as_str()).or_insert(0.0) += 1.0;
+        }
+    }
+    let avg = (rows.values().map(|r| r.values().sum::<f64>()).sum::<f64>() / n).max(1e-9);
+    let mut wrows: Vec<Vec<(&str, f64)>> = Vec::new();
+    let mut norm: HashMap<&str, f64> = HashMap::new();
+    let mut inv: HashMap<&str, Vec<usize>> = HashMap::new();
+    for r in rows.values() {
+        let len: f64 = r.values().sum();
+        let mut v: Vec<(&str, f64)> = Vec::with_capacity(r.len());
+        for (k, x) in r.iter() {
+            let d = df.get(k.as_str()).copied().unwrap_or(1.0);
+            let idf = (1.0 + (n - d + 0.5) / (d + 0.5)).ln();
+            let w = *x * (BM25_K1 + 1.0) / (BM25_K1 * ((1.0 - BM25_B) + BM25_B * len / avg) + *x) * idf;
+            *norm.entry(k.as_str()).or_insert(0.0) += w * w;
+            v.push((k.as_str(), w));
+        }
+        let idx = wrows.len();
+        for (k, _) in v.iter() {
+            inv.entry(*k).or_default().push(idx);
+        }
+        wrows.push(v);
+    }
+
+    // điểm của bài j = Σ trọng số(bài i của bạn) × độ giống cosine(i, j)
+    let mut score: HashMap<&str, f64> = HashMap::new();
+    for (seed, sw) in mine.iter() {
+        let Some(rs) = inv.get(seed.as_str()) else { continue };
+        let ni = norm.get(seed.as_str()).copied().unwrap_or(0.0).sqrt();
+        if ni <= 0.0 {
+            continue;
+        }
+        for &ri in rs.iter() {
+            let row = &wrows[ri];
+            let wi = row.iter().find(|e| e.0 == seed.as_str()).map(|e| e.1).unwrap_or(0.0);
+            for e in row.iter() {
+                let (j, wj) = (e.0, e.1);
+                if j == seed.as_str() || owned.contains(j) {
+                    continue;
+                }
+                let nj = norm.get(j).copied().unwrap_or(0.0).sqrt();
+                if nj <= 0.0 {
+                    continue;
+                }
+                *score.entry(j).or_insert(0.0) += *sw * wi * wj / (ni * nj);
+            }
+        }
+    }
+    let mut ranked: Vec<(&str, f64)> = score.into_iter().collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
+
+    // Cộng điểm theo độ quen thuộc của nghệ sĩ: bài của nghệ sĩ bạn hay nghe (theo tên đã gộp alias) được đẩy lên.
+    let top_score = ranked.first().map(|x| x.1).unwrap_or(1.0).max(1e-9);
+    let mut ranked: Vec<(&str, f64)> = ranked
+        .into_iter()
+        .map(|(k, s)| {
+            let aff = meta
+                .get(k)
+                .and_then(|js| serde_json::from_str::<Value>(js).ok())
+                .map(|t| track_artists(&t).iter().map(|a| art_aff.get(&a.to_lowercase()).copied().unwrap_or(0.0)).fold(0.0, f64::max) / aff_max)
+                .unwrap_or(0.0);
+            (k, s / top_score + 0.6 * aff.min(1.0))
+        })
+        .collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal).then(a.0.cmp(b.0)));
+
+    // Lọc: bỏ nội dung không phải nhạc (truyện, podcast, bản dài), tôn trọng cài đặt explicit,
+    // mỗi nghệ sĩ (tên đã gộp alias) tối đa 3 bài; 3 nghệ sĩ bạn nghe nhiều nhất được tối đa 5.
+    let mut per_artist: HashMap<String, u32> = HashMap::new();
+    let mut out: Vec<Value> = Vec::new();
+    for (k, _) in ranked {
+        let Some(t) = meta.get(k).and_then(|js| serde_json::from_str::<Value>(js).ok()) else { continue };
+        let title = t.get("title").and_then(|x| x.as_str()).unwrap_or("").to_lowercase();
+        let dur = t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0);
+        if yt_is_episode(&t) || dur > 720 || ["truyện", "audiobook", "audio book", "podcast", "full album", "chương "].iter().any(|w| title.contains(w)) {
+            continue;
+        }
+        if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        let arts: Vec<String> = track_artists(&t).iter().map(|a| a.to_lowercase()).collect();
+        let art = arts.first().cloned().unwrap_or_default();
+        let fav = top_arts.iter().take(3).any(|(k, _)| arts.contains(k));
+        let cap: u32 = if fav { 5 } else { 3 };
+        let cnt = per_artist.entry(art).or_insert(0);
+        if *cnt >= cap {
+            continue;
+        }
+        *cnt += 1;
+        out.push(t);
+        if out.len() >= 40 {
+            break;
+        }
+    }
+    Ok(Json(out))
+}
+
+async fn pl_list(State(st): State<AppState>, headers: HeaderMap) -> R<Vec<Value>> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let mut stmt = db
+        .prepare("SELECT p.id, p.name, (SELECT COUNT(*) FROM playlist_tracks t WHERE t.playlist_id=p.id) FROM playlists p WHERE p.user_id=?1 ORDER BY p.id")
+        .map_err(|_| e500())?;
+    let rows = stmt
+        .query_map([u.id], |r| {
+            Ok(json!({ "id": r.get::<_, i64>(0)?, "name": r.get::<_, String>(1)?, "count": r.get::<_, i64>(2)? }))
+        })
+        .map_err(|_| e500())?;
+    let mut v: Vec<Value> = rows.filter_map(|x| x.ok()).collect();
+    // Ảnh bìa playlist: lấy ảnh của 4 bài đầu có ảnh (giống ảnh ghép ở trang playlist)
+    for p in v.iter_mut() {
+        let pid = p.get("id").and_then(|x| x.as_i64()).unwrap_or(0);
+        let mut covers: Vec<String> = Vec::new();
+        if let Ok(mut s2) = db.prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid LIMIT 24") {
+            if let Ok(rows2) = s2.query_map([pid], |r| r.get::<_, String>(0)) {
+                for js in rows2.flatten() {
+                    if let Ok(tv) = serde_json::from_str::<Value>(&js) {
+                        if let Some(img) = tv.get("image").and_then(|x| x.as_str()) {
+                            if !img.is_empty() {
+                                covers.push(img.to_string());
+                                if covers.len() >= 4 {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        p["covers"] = json!(covers);
+    }
+    Ok(Json(v))
+}
+
+#[derive(Deserialize)]
+struct NameReq {
+    name: String,
+}
+
+async fn pl_create(State(st): State<AppState>, headers: HeaderMap, Json(r): Json<NameReq>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let name: String = r.name.trim().chars().take(40).collect();
+    if name.is_empty() {
+        return Err(bad("Tên playlist không được trống"));
+    }
+    let db = st.db.lock().unwrap();
+    let n: i64 = db.query_row("SELECT COUNT(*) FROM playlists WHERE user_id=?1", [u.id], |r| r.get(0)).unwrap_or(0);
+    if n >= 50 {
+        return Err(bad("Tối đa 50 playlist"));
+    }
+    db.execute("INSERT INTO playlists(user_id,name) VALUES(?1,?2)", params![u.id, name]).map_err(|_| e500())?;
+    Ok(Json(json!({ "id": db.last_insert_rowid(), "name": name, "count": 0 })))
+}
+
+async fn pl_get(State(st): State<AppState>, headers: HeaderMap, Path(pid): Path<i64>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let name: String = db
+        .query_row("SELECT name FROM playlists WHERE id=?1 AND user_id=?2", params![pid, u.id], |r| r.get(0))
+        .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy playlist".to_string()))?;
+    let mut stmt = db
+        .prepare("SELECT track_json FROM playlist_tracks WHERE playlist_id=?1 ORDER BY rowid")
+        .map_err(|_| e500())?;
+    let tracks = parse_rows(&mut stmt, [pid])?;
+    Ok(Json(json!({ "id": pid, "name": name, "tracks": tracks })))
+}
+
+async fn pl_delete(State(st): State<AppState>, headers: HeaderMap, Path(pid): Path<i64>) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("DELETE FROM playlists WHERE id=?1 AND user_id=?2", params![pid, u.id]).map_err(|_| e500())?;
+    Ok(StatusCode::OK)
+}
+
+async fn pl_add(State(st): State<AppState>, headers: HeaderMap, Path(pid): Path<i64>, Json(t): Json<Value>) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let (k, s) = valid_track(&t)?;
+    let db = st.db.lock().unwrap();
+    if !owns(&db, pid, u.id) {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy playlist".into()));
+    }
+    db.execute("INSERT OR IGNORE INTO playlist_tracks(playlist_id,track_key,track_json) VALUES(?1,?2,?3)", params![pid, k, s])
+        .map_err(|_| e500())?;
+    Ok(StatusCode::OK)
+}
+
+async fn pl_remove(State(st): State<AppState>, headers: HeaderMap, Path((pid, key)): Path<(i64, String)>) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    if !owns(&db, pid, u.id) {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy playlist".into()));
+    }
+    db.execute("DELETE FROM playlist_tracks WHERE playlist_id=?1 AND track_key=?2", params![pid, key]).map_err(|_| e500())?;
+    Ok(StatusCode::OK)
+}
+
+
+// ---------- Ảnh nền (hỗ trợ GIF), icon app (admin) ----------
+async fn upload_bg(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
+    let user = require(&st, &headers)?;
+    if body.len() > 10_000_000 {
+        return Err(bad("Ảnh nền tối đa 10MB"));
+    }
+    let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP"))?;
+    let (body, ext, video) = optimize_upload(body, ext, 960, false).await;
+    let name = save_upload(&st.bg_dir, &body, ext, video).await.map_err(|_| e500())?;
+    let url = format!("/backgrounds/{name}");
+    let old: String;
+    {
+        let db = st.db.lock().unwrap();
+        old = db.query_row("SELECT bg_url FROM users WHERE id=?1", [user.id], |r| r.get(0)).unwrap_or_default();
+        db.execute(
+            "UPDATE users SET bg_url=?1, bg=CASE WHEN bg='glass' THEN 'glass' ELSE 'custom' END WHERE id=?2",
+            params![url, user.id],
+        )
+        .map_err(|_| e500())?;
+    }
+    if let Some(f) = old.strip_prefix("/backgrounds/") {
+        if !f.contains('/') && !f.contains("..") {
+            remove_upload_file(&st.bg_dir, f).await;
+        }
+    }
+    let out = {
+        let db = st.db.lock().unwrap();
+        db.query_row(&format!("SELECT {USER_COLS} FROM users WHERE id=?1"), [user.id], row_to_user)
+            .map_err(|_| e500())?
+    };
+    Ok(Json(out))
+}
+
+// Banner hồ sơ (PNG/JPG/GIF/WEBP ≤ 10MB). Lưu nguyên file gốc để GIF giữ chuyển động.
+async fn upload_banner(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> R<User> {
+    let user = require(&st, &headers)?;
+    if body.len() > 10 * 1024 * 1024 {
+        return Err(bad("Banner tối đa 10MB"));
+    }
+    let ext = sniff_image(&body).ok_or_else(|| bad("Chỉ nhận ảnh PNG, JPG, GIF, WEBP"))?;
+    let (body, ext, video) = optimize_upload(body, ext, 720, true).await;
+    let name = save_upload(&st.banner_dir, &body, ext, video).await.map_err(|_| e500())?;
+    let url = format!("/banners/{name}");
+    let old: String;
+    {
+        let db = st.db.lock().unwrap();
+        old = db.query_row("SELECT banner FROM users WHERE id=?1", [user.id], |r| r.get(0)).unwrap_or_default();
+        db.execute("UPDATE users SET banner=?1 WHERE id=?2", params![url, user.id]).map_err(|_| e500())?;
+    }
+    remove_banner_file(&st, &old).await;
+    Ok(Json(User { banner: url, ..user }))
+}
+
+async fn remove_banner(State(st): State<AppState>, headers: HeaderMap) -> R<User> {
+    let user = require(&st, &headers)?;
+    {
+        let db = st.db.lock().unwrap();
+        db.execute("UPDATE users SET banner='' WHERE id=?1", [user.id]).map_err(|_| e500())?;
+    }
+    remove_banner_file(&st, &user.banner).await;
+    Ok(Json(User { banner: String::new(), ..user }))
+}
+
+async fn remove_banner_file(st: &AppState, url: &str) {
+    if let Some(f) = url.strip_prefix("/banners/") {
+        if !f.contains('/') && !f.contains("..") {
+            remove_upload_file(&st.banner_dir, f).await;
+        }
+    }
+}
+
+async fn admin_icon(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !user.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin mới đổi được icon".into()));
+    }
+    if body.len() > 2 * 1024 * 1024 || !body.starts_with(&[0x89, b'P', b'N', b'G']) {
+        return Err(bad("Icon phải là file PNG, tối đa 2MB"));
+    }
+    tokio::fs::write(st.app_dir.join("icon.png"), &body).await.map_err(|_| e500())?;
+    Ok(StatusCode::OK)
+}
+
+async fn admin_icon_reset(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
+    let user = require(&st, &headers)?;
+    if !user.is_admin {
+        return Err((StatusCode::FORBIDDEN, "Chỉ admin mới đổi được icon".into()));
+    }
+    let _ = tokio::fs::remove_file(st.app_dir.join("icon.png")).await;
+    Ok(StatusCode::OK)
+}
+
+// ---------- Thẻ chia sẻ hồ sơ ----------
+// App vẽ thẻ "FANS NO." bằng canvas rồi tải PNG lên đây (POST /api/card). Server lưu data/cards/<id>.png và phục vụ:
+//   GET /u/<username>      trang có thẻ Open Graph (Zalo/Messenger/Discord/Telegram hiện ảnh thẻ + tên khi dán link) và nút mở thẳng vào app Android
+//   GET /api/u/<username>  thông tin công khai tối thiểu để app hiện thẻ hồ sơ khi mở link
+// Chỉ người đã tạo thẻ chia sẻ mới có trang công khai; chưa tạo thì trả 404 (không lộ tên/ảnh của người chưa chia sẻ).
+fn card_path(st: &AppState, id: i64) -> PathBuf {
+    st.card_dir.join(format!("{id}.jpg"))
+}
+
+async fn card_version(st: &AppState, id: i64) -> Option<u64> {
+    let m = tokio::fs::metadata(card_path(st, id)).await.ok()?;
+    m.modified().ok()?.duration_since(UNIX_EPOCH).ok().map(|d| d.as_secs())
+}
+
+fn card_name_ok(n: &str) -> bool {
+    !n.is_empty() && n.len() <= 64 && n.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+}
+
+#[derive(Serialize)]
+struct PublicUser {
+    id: i64,
+    username: String,
+    display_name: String,
+    avatar: String,
+    accent: String,
+    banner: String,
+    banner_color: String,
+    status: String,
+    crop: String,
+    supporter: i64,
+    online: bool,
+}
+
+fn public_user_by_name(st: &AppState, username: &str) -> Option<PublicUser> {
+    let db = st.db.lock().unwrap();
+    db.query_row(
+        "SELECT id,username,display_name,avatar,accent,banner,banner_color,status,crop,supporter,is_admin FROM users WHERE username=?1 COLLATE NOCASE",
+        [username],
+        |r| {
+            let is_admin = r.get::<_, i64>(10)? != 0;
+            Ok(PublicUser {
+                id: r.get(0)?,
+                username: r.get(1)?,
+                display_name: r.get(2)?,
+                avatar: r.get(3)?,
+                accent: r.get(4)?,
+                banner: r.get(5)?,
+                banner_color: r.get(6)?,
+                status: r.get(7)?,
+                crop: r.get(8)?,
+                supporter: if is_admin { 2 } else { r.get(9)? },
+                online: false,
+            })
+        },
+    )
+    .ok()
+}
+
+async fn upload_card(State(st): State<AppState>, headers: HeaderMap, body: Bytes) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    if body.len() > 3 * 1024 * 1024 || !body.starts_with(&[0xFF, 0xD8, 0xFF]) {
+        return Err(bad("Ảnh thẻ phải là JPEG, tối đa 3MB"));
+    }
+    tokio::fs::write(card_path(&st, user.id), &body).await.map_err(|_| e500())?;
+    let v = card_version(&st, user.id).await.unwrap_or(0);
+    Ok(Json(json!({ "username": user.username, "path": format!("/u/{}", user.username), "v": v, "base": card_base_url(&headers) })))
+}
+
+// ---------- Cấp độ nghe nhạc ----------
+// App báo số giây thực sự đã nghe (gộp mỗi ~60 giây). Server chặn gian lận: mỗi lần tối đa bằng thời gian trôi qua từ lần báo trước (+15s), không quá 600s.
+// Cấp độ và huy hiệu tính ở giao diện từ tổng số giây (listen_secs).
+#[derive(Deserialize)]
+struct ListenReq {
+    secs: i64,
+}
+
+async fn listen_post(State(st): State<AppState>, headers: HeaderMap, Json(req): Json<ListenReq>) -> Result<Json<Value>, ApiErr> {
+    let user = require(&st, &headers)?;
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0);
+    let db = st.db.lock().unwrap();
+    let (cur, last): (i64, i64) = db
+        .query_row("SELECT listen_secs, listen_at FROM users WHERE id=?1", [user.id], |row| Ok((row.get(0)?, row.get(1)?)))
+        .map_err(|_| e500())?;
+    let cap = if last > 0 { (now - last + 15).clamp(0, 600) } else { 300 };
+    let total = cur + req.secs.clamp(0, cap);
+    db.execute("UPDATE users SET listen_secs=?1, listen_at=?2 WHERE id=?3", params![total, now, user.id]).map_err(|_| e500())?;
+    Ok(Json(json!({ "secs": total })))
+}
+
+async fn level_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
+    require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let secs: i64 = db
+        .query_row("SELECT listen_secs FROM users WHERE id=?1", [id], |row| row.get(0))
+        .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy".to_string()))?;
+    Ok(Json(json!({ "id": id, "secs": secs })))
+}
+
+// Số nghệ sĩ người dùng đã theo dõi (lấy từ dữ liệu đồng bộ "follow") — hiện trên thẻ "FANS NO.".
+fn follow_count(db: &rusqlite::Connection, id: i64) -> i64 {
+    db.query_row("SELECT v FROM user_sync WHERE user_id=?1 AND k='follow'", [id], |r| r.get::<_, String>(0))
+        .ok()
+        .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+        .and_then(|v| v.as_array().map(|a| a.len() as i64))
+        .unwrap_or(0)
+}
+
+async fn fans_get(State(st): State<AppState>, _headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
+    let db = st.db.lock().unwrap();
+    Ok(Json(json!({ "id": id, "n": follow_count(&db, id) })))
+}
+
+async fn card_user(State(st): State<AppState>, Path(username): Path<String>) -> Result<Json<PublicUser>, ApiErr> {
+    if !card_name_ok(&username) {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+    }
+    let u = public_user_by_name(&st, &username).ok_or((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".to_string()))?;
+    if card_version(&st, u.id).await.is_none() {
+        return Err((StatusCode::NOT_FOUND, "Không tìm thấy thẻ".into()));
+    }
+    Ok(Json(u))
+}
+
+fn card_esc(s: &str) -> String {
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&#39;")
+}
+
+fn card_base_url(headers: &HeaderMap) -> String {
+    if let Ok(p) = std::env::var("PUBLIC_URL") {
+        let p = p.trim().trim_end_matches('/').to_string();
+        if !p.is_empty() {
+            return p;
+        }
+    }
+    let host = headers
+        .get("x-forwarded-host")
+        .or_else(|| headers.get(header::HOST))
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().chars().filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-' || *c == ':').collect::<String>())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "localhost".into());
+    let proto = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .map(|s| s.trim().to_string())
+        .filter(|s| s == "http" || s == "https")
+        .unwrap_or_else(|| "https".into());
+    format!("{proto}://{host}")
+}
+
+const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>@TITLE@</title>
+<meta property="og:type" content="profile"><meta property="og:site_name" content="BBeat">
+<meta property="og:title" content="@TITLE@"><meta property="og:description" content="@DESC@">
+<meta property="og:url" content="@URL@"><meta property="og:image" content="@IMG@">
+<meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="548">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="@TITLE@"><meta name="twitter:description" content="@DESC@"><meta name="twitter:image" content="@IMG@">
+<meta name="theme-color" content="#07070b">
+<style>html,body{margin:0;background:#07070b}</style>
+<noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
+</head><body style="font-family:system-ui,Segoe UI,Arial,sans-serif;color:#cfd0dc;text-align:center;padding-top:18vh">
+<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a id="w" href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p><p id="s" style="font-size:12px;opacity:.6;margin-top:18px"></p></div>
+<script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
+if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
+/* Trang này đang mở TRONG chính app BBeat (cửa sổ app desktop): vào thẳng giao diện của app và hiện thẻ hồ sơ,
+   không thử mở lại app bằng bbeat:// (trong WebView việc đó không làm gì nên trước đây kẹt ở thông báo lỗi). */
+if(window.__TAURI__||window.__TAURI_INTERNALS__||window.MuseNative){location.replace("/?u="+encodeURIComponent(app.split("/").pop()));return;}
+/* Máy tính (Windows/macOS/Linux) dùng trình duyệt: thử mở app BBeat bằng bbeat://u/<tên>. Không tự đẩy sang web vì trình duyệt
+   có thể đang hỏi "Mở BBeat?" (hộp thoại này không làm trang mất focus), nên chỉ đổi lời nhắc và để người dùng chọn. */
+if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
+var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn=document.getElementById("a"),timer=0,halt=function(){stop=true;};
+addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
+var okd=false,who=app.split("/").pop(),opened=function(){stop=true;clearTimeout(timer);t.textContent="BBeat đã được mở. Có thể đóng tab này.";};
+/* Cách 1 (không cần đăng ký gì với Windows): báo cho app ĐANG CHẠY qua cổng nhà 127.0.0.1 để nó tự hiện thẻ. */
+var st=document.getElementById("s"),say=function(x){if(st)st.textContent=x;};
+var ping=function(ok,no){var done=false,url="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();
+var fin=function(good){if(done)return;done=true;if(good){okd=true;opened();say("Đã báo cho app đang chạy trên máy này (cổng nhà 127.0.0.1:38417 trả lời). Nếu thẻ không hiện trong app: giao diện web (Render) chưa được cập nhật.");if(ok)ok();}else{say("Không thấy app đang chạy trên máy này (127.0.0.1:38417 không trả lời): app chưa bật, là bản app cũ chưa cập nhật, hoặc trình duyệt đang chặn truy cập mạng nội bộ (bấm biểu tượng ổ khoá cạnh địa chỉ → cho phép \"Thiết bị trong mạng cục bộ\" / Local network access rồi bấm lại).");if(no)no();}};
+var viaImg=function(){var im=new Image();im.onload=function(){fin(true);};im.onerror=function(){fin(false);};im.src=url;};
+try{if(window.fetch){fetch(url,{mode:"no-cors",cache:"no-store",targetAddressSpace:"loopback"}).then(function(){fin(true);},viaImg);}else viaImg();}catch(e){viaImg();}};
+/* Cách 2: gọi bbeat:// để Windows/macOS/Linux bật app khi nó đang tắt (installer của app tự đăng ký link này). */
+var launch=function(){location.href=app;};
+var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){if(!okd){t.textContent="Đã gửi yêu cầu mở BBeat. Nếu app không hiện lên, bấm lại \"Mở trong BBeat\".";}return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
+btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";ping();hint();});
+var wl=document.getElementById("w");if(wl)wl.addEventListener("click",function(){stop=true;clearTimeout(timer);});
+/* Không còn nhớ lựa chọn "Xem trên web" để tự chuyển về sau: chỉ chuyển khi người dùng bấm. Xoá giá trị cũ còn sót lại trong trình duyệt. */
+var pref=0;try{localStorage.removeItem("bbeat_web");}catch(e){}
+m.style.display="block";
+if(pref&&Date.now()-pref<2592000000){ /* người dùng từng chọn "Xem trên web" (chưa cài app): app đang chạy thì mở trong app, không thì vào web luôn */
+  t.textContent="Đang mở…";ping(null,function(){location.replace(web);});setTimeout(function(){if(!stop)location.replace(web);},1500);return;}
+ping();launch();hint();return;}
+}catch(e){}location.replace(web);})();</script>
+</body></html>"##;
+
+#[derive(Deserialize)]
+struct CardQ {
+    web: Option<String>,
+}
+
+async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username): Path<String>, Query(q): Query<CardQ>) -> Response {
+    let nf = || (StatusCode::NOT_FOUND, [(header::CONTENT_TYPE, "text/plain; charset=utf-8")], "Không tìm thấy thẻ BBeat này").into_response();
+    if !card_name_ok(&username) {
+        return nf();
+    }
+    let Some(u) = public_user_by_name(&st, &username) else { return nf() };
+    let Some(v) = card_version(&st, u.id).await else { return nf() };
+    let base = card_base_url(&headers);
+    let uname = u.username.clone(); // dạng chữ hoa/thường chuẩn trong DB; chỉ gồm [A-Za-z0-9_.-]
+    let page_url = format!("{base}/u/{uname}");
+    let img = format!("{base}/cards/{}.jpg?v={v}", u.id);
+    let title = format!("{} · Bấm để xem hồ sơ trên BBeat", u.display_name);
+    let fans = { let db = st.db.lock().unwrap(); follow_count(&db, u.id) };
+    let desc = format!("FANS NO. {} · Thẻ hồ sơ BBeat của {}", fans, u.display_name);
+    let enc = |t: &str| t.replace(':', "%3A").replace('/', "%2F").replace('?', "%3F").replace('=', "%3D");
+    let intent = format!("intent://u/{uname}#Intent;scheme=bbeat;package=vn.muse.app;S.browser_fallback_url={};end", enc(&format!("{page_url}?web=1")));
+    // Người dùng Android bấm link (không phải bot xem trước, không phải ?web=1) → chuyển thẳng vào app, không hiện trang web.
+    let ua = headers.get(header::USER_AGENT).and_then(|v| v.to_str().ok()).unwrap_or("").to_lowercase();
+    let is_bot = ["bot", "crawler", "spider", "preview", "facebookexternalhit", "zalo", "slurp", "embed", "whatsapp", "telegram", "skype", "linkedin", "pinterest"]
+        .iter()
+        .any(|k| ua.contains(k));
+    if ua.contains("android") && !is_bot && !q.web.as_deref().map(|w| w == "1").unwrap_or(false) {
+        return (StatusCode::FOUND, [(header::LOCATION, intent.clone()), (header::CACHE_CONTROL, "no-store".to_string())]).into_response();
+    }
+    let html = CARD_PAGE
+        .replace("@APP_JS@", &format!("bbeat://u/{uname}")) // uname chỉ gồm [A-Za-z0-9_.-]
+        .replace("@APP@", &card_esc(&format!("bbeat://u/{uname}")))
+        .replace("@INTENT_JS@", &intent) // chuỗi này chỉ chứa ký tự an toàn trong "..." (tên đã lọc, URL đã mã hoá)
+        .replace("@INTENT@", &card_esc(&intent))
+        .replace("@WEB@", &card_esc(&format!("{base}/?u={uname}")))
+        .replace("@TITLE@", &card_esc(&title))
+        .replace("@DESC@", &card_esc(&desc))
+        .replace("@NAME@", &card_esc(&u.display_name))
+        .replace("@URL@", &card_esc(&page_url))
+        .replace("@IMGREL@", &card_esc(&format!("/cards/{}.jpg?v={v}", u.id)))
+        .replace("@IMG@", &card_esc(&img));
+    ([(header::CONTENT_TYPE, "text/html; charset=utf-8"), (header::CACHE_CONTROL, "public, max-age=300")], html).into_response()
+}
+
+// Android App Links (tuỳ chọn): đặt ANDROID_CERT_SHA256 = vân tay SHA-256 của chứng chỉ ký APK (nhiều giá trị cách nhau dấu phẩy)
+// thì link https://<server>/u/<tên> mở thẳng vào app, không qua trình duyệt. Không đặt thì trả 404 và nút "Mở trong BBeat" ở trang link vẫn dùng được.
+async fn assetlinks() -> Response {
+    let fps: Vec<String> = std::env::var("ANDROID_CERT_SHA256")
+        .unwrap_or_default()
+        .split(',')
+        .map(|s| s.trim().to_uppercase())
+        .filter(|s| !s.is_empty())
+        .collect();
+    if fps.is_empty() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let v = json!([{ "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": { "namespace": "android_app", "package_name": "vn.muse.app", "sha256_cert_fingerprints": fps } }]);
+    ([(header::CONTENT_TYPE, "application/json")], v.to_string()).into_response()
+}
+
+async fn serve_icon(State(st): State<AppState>) -> Response {
+    match tokio::fs::read(st.app_dir.join("icon.png")).await {
+        Ok(b) => ([(header::CONTENT_TYPE, "image/png"), (header::CACHE_CONTROL, "no-cache")], b).into_response(),
+        Err(_) => StatusCode::NOT_FOUND.into_response(),
+    }
+}
+
+// ---------- Tìm kiếm YouTube Music (InnerTube – cùng API mà InnerTune/SmartTube dùng) ----------
+// Chỉ lấy danh sách bài; phát nhạc vẫn qua player chính thức của YouTube ở giao diện web.
+#[derive(Deserialize)]
+struct YtQ {
+    q: Option<String>,
+    f: Option<String>,
+}
+
+fn yt_text(v: &Value) -> String {
+    v.get("runs")
+        .and_then(|r| r.as_array())
+        .map(|a| a.iter().filter_map(|x| x.get("text").and_then(|t| t.as_str())).collect::<String>())
+        .unwrap_or_default()
+}
+
+fn yt_dur(s: &str) -> Option<u64> {
+    let s = s.trim();
+    if s.is_empty() || !s.contains(':') {
+        return None;
+    }
+    let mut sec = 0u64;
+    for x in s.split(':') {
+        sec = sec * 60 + x.trim().parse::<u64>().ok()?;
+    }
+    Some(sec)
+}
+
+// Phần không phải tên nghệ sĩ: thời lượng (3:38), lượt xem/nghe, năm, nhãn Song/Video.
+fn yt_junk_part(p: &str) -> bool {
+    let l = p.trim().to_lowercase();
+    l.is_empty()
+        || yt_dur(&l).is_some()
+        || l.contains("views")
+        || l.contains("plays")
+        || l.contains("lượt")
+        || l == "song"
+        || l == "video"
+        || l.chars().all(|c| c.is_ascii_digit())
+}
+
+fn yt_track(item: &Value) -> Option<Value> {
+    let id = item
+        .pointer("/playlistItemData/videoId")
+        .and_then(|x| x.as_str())
+        .or_else(|| {
+            item.pointer("/overlay/musicItemThumbnailOverlayRenderer/content/musicPlayButtonRenderer/playNavigationEndpoint/watchEndpoint/videoId")
+                .and_then(|x| x.as_str())
+        })?;
+    if id.len() != 11 {
+        return None;
+    }
+    let cols = item.get("flexColumns")?.as_array()?;
+    let col = |i: usize| -> String {
+        cols.get(i)
+            .and_then(|c| c.pointer("/musicResponsiveListItemFlexColumnRenderer/text"))
+            .map(yt_text)
+            .unwrap_or_default()
+    };
+    let title = col(0);
+    if title.is_empty() {
+        return None;
+    }
+    // Cột 2 dạng "Nghệ sĩ • Album • 3:45" (có thể có nhãn "Song"/"Video" ở đầu).
+    let parts: Vec<String> = col(1)
+        .split(" \u{2022} ")
+        .map(|x| x.trim().to_string())
+        .filter(|x| !x.is_empty())
+        .collect();
+    // Tên nghệ sĩ là cột đầu tiên KHÔNG phải nhãn/thời lượng/lượt xem (trước đây video chỉ có "3:38" bị lấy nhầm làm nghệ sĩ).
+    let artist = parts.iter().find(|p| !yt_junk_part(p)).cloned().unwrap_or_default();
+    let dur: u64 = parts.iter().rev().find_map(|p| yt_dur(p)).unwrap_or(0);
+    let image = item
+        .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .map(|x| x.to_string())
+        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg"));
+    let explicit = item
+        .get("badges")
+        .map(|b| b.to_string().contains("MUSIC_EXPLICIT_BADGE"))
+        .unwrap_or(false);
+    // Loại video do YouTube Music gắn: OMV = MV chính chủ của nghệ sĩ, ATV = bản âm thanh chính thức, UGC = video người dùng tự đăng (fan, remix, cover...).
+    let vt = {
+        let s = item.to_string();
+        let key = "\"musicVideoType\":\"MUSIC_VIDEO_TYPE_";
+        s.find(key)
+            .map(|i| s[i + key.len()..].chars().take_while(|c| c.is_ascii_uppercase() || *c == '_').collect::<String>())
+            .unwrap_or_default()
+    };
+    Some(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": dur, "explicit": explicit, "vt": vt }))
+}
+
+// Mục không phải bài hát trong kết quả tìm kiếm: album, nghệ sĩ, danh sách phát, podcast.
+fn yt_entity(item: &Value) -> Option<Value> {
+    let be = item.pointer("/navigationEndpoint/browseEndpoint")?;
+    let id = be.get("browseId")?.as_str()?;
+    let pt = be
+        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+        .and_then(|x| x.as_str())
+        .unwrap_or("");
+    let kind = match pt {
+        "MUSIC_PAGE_TYPE_ALBUM" => "album",
+        "MUSIC_PAGE_TYPE_ARTIST" | "MUSIC_PAGE_TYPE_USER_CHANNEL" => "artist",
+        "MUSIC_PAGE_TYPE_PLAYLIST" => "playlist",
+        "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE" => "podcast",
+        _ => return None,
+    };
+    let cols = item.get("flexColumns")?.as_array()?;
+    let col = |i: usize| -> String {
+        cols.get(i)
+            .and_then(|c| c.pointer("/musicResponsiveListItemFlexColumnRenderer/text"))
+            .map(yt_text)
+            .unwrap_or_default()
+    };
+    let title = col(0);
+    if title.is_empty() {
+        return None;
+    }
+    let image = item
+        .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string();
+    Some(json!({ "kind": kind, "id": id, "title": title, "sub": col(1), "image": image }))
+}
+
+// Tập cả bài hát lẫn mục khác từ một kết quả tìm kiếm (giữ nguyên thứ tự YouTube Music trả về).
+fn yt_collect_all(v: &Value, tracks: &mut Vec<Value>, ents: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                if let Some(t) = yt_track(item) {
+                    tracks.push(t);
+                } else if let Some(e) = yt_entity(item) {
+                    ents.push(e);
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_all(x, tracks, ents);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_all(x, tracks, ents);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Tập tập podcast (dạng musicMultiRowListItemRenderer) ở trang chương trình podcast.
+fn yt_collect_episodes(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(it) = m.get("musicMultiRowListItemRenderer") {
+                let id = it.pointer("/onTap/watchEndpoint/videoId").and_then(|x| x.as_str()).unwrap_or("");
+                if id.len() == 11 {
+                    let title = it.get("title").map(yt_text).unwrap_or_default();
+                    let artist = it.get("subtitle").map(yt_text).unwrap_or_default();
+                    let image = it
+                        .pointer("/thumbnail/musicThumbnailRenderer/thumbnail/thumbnails")
+                        .and_then(|a| a.as_array())
+                        .and_then(|a| a.last())
+                        .and_then(|t| t.get("url"))
+                        .and_then(|u| u.as_str())
+                        .map(|x| x.to_string())
+                        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg"));
+                    out.push(json!({ "src": "yt", "id": id, "title": title, "artist": artist, "image": image, "url": "", "dur": 0, "explicit": false, "vt": "PODCAST_EPISODE" }));
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_episodes(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_episodes(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Tham số bộ lọc của YouTube Music (giống ytmusicapi). "all" = không lọc.
+fn yt_filter_params(f: &str) -> Option<&'static str> {
+    match f {
+        "songs" => Some("EgWKAQIIAWoMEA4QChADEAQQCRAF"),
+        "videos" => Some("EgWKAQIQAWoMEA4QChADEAQQCRAF"),
+        "albums" => Some("EgWKAQIYAWoMEA4QChADEAQQCRAF"),
+        "artists" => Some("EgWKAQIgAWoMEA4QChADEAQQCRAF"),
+        "podcasts" => Some("EgWKAQJQAWoMEA4QChADEAQQCRAF"),
+        "playlists" => Some("EgeKAQQoAEABagwQDhAKEAMQBBAJEAU="),
+        "featured" => Some("EgeKAQQoADgBagwQDhAKEAMQBBAJEAU="),
+        _ => None,
+    }
+}
+
+fn yt_collect(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                if let Some(t) = yt_track(item) {
+                    out.push(t);
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// ---------- Lọc kết quả: bỏ podcast / nội dung không phải nhạc, bỏ bài không liên quan tới từ khoá ----------
+// Tập podcast do YouTube Music gắn nhãn "Episode" (musicVideoType = PODCAST_EPISODE).
+fn yt_is_episode(t: &Value) -> bool {
+    t.get("vt").and_then(|x| x.as_str()) == Some("PODCAST_EPISODE")
+        || t.get("artist").and_then(|x| x.as_str()).map(|a| a.trim().eq_ignore_ascii_case("episode")).unwrap_or(false)
+}
+
+// Không phải nhạc: tập podcast, truyện / sách nói, video quá dài (> 20 phút).
+// MV chính chủ (OMV) và bản âm thanh chính thức (ATV) luôn được giữ.
+// Video do người khác đăng (UGC: bản live, cover, MV fan làm, playlist True LIVE...) vẫn được giữ, vì nhiều người muốn xem bản đó.
+fn yt_is_non_music(t: &Value) -> bool {
+    if yt_is_episode(t) {
+        return true;
+    }
+    let vt = t.get("vt").and_then(|x| x.as_str()).unwrap_or("");
+    if vt == "OMV" || vt == "ATV" || vt == "OFFICIAL_SOURCE_MUSIC" {
+        return false;
+    }
+    let title = t.get("title").and_then(|x| x.as_str()).unwrap_or("").to_lowercase();
+    let dur = t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0);
+    dur > 1200 || ["podcast", "audiobook", "audio book", "truyện", "chương "].iter().any(|w| title.contains(w))
+}
+
+const YT_STOP: &[&str] = &[
+    "the", "and", "feat", "featuring", "with", "official", "video", "music", "lyrics", "lyric", "audio", "live", "version", "remix", "cover",
+    "instrumental", "full", "song", "songs", "topic", "hdr", "new", "from", "you", "your", "vol", "ver", "inst", "vocal", "edit", "short",
+];
+
+// Tách từ khoá: chữ Latin >= 3 ký tự, chữ Nhật/Hàn/Trung... >= 2 ký tự; bỏ từ phổ biến và số thuần.
+fn yt_tokens(s: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for w in s.to_lowercase().split(|c: char| !c.is_alphanumeric()) {
+        let n = w.chars().count();
+        let wide = !w.is_ascii();
+        if (wide && n >= 2) || (!wide && n >= 3) {
+            if !YT_STOP.iter().any(|x| *x == w) && !w.chars().all(|c| c.is_ascii_digit()) {
+                out.push(w.to_string());
+            }
+        }
+    }
+    out
+}
+
+// Chữ Latin: khớp nguyên từ (tránh "ster" khớp nhầm "monster"); chữ CJK: khớp chuỗi con (vì không có dấu cách giữa các từ).
+fn yt_has_tok(hay: &str, toks: &HashSet<String>, tok: &str) -> bool {
+    if tok.is_ascii() {
+        toks.contains(tok)
+    } else {
+        hay.contains(tok)
+    }
+}
+
+// Bỏ bài không liên quan tới từ khoá tìm kiếm. YouTube Music hay trả thêm vài bài lạc đề ở cuối (ví dụ tìm "Gakumas" ra Drake, M83).
+// Không so chữ cứng với từ khoá (vì "Gakumas" = "学マス" = "学園アイドルマスター" = "Hatsuboshi Gakuen"), mà học từ chính kết quả:
+// lấy 8 bài đứng đầu (YouTube xếp theo độ khớp) làm mốc, những từ xuất hiện ở >= 2 bài mốc là "từ chủ đề".
+// Các bài phía sau chỉ được giữ nếu có từ chủ đề (hoặc khớp trực tiếp từ khoá). Bài do người khác đăng nhưng đúng chủ đề (ví dụ bài Roar) vẫn được giữ.
+fn yt_relevance_filter(tracks: Vec<Value>, query: &str) -> Vec<Value> {
+    const SEED: usize = 8;
+    if tracks.len() <= SEED {
+        return tracks;
+    }
+    let hays: Vec<String> = tracks
+        .iter()
+        .map(|t| {
+            format!(
+                "{} {}",
+                t.get("title").and_then(|x| x.as_str()).unwrap_or(""),
+                t.get("artist").and_then(|x| x.as_str()).unwrap_or("")
+            )
+            .to_lowercase()
+        })
+        .collect();
+    let toks: Vec<HashSet<String>> = hays.iter().map(|h| yt_tokens(h).into_iter().collect()).collect();
+    let q = query.trim().to_lowercase();
+    let qt = yt_tokens(&q);
+    let direct: Vec<bool> = (0..tracks.len())
+        .map(|i| {
+            let whole = q.chars().count() >= 3 && hays[i].contains(q.as_str());
+            let hit = qt.iter().filter(|w| yt_has_tok(&hays[i], &toks[i], w.as_str())).count();
+            whole || (!qt.is_empty() && hit * 2 >= qt.len())
+        })
+        .collect();
+    let mut cnt: HashMap<String, u32> = HashMap::new();
+    for i in 0..tracks.len() {
+        if i < SEED || direct[i] {
+            for w in toks[i].iter() {
+                *cnt.entry(w.clone()).or_insert(0) += 1;
+            }
+        }
+    }
+    let mut anchors: Vec<String> = cnt.into_iter().filter(|(_, c)| *c >= 2).map(|(w, _)| w).collect();
+    for w in qt {
+        if !anchors.contains(&w) {
+            anchors.push(w);
+        }
+    }
+    if anchors.is_empty() {
+        return tracks;
+    }
+    let kept: Vec<Value> = tracks
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| *i < SEED || direct[*i] || anchors.iter().any(|a| yt_has_tok(&hays[*i], &toks[*i], a.as_str())))
+        .map(|(_, t)| t.clone())
+        .collect();
+    if kept.len() < 3 {
+        tracks
+    } else {
+        kept
+    }
+}
+
+// Trả về (cho phép nội dung nhạy cảm, dùng proxy) theo cài đặt của người dùng.
+fn user_net_prefs(st: &AppState, uid: i64) -> (bool, bool) {
+    let db = st.db.lock().unwrap();
+    let s = load_settings(&db, uid);
+    let g = |k: &str| s.get(k).and_then(|v| v.as_bool()).unwrap_or(false);
+    (g("explicit"), g("proxy"))
+}
+fn pick_client(st: &AppState, use_proxy: bool) -> reqwest::Client {
+    if use_proxy {
+        if let Some(c) = &st.http_proxy {
+            return c.clone();
+        }
+    }
+    st.http.clone()
+}
+
+async fn yt_search(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtQ>) -> R<Value> {
+    let dbg_t0 = std::time::Instant::now();
+    let dbg_src = if st.gateway.is_some() { "gateway" } else { "server" };
+    // Không bắt buộc đăng nhập: khách (không có token) vẫn tìm nhạc được với cài đặt mặc định.
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let dbg_prefs = dbg_t0.elapsed().as_millis();
+    let client = pick_client(&st, use_proxy);
+    let text: String = q.q.unwrap_or_default().trim().chars().take(100).collect();
+    if text.is_empty() {
+        return Err(bad("Thiếu từ khoá tìm kiếm"));
+    }
+    let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    // Cache 10 phút: trang chủ mở lại là có ngay, không phải chờ YouTube Music.
+    // Có tham số f (all/songs/videos/albums/artists/playlists/featured/podcasts) thì trả {tracks, entities}; không có thì trả mảng bài hát như cũ.
+    let filt: Option<String> = q.f.as_deref().map(|x| x.trim().to_lowercase()).filter(|x| !x.is_empty());
+    let ckey = format!("{}|{}|{}|{}", text.to_lowercase(), allow_explicit as u8, use_proxy as u8, filt.clone().unwrap_or_default());
+    if let Some((t, v)) = search_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 600 {
+            dbg_log(&format!("[SEARCH] query={text:?} f={} source={dbg_src} cache=HIT(RAM) prefs={dbg_prefs}ms total={}ms", filt.clone().unwrap_or_default(), dbg_t0.elapsed().as_millis()));
+            return Ok(Json(v.clone()));
+        }
+    }
+    let mut body = json!({
+        "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
+        "query": text,
+    });
+    match filt.as_deref() {
+        // Không có f: bộ lọc "Songs" như trước đây
+        None => body["params"] = json!("EgWKAQIIAWoKEAkQBRAKEAMQBA=="),
+        Some(f) => {
+            if let Some(p) = yt_filter_params(f) {
+                body["params"] = json!(p);
+            }
+        }
+    }
+    let dbg_f = filt.clone().unwrap_or_default();
+    let dbg_t1 = std::time::Instant::now();
+    let resp = client
+        .post("https://music.youtube.com/youtubei/v1/search?prettyPrint=false")
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| {
+            dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS LỖI_KẾT_NỐI prefs={dbg_prefs}ms after={}ms err={e}", dbg_t1.elapsed().as_millis()));
+            fail("Không kết nối được YouTube Music")
+        })?;
+    let dbg_hdr = dbg_t1.elapsed().as_millis();
+    if !resp.status().is_success() {
+        dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS YOUTUBE_TRẢ_LỖI status={} prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms", resp.status().as_u16()));
+        return Err(fail("YouTube Music trả về lỗi"));
+    }
+    let v: Value = resp.json().await.map_err(|e| {
+        dbg_log(&format!("[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS LỖI_ĐỌC_JSON prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms err={e}"));
+        fail("YouTube Music trả dữ liệu lạ")
+    })?;
+    let dbg_body = dbg_t1.elapsed().as_millis() - dbg_hdr;
+    let dbg_t2 = std::time::Instant::now();
+    let mut out: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    if filt.is_some() {
+        yt_collect_all(&v, &mut out, &mut ents);
+    } else {
+        yt_collect(&v, &mut out);
+    }
+    let dbg_raw = out.len();
+    let dbg_parse = dbg_t2.elapsed().as_millis();
+    let dbg_t3 = std::time::Instant::now();
+    if !allow_explicit {
+        out.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+    }
+    // Bỏ podcast / nội dung không phải nhạc (trừ khi người dùng chủ động chọn bộ lọc Podcasts).
+    if filt.as_deref() != Some("podcasts") {
+        out.retain(|t| !yt_is_non_music(t));
+        // Bỏ bài lạc đề khi người dùng tự tìm (tab Tất cả / Bài hát / Video).
+        if matches!(filt.as_deref(), Some("all") | Some("songs") | Some("videos")) {
+            out = yt_relevance_filter(out, &text);
+        }
+    }
+    out.truncate(30);
+    ents.truncate(30);
+    dbg_log(&format!(
+        "[SEARCH] query={text:?} f={dbg_f} source={dbg_src} cache=MISS prefs={dbg_prefs}ms youtube_headers={dbg_hdr}ms youtube_body={dbg_body}ms json_parse={dbg_parse}ms filter={}ms total={}ms raw_tracks={dbg_raw} kept_tracks={} entities={}{}",
+        dbg_t3.elapsed().as_millis(),
+        dbg_t0.elapsed().as_millis(),
+        out.len(),
+        ents.len(),
+        if dbg_raw > 0 && out.is_empty() { "  <<< LỌC MẤT HẾT KẾT QUẢ" } else { "" }
+    ));
+    let val = if filt.is_some() {
+        json!({ "tracks": out, "entities": ents })
+    } else {
+        Value::Array(out)
+    };
+    let non_empty = match &val {
+        Value::Array(a) => !a.is_empty(),
+        Value::Object(o) => o.values().any(|x| x.as_array().map(|a| !a.is_empty()).unwrap_or(false)),
+        _ => false,
+    };
+    if non_empty {
+        let mut c = search_cache().lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+static SEARCH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn search_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    SEARCH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// ---------- Nghệ sĩ liên quan (mục "Fans might also like" trên trang nghệ sĩ của YouTube Music) ----------
+// Dùng cho kệ "Giống X" ở trang chủ: thay vì tìm chữ "nhạc giống X", lấy đúng danh sách nghệ sĩ mà YouTube Music cho là gần với X,
+// rồi lấy vài bài của từng người và xen kẽ lại để một kệ có nhiều giọng khác nhau. Ý tưởng: get_artist(...)["related"] của thư viện ytmusicapi.
+#[derive(Deserialize)]
+struct YtSimQ {
+    artist: Option<String>,
+    genre: Option<String>,
+}
+
+static SIMILAR_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn similar_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    SIMILAR_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Thể loại cho kệ "Giống X": (từ khoá để tìm kiếm, dấu hiệu trong tên bài/nghệ sĩ để ưu tiên). Chỉ liệt kê vài thể loại hay gặp.
+fn genre_spec(g: &str) -> Option<(&'static str, &'static [&'static str])> {
+    match g.trim().to_lowercase().as_str() {
+        "edm" | "edm / remix" | "electronic" | "electro" => Some((
+            "edm",
+            &["edm", "remix", "house", "bass", "dj ", " dj", "club", "electro", "trance", "dubstep", "dnb", "drum and bass", "hardstyle", "future", "vip", "festival"],
+        )),
+        "lofi" | "lofi / chill" | "chill" => Some(("lofi", &["lofi", "lo-fi", "chill", "beats", "study"])),
+        "rap" | "hiphop" | "hip-hop" | "rap / hip-hop" => Some(("hip hop", &["rap", "hip hop", "hip-hop", "trap", "drill", "cypher"])),
+        _ => None,
+    }
+}
+fn genre_match(t: &Value, words: &[&str]) -> bool {
+    let txt = format!(
+        "{} {}",
+        t.get("title").and_then(|x| x.as_str()).unwrap_or(""),
+        t.get("artist").and_then(|x| x.as_str()).unwrap_or("")
+    )
+    .to_lowercase();
+    words.iter().any(|w| txt.contains(w))
+}
+
+// Chuẩn hoá tên để so khớp: bỏ dấu cách / ký tự đặc biệt, chữ thường ("Hatsuboshi Gakuen" == "hatsuboshi-gakuen").
+fn norm_name(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên đã chuẩn hoá.
+fn credit_names(s: &str) -> Vec<String> {
+    let t = s.to_lowercase().replace(" feat. ", ",").replace(" feat ", ",").replace(" ft. ", ",").replace(" ft ", ",").replace(" x ", ",");
+    t.split(|c: char| matches!(c, ',' | '&' | ';' | '/' | '、' | '・')).map(norm_name).filter(|x| !x.is_empty()).collect()
+}
+// Bài này có phải của nghệ sĩ gốc (hoặc người cùng nhóm/franchise với họ) không?
+fn is_blocked_track(t: &Value, block: &HashSet<String>) -> bool {
+    let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+    credit_names(a).iter().any(|n| block.contains(n) || block.iter().any(|b| b.chars().count() >= 4 && n.contains(b.as_str())))
+}
+
+fn yt_ctx() -> Value {
+    json!({ "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } })
+}
+
+// POST tới một endpoint InnerTube (search / browse ...), trả None nếu lỗi mạng hoặc YouTube báo lỗi.
+async fn yt_post(client: &reqwest::Client, ep: &str, body: Value) -> Option<Value> {
+    let resp = client
+        .post(format!("https://music.youtube.com/youtubei/v1/{ep}?prettyPrint=false"))
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(12))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    resp.json::<Value>().await.ok()
+}
+
+// Tìm bài hát (bộ lọc "Songs") theo từ khoá.
+async fn yt_songs(client: &reqwest::Client, query: &str) -> Vec<Value> {
+    let body = json!({ "context": yt_ctx(), "query": query, "params": "EgWKAQIIAWoKEAkQBRAKEAMQBA==" });
+    let mut out: Vec<Value> = Vec::new();
+    if let Some(v) = yt_post(client, "search", body).await {
+        yt_collect(&v, &mut out);
+    }
+    out.retain(|t| !yt_is_non_music(t));
+    out
+}
+
+// Các thẻ nghệ sĩ (musicTwoRowItemRenderer có pageType = ARTIST) trên trang nghệ sĩ: chỉ mục "Fans might also like" có loại thẻ này.
+fn yt_related_artists(v: &Value, out: &mut Vec<(String, String)>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("");
+                    let name = r.get("title").map(yt_text).unwrap_or_default();
+                    if pt == "MUSIC_PAGE_TYPE_ARTIST" && !id.is_empty() && !name.is_empty() {
+                        out.push((name, id.to_string()));
+                    }
+                }
+            } else {
+                for x in m.values() {
+                    yt_related_artists(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_related_artists(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// GET /api/yt/similar?artist=Tên → { artist, related: [{name,id}], tracks: [...] }  (tracks xen kẽ giữa các nghệ sĩ liên quan)
+async fn yt_similar(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtSimQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let lname = name.to_lowercase();
+    let genre_in: String = q.genre.unwrap_or_default().trim().chars().take(30).collect();
+    let ckey = format!("{}|{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8, genre_in.to_lowercase());
+    if let Some((t, v)) = similar_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let empty = json!({ "artist": name, "related": [], "tracks": [] });
+
+    // 1) Tìm nghệ sĩ: ưu tiên tên trùng khớp, không có thì lấy kết quả nghệ sĩ đầu tiên.
+    let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
+        return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
+    };
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let is_artist = |e: &&Value| e.get("kind").and_then(|x| x.as_str()) == Some("artist");
+    let exact = ents
+        .iter()
+        .filter(is_artist)
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    // Chỉ nhận trang nghệ sĩ có tên thật sự khớp (trùng hoặc chứa nhau). Trước đây lấy kết quả đầu tiên nên "Ume Hanami" (không có trang riêng)
+    // bị nhận nhầm thành một nghệ sĩ lạ rồi gợi ý lung tung.
+    let nname = norm_name(&name);
+    let near = ents.iter().filter(is_artist).find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let seed_ent = exact.or(near);
+    let aid: String = match seed_ent.and_then(|e| e.get("id")).and_then(|x| x.as_str()) {
+        Some(s) => s.to_string(),
+        None => {
+            // Không có trang nghệ sĩ riêng (vd. chỉ là một giọng trong franchise). Có thể loại thì vẫn cho kệ đúng thể loại đó; không thì ẩn kệ.
+            if let Some((kw, _)) = genre_spec(&genre_in) {
+                let mut extra = yt_songs(&client, &format!("{kw} hits")).await;
+                extra.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
+                if !allow_explicit {
+                    extra.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+                }
+                extra.truncate(20);
+                return Ok(Json(json!({ "artist": name, "related": [], "tracks": extra })));
+            }
+            return Ok(Json(empty));
+        }
+    };
+    let seed_title: String = seed_ent.and_then(|e| e.get("title")).and_then(|x| x.as_str()).unwrap_or("").to_string();
+
+    // "Nhóm loại trừ": nghệ sĩ gốc + tất cả người từng đứng chung tên với họ trên bài hát của họ.
+    // Vd. Hatsuboshi Gakuen là một franchise (Gakuen Idolmaster) do nhiều nhân vật / ca sĩ hát: Saki Hanami, Ume Hanami...
+    // đều là "người nhà", không phải "giống" → bỏ hết khỏi kệ.
+    let mut block: HashSet<String> = HashSet::new();
+    block.insert(norm_name(&name));
+    if !seed_title.is_empty() {
+        block.insert(norm_name(&seed_title));
+    }
+    block.retain(|x| !x.is_empty());
+
+    // 2) Trang nghệ sĩ → danh sách nghệ sĩ liên quan (song song với việc lấy bài của chính nghệ sĩ gốc để dò "người nhà").
+    let (bv_opt, seed_songs) = futures_util::future::join(
+        yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })),
+        yt_songs(&client, &name),
+    )
+    .await;
+    let Some(bv) = bv_opt else {
+        return Ok(Json(empty));
+    };
+    // Thể loại: ưu tiên tham số genre do app gửi; không có thì tự đoán từ chính các bài của nghệ sĩ gốc (đa số mang dấu hiệu EDM → EDM).
+    let own: Vec<&Value> = seed_songs.iter().filter(|t| is_blocked_track(t, &block)).collect();
+    let mut spec = genre_spec(&genre_in);
+    if spec.is_none() && own.len() >= 3 {
+        if let Some(e) = genre_spec("edm") {
+            if own.iter().filter(|t| genre_match(t, e.1)).count() * 100 >= own.len() * 40 {
+                spec = Some(e);
+            }
+        }
+    }
+    for t in seed_songs.iter() {
+        if is_blocked_track(t, &block) {
+            let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+            for n in credit_names(a) {
+                block.insert(n);
+            }
+        }
+    }
+    let mut rel: Vec<(String, String)> = Vec::new();
+    yt_related_artists(&bv, &mut rel);
+    let mut seen_ids: HashSet<String> = HashSet::new();
+    rel.retain(|(n, id)| id != &aid && n.to_lowercase() != lname && !block.contains(&norm_name(n)) && seen_ids.insert(id.clone()));
+    rel.truncate(7);
+    if rel.is_empty() && spec.is_none() {
+        return Ok(Json(empty));
+    }
+
+    // 3) Vài bài của từng nghệ sĩ liên quan (tìm song song), rồi xen kẽ.
+    let lists = futures_util::future::join_all(rel.iter().map(|(n, _)| {
+        let qs = match spec {
+            Some((kw, _)) => format!("{n} {kw}"),
+            None => n.clone(),
+        };
+        let c = client.clone();
+        async move { yt_songs(&c, &qs).await }
+    }))
+    .await;
+    // Một tên cùng đứng trong bài của nhiều nghệ sĩ liên quan khác nhau = nhãn / franchise (vd. Hatsuboshi Gakuen) chứ không phải một giọng riêng → coi là "người nhà", bỏ hết.
+    {
+        let mut cnt: HashMap<String, usize> = HashMap::new();
+        for ((n, _), l) in rel.iter().zip(lists.iter()) {
+            let own_n = norm_name(n);
+            let mut names: HashSet<String> = HashSet::new();
+            for t in l.iter() {
+                let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+                for c in credit_names(a) {
+                    if c != own_n && !own_n.contains(&c) && !c.contains(&own_n) {
+                        names.insert(c);
+                    }
+                }
+            }
+            for c in names {
+                *cnt.entry(c).or_insert(0) += 1;
+            }
+        }
+        let need = if rel.len() >= 3 { std::cmp::max(2, rel.len() / 2) } else { usize::MAX };
+        for (c, k) in cnt {
+            if k >= need {
+                block.insert(c);
+            }
+        }
+    }
+    let mut per: Vec<Vec<Value>> = Vec::new();
+    for ((n, _), l) in rel.iter().zip(lists.into_iter()) {
+        let ln = n.to_lowercase();
+        // Nghệ sĩ "liên quan" mà phần lớn bài tìm được lại ghi tên nghệ sĩ gốc / người nhà → cũng là người nhà, bỏ cả người đó.
+        let hits = l.iter().filter(|t| is_blocked_track(t, &block)).count();
+        if !l.is_empty() && hits * 2 >= l.len() {
+            per.push(Vec::new());
+            continue;
+        }
+        let l: Vec<Value> = l.into_iter().filter(|t| !is_blocked_track(t, &block)).collect();
+        let mut mine: Vec<Value> = l
+            .iter()
+            .filter(|t| t.get("artist").and_then(|x| x.as_str()).map(|a| a.to_lowercase().contains(&ln)).unwrap_or(false))
+            .cloned()
+            .collect();
+        if mine.len() < 2 {
+            mine = l;
+        }
+        mine.retain(|t| t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) <= 720);
+        if !allow_explicit {
+            mine.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+        }
+        if let Some((_, words)) = spec {
+            mine.sort_by_key(|t| !genre_match(t, words));   // sort ổn định: bài đúng thể loại lên trước
+        }
+        mine.truncate(5);
+        per.push(mine);
+    }
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen_t: HashSet<String> = HashSet::new();
+    for i in 0..5 {
+        for l in per.iter() {
+            if let Some(t) = l.get(i) {
+                let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !id.is_empty() && seen_t.insert(id) {
+                    tracks.push(t.clone());
+                }
+            }
+        }
+    }
+    // Có thể loại mà vẫn thiếu bài (vì nghệ sĩ liên quan phần lớn là "người nhà" đã bị loại) → bổ sung bằng bài hot của đúng thể loại đó.
+    if tracks.len() < 6 {
+        if let Some((kw, _)) = spec {
+            let extra = yt_songs(&client, &format!("{kw} hits")).await;
+            for t in extra {
+                if is_blocked_track(&t, &block) || t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) > 720 {
+                    continue;
+                }
+                if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+                    continue;
+                }
+                let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !id.is_empty() && seen_t.insert(id) {
+                    tracks.push(t);
+                }
+            }
+        }
+    }
+    let related: Vec<Value> = rel.iter().zip(per.iter()).filter(|(_, l)| !l.is_empty()).map(|((n, id), _)| json!({ "name": n, "id": id })).collect();
+    let val = json!({ "artist": name, "related": related, "tracks": tracks });
+    if !tracks.is_empty() {
+        let mut c = similar_cache().lock().unwrap();
+        if c.len() > 300 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+// ---------- Bài MỚI của một nghệ sĩ (kệ "X · bài mới" ở trang chủ) ----------
+// Tìm theo tên chỉ ra bài cũ nổi tiếng nên không dùng được. Ở đây: mở trang nghệ sĩ → các single/album của năm nay (và năm ngoái) →
+// lấy bài trong đó → hỏi YouTube ngày đăng thật của từng bài (microformat.publishDate). App chỉ coi là "mới" khi bài ra trong vài ngày gần đây.
+#[derive(Deserialize)]
+struct YtFreshQ {
+    artist: Option<String>,
+}
+
+static FRESH_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn fresh_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    FRESH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+// ngày đăng của từng video (số ngày từ 1970-01-01); ngày đăng không đổi nên nhớ luôn
+static PUBDAY_CACHE: std::sync::OnceLock<Mutex<HashMap<String, i64>>> = std::sync::OnceLock::new();
+fn pubday_cache() -> &'static Mutex<HashMap<String, i64>> {
+    PUBDAY_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// (năm, tháng, ngày) → số ngày kể từ 1970-01-01
+fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = (if y >= 0 { y } else { y - 399 }) / 400;
+    let yoe = y - era * 400;
+    let mp = (m + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146097 + doe - 719468
+}
+// "2026-11-08T00:00:00-07:00" hoặc "2026-11-08" → số ngày
+fn parse_ymd_days(s: &str) -> Option<i64> {
+    let d = s.get(0..10)?;
+    let mut it = d.split('-');
+    let y: i64 = it.next()?.parse().ok()?;
+    let m: i64 = it.next()?.parse().ok()?;
+    let dd: i64 = it.next()?.parse().ok()?;
+    if !(1990..=2100).contains(&y) || !(1..=12).contains(&m) || !(1..=31).contains(&dd) {
+        return None;
+    }
+    Some(days_from_civil(y, m, dd))
+}
+
+async fn yt_pubday(client: &reqwest::Client, vid: &str) -> Option<i64> {
+    if let Some(d) = pubday_cache().lock().unwrap().get(vid) {
+        return Some(*d);
+    }
+    // thử lần lượt: client của YouTube Music rồi client web thường
+    let tries: [(&str, &str, Value); 2] = [
+        ("https://music.youtube.com", "https://music.youtube.com/youtubei/v1/player?prettyPrint=false", yt_ctx()),
+        (
+            "https://www.youtube.com",
+            "https://www.youtube.com/youtubei/v1/player?prettyPrint=false",
+            json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "en", "gl": "VN" } }),
+        ),
     ];
-    const tc=$('#topChips'); bindChipsWheel();
-    if(ci>0) moodOpen=true;
-    const moods=sets.slice(1).map(([l],i)=>`<button class="chip mi ${i+1===ci?'on':''}" data-m="${i+1}" style="--d:${i}">${esc(l)}</button>`).join('');
-    tc.innerHTML=moodOpen
-      ? `<button class="chip on" id="moodBtn" aria-expanded="true" title="Thu gọn">Tâm trạng</button>${moods}`
-      : `<button class="chip ${ci===0?'on':''}" data-chip="0">Tất cả</button><button class="chip" id="moodBtn" aria-expanded="false">Tâm trạng</button>`;
-    tc.scrollLeft=chipScroll;
-    const keep=()=>{ chipScroll=tc.scrollLeft; };
-    const all=tc.querySelector('[data-chip]'); if(all) all.onclick=()=>{ homeTg=''; homeCi=0; moodOpen=false; chipScroll=0; go('home'); };
-    $('#moodBtn').onclick=()=>{ homeTg=''; if(moodOpen){ moodOpen=false; homeCi=0; chipScroll=0; go('home'); } else { moodOpen=true; chipScroll=0; go('home'); } };
-    tc.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ keep(); homeTg=''; homeCi=+b.dataset.m; go('home'); });
-    const sel=tc.querySelector('.mi.on'); if(sel) requestAnimationFrame(()=>{ const t=sel.offsetLeft-(tc.clientWidth-sel.offsetWidth)/2; tc.scrollTo({left:Math.max(0,t),behavior:'smooth'}); });
-    let taste=buildProfile({},{},new Set(),0);
-    if(ci===0){
-      const q=tasteQuick();
-      if(q){ taste=q; tasteProfile().catch(()=>{}); } // đã có hồ sơ: vẽ Home ngay, cập nhật hồ sơ ngầm cho lần sau
-      else{ // lần đầu/chưa có hồ sơ: hiện khung chờ ngay thay vì để nguyên trang cũ
-        m.innerHTML='<section class="sec"><div class="sh"><div><h3>&nbsp;</h3></div></div>'+skel(7)+'</section><section class="sec"><div class="sh"><div><h3>&nbsp;</h3></div></div>'+skel(7)+'</section>';
-        try{ taste=await tasteProfile(); }catch{}
-      }
-    }
-    if(page!=='home') return;
-    homeTg='';
-    const tgMode=false;
-    const secs=ci===0?planHome(taste,Y):sets[ci][1].map(([t,q])=>[t,q,'','mood']);
-    m.innerHTML=(ci===0&&!tgMode?'<div id="nd"></div><div id="jb"></div><div id="fa"></div><div id="ba"></div><div id="rd"></div><div id="cl"></div><div id="fg"></div><div id="bl"></div><div id="ex"></div><div id="hs"></div><div id="rc"></div><div id="qp"></div><div id="fs"></div>':'')+secs.map(([t,,kk],i)=>sec(i,t,kk)).join('');
-    if(ci===0&&!tgMode){
-      loadNewDaily(taste).then(r=>{ const box=$('#nd'); if(!Array.isArray(r)||r.length<2||!box) return;
-        const list=r.map(x=>x.t), k=reg(list,'Nhạc mới mỗi ngày');
-        box.innerHTML=`<section class="sec nmh"><div class="sh"><div><h3>Nhạc mới mỗi ngày</h3></div><div class="shr"><a class="more pill" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid nmd">${r.map((x,i)=>`<div class="nmc" data-l="${k}" data-i="${i}" data-tk="${esc(key(x.t))}" tabindex="0"><img src="${esc(thumb(x.t.image,600))}" alt=""><div class="nt"><b>${esc(x.t.title)}</b><span>${esc(x.t.artist)}</span></div>${x.a?`<div class="nc">${esc(x.w||('Dành cho người hâm mộ '+x.a))}</div>`:''}</div>`).join('')}</div></section>`; markNow(); }).catch(()=>{});
-      try{ const J=jumpGet(), box=$('#jb');
-        if(J.length&&box){
-          const cards=J.map((x,i)=>{ const cur_=x.tr[Math.min(x.i||0,x.tr.length-1)];
-            const cvr=(x.cov&&x.cov.length>=4)?collage(x.cov.map(image=>({image}))):collage([{image:(x.cov&&x.cov[0])||(cur_&&cur_.image)||''}]);
-            return `<div class="card" data-jb="${i}" tabindex="0"><div class="cvw">${cvr}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">${esc(x.n)}</div><div class="ca">${esc('Tiếp tục: '+(cur_?cur_.title:''))}</div></div>`; }).join('');
-          box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div><h3>Tiếp tục nghe</h3></div><div class="shr"><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${cards}</div></section>`;
-        } }catch{}
-      try{ const names=(taste.artsAll||[]).map(a=>a.n).filter(goodArtist).slice(0,14), box=$('#fa');
-        if(names.length>=2&&box){
-          api('/api/yt/artists?names='+encodeURIComponent(names.join('|'))).then(l=>{ const bx=$('#fa'); if(!Array.isArray(l)||l.length<2||!bx) return;
-            const order=new Map(names.map((n,i)=>[n.toLowerCase(),i]));
-            l=l.slice().sort((a,b)=>(order.has(String(a.title).toLowerCase())?order.get(String(a.title).toLowerCase()):99)-(order.has(String(b.title).toLowerCase())?order.get(String(b.title).toLowerCase()):99));
-            const list=l.slice(0,12).map(e=>({...e,sub:'Nghệ sĩ'}));
-            bx.innerHTML=`<section class="sec"><div class="sh"><div><h3>Nghệ sĩ yêu thích của bạn</h3></div><div class="shr"><a class="more" data-go="followed">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${entCards(list).replace('grid wrap sent','grid')}</section>`; }).catch(()=>{});
-        } }catch{}
-      getBestArtists(taste).then(l=>{ const box=$('#ba'); if(!box||l.length<3) return; const list=l.slice(0,12), k=reg(list,'');
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Nghệ sĩ nổi bật</h3></div><div class="shr"><a class="more" data-go="bestartists">Hiện tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${list.map((e,i)=>tiCard(e,i,k)).join('')}</div></section>`; }).catch(()=>{});
-      loadDaily(taste).then(r=>{ const box=$('#rd'); if(!Array.isArray(r)||r.length<6||!box) return; const k=reg(r,'Gợi ý cho hôm nay');
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Gợi ý cho hôm nay</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Gợi ý cho hôm nay')}</section>`; markNow(); }).catch(()=>{});
-      loadCollections(taste,list=>{ const box=$('#cl'); if(!box||!list.length) return;
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Tuyển tập nhạc cho bạn</h3></div><div class="shr"><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid collg">${list.map(collCard).join('')}</div></section>`; markNow(); });
-      loadForgotten(taste).then(r=>{ const box=$('#fg'); if(!Array.isArray(r)||r.length<4||!box) return; const k=reg(r,'Những bản nhạc yêu thích dần trôi vào quên lãng');
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc yêu thích dần trôi vào quên lãng</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Những bản nhạc yêu thích dần trôi vào quên lãng')}</section>`; markNow(); }).catch(()=>{});
-      { const box=$('#bl'); if(box&&!guest){
-        box.innerHTML=`<section class="sec"><div class="blb" data-go="blend" role="button" tabindex="0"><div class="blt">Hoà trộn gu với bạn bè trong một danh sách phát</div><div class="bg1"></div><div class="bgp">+</div><div class="bg2"></div><div class="bla">${ic('chev')}</div></div></section>`;
-        const b=box.querySelector('.blb'); if(b) b.onkeydown=e=>{ if(e.key==='Enter') go('blend'); }; } }
-      { const box=$('#ex'); if(box){ const Yx=new Date().getFullYear();
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Khám phá</h3></div></div><div class="tiles"><div class="tl" data-gs="nhạc mới ra mắt ${Yx}" style="background:linear-gradient(135deg,#f7971e,#d9423e)" tabindex="0">Bản phát hành mới${ic('note')}</div><div class="tl" data-go="charts" style="background:linear-gradient(135deg,#11998e,#38ef7d)" tabindex="0">Bảng xếp hạng${ic('trend')}</div><div class="tl" data-go="mix" style="background:linear-gradient(135deg,#8e2de2,#4a00e0)" tabindex="0">Mix${ic('shuffle')}</div></div></section>`; } }
-      api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
-        const items=h.slice(0,18), k=reg(items,'Nghe gần đây');
-        const first=h.length>=4?`<div class="card" data-hp="${k}" data-sh="0" tabindex="0"><div class="cvw">${collage(items)}<button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="ct">Nghe gần đây</div><div class="ca">${esc(me.display_name)} • ${h.length} bài hát</div></div>`:'';
-        box.innerHTML=`<section class="sec" style="margin-top:6px"><div class="sh"><div><h3>Nghe lại</h3></div><div class="shr"><a class="more" data-go="history">Thêm</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div><div class="grid">${first}${items.map((t,i)=>cardHtml(t,reg(items,'Nghe gần đây'),i)).join('')}</div></section>`;
-        markNow(); }).catch(()=>{});
-      api('/api/recommend').then(r=>{ const box=$('#rc'); if(!Array.isArray(r)||r.length<4||!box) return; const rr=rerankRec(r,taste); if(rr.length>=4) r=rr; const k=reg(r,'Gợi ý cho bạn');
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Gợi ý cho bạn</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r.slice(0,24),'Gợi ý cho bạn')}</section>`; markNow(); }).catch(()=>{});
-      api('/api/favorites').then(f=>{ const box=$('#fs'); if(!Array.isArray(f)||f.length<2||!box) return; const k=reg(f,'Yêu thích');
-        box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc bạn yêu thích</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(f.slice(0,24),'Yêu thích')}</section>`; markNow(); }).catch(()=>{});
-    }
-    const shown=new Set(); let homeFail=0;
-    const qpIdx=ci===0?secs.findIndex(s=>!s[4]):-1;
-    secs.forEach(async([name,q,,kind,art,byName],i)=>{ const el=$('#g'+i); try{ let r=await ytSearch(q,true); const el2=$('#g'+i); if(!el2) return;
-      let nm=name;
-      if(ci===0&&art&&byName){ r=r.filter(t=>artistHit(t,art)); if(r.length<6){ try{ r=await ytSearch('sim:'+art,true); nm=artTitle('sim',art); const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
-      const isNew=ci===0&&art&&String(q).startsWith('new:'); let minN=6;
-      if(isNew){ const heard=t=>taste.seen.has(key(t)); const f=r.filter(t=>!heard(t));
-        if(f.length){ r=f; minN=1; }
-        else{ try{ const old=await ytSearch(art+' songs',true); r=old.filter(t=>artistHit(t,art)&&!heard(t)); nm=artTitle('disc',art); const h3=el2.closest('.sec').querySelector('h3'); if(h3) h3.textContent=nm; }catch{ r=[]; } } }
-      if(ci===0&&art&&!byName&&String(q).startsWith('sim:')) r=r.filter(t=>!artistHit(t,art));
-      if(ci===0) r=cleanShelf(r,taste,kind,shown,'');
-      if(ci===0&&art&&r.length<(isNew?minN:6)){ el2.closest('.sec').remove(); return; }
-      if(homeShuf) r=seededShuffle(r,homeSeed+i);
-      let items=r.slice(0,20);
-      if(ci===0&&!tgMode&&i===qpIdx&&r.length>=14){ fillQuick(r.slice(0,12)); items=r.slice(12,30); }
-      el2.innerHTML=gridHtml(items,nm);
-      const a=el2.closest('.sec').querySelector('.more[hidden]'); if(a){ a.dataset.hp=Object.keys(lists).pop(); a.dataset.sh='0'; a.hidden=false; }
-      markNow(); }catch(e){ homeFail++; const sc=el&&el.closest('.sec'); if(sc) sc.remove(); else if(el) el.remove();
-        if(homeFail>=secs.length&&!document.querySelector('#main .sec .grid')){ const mm=$('#main'); if(mm&&!mm.querySelector('#homeOff')) mm.insertAdjacentHTML('beforeend','<p class="empty" id="homeOff">Không kết nối được YouTube Music. Hãy thử lại sau.</p>'); } } });
-  },
-  async mix(m){
-    const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','viet','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','intl','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
-    m.innerHTML=`<h2>Mix</h2><p class="sub" style="margin-top:-8px">Bấm vào một mix để nghe ngẫu nhiên.</p><div class="tiles">${mixes.map(([n,q,bg,i])=>`<div class="tl" data-mix="${esc(q)}" data-name="${esc(n)}" style="background:${bg};height:130px" tabindex="0">${esc(n)}<small>Phát ngẫu nhiên</small>${ic(i)}</div>`).join('')}</div>`;
-  },
-  async charts(m,idx=0){
-    const Y=new Date().getFullYear();
-    const tabs=[['Việt Nam','top nhạc việt nam'],['Quốc tế','top songs worldwide'],['K-Pop',`kpop top hits ${Y}`],['EDM','edm top hits']];
-    m.innerHTML=`<h2>Thịnh hành</h2><div class="tabs">${tabs.map(([l],i)=>`<button data-per="${i}" class="${i===idx?'on':''}">${esc(l)}</button>`).join('')}</div><div id="rows">Đang tải…</div>`;
-    m.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>pages.charts(m,+b.dataset.per));
-    try{ $('#rows').innerHTML=tracksHtml(await ytSearch(tabs[idx][1]),false,'Thịnh hành · '+tabs[idx][0]); markNow(); }catch(e){ $('#rows').innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
-  },
-  async search(m,q=''){
-    m.innerHTML=`<div class="sbox">${ic('search')}<input id="sq" placeholder="Tìm bài hát, nghệ sĩ… hoặc dán link YouTube" value="${esc(q)}" autocomplete="off"><div class="shist" id="sHist" hidden></div></div><div class="schips" id="sChips" hidden></div><div id="sres"></div>`;
-    $('#sChips').onclick=e=>{ const b=e.target.closest('[data-sf]'); if(!b) return; sFilter=b.dataset.sf; LS.set('sfilter',sFilter); runSearch($('#sq').value.trim()); };
-    const inp=$('#sq'); let tm;
-    inp.onkeydown=e=>{ if(e.key==='Enter'){ clearTimeout(tm); shHide(); const v=inp.value.trim(); shSave(v); runSearch(v); } else if(e.key==='Escape') shHide(); };
-    inp.oninput=()=>{ clearTimeout(tm); shRender(); tm=setTimeout(()=>runSearch(inp.value.trim()),600); };
-    inp.onblur=()=>setTimeout(shHide,150);
-    $('#sHist').onmousedown=e=>{ if(shAct(e)) return; e.preventDefault(); };
-    inp.focus(); if(q) runSearch(q); else browseTiles();
-  },
-  async favs(m){
-    m.innerHTML='<div id="rows"></div>';
-    const l=await api('/api/favorites'); favs=new Set(l.map(key)); libCounts();
-    $('#rows').innerHTML=hero('Yêu thích',`Danh sách phát · ${l.length} bài hát`,l)+tracksHtml(l,false,'Yêu thích'); markNow();
-  },
-  async history(m){ m.innerHTML='<div id="rows"></div>'; const l=await api('/api/history'); $('#rows').innerHTML=hero('Nghe gần đây','Lịch sử',l)+tracksHtml(l,false,'Nghe gần đây'); markNow(); },
-  async playlist(m,id){
-    let p; try{ p=await api('/api/playlists/'+id); }catch(e){ p=e.message==='401'?null:cachedPlaylist(id); if(!p) throw e; notify('Đang offline – hiển thị bản đã lưu'); } curPl=p.id;
-    m.innerHTML='<div id="rows"></div>';
-    $('#rows').innerHTML=hero(p.name,`Danh sách phát · ${p.tracks.length} bài hát`,p.tracks,`<button class="out" id="plDel">${ic('trash','sm')} Xoá playlist</button>`)+tracksHtml(p.tracks,true,p.name); markNow();
-    $('#plDel').onclick=async()=>{ if(await askConfirm('Xoá playlist này?','Xoá')){ await api('/api/playlists/'+id,{method:'DELETE'}); await loadPlaylists(); go('home'); } };
-  },
-  async together(m){
-    if(guest) return guestCta(m,'Nghe cùng nhau');
-    m.innerHTML=`<h2>Nghe cùng nhau</h2>
-    <div class="two"><div class="panel"><h3 style="margin-top:0">Phòng hiện tại</h3>
-      <div>Mã phòng: <b>${esc(room)}</b> <small>– mọi người trong phòng nghe đồng bộ và cùng điều khiển.</small></div>
-      <div class="row" style="margin-top:10px"><button class="pri" id="cpCode">Chép mã phòng</button></div></div>
-    <div class="panel"><h3 style="margin-top:0">Tham gia phòng</h3>
-      <small>Nhập mã phòng hoặc dán link phòng mà bạn bè gửi.</small>
-      <div class="row" style="margin-top:8px"><input id="joinCode" placeholder="Mã phòng hoặc link phòng"><button class="pri" id="joinBtn">Tham gia</button></div></div></div>
-    <div class="two"><div class="panel"><h3 style="margin-top:0">Mời bạn bè vào phòng</h3>
-      <div id="friends"></div><div class="row" style="margin-top:8px"><button id="goFriends">Quản lý bạn bè</button></div></div>
-    <div class="panel"><h3 style="margin-top:0">Chat phòng</h3><div id="chat"></div>
-      <div class="row"><input id="msg" placeholder="Nhắn gì đó…"><button id="send" class="pri">Gửi</button></div></div></div>`;
-    $('#cpCode').onclick=async()=>{ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } };
-    const doJoin=()=>{ const r=parseRoom($('#joinCode').value); if(!r){ notify('Mã hoặc link phòng không hợp lệ'); return; } switchRoom(r); };
-    $('#joinBtn').onclick=doJoin; $('#joinCode').onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
-    $('#goFriends').onclick=()=>go('friends');
-    $('#send').onclick=()=>{ const t=$('#msg').value.trim(); if(t){ send({type:'chat',text:t}); $('#msg').value=''; } };
-    $('#msg').onkeydown=e=>{ if(e.key==='Enter') $('#send').click(); };
-    $('#chat').innerHTML=chatLog.join(''); $('#chat').scrollTop=1e9; loadFriends();
-  },
-  async friends(m){
-    if(guest) return guestCta(m,'Bạn bè');
-    m.innerHTML=`<h2>Bạn bè</h2>
-    <div class="two"><div class="panel"><h3 style="margin-top:0">Thêm bạn</h3>
-      <small>Nhập mã bạn bè hoặc tên đăng nhập. Người kia sẽ nhận được lời mời và cần chấp nhận.</small>
-      <div class="row" style="margin-top:8px"><input id="friendCode" placeholder="Mã bạn bè hoặc tên đăng nhập"><button class="pri" id="addFriend">Gửi lời mời</button></div>
-      <div class="row"><small>Mã của bạn: <b>${esc(me.code)}</b></small><button id="cpMyCode">Chép mã</button></div></div>
-    <div class="panel"><h3 style="margin-top:0">Lời mời kết bạn</h3><div id="reqs"></div></div></div>
-    <div class="panel"><h3 style="margin-top:0">Danh sách bạn bè <small id="fCount"></small></h3><div id="friendList"></div></div>`;
-    const doAdd=async()=>{ const v=$('#friendCode').value.trim(); if(!v) return;
-      try{ const r=await api('/api/friends',{json:{code:v}}); $('#friendCode').value=''; notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); renderFriendsPage(); }
-      catch(e){ notify(e.message); } };
-    $('#addFriend').onclick=doAdd; $('#friendCode').onkeydown=e=>{ if(e.key==='Enter') doAdd(); };
-    $('#cpMyCode').onclick=async()=>{ try{ await navigator.clipboard.writeText(me.code); notify('Đã chép mã bạn bè'); }catch{ await askText('Mã bạn bè',me.code); } };
-    $('#reqs').onclick=async e=>{ const b=e.target.closest('button[data-a]'); if(!b) return; const id=+b.closest('[data-id]').dataset.id;
-      try{ await api('/api/friends/respond',{json:{user_id:id,action:b.dataset.a}}); if(b.dataset.a==='accept') notify('Đã chấp nhận lời mời'); renderFriendsPage(); }catch(er){ notify(er.message); } };
-    $('#friendList').onclick=async e=>{
-      const row=e.target.closest('[data-id]'); if(!row) return; const id=+row.dataset.id; const f=fmap.get(id);
-      const b=e.target.closest('button[data-a]');
-      if(!b){ if(f&&e.target.closest('.fr')){ e.stopPropagation(); showProfilePop(f,row.querySelector('.fr')); } return; }
-      if(b.dataset.a==='invite'){
-        try{ await sendInvite(id); notify('Đã gửi lời mời tới '+f.display_name); }
-        catch(er){ if(!er.quiet) notify(er.message); }
-      } else if(b.dataset.a==='remove'){
-        if(await askConfirm('Xoá '+f.display_name+' khỏi danh sách bạn bè?','Xoá')){ try{ await api('/api/friends/'+id,{method:'DELETE'}); notify('Đã xoá bạn'); renderFriendsPage(); }catch(er){ notify(er.message); } }
-      } };
-    await renderFriendsPage();
-  },
-  async profile(m){
-    try{ await window.__profSaveChain; }catch{}
-    const skins=[['','Mặc định','linear-gradient(135deg,#1a1530,#07070b)'],['dark','Tối','#000'],['ocean','Biển','linear-gradient(135deg,#0f2027,#2c5364)'],['sunset','Hoàng hôn','linear-gradient(135deg,#42275a,#734b6d)'],['forest','Rừng','linear-gradient(135deg,#1d2b1f,#3b5d3a)'],['custom','Ảnh riêng','']];
-    const D={status:me.status||'',accent:me.accent,bg:me.bg||'',bgUrl:me.bg_url||'',bgFile:null,bgPrev:'',bannerColor:me.banner_color||'',bannerFile:null,bannerPrev:'',bannerClear:false,avatarFile:null,avatarPrev:'',...cropOf(me)};
-    if(guest){ m.innerHTML=`<h2>Hồ sơ</h2><div class="panel pe-lock"><b>Cần đăng nhập</b><p>Khách không thể chỉnh sửa hồ sơ. Đăng nhập (hoặc tạo tài khoản) để đổi avatar, banner, nền và màu chủ đạo.</p><button class="pri" id="peLogin">Đăng nhập</button></div>`; $('#peLogin').onclick=goLogin; return; }
-    const swB=['#3f5670','#6a4c93','#c9485b','#2f7d5b'], swA=['#8ecbff','#fb7299','#ffb74d','#a78bfa'];
-    const dots=(arr,id,cur)=>arr.map(c=>`<i class="dot${(cur||'').toLowerCase()===c?' s':''}" data-c="${c}" data-for="${id}" style="background:${c}" role="button" tabindex="0"></i>`).join('');
-    m.innerHTML=`<h2>Chỉnh sửa hồ sơ</h2><div class="pe">
-    <div class="pe-left"><div class="pe-hero" id="peHero">
-      <div class="pe-ban" id="banBtn" role="button" tabindex="0" title="Đổi banner" aria-label="Đổi banner"><div class="banbg" id="banBg"></div></div>
-      <div class="pe-top"><span class="pe-pill" id="banPick" role="button" tabindex="0">${ic('camera','sm')}Đổi banner</span><span class="pe-pill" id="banFit" role="button" tabindex="0">${ic('crop','sm')}Căn chỉnh</span></div>
-      <div class="pe-hd"><div class="pe-r1"><div class="pe-av" id="avBtn" role="button" tabindex="0" title="Đổi avatar" aria-label="Đổi avatar"><div class="pe-avc"><span id="profAv">${avU(me,'big')}</span></div><span class="pe-cam">${ic('camera','sm')}</span></div>
-        <div class="pe-id"><div class="pe-nm"><b id="peName">${esc(me.display_name)}</b><button class="pe-pen" id="peRename" title="Đổi tên hiển thị" aria-label="Đổi tên hiển thị">${ic('pen','sm')}</button></div>
-        <div class="pe-un"><span>@${esc(me.username||'')}</span><button class="ico" id="cpUn" title="Chép tên đăng nhập">${ic('copy','sm')}</button></div>
-        <div class="pe-bio"><span id="peBio" role="button" tabindex="0"></span><u id="peBioEd" role="button" tabindex="0">Sửa</u></div></div></div>
-        <div class="pe-st"><div><b id="peS1">–</b><span>Fan</span></div><div><b id="peS2">–</b><span>Theo dõi</span></div><div><b id="peS3">–</b><span>Lượt thích</span></div></div></div>
-    </div><small class="hint pe-hn">Chạm vào banner, avatar, tên hoặc trạng thái để sửa trực tiếp</small></div>
-    <input type="file" id="banFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input type="file" id="avFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
-    <div class="pe-right">
-      <div class="pe-sec"><h4>Banner</h4><div class="pe-card"><div class="pe-rw"><b>Ảnh banner</b><div class="pe-bt"><button class="pe-b p" id="banPick2">Đổi ảnh</button><button class="pe-b" id="banFit2">Căn chỉnh</button><button class="pe-b d" id="banDel">Gỡ</button></div></div>
-        <div class="pe-rw"><b>Màu banner</b><div class="pe-sw" id="swB">${dots(swB,'swB',me.banner_color||'')}</div></div></div></div>
-      <div class="pe-sec"><h4>Nền hồ sơ</h4><div class="pe-card"><div class="skins pe-skins" id="skins">${skins.map(([v,l,bg])=>`<div class="sk ${(me.bg||'')===v?'sel':''}" data-v="${v}" style="${bg?'background:'+bg:''}"><span>${l}</span></div>`).join('')}</div>
-        <div id="bgCustom" style="display:${me.bg==='custom'?'block':'none'};padding:0 16px 14px"><div class="bnrow"><button id="bgBtn">Tải ảnh nền (GIF được)</button><input type="file" id="bgFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input id="bgUrl" value="${esc(me.bg_url)}" placeholder="…hoặc dán link https://…/anh-nen.jpg" style="flex:1;min-width:180px"></div><small class="hint">Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.</small></div></div></div>
-      <div class="pe-sec"><div class="pe-card"><div class="pe-rw"><b>Màu chủ đạo</b><div class="pe-sw" id="swA">${dots(swA,'swA',me.accent||'')}<input type="color" id="accent" value="${esc(me.accent)}" aria-label="Chọn màu khác"></div></div></div></div>
-      <div class="pe-sec"><h4>Điều chỉnh chữ</h4><div class="pe-card"><div class="pe-rw"><div class="pe-chips" id="txChips"></div></div>
-        <div class="pe-rw"><b>Màu chữ</b><div class="pe-tsw" id="txSw"></div></div>
-        <div class="pe-rw"><b>Shadow</b><input type="range" class="pe-bi" id="txS" min="-100" max="100" step="1" value="0" aria-label="Shadow"><span class="pe-tn" id="txN" style="min-width:64px"></span><button class="pe-b" id="txRs">Đặt lại</button></div>
-        <div class="pe-rw"><b>Độ đậm</b><input type="range" class="pe-bi" id="txW" min="-100" max="100" step="1" value="0" aria-label="Độ đậm"><span class="pe-tn" id="txWn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Độ rõ</b><input type="range" class="pe-bi" id="txO" min="-100" max="100" step="1" value="0" aria-label="Độ rõ"><span class="pe-tn" id="txOn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Cỡ chữ</b><input type="range" class="pe-bi" id="txZ" min="-100" max="100" step="1" value="0" aria-label="Cỡ chữ"><span class="pe-tn" id="txZn" style="min-width:56px"></span></div></div></div>
-    </div>
-    <div class="pe-bar"><small id="profMsg"></small><button class="pe-b" id="peCancel">Hủy</button><button class="pe-b p" id="saveProfile">Lưu</button></div>
-    </div>`;
-    const pv=()=>({...me,status:D.status,accent:D.accent,avatar:D.avatarPrev||me.avatar,banner:D.bannerClear?'':(D.bannerPrev||me.banner),banner_color:D.bannerColor||'',crop:JSON.stringify({bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa})});
-    const bgImg=()=>D.bgPrev||D.bgUrl;
-    let peReady=false;
-    const refresh=()=>{
-      const P=pv(); $('#profAv').innerHTML=avU(P,'big');
-      const cr=cropOf(P), bb=$('#banBg'), hasImg=okImgUrl(P.banner), col=/^#[0-9a-f]{6}$/i.test(P.banner_color||'')?P.banner_color:P.accent;
-      bb.style.background=col;
-      const bfa=()=>(bb.clientWidth||780)/Math.max(1,bb.clientHeight||300);   /* khung banner thật (tỉ lệ rộng/cao) – cắt ảnh theo đúng khung này nên kéo Y không còn bị hở/lệch */
-      bb.innerHTML=hasImg?`<img src="${esc(P.banner)}" alt="" style="${cropStyle(cr.bx,cr.by,cr.bz,cr.ba,bfa())}">`:'';
-      if(!bb._ro&&window.ResizeObserver){ bb._ro=new ResizeObserver(()=>{ const im=bb.querySelector('img'); if(!im) return; const c=cropOf(pv()); im.setAttribute('style',cropStyle(c.bx,c.by,c.bz,c.ba,bfa())); }); bb._ro.observe(bb); }
-      $('#banDel').style.display=hasImg?'':'none';
-      $('#peBio').textContent=D.status.trim()||'Chạm để thêm trạng thái';
-      m.querySelectorAll('#swB .dot').forEach(x=>x.classList.toggle('s',x.dataset.c===(D.bannerColor||'').toLowerCase()));
-      m.querySelectorAll('#swA .dot').forEach(x=>x.classList.toggle('s',x.dataset.c===(D.accent||'').toLowerCase()));
-      if(peReady) pmsg('Chưa lưu thay đổi');
-      appPrev=true; paintTheme(D.accent,D.bg,bgImg());
-    };
-    const pickFile=(f,max,msgEl)=>{ msgEl=msgEl||$('#profMsg'); if(!f) return null; if(f.size>max){ if(msgEl) msgEl.textContent='Ảnh quá lớn (tối đa '+(max/1048576)+'MB)'; return null; } if(msgEl) msgEl.textContent=''; return f; };
-    m.querySelectorAll('.sk').forEach(el=>el.onclick=()=>{ D.bg=el.dataset.v; m.querySelectorAll('.sk').forEach(x=>x.classList.toggle('sel',x===el)); $('#bgCustom').style.display=D.bg==='custom'?'block':'none'; refresh(); });
-    const editBio=async()=>{ const v=await askText('Trạng thái',D.status||''); if(v==null) return; D.status=v.trim().slice(0,60); refresh(); };
-    $('#peBio').onclick=editBio; $('#peBioEd').onclick=editBio;
-    $('#peRename').onclick=async()=>{ try{ const v=await askText('Tên hiển thị',me.display_name); if(v==null||!v.trim()||v.trim()===me.display_name) return; const u=await api('/api/account/name',{json:{display_name:v}}); applyUser(u); $('#peName').textContent=me.display_name; notify('Đã lưu tên hiển thị'); }catch(er){ notify((er&&er.message)||'Không lưu được'); } };
-    m.querySelectorAll('.pe-pill,.pe-b,.dot,#peBio,#peBioEd').forEach(el=>el.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&el.tagName!=='BUTTON'){ e.preventDefault(); el.click(); } }));
-    m.querySelectorAll('.dot').forEach(el=>el.onclick=()=>{ if(el.dataset.for==='swB'){ D.bannerColor=el.dataset.c; } else { D.accent=el.dataset.c; $('#accent').value=el.dataset.c; } refresh(); });
-    $('#banPick').onclick=e=>{ e.stopPropagation(); $('#banFile').click(); }; $('#banPick2').onclick=()=>$('#banFile').click();
-    const fitBanner=async()=>{ const P=pv(); if(!okImgUrl(P.banner)){ notify('Chưa có ảnh banner để căn chỉnh'); return; } if(await editBanner(P.banner)) refresh(); };
-    $('#banFit').onclick=e=>{ e.stopPropagation(); fitBanner(); }; $('#banFit2').onclick=fitBanner;
-    $('#peCancel').onclick=()=>{ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); pages.profile(m); };
-    $('#cpUn').onclick=async e=>{ e.stopPropagation(); try{ await navigator.clipboard.writeText(me.username||''); notify('Đã chép tên đăng nhập'); }catch{ await askText('Tên đăng nhập',me.username||''); } };
-    (async()=>{ const set=(id,t)=>{ const el=$('#'+id); if(el) el.textContent=t; }; set('peS2',String(followGet().length)); set('peS3',String(favs.size)); api('/api/fans/'+me.id).then(r=>set('peS1',String(+r.n||0)),()=>{});
-      })();
-    $('#accent').oninput=e=>{ D.accent=e.target.value; refresh(); };
-    const cropFor=k=>({x:D[k+'x'],y:D[k+'y'],z:D[k+'z']});
-    const bannerColor=()=>/^#[0-9a-f]{6}$/i.test(D.bannerColor)?D.bannerColor:D.accent;
-    const editBanner=async(src)=>{ const r=await openCrop({title:'Chỉnh sửa banner',kind:'b',src,crop:cropFor('b'),color:bannerColor()}); if(!r) return false; D.bx=r.x; D.by=r.y; D.bz=r.z; D.ba=r.ar; return true; };
-    $('#banBtn').onclick=()=>$('#banFile').click();
-    $('#banBtn').onkeydown=e=>{ if(e.target.id==='banBtn'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); $('#banFile').click(); } };
-    $('#banFile').onchange=async e=>{ let f=pickFile(e.target.files[0],10*1048576,$('#profMsg')); e.target.value=''; if(!f) return; f=(await shrinkImg(f,1600))||f;
-      const url=URL.createObjectURL(f), old={bx:D.bx,by:D.by,bz:D.bz,ba:D.ba}; D.bx=50; D.by=50; D.bz=1;
-      if(!(await editBanner(url))){ URL.revokeObjectURL(url); Object.assign(D,old); return; }
-      if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=f; D.bannerPrev=url; D.bannerClear=false; refresh(); };
-    $('#banDel').onclick=e=>{ e.stopPropagation(); if(D.bannerPrev) URL.revokeObjectURL(D.bannerPrev); D.bannerFile=null; D.bannerPrev=''; D.bannerClear=true; refresh(); };
-    $('#bgBtn').onclick=()=>$('#bgFile').click();
-    $('#bgFile').onchange=e=>{ let f=e.target.files[0]; if(f&&f.size>10000000){ pmsg('Ảnh nền '+(f.size/1e6).toFixed(1)+'MB vượt quá 10MB, không tải lên được'); f=null; } else if(f) pmsg(''); if(f){ if(D.bgPrev) URL.revokeObjectURL(D.bgPrev); D.bgFile=f; D.bgPrev=URL.createObjectURL(f); refresh(); } e.target.value=''; };
-    $('#bgUrl').oninput=e=>{ D.bgUrl=e.target.value.trim(); D.bgFile=null; if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; } refresh(); };
-    $('#avBtn').onclick=()=>$('#avFile').click();
-    $('#avBtn').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#avFile').click(); } };
-    const AV_MAX=10*1048576;
-    /* Thu nhỏ ảnh tĩnh TRƯỚC khi tải lên: ảnh chụp điện thoại vài MB đi qua mạng tới server là phần lâu nhất khi bấm Lưu.
-       Avatar chỉ hiện tối đa ~512px, banner ~720px nên 1024/1600px là dư. Chỉ đụng tới JPG/PNG (GIF, WebP động giữ nguyên để không mất chuyển động);
-       nếu kết quả không nhỏ hơn bản gốc thì dùng bản gốc. File > 10MB vẫn bị ép nén như cũ. */
-    const shrinkImg=(f,maxSide=2048)=>new Promise(res=>{
-      if(!f) return res(f);
-      const still=/^image\/(jpeg|png)$/i.test(f.type), must=f.size>AV_MAX, want=still&&f.size>600*1024;
-      if(!must&&!want) return res(f);
-      const im=new Image(), u=URL.createObjectURL(f), keep=must?null:f;
-      const mime=f.type==='image/png'?'image/webp':'image/jpeg';
-      im.onload=()=>{ URL.revokeObjectURL(u); const big=Math.max(im.naturalWidth,im.naturalHeight); let side=Math.min(must?2048:maxSide,big), q=.9;
-        const go=()=>{ const k=Math.min(1,side/big), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-          c.toBlob(b=>{ if(!b) return res(keep);
-            if(!must) return res(b.size<f.size?b:f);
-            if(b.size<=AV_MAX||side<=128) return res(b); if(q>.6) q-=.1; else side=Math.round(side*.75); go(); },mime,q); };
-        go(); };
-      im.onerror=()=>{ URL.revokeObjectURL(u); res(keep); }; im.src=u; });
-    $('#avFile').onchange=async e=>{ let f=e.target.files[0]; e.target.value=''; if(!f) return; if(/^video\//.test(f.type)||/\.mp4$/i.test(f.name)){ $('#profMsg').textContent='Không nhận video (mp4) làm avatar'; return; } $('#profMsg').textContent=f.size>AV_MAX?'Đang nén ảnh…':''; f=await shrinkImg(f,1024); if(!f){ $('#profMsg').textContent='Không đọc được ảnh này'; return; } $('#profMsg').textContent='';
-      const url=URL.createObjectURL(f);
-      const r=await openCrop({title:'Chỉnh sửa avatar',kind:'a',src:url,crop:{x:50,y:50,z:1},color:'#2a2733'});
-      if(!r){ URL.revokeObjectURL(url); return; }
-      if(D.avatarPrev) URL.revokeObjectURL(D.avatarPrev);
-      D.avatarFile=f; D.avatarPrev=url; D.ax=r.x; D.ay=r.y; D.az=r.z; D.aa=r.ar; refresh(); };
-    /* LƯU: các lần bấm Lưu được xếp hàng và chạy lần lượt (window.__profSaveChain), không bao giờ chồng nhau.
-       Trước đây bấm Lưu → thoát ra → đổi ảnh khác → Lưu: lần lưu cũ (còn đang chạy vì mạng chậm) về sau và đè lại ảnh cũ lên cả server lẫn máy.
-       Giờ lần lưu mới chờ lần cũ xong hẳn, và trang hồ sơ khi mở lại cũng chờ lần lưu đang chạy để lấy đúng dữ liệu mới nhất. */
-    const UP_TMO=150000;   /* ảnh GIF nặng phải qua gifsicle/ffmpeg trên server: cho tối đa 150s rồi báo lỗi thay vì treo vô hạn */
-    const pmsg=t=>{ const el=$('#profMsg'); if(el) el.textContent=t; };
-    const runSave=async()=>{ try{ txSave();
-      pmsg('Đang lưu…');
-      /* Tải ảnh và gửi hồ sơ chạy SONG SONG (mỗi bước nối đuôi sẽ thêm một vòng chờ mạng).
-         Riêng ảnh nền riêng phải xong trước vì hồ sơ cần link của nó. */
-      let avRes=null, banRes=null;
-      const files=[['bg',D.bg==='custom'&&D.bgFile],['av',D.avatarFile],['ban',D.bannerFile]].filter(x=>x[1]);
-      const tot=files.reduce((a,x)=>a+x[1].size,0)||1, got={};
-      const prog=k=>(l,t)=>{ got[k]=Math.min(l,t); const pct=Math.min(99,Math.round(Object.values(got).reduce((a,b)=>a+b,0)/tot*100)); pmsg('Đang lưu… '+pct+'%'+(pct>=99?' (máy chủ đang xử lý)':'')); };
-      if(D.bg==='custom'&&D.bgFile){ pmsg('Đang lưu… 0%'); const r=await apiUp('/api/background',D.bgFile,prog('bg')); D.bgUrl=r.bg_url; D.bgFile=null; const bu=$('#bgUrl'); if(bu) bu.value=D.bgUrl; }
-      const avJob=D.avatarFile?apiUp('/api/avatar',D.avatarFile,prog('av')).then(r=>{ avRes=r; D.avatarFile=null; }):null;
-      const banJob=D.bannerFile?apiUp('/api/banner',D.bannerFile,prog('ban')).then(r=>{ banRes=r; D.bannerFile=null; })
-        :(D.bannerClear&&me.banner?api('/api/banner',{method:'DELETE',timeout:30000}).then(r=>{ banRes=r; }):null);
-      const profJob=api('/api/profile',{timeout:30000,json:{display_name:me.display_name,accent:D.accent,bg:D.bg,bg_url:D.bg==='custom'?D.bgUrl:'',banner_color:D.bannerColor,status:D.status,crop:{bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa,tx:txDump(TX)}}});
-      const [pr]=await Promise.all([profJob,avJob,banJob]);
-      const u={...pr}; if(avRes) u.avatar=avRes.avatar; if(banRes) u.banner=banRes.banner;   /* hồ sơ có thể về trước khi ảnh lưu xong → lấy avatar/banner từ phản hồi của chính lần tải ảnh */
-      applyUser(u); appPrev=false;
-      try{ if(LS.get('muse_cardup_'+((me&&me.id)||''),'')==='1') setTimeout(()=>{ try{ shareCard(me,{silent:true}); }catch{} },400); }catch{}   /* đã từng tạo link chia sẻ → vẽ lại ảnh thẻ trên server theo hồ sơ mới để link xem trước không bị cũ */
-      if(D.bannerPrev){ URL.revokeObjectURL(D.bannerPrev); D.bannerPrev=''; } D.bannerClear=false; if(D.avatarPrev){ URL.revokeObjectURL(D.avatarPrev); D.avatarPrev=''; } if(D.bgPrev){ URL.revokeObjectURL(D.bgPrev); D.bgPrev=''; }
-      try{ refresh(); }catch{} appPrev=false; pmsg('Đã lưu ✔ 100%'); }catch(e){ pmsg(e.message); } };
-    $('#saveProfile').onclick=()=>{ const btn=$('#saveProfile'); if(btn.disabled) return; btn.disabled=true; pmsg('Đang lưu…');
-      window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave).finally(()=>{ btn.disabled=false; }); };
-    /* ===== Điều chỉnh chữ: mỗi chữ có màu + shadow riêng. Lưu theo tài khoản trong máy (LS), không đụng tới dữ liệu hồ sơ trên server. ===== */
-    const TX_K=[['name','Tên'],['un','@username'],['st','Trạng thái'],['fan','Fan'],['fol','Theo dõi'],['like','Lượt thích']];
-    const TX_SEL={name:'#peName',un:'.pe-un>span',st:'#peBio',fan:'#peS1',fol:'#peS2',like:'#peS3'};
-    const TX_COLS=['#ffffff','#ffd166','#7ee787','#ff7eb6','#c4b5fd','#111111'];
-    const txKey='muse_tx2_'+(me.id||'');
-    /* Mỗi thuộc tính lưu dưới dạng ĐỘ LỆCH so với mặc định của chính chữ đó: 0 = giữ nguyên (nằm giữa thanh trượt).
-       s: mức bóng (±5 quanh mức 5 mặc định) · w: bậc đậm (×100) · o: độ rõ (điểm %) · z: cỡ chữ (điểm %) */
-    const txLoad=()=>{ let T=txOf(me); if(!TX_KEYS.some(k=>!txIsDef(T[k]))){ let o=null; try{ o=JSON.parse(LS.get(txKey,'{}')); }catch{} if(o&&typeof o==='object') T=txClean(o); }   /* server là nguồn chính; bản lưu cũ trên máy chỉ dùng để chuyển sang server ở lần Lưu tới */
-      return T; };
-    let TX=txLoad(), txCur='name';
-    const TXB={};   /* mặc định đo được của từng chữ (độ đậm gốc) để biết còn bao nhiêu chỗ chỉnh mỗi phía */
-    const TX_U={s:1,w:1,o:5,z:5};
-    const TX_DEF=()=>({c:'',s:0,w:0,o:0,z:0});
-    const txShadow=n=>n<=0?'none':`0 ${(n*.2).toFixed(2)}px ${(n*1.2).toFixed(1)}px rgba(0,0,0,${Math.min(.95,.1+n*.12).toFixed(2)})`;   /* n=5 ≈ bóng mặc định của khung hồ sơ */
-    /* Còn bao nhiêu chỗ chỉnh về bên trái (giảm) và bên phải (tăng) so với mặc định, tùy từng thuộc tính và từng chữ */
-    const txRoom=(p,k)=>{ const w=(TXB[k]&&TXB[k].w)||400;
-      if(p==='s') return [5,5];
-      if(p==='w') return [Math.max(0,Math.floor((w-300)/100)),Math.max(0,Math.floor((900-w)/100))];
-      if(p==='o') return [60,0];          /* đã rõ 100% thì chỉ có thể mờ đi */
-      return [30,40]; };                  /* cỡ chữ 70% … 140% */
-    const d2t=(p,k,d)=>{ const [L,R]=txRoom(p,k); return d<0?(L?d/L*100:0):(R?d/R*100:0); };
-    const t2d=(p,k,t)=>{ const [L,R]=txRoom(p,k), u=TX_U[p]; if(t<0) return L?-Math.round(-t/100*L/u)*u:0; return R?Math.round(t/100*R/u)*u:0; };
-    const txApply=()=>{ TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(!el) return; const st=/^peS\d$/.test(el.id), v=TX[k], box=st?el.parentElement:el, tg=st?[...box.children]:[el];
-      box.style.opacity=''; tg.forEach(t=>{ t.style.color=''; t.style.textShadow=''; t.style.fontWeight=''; t.style.fontSize=''; });   /* gỡ chỉnh sửa để đo mặc định thật */
-      const base=tg.map(t=>{ const cs=getComputedStyle(t); return {w:parseInt(cs.fontWeight,10)||400,z:parseFloat(cs.fontSize)||0}; });
-      TXB[k]={w:base[0].w};
-      const dw=Math.max(-txRoom('w',k)[0],Math.min(txRoom('w',k)[1],v.w));
-      if(v.o) box.style.opacity=((100+v.o)/100).toFixed(2);
-      tg.forEach((t,i)=>{ if(v.c) t.style.color=v.c; if(v.s) t.style.textShadow=txShadow(5+v.s);
-        if(dw) t.style.fontWeight=Math.max(300,Math.min(900,base[i].w+dw*100));
-        if(v.z&&base[i].z) t.style.fontSize=(base[i].z*(100+v.z)/100).toFixed(1)+'px'; }); }); };
-    const txPaint=(id,p)=>{ const inp=$('#'+id), d=TX[txCur][p], [L,R]=txRoom(p,txCur), t=d2t(p,txCur,d), pc=(t+100)/2;
-      inp.value=Math.round(t); inp.style.setProperty('--a',Math.min(pc,50)+'%'); inp.style.setProperty('--z',Math.max(pc,50)+'%');
-      inp.style.setProperty('--dl',(L?0:50)+'%'); inp.style.setProperty('--dr',(R?100:50)+'%'); };
-    const txLbl=(id,txt,d)=>{ const el=$('#'+id); el.textContent=d?txt:'Mặc định'; el.classList.toggle('dflt',!d); };
-    const txUi=()=>{ const v=TX[txCur], w0=(TXB[txCur]&&TXB[txCur].w)||400;
-      m.querySelectorAll('#txChips .pe-chip').forEach(b=>b.classList.toggle('s',b.dataset.k===txCur));
-      m.querySelectorAll('#txSw .tdot').forEach(b=>b.classList.toggle('s',b.dataset.c===v.c));
-      if(v.c) $('#txCol').value=v.c;
-      txPaint('txS','s'); txPaint('txW','w'); txPaint('txO','o'); txPaint('txZ','z');
-      txLbl('txN',(v.s>0?'+':'−')+Math.abs(v.s),v.s); txLbl('txWn',String(Math.max(300,Math.min(900,w0+v.w*100))),v.w); txLbl('txOn',(100+v.o)+'%',v.o); txLbl('txZn',(100+v.z)+'%',v.z); };
-    const txChanged=()=>{ txApply(); txUi(); if(peReady) pmsg('Chưa lưu thay đổi'); };
-    const txSave=()=>{ try{ LS.set(txKey,JSON.stringify(TX)); }catch{} };
-    $('#txChips').innerHTML=TX_K.map(([k,l])=>`<button type="button" class="pe-chip" data-k="${k}">${l}</button>`).join('');
-    $('#txSw').innerHTML=TX_COLS.map(c=>`<button type="button" class="tdot" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')+'<input type="color" id="txCol" value="#ffffff" aria-label="Chọn màu chữ khác">';
-    $('#txChips').onclick=e=>{ const b=e.target.closest('.pe-chip'); if(!b) return; txCur=b.dataset.k; txUi(); };
-    $('#txSw').onclick=e=>{ const b=e.target.closest('.tdot'); if(!b) return; TX[txCur].c=b.dataset.c; txChanged(); };
-    $('#txCol').oninput=e=>{ TX[txCur].c=e.target.value.toLowerCase(); txChanged(); };
-    [['txS','s'],['txW','w'],['txO','o'],['txZ','z']].forEach(([id,p])=>{ $('#'+id).oninput=e=>{ TX[txCur][p]=t2d(p,txCur,+e.target.value); txChanged(); }; });   /* kéo sang phải = tăng, sang trái = giảm; chạm giữa = về mặc định; nửa hết chỗ chỉnh thì thanh bị chặn */
-    $('#txRs').onclick=()=>{ TX[txCur]=TX_DEF(); txChanged(); };
-    TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(el) el.addEventListener('click',()=>{ txCur=k; txUi(); },true); });   /* bấm chữ trên thẻ → chọn đúng chữ đó để chỉnh (không chặn việc sửa tên/trạng thái có sẵn) */
-    txApply(); txUi();
-    refresh(); peReady=true;
-  },
-  async settings(m){
-    // S và dl đã được nạp khi khởi động app; không chặn việc mở trang bằng request mạng lặp lại.
-    // Các thao tác thay đổi bên dưới vẫn đồng bộ lên server như trước.
-    const useSdk=sdkOn(), canRpc=!!cfg.discord_app_id&&dl.linked&&(useSdk||DESK);
-    const tog=(id,on,dis)=>`<label class="tog"><input type="checkbox" id="${id}" ${on?'checked':''} ${dis?'disabled':''}><span></span></label>`;
-    const row=(t,d,right='',cls='',id='')=>`<div class="srow ${cls}" ${id?`id="${id}" role="button" tabindex="0"`:''}><div class="sx"><b>${t}</b><small>${d}</small></div>${right}</div>`;
-    const langSel=`<select id="langSel" style="width:auto;min-width:130px" onchange="bbSetLang(this.value)"><option value="en" ${window.BB_LANG==='en'?'selected':''}>English</option><option value="vi" ${window.BB_LANG==='vi'?'selected':''}>Tiếng Việt</option></select>`;
-    m.innerHTML=`<h2>Cài đặt</h2><div class="setL">
-    <div class="sgrp"><div class="sgh">Language / Ngôn ngữ</div><div class="scard">${row('Language / Ngôn ngữ','English · Tiếng Việt',langSel)}</div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Tài khoản</div><div class="scard">
-      ${row('Quét QR đăng nhập','Đăng nhập BBeat trên thiết bị khác: quét mã QR hiện ở màn hình đăng nhập của nó.','','btn','qrScanBtn')}
-      ${row('Mã ghép đăng nhập','Tạo mã 6 số + QR để đăng nhập tài khoản này trên thiết bị khác. Cần nhập lại mật khẩu để xác nhận.','','btn','pairMakeBtn')}
-      <div class="srow col"><div class="sx"><b>Tên hiển thị</b><small>Tên mọi người nhìn thấy trong phòng nghe chung và hồ sơ.</small></div><div class="sinp"><input id="sName" value="${esc(me.display_name)}" maxlength="24" placeholder="Tên hiển thị"><button class="pri" id="sNameSave">Lưu</button></div><small id="sNameMsg" class="smsg"></small></div>
-      <div class="srow col"><div class="sx"><b>Đổi mật khẩu</b><small>Sau khi đổi, các thiết bị khác sẽ bị đăng xuất. Mật khẩu mới từ 8 đến 128 ký tự.</small></div>
-        <div class="sinp v"><input type="password" id="pwCur" placeholder="Mật khẩu hiện tại" autocomplete="current-password"><input type="password" id="pwNew" placeholder="Mật khẩu mới" autocomplete="new-password"><input type="password" id="pwNew2" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password"><div><button class="pri" id="pwSave">Đổi mật khẩu</button></div></div><small id="pwMsg" class="smsg"></small></div>
-      <div class="srow col"><div class="sx"><b>Xóa tài khoản</b><small>Xóa vĩnh viễn tài khoản cùng bạn bè, yêu thích, lịch sử, playlist và dữ liệu nghe. Không thể khôi phục – hãy sao lưu trước nếu cần.</small></div>
-        <div class="sinp v"><input type="password" id="delPw" placeholder="Nhập mật khẩu để xác nhận" autocomplete="current-password"><div><button id="delAcc" style="color:#ff6b6b;border-color:#ff6b6b">Xóa tài khoản</button></div></div><small id="delMsg" class="smsg"></small></div>
-    </div></div>
-    <div class="sgrp"><div class="sgh">Giao diện</div><div class="scard">${row('Ambient light','Ánh sáng nền lan tỏa theo màu ảnh bìa của bài đang phát trong khung Đang phát. Tắt nếu máy yếu bị giật.',tog('tAmb',AMB_ON()))}</div></div>
-    <div class="sgrp"><div class="sgh">Hiệu năng</div><div class="scard">${row('Ảnh động (GIF)','Cho avatar, banner và nền GIF chuyển động. Tắt để tiết kiệm pin và hết giật lag (ảnh hiện khung đầu, bấm vào ảnh vẫn xem được bản động). Mặc định bật; máy yếu bị giật thì tắt ở đây.',tog('tGif',GIF_LIVE))}</div></div>
-    ${HOMEGW?`<div class="sgrp"><div class="sgh">Nguồn nhạc</div><div class="scard"><div class="srow"><div class="sx"><b>Đang dùng IP riêng của máy này</b><small>Tìm kiếm, album và luồng nhạc YouTube đi thẳng từ máy bạn (cổng nhà 127.0.0.1:38417); server chính chỉ lưu tài khoản, bạn bè, avatar và banner.</small></div><span class="sbadge">IP nhà</span></div>${row('Phát bằng luồng IP riêng','Giống app Android: phát qua luồng âm thanh của máy thay vì player YouTube. Luồng lỗi thì tự quay về player YouTube. Tắt nếu muốn luôn dùng player YouTube.',tog('tHomeIp',homeIpOn()))}</div></div>`:''}
-    ${window.ANDROID_APP?`<div class="sgrp"><div class="sgh">Giao diện app Android</div><div class="scard">${row('Giao diện máy tính','Bố cục giống hệt bản PC (thu nhỏ vừa màn hình). Tắt để dùng giao diện điện thoại. Nên xoay ngang màn hình khi bật.',tog('tUiPc',window.UI_PC))}</div></div>`:''}
-    <div class="sgrp"><div class="scard">
-      ${row('Phát bài hát chứa nội dung nhạy cảm','Bật để phát cả những bài hát nhạy cảm',tog('tExp',S.explicit))}
-      ${row('Giữ danh sách phát YouTube của bạn hiển thị khi offline','Lưu danh sách phát lại và hiển thị khi offline',tog('tOff',S.offline_pl))}
-      ${row('Proxy','Sử dụng Proxy để vượt qua trình chặn nội dung'+(cfg.proxy_available?' (áp dụng cho tìm kiếm và luồng âm thanh qua server)':' – cần đặt biến môi trường YT_PROXY trên server'),(cfg.proxy_available?'':'<span class="sbadge">Server chưa cấu hình</span>')+tog('tProxy',S.proxy&&cfg.proxy_available,!cfg.proxy_available))}
-    </div></div>
-    <div class="sgrp"><div class="sgh">Phát lại</div><div class="scard">
-      ${row('Phát video của nhạc','Bật để tự động hiện video YouTube của mọi bài hát thay cho ảnh bìa. Tắt (mặc định) thì chỉ nghe âm thanh; muốn xem video của một bài thì bấm dấu ba chấm → Hiện video (video không hiện khi đang dùng Bộ chỉnh âm, Độ trễ, Độ vang hoặc Proxy)',tog('vidOn',showVideo))}
-      ${row('Bộ chỉnh âm','Tinh chỉnh âm thanh bằng đường cong mười dải tần',tog('tEq',S.eq_on))}
-      <div class="fxp" id="eqP"><div class="fxr"><label>Mẫu thiết lập</label><select id="eqPre"><option value="">Tùy chỉnh</option>${Object.keys(EQ_PRESETS).map(k=>`<option>${esc(k)}</option>`).join('')}</select></div>
-        <div class="fxr"><label>Tiền khuếch đại</label><input type="range" min="-12" max="12" step="1" id="eqPreamp" value="${S.eq_pre}"><span id="eqPreV"></span></div>
-        <canvas id="eqCv" class="eqcv"></canvas>
-        <div class="fxr" style="justify-content:flex-end"><button id="eqReset">Đặt lại</button></div></div>
-      ${row('Độ trễ','Echo âm thanh với độ trễ lặp lại',tog('tDel',S.delay_on))}
-      <div class="fxp" id="delP"><div class="fxr"><label>Thời gian</label><input type="range" min="50" max="1000" step="10" id="dMs" value="${S.delay_ms}"><span id="dMsV"></span></div>
-        <div class="fxr"><label>Lặp lại</label><input type="range" min="0" max="90" step="1" id="dFb" value="${S.delay_fb}"><span id="dFbV"></span></div>
-        <div class="fxr"><label>Mức echo</label><input type="range" min="0" max="100" step="1" id="dMix" value="${S.delay_mix}"><span id="dMixV"></span></div></div>
-      ${row('Độ vang','Đưa âm nhạc vào trong một phòng, hội trường hoặc tấm kim loại',tog('tRev',S.reverb_on))}
-      <div class="fxp" id="revP"><div class="fxr"><label>Không gian</label><select id="rType"><option value="room">Phòng</option><option value="hall">Hội trường</option><option value="plate">Tấm kim loại</option></select></div>
-        <div class="fxr"><label>Mức vang</label><input type="range" min="0" max="100" step="1" id="rMix" value="${S.reverb_mix}"><span id="rMixV"></span></div></div>
-      ${row('Lưu trạng thái phát lại','Lưu chế độ trộn và phát lại',tog('tSave',S.save_state))}
-      ${row('Chuyển bài mượt mà (BETA)','Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hiện tại trong khi làm mờ dần bài hát tiếp theo.',tog('tXfade',S.crossfade))}
-    </div></div>
-    <div class="sgrp"><div class="sgh">Lịch sử nghe</div><div class="scard">
-      ${row('Theo dõi lịch sử nghe','Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu của tài khoản',tog('tHist',S.track_history))}
-      ${row('Xóa lịch sử nghe','Xóa toàn bộ lịch sử nghe nhạc của tài khoản này','','btn','clrHist')}
-    </div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Nhập playlist từ app khác</div><div class="scard">
-      <div class="srow col"><div class="sx"><b>Dán link playlist</b><small>Không cần đăng nhập. Hỗ trợ playlist công khai từ Spotify, Apple Music, SoundCloud (dạng …/sets/…) và YouTube (công khai hoặc không công khai). Bài ngoài YouTube được tìm lại trên YouTube Music nên vài bài có thể không khớp.</small></div><div class="sinp"><input id="ytUrl" placeholder="Link Spotify, Apple Music, SoundCloud hoặc YouTube…" autocomplete="off" spellcheck="false"><button class="pri" id="ytUrlGo">Nhập</button></div><small id="ytMsg" class="smsg"></small></div>
-    </div></div>
-    <div class="sgrp"><div class="sgh">Tích hợp Discord</div><div class="scard">
-      ${guest?`${row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Cần đăng nhập</span>','dis')}
-      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
-        ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
-        :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
-      ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':!dl.linked?'Cần đăng nhập Discord':sdkP.ok&&!dl.sdk?'Hủy liên kết rồi đăng nhập lại Discord':'Chỉ có trên app desktop/Android bản mới')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}`}
-    </div></div>
-    <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Sao lưu</div><div class="scard">
-      ${row('Sao lưu','Lưu trữ yêu thích, lịch sử và toàn bộ danh sách phát của bạn thành file JSON','','btn','bkUp')}
-      ${row('Khôi phục','Khôi phục dữ liệu từ file sao lưu (thay thế yêu thích, lịch sử và danh sách phát hiện có)','','btn','bkRes')}
-      ${row('Nhập danh sách phát','Nhập danh sách phát từ file JSON (giữ nguyên dữ liệu hiện có)','','btn','bkImp')}
-    </div><input type="file" id="fRes" accept="application/json,.json" hidden><input type="file" id="fImp" accept="application/json,.json" hidden></div>
-    <div class="sgrp"><div class="sgh">Về tôi</div><div class="scard">
-      ${row('Phiên bản','v'+esc(ABOUT.version))}
-      ${row('Kiểm tra cập nhật tự động','Kiểm tra cập nhật mỗi khi bạn mở ứng dụng',tog('tAutoUpd',LS.get('bb_autoupd','1')==='1'))}
-      ${row('Kênh cập nhật','BBeat GitHub Release','','btn','chBtn')}
-      ${row('Kiểm tra cập nhật','<span id="updTxt">'+(LS.get('bb_lastcheck','')?'Lần kiểm tra cuối vào '+bbFmt(LS.get('bb_lastcheck','')):'Chưa kiểm tra lần nào')+'</span>','','btn','updBtn')}
-      ${row('Tác giả',esc(ABOUT.author))}
-      ${row('Hỗ trợ tôi','BBeat là dự án cá nhân, phi lợi nhuận. Nếu bạn thích app, bạn có thể gửi tác giả một ly cà phê (không bắt buộc).','','btn','supBtn')}
-      ${row('Thư viện bên thứ ba','Các thư viện và dịch vụ mà BBeat sử dụng','','btn','libsBtn')}
-    </div></div>
-    ${me&&me.is_admin?`<div class="sgrp"><div class="sgh">Quản trị</div><div class="scard">${row('Hiện thông báo lỗi','Hiện các thông báo kỹ thuật (tìm video, lỗi yt-dlp, đổi luồng phát, nhạc bị đứng…). Chỉ admin thấy mục này và các thông báo đó.',tog('tErr',S.show_errors))}</div></div>`:''}
-    <div class="sgrp"><div class="scard">
-      ${guest?row('Đăng nhập','Đăng nhập hoặc đăng ký để dùng bạn bè, phòng nghe chung và đồng bộ dữ liệu','','btn','outBtn'):row('Đăng xuất','Đăng xuất khỏi thiết bị này','','btn','outBtn')}
-    </div></div>
-    </div>`;
-    const act=(id,fn)=>{ const el=$('#'+id); el.onclick=fn; el.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); } }; };
-    const setS=async(k,v)=>{ try{ Object.assign(S,await api('/api/settings',{json:{[k]:v}})); LS.set('muse_s',JSON.stringify(S)); }catch(e){ notify(e.message); } };
-    $('#tAmb').onchange=e=>{ LS.set('bb_amb',e.target.checked?'1':'0'); applyAmb(); };
-    $('#tSave').onchange=e=>{ setS('save_state',e.target.checked).then(savePlayState); };
-    $('#tExp').onchange=e=>setS('explicit',e.target.checked);
-    if($('#tErr')) $('#tErr').onchange=e=>setS('show_errors',e.target.checked);
-    $('#tOff').onchange=e=>setS('offline_pl',e.target.checked).then(()=>{ if(S.offline_pl){ cachePlaylists(true); notify('Đã lưu danh sách phát để xem khi offline'); } else clearPlCache(); });
-    $('#tProxy').onchange=e=>setS('proxy',e.target.checked).then(reloadEngine);
-    const showFx=()=>{ $('#eqP').style.display=S.eq_on?'':'none'; if(S.eq_on) setTimeout(()=>window.__drawEq&&window.__drawEq(),0); $('#delP').style.display=S.delay_on?'':'none'; $('#revP').style.display=S.reverb_on?'':'none'; };
-    const lbl=()=>{ $('#dMsV').textContent=S.delay_ms+' ms'; $('#dFbV').textContent=S.delay_fb+'%'; $('#dMixV').textContent=S.delay_mix+'%'; $('#rMixV').textContent=S.reverb_mix+'%'; $('#eqPreV').textContent=(S.eq_pre>0?'+':'')+S.eq_pre+' dB';
-      const pn=Object.keys(EQ_PRESETS).find(k=>EQ_PRESETS[k].every((v,i)=>v===S.eq_gains[i])); $('#eqPre').value=pn||''; $('#rType').value=S.reverb_type; };
-    const live=(k,v)=>{ S[k]=v; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };
-    const toggleFx=(k,on)=>{ S[k]=on; showFx(); setS(k,on).then(()=>{ reloadEngine(); applyFx(); }); if(on&&!fxBuild()) notify('Trình duyệt không hỗ trợ Web Audio'); };
-    $('#tEq').onchange=e=>toggleFx('eq_on',e.target.checked);
-    $('#tDel').onchange=e=>toggleFx('delay_on',e.target.checked);
-    $('#tRev').onchange=e=>toggleFx('reverb_on',e.target.checked);
-    const saveGains=()=>setS('eq_gains',S.eq_gains.slice());
-    $('#eqPre').onchange=e=>{ const g=EQ_PRESETS[e.target.value]; if(!g) return; live('eq_gains',g.slice()); drawEq(); saveGains(); };
-    $('#eqReset').onclick=()=>{ live('eq_gains',EQ_PRESETS['Flat'].slice()); S.eq_pre=0; $('#eqPreamp').value=0; applyFx(); lbl(); drawEq(); saveGains(); setS('eq_pre',0); };
-    $('#eqPreamp').oninput=e=>{ S.eq_pre=+e.target.value; fxBuild(); if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{}); applyFx(); lbl(); if(eng==='yt'&&S.eq_on) reloadEngine(); };
-    $('#eqPreamp').onchange=e=>setS('eq_pre',+e.target.value);
-    const cv=$('#eqCv'); let drag=-1;
-    const geo=()=>{ const r=cv.getBoundingClientRect(); return {w:r.width,h:r.height,L:50,R:26,T:16,B:30}; };
-    const px=(i,G)=>G.L+i*(G.w-G.L-G.R)/9, py=(g,G)=>G.T+(12-g)/24*(G.h-G.T-G.B);
-    function drawEq(){
-      if(!cv.isConnected||cv.offsetParent===null) return;
-      const G=geo(), dpr=window.devicePixelRatio||1; cv.width=G.w*dpr; cv.height=G.h*dpr;
-      const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,G.w,G.h);
-      const cs=getComputedStyle(document.body), acc=(cs.getPropertyValue('--accent')||'#8fd0f5').trim()||'#8fd0f5', sub=(cs.getPropertyValue('--sub')||'#9aa0a6').trim()||'#9aa0a6';
-      c.font='12px sans-serif'; c.fillStyle=sub; c.strokeStyle='#ffffff22'; c.lineWidth=1;
-      EQ_F.forEach((f,i)=>{ const x=px(i,G); c.beginPath(); c.moveTo(x,G.T); c.lineTo(x,G.h-G.B); c.stroke(); c.textAlign='center'; c.fillText(f>=1000?(f/1000)+'k':f,x,G.h-9); });
-      c.textAlign='right'; c.fillText('+12dB',G.L-12,G.T+4); c.fillText('-12dB',G.L-12,G.h-G.B+4);
-      c.beginPath(); c.moveTo(G.L,py(0,G)); c.lineTo(G.w-G.R,py(0,G)); c.stroke();
-      const P=S.eq_gains.map((g,i)=>[px(i,G),py(+g||0,G)]);
-      const path=()=>{ c.beginPath(); c.moveTo(P[0][0],P[0][1]);
-        for(let i=0;i<9;i++){ const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(9,i+2)];
-          c.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1]); } };
-      path(); c.lineTo(P[9][0],G.h-G.B); c.lineTo(P[0][0],G.h-G.B); c.closePath();
-      const gr=c.createLinearGradient(0,G.T,0,G.h-G.B); gr.addColorStop(0,acc+'66'); gr.addColorStop(1,acc+'08'); c.fillStyle=gr; c.fill();
-      path(); c.strokeStyle=acc; c.lineWidth=3; c.stroke();
-      P.forEach((q,i)=>{ c.beginPath(); c.arc(q[0],q[1],i===drag?9:7,0,7); c.fillStyle=acc; c.fill(); });
-    }
-    const setFromY=(i,y)=>{ const G=geo(); let g=12-((y-G.T)/(G.h-G.T-G.B))*24; g=Math.max(-12,Math.min(12,Math.round(g*2)/2)); if(g===S.eq_gains[i]) return; const a=S.eq_gains.slice(); a[i]=g; live('eq_gains',a); drawEq(); };
-    cv.onpointerdown=e=>{ const r=cv.getBoundingClientRect(), G=geo(), x=e.clientX-r.left; let best=0,bd=1e9; for(let i=0;i<10;i++){ const d=Math.abs(px(i,G)-x); if(d<bd){bd=d;best=i;} } drag=best; cv.setPointerCapture(e.pointerId); setFromY(drag,e.clientY-r.top); drawEq(); };
-    cv.onpointermove=e=>{ if(drag>=0) setFromY(drag,e.clientY-cv.getBoundingClientRect().top); };
-    const endDrag=()=>{ if(drag<0) return; drag=-1; drawEq(); saveGains(); };
-    cv.onpointerup=endDrag; cv.onpointercancel=endDrag;
-    window.addEventListener('resize',drawEq);
-    window.__drawEq=drawEq;
-    [['dMs','delay_ms'],['dFb','delay_fb'],['dMix','delay_mix'],['rMix','reverb_mix']].forEach(([id,k])=>{ const el=$('#'+id); el.oninput=()=>live(k,+el.value); el.onchange=()=>setS(k,+el.value); });
-    $('#rType').onchange=e=>{ live('reverb_type',e.target.value); setS('reverb_type',e.target.value); };
-    showFx(); lbl(); setTimeout(()=>window.__drawEq&&window.__drawEq(),0);
-    if($('#tGif')) $('#tGif').onchange=e=>{ LS.set('gif_live',e.target.checked?'1':'0'); location.reload(); };
-    if($('#tHomeIp')) $('#tHomeIp').onchange=e=>{ LS.set('homeip',e.target.checked?'1':'0'); notify(e.target.checked?'Bài kế tiếp sẽ phát bằng luồng IP riêng':'Bài kế tiếp sẽ phát bằng player YouTube'); };
-    if($('#tUiPc')) $('#tUiPc').onchange=e=>{ try{ localStorage.setItem('uimode',e.target.checked?'pc':'phone'); }catch{} location.reload(); };
-    if($('#ytUrlGo')){ const go1=async()=>{ const inp=$('#ytUrl'), msg=$('#ytMsg'), btn=$('#ytUrlGo'), url=inp.value.trim();
-        if(!url){ msg.textContent='Hãy dán link playlist'; return; }
-        const isYt=/(^|\/\/|\.)(youtube\.com|youtu\.be)(\/|$)/i.test(url)||/^[A-Za-z0-9_-]{13,}$/.test(url);
-        if(isYt){
-          const lm=url.match(/[?&]list=([A-Za-z0-9_-]+)/), lid=lm?lm[1]:(/^[A-Za-z0-9_-]{13,}$/.test(url)?url:'');
-          if(!lid){ msg.dataset.kind='error'; msg.textContent='Link này không chứa danh sách phát (thiếu list=…)'; return; }
-          if(/^RD/.test(lid)){ msg.dataset.kind='error'; msg.textContent='Đây là Mix tự tạo của YouTube (list=RD…), không nhập được. Hãy dùng link dạng youtube.com/playlist?list=PL…'; return; }
+    for (origin, url, ctx) in tries {
+        let body = json!({ "context": ctx, "videoId": vid, "contentCheckOk": true, "racyCheckOk": true });
+        let Ok(resp) = client
+            .post(url)
+            .header("origin", origin)
+            .header("referer", format!("{origin}/"))
+            .json(&body)
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+        else {
+            continue;
+        };
+        if !resp.status().is_success() {
+            continue;
         }
-        btn.disabled=true; msg.title=''; msg.textContent=isYt?'Đang kiểm tra link và yêu cầu YouTube…':'Đang đọc playlist và tìm từng bài trên YouTube Music… (có thể mất vài chục giây)'; msg.dataset.kind='loading';
-        try{
-          const x=await api('/api/pl-import/url',{json:{url,urls:url}});
-          let t=`Đã nhập "${x.name}" – ${x.tracks} bài ✔`;
-          if(x.skipped) t+=` (${x.skipped}/${x.total} bài không tìm thấy trên YouTube Music, rê chuột vào đây để xem)`;
-          if(x.truncated) t+=` Chỉ nhập 300 bài đầu tiên.`;
-          msg.dataset.kind='success'; msg.textContent=t;
-          if(x.skipped_list&&x.skipped_list.length) msg.title='Không khớp:\n'+x.skipped_list.join('\n')+(x.skipped>x.skipped_list.length?`\n… và ${x.skipped-x.skipped_list.length} bài nữa`:'');
-          inp.value=''; await loadPlaylists();
-        }catch(e){
-          if(e.message!=='401'){
-            msg.dataset.kind='error';
-            const detail=String(e&&e.message||e).trim();
-            msg.textContent='Nhập thất bại: '+(detail||'Máy chủ không trả về nội dung lỗi.')+' (Mở Console/nhật ký máy chủ để xem chi tiết nếu cần)';
-            console.error('[YouTube playlist import]',{url, error:e, message:detail});
-          }
-        }finally{ btn.disabled=false; }
-      };
-      $('#ytUrlGo').onclick=go1; $('#ytUrl').onkeydown=e=>{ if(e.key==='Enter') go1(); }; }
-    if($('#dlBtn')) act('dlBtn',async()=>{ try{
-      if(dl.linked){
-        if(!(await askConfirm('Hủy liên kết tài khoản Discord? Rich Presence cũng sẽ bị tắt.','Hủy liên kết'))) return;
-        await api('/api/discord/link',{method:'DELETE'});
-        dl={linked:false,name:'',sdk:false}; S.discord_rpc=false; dc.user=''; discordClear();
-        notify('Đã hủy liên kết Discord'); go('settings');
-      }else{
-        const r=await api('/api/discord/link',{method:'POST'});
-        if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP){
-          // App desktop: mở Discord bằng trình duyệt hệ thống để cửa sổ app không bị đẩy khỏi cổng nhà (127.0.0.1:38417), rồi chờ liên kết xong.
-          openExt(r.url); notify('Đã mở trình duyệt – đăng nhập Discord xong thì quay lại app');
-          for(let i=0;i<60;i++){ await new Promise(z=>setTimeout(z,3000)); try{ const s=await api('/api/discord/status'); if(s&&s.linked){ dl=s; notify('Đã liên kết Discord'); go('settings'); return; } }catch{} }
-        }else location.href=r.url;
-      }
-    }catch(e){ if(e.message!=='401') notify(e.message); } });
-    if($('#dcBtn')) act('dcBtn',async()=>{ try{ const u=await discordConnect(); $('#dcSt').textContent='Đã kết nối: '+u; notify('Đã kết nối Discord'); }catch(e){ notify(String(e&&e.message||e)); } });
-    if($('#tDc')) $('#tDc').onchange=async e=>{ const on=e.target.checked;
-      if(on&&!dc.user){ try{ await discordConnect(); const st=$('#dcSt'); if(st) st.textContent='Đã kết nối: '+dc.user; }catch(er){ e.target.checked=false; notify(String(er&&er.message||er)); return; } }
-      await setS('discord_rpc',on); if(on) pushPresence(); else discordClear(); };
-    $('#tXfade').onchange=e=>setS('crossfade',e.target.checked);
-    $('#tHist').onchange=e=>setS('track_history',e.target.checked);
-    $('#vidOn').onchange=e=>setVideo(e.target.checked);
-    act('clrHist',async()=>{ if(!(await askConfirm('Xóa toàn bộ lịch sử nghe?','Xóa'))) return; try{ await api('/api/history',{method:'DELETE'}); notify('Đã xóa lịch sử nghe'); }catch(e){ notify(e.message); } });
-    $('#sNameSave').onclick=async()=>{ const msg=$('#sNameMsg'); try{ const u=await api('/api/account/name',{json:{display_name:$('#sName').value}}); applyUser(u); msg.textContent='Đã lưu ✔'; }catch(e){ msg.textContent=e.message; } };
-    $('#pwSave').onclick=async()=>{ const msg=$('#pwMsg'), a=$('#pwCur').value, b=$('#pwNew').value;
-      if(b!==$('#pwNew2').value){ msg.textContent='Mật khẩu nhập lại không khớp'; return; }
-      try{ await api('/api/account/password',{json:{current:a,new:b}}); msg.textContent='Đã đổi mật khẩu ✔'; ['#pwCur','#pwNew','#pwNew2'].forEach(x=>$(x).value=''); }catch(e){ msg.textContent=e.message; } };
-    $('#delAcc').onclick=async()=>{ const msg=$('#delMsg'), pw=$('#delPw').value; if(!pw){ msg.textContent='Hãy nhập mật khẩu'; return; }
-      if(!(await askConfirm('Xóa vĩnh viễn tài khoản "'+me.username+'"? Toàn bộ dữ liệu sẽ mất và không khôi phục được.','Xóa'))) return;
-      try{ await api('/api/account',{method:'DELETE',json:{password:pw}});
-        try{ Object.keys(localStorage).filter(k=>/^muse_|^bb_|^token$/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{}
-        token=''; location.reload(); }catch(e){ msg.textContent=e.message; } };
-    act('bkUp',async()=>{ try{ const j=await api('/api/backup'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,1)],{type:'application/json'})); a.download='muse-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); notify('Đã tạo file sao lưu'); }catch(e){ notify(e.message); } });
-    const readJson=async f=>{ if(!f) return null; try{ return JSON.parse(await f.text()); }catch{ notify('File không phải JSON hợp lệ'); return null; } };
-    const refreshLib=async()=>{ try{ favs=new Set((await api('/api/favorites')).map(key)); libCounts(); await loadPlaylists(); }catch{} };
-    act('bkRes',()=>$('#fRes').click());
-    $('#fRes').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; const j=await readJson(f); if(!j) return;
-      if(!(await askConfirm('Khôi phục sẽ thay thế yêu thích, lịch sử và danh sách phát hiện có. Tiếp tục?','Khôi phục'))) return;
-      try{ const r=await api('/api/restore',{json:j}); await refreshLib(); notify(`Đã khôi phục ${r.favorites} bài yêu thích, ${r.playlists} danh sách phát`); }catch(er){ notify(er.message); } };
-    act('bkImp',()=>$('#fImp').click());
-    $('#fImp').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; let j=await readJson(f); if(!j) return;
-      const conv=t=>t&&t.src?t:{src:'yt',id:String(t&&(t.videoId||t.id)||''),title:(t&&(t.title||t.name))||'',artist:(t&&(t.artist||t.author||(Array.isArray(t.artists)?t.artists.map(a=>a.name||a).join(', '):'')))||'',image:(t&&(t.image||t.thumbnail))||'',url:'',dur:(t&&t.dur)||0};
-      const list=Array.isArray(j)?j:(j.playlists||[]);
-      j={playlists:list.map(p=>({name:p.name||p.title,tracks:(p.tracks||p.songs||[]).map(conv)}))};
-      try{ const r=await api('/api/import',{json:j}); await refreshLib(); notify(`Đã nhập ${r.playlists} danh sách phát (${r.tracks} bài)`); }catch(er){ notify(er.message); } };
-    act('outBtn',logout);
-    if($('#qrScanBtn')) act('qrScanBtn',qrScanDialog);
-    if($('#pairMakeBtn')) act('pairMakeBtn',pairMakeDialog);
-    $('#tAutoUpd').onchange=e=>LS.set('bb_autoupd',e.target.checked?'1':'0');
-    act('chBtn',()=>{ if(ABOUT.repo) openExt('https://github.com/'+ABOUT.repo+'/releases'); else notify('Chưa gắn kho GitHub cho BBeat'); });
-    act('updBtn',async()=>{ const el=$('#updTxt'); if(el) el.textContent='Đang kiểm tra…'; await checkUpdate(true); const e2=$('#updTxt'); if(e2){ const t=LS.get('bb_lastcheck',''); e2.textContent=t?'Lần kiểm tra cuối vào '+bbFmt(t):'Chưa kiểm tra lần nào'; } });
-    act('supBtn',()=>{ const u=ABOUT.supportUrl||cfg.donate_url||''; if(u) openExt(u); else notify('Tác giả chưa gắn link hỗ trợ'); });
-    act('libsBtn',showLibs);
-  }
-};
-const offlineCard=()=>`<div class="offc"><div class="offi">${ic('cloudoff')}</div><h3>Không thể kết nối</h3><p>Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</p><div class="offact"><button class="pri" data-oc="retry">Thử lại</button><button class="out" data-oc="dl">${ic('download','sm')} Nghe những bài đã tải xuống</button></div></div>`;
-let offWatchTm=0;
-function offBar(on){
-  // Không hiện thanh báo mất kết nối nữa (trước đây chỉ là nút rỗng bị CSS đè thuộc tính hidden → viên thuốc tối vô nghĩa ở mép trên).
-  const b=$('#offBar'); if(b) b.remove();
+        let Ok(v) = resp.json::<Value>().await else { continue };
+        let day = ["publishDate", "uploadDate"]
+            .iter()
+            .find_map(|k| v.pointer(&format!("/microformat/playerMicroformatRenderer/{k}")).and_then(|x| x.as_str()).and_then(parse_ymd_days));
+        if let Some(d) = day {
+            let mut c = pubday_cache().lock().unwrap();
+            if c.len() > 5000 {
+                c.clear();
+            }
+            c.insert(vid.to_string(), d);
+            return Some(d);
+        }
+    }
+    None
 }
-let bootedOffline=false;
-async function netProbe(){
-  const c=new AbortController(), t=setTimeout(()=>c.abort(),6000);
-  try{ const r=await fetch('/api/config',{cache:'no-store',signal:c.signal}); return r.status<500; }catch{ return false; }finally{ clearTimeout(t); }
-}
-function netBack(){
-  netDown=false; clearInterval(offWatchTm); offWatchTm=0;
-  if(bootedOffline){
-    if(!playing){ location.reload(); return; }
-    // Đang phát nhạc nên không reload (sẽ ngắt bài): khởi động lại phần còn lại của app ngay tại chỗ.
-    bootedOffline=false;
-    api('/api/me').then(u=>{ LS.set('muse_me',JSON.stringify(u)); start(u,false,true); }).catch(e=>{ if(e&&e.net){ bootedOffline=true; netDown=true; if(!offWatchTm) offWatch(); } });
-    return;
-  }
-  offBar(false);
-  const m=$('#main'); if(m&&(m.querySelector('.offc')||page==='downloads')) go(page,undefined,false);
-}
-let retrying=false;
-async function retryNet(p,arg,keep,btn){
-  if(retrying) return; retrying=true;
-  const old=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Đang kết nối…'; }
-  let ok=false; try{ ok=await netProbe(); }finally{ retrying=false; if(btn){ btn.disabled=false; btn.textContent=old||'Thử lại'; } }
-  if(!ok){ netDown=true; notify('Vẫn chưa có mạng, hãy thử lại sau'); return; }
-  if(bootedOffline&&!playing){ location.reload(); return; }
-  netBack();
-}
-function offWatch(){
-  clearInterval(offWatchTm);
-  offWatchTm=setInterval(async()=>{ if(await netProbe()) netBack(); },5000);
-}
-window.addEventListener('online',()=>{ if(offlineNow()) retryNet(page,undefined,false,null); });
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&netDown) retryNet(page,undefined,false,null); });
-async function go(p,arg,keep){
-  if(dlDetOn&&p!=='downloads') dlDetClose();
-  page=p; pushPresence();
-  document.querySelectorAll('.ni,.li,.libh .t').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
-  { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','top','followed','downloads','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
-  if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
-  closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
-  if(offlineNow()&&['home','search','charts','mix','ybrowse','thisis','bestartists'].includes(p)){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>retryNet(p,arg,keep,r); if(d) d.onclick=()=>go('downloads'); return; }
-  try{ await pages[p](m,arg); if(keep) m.scrollTop=sc; }catch(e){
-    if(e.message==='401') return;
-    if(e.net){ m.innerHTML=offlineCard(); const r=m.querySelector('[data-oc=retry]'), d=m.querySelector('[data-oc=dl]'); if(r) r.onclick=()=>retryNet(p,arg,keep,r); if(d) d.onclick=()=>go('downloads'); }
-    else m.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; }
-}
-pages.blend=blendPage;
-pages.library=function(m){
-  const nf=(typeof favs!=='undefined'&&favs.size)?favs.size+' bài hát':'Chưa có bài nào';
-  const dn=offSet.size;
-  const li=(a,tile,t,sub)=>`<div class="li" ${a} tabindex="0">${tile}<div class="meta"><b>${esc(t)}</b><span>${esc(sub)}</span></div></div>`;
-  const card=(k,t,sub,icon,w)=>`<div class="lc${w?' wide':''}" data-p="${k}" tabindex="0"><div class="lcArt" data-art="${k}"><div class="ph">${ic(icon)}</div></div><div class="lcT"><b>${esc(t)}</b><span data-sub="${k}">${esc(sub)}</span></div></div>`;
-  m.innerHTML=`<h2>Thư viện</h2>
-    <div class="lcTabs"><button class="chip on">${esc(libTitle())}</button><button class="chip" data-p="followed">Đã theo dõi</button><button class="chip" data-p="top">Phát nhiều nhất</button><button class="chip" data-p="together">Nghe cùng nhau</button><button class="chip" data-p="friends">Bạn bè</button></div>
-    <div class="libG">${card('favs','Yêu thích',nf,'heart',1)}${card('history','Nghe gần đây','Lịch sử nghe','clock')}${card('top','Phát nhiều nhất',playsList().length+' bài hát','trend')}${card('followed','Đã theo dõi',followGet().length+' nghệ sĩ','userplus')}${card('downloads','Đã tải xuống',dn?dn+' bài hát':'Nghe không cần mạng','download')}${card('together','Nghe cùng nhau','Phòng nghe chung','users',1)}</div>
-    <div class="lcH"><span>Đã thêm gần đây</span><button class="pri" id="libNew">${ic('plus')} Tạo mới</button></div>
-    <div class="libL" id="libPls">${(playlists||[]).map(x=>li(`data-pl="${x.id}"`,`<div class="tile">${plCover(x)}</div>`,x.name,'Danh sách phát · '+x.count+' bài hát')).join('')||'<p class="empty">Chưa có danh sách phát nào.</p>'}</div>`;
-  const pool=[];
-  const pick=(list,n)=>{ const seen=new Set(), u=[]; (list||[]).map(t=>t&&t.image).filter(Boolean).sort(()=>Math.random()-.5).forEach(x=>{ if(u.length<n&&!seen.has(x)){ seen.add(x); u.push(x); } }); return u; };
-  const art=(k,list,n)=>{ const el=m.querySelector('[data-art="'+k+'"]'); const u=pick(list,n); if(el&&u.length) el.innerHTML=u.map(x=>`<img src="${esc(thumb(x,n===1?500:320))}" alt="" loading="${IMG_LOAD}" decoding="async">`).join(''); };
-  const mix=l=>{ pool.push(...(l||[])); art('together',pool,2); };
-  art('top',playsList().slice(0,8),2);
-  api('/api/favorites').then(l=>{ if(!Array.isArray(l)) return; art('favs',l,1); mix(l); const e=m.querySelector('[data-sub="favs"]'); if(e) e.textContent=l.length+' bài hát'; }).catch(()=>{});
-  api('/api/history').then(l=>{ if(Array.isArray(l)){ art('history',l,2); mix(l); } }).catch(()=>{});
-  try{ dlLoad(); const d=dlItems.filter(x=>x.status==='done'&&x.track).map(x=>x.track); art('downloads',d,2); mix(d); }catch{}
-  m.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
-  m.querySelectorAll('[data-pl]').forEach(n=>{ n.onclick=()=>go('playlist',+n.dataset.pl); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
-  plCoverFill();
-  $('#libNew').onclick=()=>$('#newPl').click();
-};
-document.querySelectorAll('[data-p]').forEach(n=>{ n.onclick=()=>go(n.dataset.p); n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
-$('#gear').onclick=()=>go('settings');
-$('#scanBtn').onclick=()=>{ if(guest){ notify('Hãy đăng nhập để quét QR'); return; } qrScanDialog(); };
-{ const nb=$('#nightBtn'), setNight=on=>{ document.body.classList.toggle('night',on); nb.classList.toggle('on',on); try{ LS.set('night',on?'1':'0'); }catch{} };
-  setNight(LS.get('night','0')==='1'); nb.onclick=()=>setNight(!document.body.classList.contains('night')); }
-$('#meAv').onclick=e=>{ e.stopPropagation(); showProfilePop({...me,online:true},$('#meAv'),true); };
-$('#roomInfo').onclick=()=>go('together');
-$('#roomBar').onclick=()=>go('together');
 
-let sTok=0, appPrev=false, sCtl=null, lastSQ='';
-/* Lịch sử tìm kiếm: lưu riêng theo từng tài khoản trên máy này (tối đa 20 mục, mới nhất lên đầu) */
-const SH_MAX=20, shKey=()=>'muse_shist_'+((me&&me.id)||'guest');
-function shGet(){ try{ const a=JSON.parse(LS.get(shKey(),'[]')); return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x):[]; }catch{ return []; } }
-function shSet(a){ LS.set(shKey(),JSON.stringify(a.slice(0,SH_MAX))); }
-function shSave(q){ q=String(q||'').trim().slice(0,120); if(q.length<2||/https?:\/\//i.test(q)||ytId(q)&&q.length<=11) return; shSet([q].concat(shGet().filter(x=>x.toLowerCase()!==q.toLowerCase()))); }
-const shRow=x=>`<div class="shi" data-shq="${esc(x)}" tabindex="0">${ic('clock','sm')}<span>${esc(x)}</span><button type="button" class="shx" data-shd="${esc(x)}" title="Xóa khỏi lịch sử">${ic('x','sm')}</button></div>`;
-function shRender(){ /* gợi ý từ lịch sử khi đang gõ */
-  const box=$('#sHist'), inp=$('#sq'); if(!box||!inp) return;
-  const v=inp.value.trim().toLowerCase();
-  const l=v?shGet().filter(x=>x.toLowerCase().includes(v)&&x.toLowerCase()!==v).slice(0,6):[];
-  box.innerHTML=l.map(shRow).join(''); box.hidden=!l.length;
+// Các thẻ album/single (musicTwoRowItemRenderer có pageType = ALBUM) trên trang nghệ sĩ: (browseId, năm, tên, ảnh).
+fn yt_album_cards(v: &Value, out: &mut Vec<(String, i64, String, String)>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("");
+                    if pt == "MUSIC_PAGE_TYPE_ALBUM" && !id.is_empty() {
+                        let sub = r.get("subtitle").map(yt_text).unwrap_or_default();
+                        let year = sub
+                            .split(|c: char| !c.is_ascii_digit())
+                            .filter(|w| w.len() == 4)
+                            .filter_map(|w| w.parse::<i64>().ok())
+                            .find(|y| (1990..=2100).contains(y))
+                            .unwrap_or(0);
+                        let title = r.get("title").map(yt_text).unwrap_or_default();
+                        let img = r
+                            .pointer("/thumbnailRenderer/musicThumbnailRenderer/thumbnail/thumbnails")
+                            .and_then(|a| a.as_array())
+                            .and_then(|a| a.last())
+                            .and_then(|t| t.get("url"))
+                            .and_then(|u| u.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        out.push((id.to_string(), year, title, img));
+                    }
+                }
+            } else {
+                for x in m.values() {
+                    yt_album_cards(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_album_cards(x, out);
+            }
+        }
+        _ => {}
+    }
 }
-function shHide(){ const b=$('#sHist'); if(b) b.hidden=true; }
-function shAct(e){ /* xử lý bấm vào mục lịch sử (dùng chung cho dropdown và danh sách "Tìm kiếm gần đây") */
-  const d=e.target.closest('[data-shd]'); if(d){ e.preventDefault(); e.stopPropagation(); shSet(shGet().filter(x=>x!==d.dataset.shd)); shRender(); if($('#sres')&&!lastQ) browseTiles(); return true; }
-  const c=e.target.closest('[data-shc]'); if(c){ e.preventDefault(); shSet([]); shHide(); if($('#sres')&&!lastQ) browseTiles(); return true; }
-  const r=e.target.closest('[data-shq]'); if(r){ e.preventDefault(); const q=r.dataset.shq; shHide(); runSearch(q,true); shSave(q); return true; }
-  return false;
-}
-function browseTiles(){
-  const t=[['Nhạc Việt','nhạc việt hot','#e8553a'],['Lofi','lofi chill beats','#6a5acd'],['K-Pop','kpop hits','#e0368f'],['EDM','edm party hits','#8e2de2'],['Rap Việt','rap việt hay nhất','#c9822b'],['Acoustic','acoustic chill songs','#2f9e8f'],['Piano','relaxing piano music','#3f6fd1'],['Workout','workout motivation songs','#c0392b'],['Anime','anime opening songs','#d64f9e'],['Game OST','game soundtrack','#4a7a3d'],['Cổ điển','classical study music','#7a5c3d'],['Nhạc Hoa','nhạc hoa hay nhất','#b8322f']];
-  const hs=shGet(), hh=hs.length?`<div class="sh"><h3>Tìm kiếm gần đây</h3><a class="more" data-shc role="button" tabindex="0">Xóa tất cả</a></div><div class="hchips">${hs.slice(0,12).map(x=>`<div class="hchip" data-shq="${esc(x)}" tabindex="0">${ic('clock','sm')}<span>${esc(x)}</span><button type="button" class="shx" data-shd="${esc(x)}" title="Xóa khỏi lịch sử">${ic('x','sm')}</button></div>`).join('')}</div>`:'';
-  $('#sres').innerHTML=hh+`<div class="sh"><h3>Duyệt tất cả</h3></div><div class="tiles">${t.map(([n,q,c])=>`<div class="tl" data-q="${esc(q)}" style="background:${c}" tabindex="0">${esc(n)}${ic('note')}</div>`).join('')}</div>`;
-}
-const SFILT=[['all','Tất cả'],['songs','Bài hát'],['videos','Video'],['albums','Albums'],['artists','Nghệ sĩ'],['playlists','Danh sách phát'],['featured','Danh sách phát nổi bật'],['podcasts','Podcasts']];
-let sFilter=LS.get('sfilter','all'); if(!SFILT.some(x=>x[0]===sFilter)) sFilter='all';
-const ytSearchF=(q,f,signal)=>{ const k='f:'+f+'|'+q; return ytCache[k]||(ytCache[k]=api('/api/yt/search?q='+encodeURIComponent(q)+'&f='+f,signal?{signal}:{})
-  .then(r=>(r&&Array.isArray(r.tracks))?{tracks:r.tracks,entities:Array.isArray(r.entities)?r.entities:[]}:{tracks:Array.isArray(r)?r:[],entities:[]})
-  .then(x=>{ warmImgs(x.tracks,96); warmImgs(x.entities,360,8); return x; })
-  .catch(e=>{ delete ytCache[k]; throw e; })); };
-const nz=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/[\(\[（][^\)\]）]*[\)\]）]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-const ALB_BAD=['lyric','lyrics','cover','live','reaction','karaoke','instrumental','remix','sped up','slowed','nightcore','8d','tutorial','歌ってみた','カバー','piano ver','acoustic ver','ver','version','edit','mix','short','tv size','dance practice','performance','teaser','trailer','concert','fan made','fanmade','amv','mad','bootleg','mashup','reverb','bass boosted','loop','1 hour','10 hours'];
-function albScore(t,c){
-  const tt=nz(t.title), ct=nz(c.title); if(!tt||!ct||c.id===t.id||/-\s*topic\s*$/i.test(c.artist||'')) return -1;
-  if(c.vt!=='OMV') return -1;
-  for(const w0 of ALB_BAD){ const w=nz(w0); if(!w) continue; const hit=/^[\x00-\x7f]+$/.test(w)?(' '+ct+' ').includes(' '+w+' '):ct.includes(w), inT=/^[\x00-\x7f]+$/.test(w)?(' '+tt+' ').includes(' '+w+' '):tt.includes(w); if(hit&&!inT) return -1; }
-  const ta=nz(String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?|\bx\b/i)[0]), ca=nz(c.artist), hasA=!!ta&&(ca.includes(ta)||ta.includes(ca)&&ca.length>1||ct.includes(ta));
-  let s=0;
-  if(ct.includes(tt)) s+=3; else { const w=tt.split(' ').filter(Boolean); if(!w.length) return -1; const r=w.filter(x=>(' '+ct+' ').includes(' '+x+' ')).length/w.length; if(r<.85) return -1; s+=2*r; }
-  if(!hasA) return -1; s+=2;
-  if(t.dur&&c.dur){ const d=Math.abs(c.dur-t.dur), tol=Math.max(20,t.dur*.15); if(d>tol) return -1; s+=1-Math.min(1,d/tol); }
-  if(/official|\bmv\b|music video|m\/v|公式|ミュージックビデオ/i.test(c.title||'')) s+=1;
-  return s; }
-const albVidC=new Map();
-let noVid=new Set(); try{ noVid=new Set(JSON.parse(LS.get('muse_novid','[]'))); }catch{}
-function noVidAdd(k){ noVid.add(k); try{ LS.set('muse_novid',JSON.stringify([...noVid].slice(-800))); }catch{} }
-function albFind(t){ const k=key(t); if(albVidC.has(k)) return albVidC.get(k); if(noVid.has(k)){ albVidC.set(k,Promise.resolve(null)); return albVidC.get(k); }
-  const qs=[(t.artist?t.artist+' ':'')+t.title, t.title+' '+(t.artist?String(t.artist).split(/,|&/)[0]+' ':'')+'official music video'];
-  let sawVt=false;
-  const p=(async()=>{ for(const q of qs){ let r; try{ r=await ytSearchF(q,'videos'); }catch{ continue; }
-      if(((r&&r.tracks)||[]).some(c=>c&&'vt' in c)) sawVt=true;
-      let best=null, bs=3; for(const c of (r&&r.tracks)||[]){ const sc=albScore(t,c); if(sc>=bs){ bs=sc; best=c; } }
-      if(best) return best; }
-    if(sawVt) noVidAdd(k); return null; })();
-  albVidC.set(k,p); return p; }
-let albSeq=0, albTok=0; const albToast={};
-function albSwap(t,v){
-  if(!v) return t;
-  const nt={...t,id:String(v.id),image:v.image||t.image,dur:v.dur||t.dur,orig:key(t),fromVid:1};
-  const qk=queue.findIndex(x=>x===t||key(x)===key(t)); if(qk>=0) queue[qk]=nt;
-  return nt; }
-function userPlay(t){
-  if(!showVideo||!t||t.src!=='yt'||t.fromVid||(!t.alb&&isWide(t))){ albSeq++; return userPlay0(t); }
-  const my=++albSeq; let shown=false; const tm=setTimeout(()=>{ if(my===albSeq){ shown=true; adminNotify('Đang tìm video…'); } },700);
-  Promise.race([albFind(t).catch(()=>null),new Promise(r=>setTimeout(()=>r(undefined),4000))]).then(v=>{ clearTimeout(tm); if(my!==albSeq) return;
-    if(v===null){ const ak=t.alb||t.album||'_'; if(!albToast[ak]){ albToast[ak]=1; adminNotify(t.alb?'Album "'+t.alb+'" không có video – phát âm thanh':'Không tìm thấy video cho bài này – phát âm thanh'); } }
-    userPlay0(v?albSwap(t,v):t); }); }
-function albPrefetch(tr,title){
-  const tok=++albTok; let i=0, done=0, ok=0; const n=tr.length;
-  const upd=fin=>{ const el=$('#albVs'); if(!el||tok!==albTok) return; if(!(me&&me.is_admin&&S.show_errors)){ el.textContent=''; return; } el.textContent=fin?(ok?`🎬 Có video cho ${ok}/${n} bài – bấm phát để xem video, bài nào không có video sẽ phát âm thanh`:'Album này không có video – sẽ phát âm thanh'):`🔎 Đang tìm video cho album… ${done}/${n}`; };
-  upd(false);
-  const wk=async()=>{ while(i<n&&tok===albTok&&page==='ybrowse'){ const t=tr[i++]; const v=await albFind(t).catch(()=>null); done++; if(v) ok++; upd(false); } };
-  Promise.all([wk(),wk(),wk()]).then(()=>{ if(tok!==albTok||done<n) return; upd(true); if(!ok){ albToast[title]=1; adminNotify('Album "'+title+'" không có video'); } }); }
-const ENT_LBL={album:'Album',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcast'};
-const ENT_HEAD={album:'Albums',artist:'Nghệ sĩ',playlist:'Danh sách phát',podcast:'Podcasts'};
-function entCards(list){ const k=reg(list,'');
-  return `<div class="grid wrap sent">${list.map((e,i)=>`<div class="card ent ${e.kind==='artist'?'art':''}" data-ent="${k}" data-i="${i}" tabindex="0"><div class="cvw">${e.image?`<img src="${esc(thumb(e.image,360))}" loading="${IMG_LOAD}" decoding="async" alt="">`:ic('note')}</div><div class="ct">${esc(e.title)}</div><div class="ca">${esc(e.sub||ENT_LBL[e.kind]||'')}</div></div>`).join('')}</div>`; }
-async function runSearch(q,fill){
-  const inp=$('#sq'); if(fill&&inp) inp.value=q;
-  lastQ=q; const my=++sTok; const box=$('#sres'); if(!box) return;
-  if(sCtl){ try{ sCtl.abort(); }catch{} sCtl=null; delete ytCache['f:'+sFilter+'|'+lastSQ]; } // huỷ tìm kiếm cũ để không chiếm kết nối
-  if(q){ searchBusyUntil=Date.now()+8000; warmAbortAll(); warmQ.length=0; }
-  const ch=$('#sChips'); if(ch){ ch.hidden=!q; ch.innerHTML=q?SFILT.map(([k,n])=>`<button class="chip${k===sFilter?' on':''}" data-sf="${k}">${n}</button>`).join(''):''; }
-  if(!q){ browseTiles(); return; }
-  box.innerHTML='<p class="empty">Đang tìm…</p>';
-  const f=sFilter; let out=[], ents=[]; const id=ytId(q);
-  if(id) out.push(await ytInfo(id));
-  if(!id||q.length>11){
-    const ctl=new AbortController(); sCtl=ctl; lastSQ=q;
-    try{ const r=await ytSearchF(q,f,ctl.signal); out=out.concat(r.tracks); ents=r.entities; }
-    catch(e){ if(e&&e.aborted) return; if(!out.length&&my===sTok){ box.innerHTML=`<p class="empty">${esc(errTxt(e))}</p>`; return; } }
-  }
-  if(sCtl&&my===sTok) sCtl=null;
-  if(my!==sTok||!$('#sres')) return;
-  searchBusyUntil=0;
-  const trackMode=f==='all'||f==='songs'||f==='videos', entMode=f!=='songs'&&f!=='videos';
-  let html='';
-  if(trackMode&&out.length) html+=(f==='all'?`<div class="sres-h">Bài hát</div>`:'')+tracksHtml(out,false,q);
-  if(entMode&&ents.length){
-    if(f==='all'){ ['album','artist','playlist','podcast'].forEach(kd=>{ const l=ents.filter(e=>e.kind===kd); if(l.length) html+=`<div class="sres-h">${ENT_HEAD[kd]}</div>`+entCards(l); }); }
-    else html+=entCards(ents);
-  }
-  $('#sres').innerHTML=html?`<div class="sh"><h3>Kết quả cho “${esc(q)}”</h3></div>`+html:'<p class="empty">Không tìm thấy kết quả. Thử từ khoá khác hoặc dán link YouTube.</p>';
-  markNow();
-}
-pages.ybrowse=async function(m,x){
-  const back=`<button class="out" id="ybBack">${ic('chev','flip sm')} Quay lại</button>`;
-  m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">Đang tải…</p>`;
-  const bk=()=>{ const b=$('#ybBack'); if(b) b.onclick=()=>go('search',lastQ); }; bk();
-  let r; try{ r=await api('/api/yt/browse?id='+encodeURIComponent(x.id)+'&kind='+encodeURIComponent(x.kind)); }
-  catch(e){ m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div><p class="empty">${esc(errTxt(e))}</p>`; bk(); return; }
-  const tr=(r&&r.tracks)||[], title=(r&&r.title)||x.title;
-  const isAlb=x.kind==='album'; if(isAlb) tr.forEach(t=>{ if(t.src==='yt') t.alb=title; });
-  m.innerHTML=`<div class="sh" style="margin-bottom:10px">${back}</div>`+hero(title,(r&&r.sub)||ENT_LBL[x.kind]||'',tr)+(isAlb?'<p id="albVs" style="margin:2px 0 12px;font-size:13px;opacity:.75"></p>':'')+tracksHtml(tr,false,title); bk(); markNow();
-  if(isAlb&&tr.length) albPrefetch(tr,title);
-};
 
-const BA_COLORS=['#1ed7a1','#f59bd0','#ffb23f','#8fb8ff','#c9a7ff','#ff8f7a','#7ee0e8','#d6e66a'];
-const tiDesc=n=>`Đây là ${n}. Những bài hát tinh túy nhất, gói gọn trong một danh sách phát.`;
-let baMemo=null;
-const bestRegion=()=>{ try{ return ((navigator.language||'').split('-')[1]||'').toUpperCase().slice(0,2); }catch{ return ''; } };
-async function getBestArtists(taste){
-  if(!baMemo||Date.now()-baMemo.t>6e5){
-    const j=await api('/api/yt/best-artists?region='+encodeURIComponent(bestRegion()));
-    const a=j&&Array.isArray(j.artists)?j.artists.filter(e=>e&&e.id&&e.title&&e.image):[];
-    if(a.length>=3) baMemo={t:Date.now(),a}; else return [];
-  }
-  const aw=(taste&&taste.artW)||{}, avoid=(taste&&taste.avoid)||new Set();
-  const l=baMemo.a.filter(e=>!avoid.has(String(e.title).toLowerCase()))
-    .map(e=>({e,s:(e.heat||0)*(1+.25*(aw[String(e.title).toLowerCase()]||0))})).sort((x,y)=>y.s-x.s).map(x=>x.e);
-  let prev=-1;
-  return l.map(e=>{ let c=strHash(String(e.title).toLowerCase())%BA_COLORS.length; if(c===prev) c=(c+1)%BA_COLORS.length; prev=c; return {...e,color:BA_COLORS[c]}; });
+// GET /api/yt/fresh?artist=Tên → { artist, tracks: [{..., age: số ngày kể từ ngày phát hành}] }  (mới nhất trước, chỉ giữ bài ≤ 60 ngày)
+async fn yt_fresh(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtFreshQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.artist.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let lname = name.to_lowercase();
+    let ckey = format!("{}|{}|{}", lname, allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = fresh_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 1800 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let empty = json!({ "artist": name, "tracks": [] });
+    let today = (now_secs() / 86400) as i64;
+    let cur_year = 1970 + (today as f64 / 365.2425) as i64;
+
+    // 1) tìm nghệ sĩ
+    let Some(sv) = yt_post(&client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await else {
+        return Err((StatusCode::BAD_GATEWAY, "Không kết nối được YouTube Music".to_string()));
+    };
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let is_artist = |e: &&Value| e.get("kind").and_then(|x| x.as_str()) == Some("artist");
+    let exact = ents
+        .iter()
+        .filter(is_artist)
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    let nname = norm_name(&name);
+    let near = ents.iter().filter(is_artist).find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let Some(aid) = exact.or(near).and_then(|e| e.get("id")).and_then(|x| x.as_str()).map(|s| s.to_string()) else {
+        return Ok(Json(empty));
+    };
+
+    // 2) trang nghệ sĩ → single/album của năm nay và năm ngoái
+    let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await else {
+        return Ok(Json(empty));
+    };
+    let mut cards: Vec<(String, i64, String, String)> = Vec::new();
+    yt_album_cards(&bv, &mut cards);
+    let mut seen_a: HashSet<String> = HashSet::new();
+    cards.retain(|c| c.1 >= cur_year - 1 && seen_a.insert(c.0.clone()));
+    cards.sort_by_key(|c| std::cmp::Reverse(c.1));   // năm mới trước (sắp xếp ổn định giữ thứ tự trên trang)
+    cards.truncate(10);
+    if cards.is_empty() {
+        return Ok(Json(empty));
+    }
+
+    // 3) bài trong từng album/single
+    let pages = futures_util::future::join_all(cards.iter().map(|c| {
+        let cl = client.clone();
+        let id = c.0.clone();
+        async move { yt_post(&cl, "browse", json!({ "context": yt_ctx(), "browseId": id })).await }
+    }))
+    .await;
+    let mut cand: Vec<Value> = Vec::new();
+    let mut seen_t: HashSet<String> = HashSet::new();
+    for (c, pg) in cards.iter().zip(pages.into_iter()) {
+        let Some(pg) = pg else { continue };
+        let mut ts: Vec<Value> = Vec::new();
+        yt_collect(&pg, &mut ts);
+        ts.retain(|t| !yt_is_non_music(t));
+        for mut t in ts {
+            let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            if a.is_empty() || a.to_lowercase().contains("plays") {
+                t["artist"] = json!(name);
+            }
+            if !c.3.is_empty() {
+                t["image"] = json!(c.3);
+            }
+            if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+                continue;
+            }
+            let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            if !id.is_empty() && seen_t.insert(id) {
+                cand.push(t);
+            }
+        }
+    }
+    cand.truncate(30);
+
+    // 4) ngày đăng thật của từng bài
+    let days = futures_util::future::join_all(cand.iter().map(|t| {
+        let cl = client.clone();
+        let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        async move { yt_pubday(&cl, &id).await }
+    }))
+    .await;
+    let mut out: Vec<(i64, Value)> = Vec::new();
+    for (mut t, d) in cand.into_iter().zip(days.into_iter()) {
+        let Some(d) = d else { continue };   // không biết ngày thì không coi là mới
+        let age = today - d;
+        if (-1..=60).contains(&age) {
+            t["age"] = json!(age.max(0));
+            out.push((age, t));
+        }
+    }
+    out.sort_by_key(|x| x.0);
+    let tracks: Vec<Value> = out.into_iter().map(|x| x.1).collect();
+    let val = json!({ "artist": name, "tracks": tracks });
+    {
+        let mut c = fresh_cache().lock().unwrap();
+        if c.len() > 200 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
 }
-const tiCard=(e,i,k)=>`<div class="card tic" data-ti="${k}" data-i="${i}" tabindex="0"><div class="cvw tcv" style="--tc:${esc(e.color||BA_COLORS[0])}"><img class="tlogo" src="/app-icon.png" alt=""><b class="tt">THIS IS</b><i class="tband"></i><img class="tpic" src="${esc(thumb(e.image,300))}" loading="${IMG_LOAD}" decoding="async" alt=""><b class="tnm">${esc(e.title)}</b><button class="pl" title="Phát">${ic('play','fill')}</button></div><div class="tdesc">${esc(tiDesc(e.title))}</div></div>`;
-pages.bestartists=async function(m){
-  m.innerHTML=`<div class="sh"><div><small>Tổng hợp những bài hát hàng đầu của một nghệ sĩ.</small><h3 style="font-size:32px">Nghệ sĩ nổi bật</h3></div></div><p class="empty">Đang tải…</p>`;
-  let taste; try{ taste=await tasteProfile(); }catch{}
-  const l=await getBestArtists(taste);
-  if(page!=='bestartists') return;
-  const hd=m.querySelector('.sh').outerHTML;
-  if(!l.length){ m.innerHTML=hd+'<p class="empty">Chưa có nghệ sĩ nào để hiện. Hãy thử lại sau.</p>'; return; }
-  const k=reg(l,'');
-  m.innerHTML=hd+`<div class="grid wrap">${l.map((e,i)=>tiCard(e,i,k)).join('')}</div>`;
-};
-pages.thisis=async function(m,x){
-  const back=`<div class="sh" style="margin-bottom:10px"><button class="out" id="tiBack">${ic('chev','flip sm')} Quay lại</button></div>`;
-  const bk=()=>{ const b=$('#tiBack'); if(b) b.onclick=()=>go(tiFrom); };
-  m.innerHTML=back+'<p class="empty">Đang tải…</p>'; bk();
-  let r; try{ r=await api('/api/yt/this-is?name='+encodeURIComponent(x.title)+'&id='+encodeURIComponent(x.id||'')); }
-  catch(e){ if(page!=='thisis') return; m.innerHTML=back+`<p class="empty">${esc(errTxt(e))}</p>`; bk(); return; }
-  if(page!=='thisis') return;
-  const tr=(r&&Array.isArray(r.tracks))?r.tracks:[], who=(r&&r.name)||x.title, name='This Is '+who;
-  if(!tr.length){ m.innerHTML=back+'<p class="empty">Không tải được bài hát của nghệ sĩ này.</p>'; bk(); return; }
-  const tot=tr.reduce((a,t)=>a+(t.dur||0),0), dur=tot>=3600?`khoảng ${Math.round(tot/3600)} giờ`:`${Math.max(1,Math.round(tot/60))} phút`;
-  const k=reg(tr,name), img=(r&&r.image)||x.image||(tr[0]&&tr[0].image)||'';
-  m.innerHTML=back+`<div class="tih" style="--tc:${esc(x.color||BA_COLORS[0])}"><div class="tipic">${img?`<img src="${esc(thumb(img,500))}" alt="">`:''}</div><div class="tix"><small>Danh sách phát công khai</small><h2>${esc(name)}</h2><p class="tid">${esc(tiDesc(who))}</p><div class="tim"><img src="/app-icon.png" alt=""><b>BBeat</b> • ${tr.length} bài hát, ${dur}</div></div></div>
-    <div class="tibar"><button class="tiplay" data-hp="${k}" data-sh="0" title="Phát">${ic('play','fill')}</button><button class="ico" data-hp="${k}" data-sh="1" title="Xáo trộn">${ic('shuffle')}</button><button class="ico" id="tiSave" title="Lưu thành danh sách phát">${ic('plus')}</button><button class="ico" data-hd="${k}" title="Tải tất cả">${ic('download')}</button></div>
-    <div class="tr trh"><span class="n">#</span><span></span><span>Tiêu đề</span><span class="ar">Album</span><span class="du"></span><span></span></div>`+tracksHtml(tr,false,name,t=>t.album||t.artist);
-  bk(); markNow();
-  const sv=$('#tiSave'); if(sv) sv.onclick=async()=>{
-    if(guest){ notify('Hãy đăng nhập để lưu danh sách phát'); return; }
-    sv.disabled=true;
-    try{ const p=await api('/api/playlists',{json:{name}}); for(const t of tr) await api(`/api/playlists/${p.id}/tracks`,{json:slim(t)}); await loadPlaylists(); notify('Đã lưu thành danh sách phát'); }
-    catch(e){ notify(errTxt(e)); } finally{ sv.disabled=false; } };
-  if(x.auto) playList(tr,0,name);
-};
-/* ===== MIX: gợi ý đúng thể loại + nạp từ từ để YouTube không gắn cờ bot =====
-   - Mỗi mix có bộ từ khoá + bộ lọc riêng (đúng thể loại, đúng độ dài một bài hát, bỏ liên khúc/1 giờ/livestream).
-   - Mix yêu thích = bài yêu thích + bài giống nghệ sĩ bạn hay thả tim; Mix nghe lại = lịch sử nghe của bạn.
-   - Chỉ gửi MỘT yêu cầu mỗi lần, cách nhau vài giây (có ngẫu nhiên). Có sẵn đủ bài phía trước thì nghỉ, chưa cần nạp thêm.
-   - Yêu cầu nào lỗi (nghi bị bắt là bot…) thì bỏ qua, nghỉ lâu hơn rồi tiếp tục nạp chậm; lỗi liên tiếp nhiều lần thì dừng hẳn. */
-const MIX_GAP=4500, MIX_JIT=3000, MIX_AHEAD=40, MIX_MAX=150, MIX_PER_Q=16;
-const MIX_BAD=/(?:\b\d{1,2}\s*(?:hours?|hrs?|giờ)\b|full album|non[\s-]?stop|liên khúc|24\/7|live\s?stream|podcast|compilation|playlist)/i;
-const VN_RE=/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
-const isVn=t=>VN_RE.test((t.title||'')+' '+(t.artist||''));
-const MIXES={
-  viet:{qs:['nhạc việt hot','v-pop hits mới nhất','nhạc trẻ hay nhất','ballad việt hay nhất','rap việt hay nhất'],ok:isVn},
-  lofi:{qs:['lofi chill beats','lofi hip hop songs','chill lofi study songs','lofi jazz chill','lofi anime songs'],max:420},
-  intl:{qs:['top global hits','top pop songs this year','billboard hot 100 songs','global top 50 songs'],ok:t=>!isVn(t)},
-  edm:{qs:['edm party hits','edm festival hits','best house music songs','electro house hits','future bass songs'],max:420}
-};
-let mixTok=0, mixLastAt=0;
-const mixSleep=ms=>new Promise(r=>setTimeout(r,ms));
-const mixSig=t=>nz(t.title)+'|'+nz(String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?/i)[0]);
-function mixClean(list,spec,seen){
-  const out=[], mx=(spec&&spec.max)||480;
-  for(const t of list||[]){
-    if(!t||!t.id||blocked(t)||isUnplay(t)) continue;
-    if(t.dur&&(t.dur<60||t.dur>mx)) continue;
-    if(MIX_BAD.test(t.title||'')) continue;
-    const sg=mixSig(t); if(seen.has(sg)) continue;
-    out.push(t);
-  }
-  if(spec&&spec.ok){ const f=out.filter(spec.ok); if(f.length>=6) return f; }
-  return out;
+
+// ---------- Nghệ sĩ nổi bật ("Best of artists") + danh sách "This Is …" ----------
+// Không có danh sách nghệ sĩ viết sẵn: server đọc bảng xếp hạng YouTube Music (toàn cầu + khu vực của người dùng; nếu bảng lỗi thì
+// dùng kết quả tìm video "đang thịnh hành"), lấy vị trí xếp hạng, LƯỢT XEM của từng bài, rồi hỏi thêm LƯỢT THÍCH (Return YouTube Dislike)
+// cho các bài đứng đầu. Từ đó chấm điểm "độ hot" của từng nghệ sĩ (nhiều bài hot + bài hot nhiều lượt xem/thích + đứng cao trên
+// bảng nghệ sĩ + đang tăng hạng + lượng khán giả). Kết quả giữ 30 phút trong cache.
+
+// "1.2M views" / "523K" / "1,234,567 plays" -> số. None nếu không đọc được.
+fn parse_count(s: &str) -> Option<f64> {
+    let tok = s.trim().split_whitespace().next()?;
+    let mut num = String::new();
+    let mut mult = 1.0f64;
+    for c in tok.chars() {
+        if c.is_ascii_digit() || c == '.' {
+            num.push(c);
+        } else if c == ',' {
+            continue;
+        } else {
+            mult = match c.to_ascii_lowercase() {
+                'k' => 1e3,
+                'm' => 1e6,
+                'b' => 1e9,
+                _ => return None,
+            };
+            break;
+        }
+    }
+    if num.is_empty() {
+        return None;
+    }
+    num.parse::<f64>().ok().map(|n| n * mult)
 }
-async function mixFetch(q,tok){
-  const cached=!!ytCache[q]||!!LS.get(ycKey(q),null);
-  if(!cached){
-    const wait=mixLastAt+MIX_GAP+Math.random()*MIX_JIT-Date.now();
-    if(wait>0) await mixSleep(wait);
-    if(tok!==mixTok) return null;
-    mixLastAt=Date.now();
-  }
-  return ytSearch(q,true);
+
+// Lượt xem / lượt nghe trong các phần của dòng phụ ("Artist • 12M views • 3:45").
+fn parse_views(parts: &[String]) -> f64 {
+    for p in parts {
+        let l = p.trim().to_lowercase();
+        if l.contains("views") || l.contains("plays") {
+            if let Some(n) = parse_count(&l) {
+                return n;
+            }
+        }
+    }
+    0.0
 }
-function mixSeeds(favs_){
-  const c=new Map();
-  for(const t of favs_){ const a=String(t.artist||'').split(/,|&|\bfeat\b\.?|\bft\b\.?/i)[0].trim(); if(!a||/^youtube$/i.test(a)||/ - topic$/i.test(a)&&a.length<9) continue; c.set(a,(c.get(a)||0)+1); }
-  return [...c.entries()].sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>'sim:'+x[0]);
+
+// Số người theo dõi / khán giả hằng tháng trong dòng phụ của một nghệ sĩ ("Artist • 12M monthly audience", "1.2M subscribers").
+fn parse_audience(sub: &str) -> f64 {
+    for p in sub.split('\u{2022}') {
+        let l = p.trim().to_lowercase();
+        if l.contains("subscriber") || l.contains("audience") || l.contains("listener") || l.contains("follower") {
+            if let Some(n) = parse_count(&l) {
+                return n;
+            }
+        }
+    }
+    0.0
 }
-async function startMix(sp,name){
-  const tok=++mixTok; mixLastAt=Math.max(mixLastAt,0);
-  try{
-    const seen=new Set(); let first, qs=[], spec=MIXES[sp];
-    if(sp==='fav'||sp==='hist'){
-      const l=await api(sp==='fav'?'/api/favorites':'/api/history');
-      if(!Array.isArray(l)||!l.length){ notify(sp==='fav'?'Chưa có bài yêu thích để tạo mix này.':'Chưa có bài nào để tạo mix này.'); return; }
-      first=shuffled(l.filter(t=>!blocked(t))).slice(0,40); first.forEach(t=>seen.add(mixSig(t)));
-      if(sp==='fav') qs=mixSeeds(l);
-      spec=null; var favKeys=new Set(l.map(key));
+
+// Tách chuỗi nghệ sĩ của một bài ("A, B & C feat. D") thành các tên (giữ nguyên chữ hoa/thường để hiển thị).
+fn split_credits(s: &str) -> Vec<String> {
+    let mut t = s.to_string();
+    for sep in [" feat. ", " feat ", " ft. ", " ft ", " x ", " X ", " × "] {
+        t = t.replace(sep, ",");
+    }
+    let v: Vec<String> = t
+        .split(|c: char| matches!(c, ',' | '&' | ';' | '/' | '、' | '・'))
+        .map(|x| x.trim().trim_end_matches("- Topic").trim().to_string())
+        .filter(|x| x.chars().count() >= 2 && x.chars().any(|c| c.is_alphabetic()))
+        .collect();
+    v
+}
+
+// log10(x) quy về 0..1 giữa hai mốc (lo, hi là số mũ của 10).
+fn norm_log(x: f64, lo: f64, hi: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    ((x.log10() - lo) / (hi - lo)).clamp(0.0, 1.0)
+}
+
+// Độ hot của MỘT bài: vị trí trên bảng (0..1) + lượt xem + lượt thích. Thiếu thành phần nào thì chia lại trọng số cho phần còn lại.
+fn track_heat(rank: f64, views: f64, likes: f64) -> f64 {
+    let mut w = 0.45;
+    let mut s = 0.45 * rank;
+    if views > 0.0 {
+        s += 0.35 * norm_log(views, 4.0, 9.0); // 10 nghìn -> 0, 1 tỷ -> 1
+        w += 0.35;
+    }
+    if likes > 0.0 {
+        s += 0.20 * norm_log(likes, 2.5, 7.0); // 300 -> 0, 10 triệu -> 1
+        w += 0.20;
+    }
+    s / w
+}
+
+// Độ hot của một nghệ sĩ: các bài hot nhất cộng dồn (bài thứ hai, ba… tính nhẹ dần), thêm điểm đứng trên bảng nghệ sĩ,
+// đang tăng/giảm hạng và quy mô khán giả.
+fn artist_heat(mut heats: Vec<f64>, chart_rank: f64, trend: i32, audience: f64) -> f64 {
+    heats.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
+    let mut s = 0.0;
+    let mut w = 1.0;
+    for h in heats.iter().take(6) {
+        s += h * w;
+        w *= 0.6;
+    }
+    s + 0.9 * chart_rank + 0.08 * trend as f64 + 0.25 * norm_log(audience, 4.0, 8.0)
+}
+
+struct ChartTrack {
+    id: String,
+    artists: Vec<String>,
+    shelf: usize,
+    views: f64,
+    trend: i32,
+}
+struct ChartArtist {
+    name: String,
+    id: String,
+    image: String,
+    shelf: usize,
+    audience: f64,
+    trend: i32,
+}
+#[derive(Default)]
+struct ChartAcc {
+    shelf: usize,
+    tracks: Vec<ChartTrack>,
+    artists: Vec<ChartArtist>,
+}
+struct HotTrack {
+    id: String,
+    artists: Vec<String>,
+    rank: f64,
+    views: f64,
+    likes: f64,
+    trend: i32,
+}
+struct HotArtist {
+    name: String,
+    id: String,
+    image: String,
+    rank: f64,
+    audience: f64,
+    trend: i32,
+}
+struct ArtistAgg {
+    name: String,
+    id: String,
+    image: String,
+    heats: Vec<f64>,
+    chart_rank: f64,
+    trend: i32,
+    audience: f64,
+}
+
+fn yt_trend(item: &Value) -> i32 {
+    let s = item.to_string();
+    if s.contains("ARROW_DROP_UP") {
+        1
+    } else if s.contains("ARROW_DROP_DOWN") {
+        -1
     } else {
-      if(!spec){ spec={qs:[sp]}; } // tương thích kiểu cũ: truyền thẳng từ khoá
-      qs=shuffled(spec.qs);
+        0
     }
-    // --- Bài đầu tiên: yêu thích/lịch sử có sẵn thì phát ngay; mix thể loại thì chờ kết quả đầu tiên ---
-    if(first){ playList(first,0,name); }
-    else notify('Đang chuẩn bị mix…');
-    let fails=0, retry=[], started=!!first, fed=0;
-    const alive=()=>tok===mixTok&&(!started||qname===name);
-    const run=async q=>{
-      if(!alive()) return 'stop';
-      while(started&&alive()&&queue.length-qi>=MIX_AHEAD) await mixSleep(6000);     // còn nhiều bài phía trước thì nghỉ
-      if(!alive()) return 'stop';
-      let r; try{ r=await mixFetch(q,tok); }catch{ return 'fail'; }
-      if(r===null||!alive()) return 'stop';
-      let fresh=mixClean(r,spec,seen); if(favKeys) fresh=fresh.filter(t=>!favKeys.has(key(t)));
-      fresh=shuffled(fresh).slice(0,MIX_PER_Q); fresh.forEach(t=>seen.add(mixSig(t)));
-      if(!fresh.length) return 'ok';
-      if(!started){ started=true; playList(fresh,0,name); }
-      else { for(const t of fresh){ if(queue.length>=MIX_MAX) break; const lo=Math.min(queue.length,qi+2); queue.splice(lo+Math.floor(Math.random()*(queue.length-lo+1)),0,t); } }
-      fed+=fresh.length; return 'ok';
+}
+
+fn yt_thumb_last(v: Option<&Value>) -> String {
+    v.and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string()
+}
+
+// Các phần ("Artist", "Album", "3:45"…) của cột chữ thứ i trong một dòng danh sách của YouTube Music.
+fn yt_flex_parts(item: &Value, i: usize) -> Vec<String> {
+    let txt: String = item
+        .get("flexColumns")
+        .and_then(|c| c.as_array())
+        .and_then(|c| c.get(i))
+        .and_then(|c| c.pointer("/musicResponsiveListItemFlexColumnRenderer/text"))
+        .map(yt_text)
+        .unwrap_or_default();
+    let v: Vec<String> = txt.split(" \u{2022} ").map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+    v
+}
+
+// Duyệt một trang (bảng xếp hạng hoặc kết quả tìm kiếm), gom bài hát và nghệ sĩ kèm số "kệ" (shelf) để sau này suy ra thứ hạng trong kệ.
+fn yt_chart_walk(v: &Value, acc: &mut ChartAcc) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                let trend = yt_trend(item);
+                if let Some(t) = yt_track(item) {
+                    let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    let artist = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    let views = parse_views(&yt_flex_parts(item, 1));
+                    acc.tracks.push(ChartTrack { id, artists: split_credits(&artist), shelf: acc.shelf, views, trend });
+                } else if let Some(e) = yt_entity(item) {
+                    if e.get("kind").and_then(|x| x.as_str()) == Some("artist") {
+                        let name = e.get("title").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        let sub = e.get("sub").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                        if !name.is_empty() && !id.is_empty() {
+                            acc.artists.push(ChartArtist { name, id, image, shelf: acc.shelf, audience: parse_audience(&sub), trend });
+                        }
+                    }
+                }
+                return;
+            }
+            if let Some(r) = m.get("musicTwoRowItemRenderer") {
+                let title = r.get("title").map(yt_text).unwrap_or_default();
+                let sub = r.get("subtitle").map(yt_text).unwrap_or_default();
+                let parts: Vec<String> = sub.split(" \u{2022} ").map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+                if let Some(vid) = r.pointer("/navigationEndpoint/watchEndpoint/videoId").and_then(|x| x.as_str()) {
+                    let artist = parts.iter().find(|p| !yt_junk_part(p)).cloned().unwrap_or_default();
+                    acc.tracks.push(ChartTrack { id: vid.to_string(), artists: split_credits(&artist), shelf: acc.shelf, views: parse_views(&parts), trend: yt_trend(r) });
+                } else if let Some(be) = r.pointer("/navigationEndpoint/browseEndpoint") {
+                    let pt = be
+                        .pointer("/browseEndpointContextSupportedConfigs/browseEndpointContextMusicConfig/pageType")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("");
+                    let id = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    if pt == "MUSIC_PAGE_TYPE_ARTIST" && !id.is_empty() && !title.is_empty() {
+                        let image = yt_thumb_last(r.pointer("/thumbnailRenderer/musicThumbnailRenderer/thumbnail/thumbnails"));
+                        acc.artists.push(ChartArtist { name: title, id, image, shelf: acc.shelf, audience: parse_audience(&sub), trend: yt_trend(r) });
+                    }
+                }
+                return;
+            }
+            if m.contains_key("musicCarouselShelfRenderer") || m.contains_key("musicShelfRenderer") {
+                acc.shelf += 1;
+            }
+            for x in m.values() {
+                yt_chart_walk(x, acc);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_chart_walk(x, acc);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Đổi vị trí trong kệ thành điểm 0..1 (đứng đầu = 1) rồi gộp vào danh sách chung.
+fn chart_finish(acc: ChartAcc, tr: &mut Vec<HotTrack>, ar: &mut Vec<HotArtist>) {
+    let ChartAcc { tracks, artists, .. } = acc;
+    let mut tcount: HashMap<usize, usize> = HashMap::new();
+    for t in &tracks {
+        *tcount.entry(t.shelf).or_insert(0) += 1;
+    }
+    let mut tseen: HashMap<usize, usize> = HashMap::new();
+    for t in tracks {
+        let n = *tcount.get(&t.shelf).unwrap_or(&1) as f64;
+        let i = tseen.entry(t.shelf).or_insert(0);
+        let rank = 1.0 - (*i as f64) / n.max(1.0);
+        *i += 1;
+        tr.push(HotTrack { id: t.id, artists: t.artists, rank, views: t.views, likes: 0.0, trend: t.trend });
+    }
+    let mut acount: HashMap<usize, usize> = HashMap::new();
+    for a in &artists {
+        *acount.entry(a.shelf).or_insert(0) += 1;
+    }
+    let mut aseen: HashMap<usize, usize> = HashMap::new();
+    for a in artists {
+        let n = *acount.get(&a.shelf).unwrap_or(&1) as f64;
+        let i = aseen.entry(a.shelf).or_insert(0);
+        let rank = 1.0 - (*i as f64) / n.max(1.0);
+        *i += 1;
+        ar.push(HotArtist { name: a.name, id: a.id, image: a.image, rank, audience: a.audience, trend: a.trend });
+    }
+}
+
+async fn yt_chart_page(client: &reqwest::Client, region: &str) -> Option<Value> {
+    let mut body = json!({ "context": yt_ctx(), "browseId": "FEmusic_charts" });
+    if !region.is_empty() {
+        body["formData"] = json!({ "selectedValues": [region] });
+    }
+    yt_post(client, "browse", body).await
+}
+
+static RYD_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, f64, f64)>>> = std::sync::OnceLock::new();
+fn ryd_cache() -> &'static Mutex<HashMap<String, (u64, f64, f64)>> {
+    RYD_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Lượt thích + lượt xem của một video từ Return YouTube Dislike (không cần khoá API). Lỗi thì None, bài đó chỉ mất phần điểm "thích".
+async fn ryd_votes(client: &reqwest::Client, id: &str) -> Option<(f64, f64)> {
+    if let Some((t, l, v)) = ryd_cache().lock().unwrap().get(id) {
+        if now_secs().saturating_sub(*t) < 6 * 3600 {
+            return Some((*l, *v));
+        }
+    }
+    let resp = client
+        .get(format!("https://returnyoutubedislikeapi.com/votes?videoId={id}"))
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let j: Value = resp.json().await.ok()?;
+    let likes = j.get("likes").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let views = j.get("viewCount").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    {
+        let mut c = ryd_cache().lock().unwrap();
+        if c.len() > 3000 {
+            c.clear();
+        }
+        c.insert(id.to_string(), (now_secs(), likes, views));
+    }
+    Some((likes, views))
+}
+
+static ARTIST_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn artist_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    ARTIST_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+static BEST_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn best_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    BEST_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+static THISIS_CACHE: std::sync::OnceLock<Mutex<HashMap<String, (u64, Value)>>> = std::sync::OnceLock::new();
+fn thisis_cache() -> &'static Mutex<HashMap<String, (u64, Value)>> {
+    THISIS_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+// Tìm trang nghệ sĩ theo tên (ưu tiên trùng khớp, rồi tên chứa nhau). Trả {kind,id,title,sub,image}.
+async fn yt_find_artist(client: &reqwest::Client, name: &str) -> Option<Value> {
+    let sv = yt_post(client, "search", json!({ "context": yt_ctx(), "query": name, "params": yt_filter_params("artists").unwrap_or("") })).await?;
+    let mut tr0: Vec<Value> = Vec::new();
+    let mut ents: Vec<Value> = Vec::new();
+    yt_collect_all(&sv, &mut tr0, &mut ents);
+    let lname = name.to_lowercase();
+    let nname = norm_name(name);
+    let artists: Vec<&Value> = ents.iter().filter(|e| e.get("kind").and_then(|x| x.as_str()) == Some("artist")).collect();
+    let exact = artists
+        .iter()
+        .find(|e| e.get("title").and_then(|x| x.as_str()).map(|t| t.to_lowercase() == lname).unwrap_or(false));
+    let near = artists.iter().find(|e| {
+        let t = norm_name(e.get("title").and_then(|x| x.as_str()).unwrap_or(""));
+        !t.is_empty() && !nname.is_empty() && (t.contains(&nname) || nname.contains(&t))
+    });
+    let found: Option<Value> = exact.or(near).map(|e| (**e).clone());
+    found
+}
+
+// Như trên nhưng nhớ 24 giờ (chỉ nhớ khi tìm thấy; lỗi mạng hay không thấy thì lần sau thử lại).
+async fn yt_find_artist_cached(client: &reqwest::Client, name: &str) -> Option<Value> {
+    let k = norm_name(name);
+    if k.is_empty() {
+        return None;
+    }
+    if let Some((t, v)) = artist_cache().lock().unwrap().get(&k) {
+        if now_secs().saturating_sub(*t) < 86400 {
+            return Some(v.clone());
+        }
+    }
+    let r = yt_find_artist(client, name).await;
+    if let Some(v) = &r {
+        let mut c = artist_cache().lock().unwrap();
+        if c.len() > 2000 {
+            c.clear();
+        }
+        c.insert(k, (now_secs(), v.clone()));
+    }
+    r
+}
+
+// GET /api/yt/artists?names=A|B|C → [{kind:"artist",id,title,sub,image}]  (ảnh + trang nghệ sĩ cho kệ "Nghệ sĩ yêu thích")
+#[derive(Deserialize)]
+struct YtArtistsQ {
+    names: Option<String>,
+}
+
+async fn yt_artists(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtArtistsQ>) -> R<Value> {
+    let use_proxy = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id).1,
+        Err(_) => false,
     };
-    for(const q of qs){
-      const st=await run(q);
-      if(st==='stop') return;
-      if(st==='fail'){ fails++; retry.push(q); if(fails>=4) break; await mixSleep(Math.min(60000,10000*Math.pow(2,fails-1))); }   // bỏ yêu cầu lỗi, nghỉ lâu hơn rồi đi tiếp
-      else { fails=0; }
-      if(queue.length>=MIX_MAX&&started) return;
+    let client = pick_client(&st, use_proxy);
+    let names: Vec<String> = q
+        .names
+        .unwrap_or_default()
+        .split('|')
+        .map(|x| x.trim().chars().take(80).collect::<String>())
+        .filter(|x| !x.is_empty())
+        .take(16)
+        .collect();
+    let found = futures_util::future::join_all(names.iter().map(|n| {
+        let cl = client.clone();
+        let n = n.clone();
+        async move { yt_find_artist_cached(&cl, &n).await }
+    }))
+    .await;
+    let mut out: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for e in found.into_iter().flatten() {
+        let id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        if !id.is_empty() && seen.insert(id) {
+            out.push(e);
+        }
     }
-    // Thử lại đúng một lần các yêu cầu đã lỗi, sau khi nghỉ đủ lâu
-    if(retry.length&&fails<4&&alive()){ await mixSleep(30000); for(const q of retry){ if((await run(q))==='stop') return; } }
-    if(!started&&tok===mixTok) notify('Chưa tải được mix này, hãy thử lại sau ít phút.');
-  }catch(e){ if(tok===mixTok) notify(e.message); }
+    Ok(Json(Value::Array(out)))
 }
 
-async function loadPlaylists(){
-  try{ playlists=await api('/api/playlists'); }
-  catch(e){ const c=e.message==='401'?null:cachedPlaylists(); if(!c||!S.offline_pl) throw e; playlists=c; notify('Đang offline – hiển thị danh sách phát đã lưu'); }
-  const box=$('#plList'); box.innerHTML='';
-  playlists.forEach(p=>{ const d=document.createElement('div'); d.className='li'; d.tabIndex=0; d.dataset.pl=p.id;
-    d.innerHTML=`<div class="tile">${plCover(p)}</div><div class="meta"><b>${esc(p.name)}</b><span>Danh sách phát · ${p.count} bài hát</span></div>`;
-    d.onclick=()=>go('playlist',p.id); d.onkeydown=e=>{ if(e.key==='Enter') d.click(); }; box.appendChild(d); });
-  filterLib(); plCoverFill(); if(S.offline_pl&&navigator.onLine) cachePlaylists();
+// GET /api/yt/best-artists?region=VN → { artists: [{kind,id,title,sub,image,heat}], region, source }   (đã xếp theo độ hot, giảm dần)
+#[derive(Deserialize)]
+struct YtBestQ {
+    region: Option<String>,
 }
-function plCover(p){
-  const im=(p.covers||[]).filter(Boolean), f=fill4(im);
-  if(f.length>=4) return `<div class="collage">${f.map(u=>`<img src="${esc(thumb(u,160))}" alt="" loading="${IMG_LOAD}" decoding="async">`).join('')}</div>`;
-  if(im.length) return `<div class="collage one"><img src="${esc(thumb(im[0],256))}" alt="" loading="${IMG_LOAD}" decoding="async"></div>`;
-  return ic('note');
-}
-const plCovCache={};
-function plCoverFill(){
-  (playlists||[]).forEach(p=>{
-    if(Array.isArray(p.covers)||!p.count) return;
-    const ck=p.id+':'+p.count, hit=plCovCache[ck];
-    const paint=()=>{ document.querySelectorAll('[data-pl="'+p.id+'"] .tile').forEach(t=>{ t.innerHTML=plCover(p); }); };
-    if(hit){ p.covers=hit; paint(); return; }
-    api('/api/playlists/'+p.id).then(j=>{ const c=((j&&j.tracks)||[]).map(t=>t.image).filter(Boolean).slice(0,4); plCovCache[ck]=c; p.covers=c; paint(); }).catch(()=>{});
-  });
-}
-function libCounts(){ const e=$('#favSub'); if(e) e.textContent=`Danh sách phát · ${favs.size} bài hát`; }
-function filterLib(){ const q=$('#libQ').value.trim().toLowerCase(); document.querySelectorAll('#lib .li').forEach(el=>{ el.style.display=!q||el.textContent.toLowerCase().includes(q)?'':'none'; }); }
-$('#libQ').oninput=filterLib;
-$('#libSbtn').onclick=()=>{ const r=$('#libQrow'); r.classList.toggle('show'); if(r.classList.contains('show')) $('#libQ').focus(); else { $('#libQ').value=''; filterLib(); } };
-$('#sideMin').onclick=()=>{ document.body.classList.toggle('side-min'); LS.set('sidemin',document.body.classList.contains('side-min')?'1':'0'); };
-async function createPlaylist(){ const n=((await askText('Tên playlist mới'))||'').trim(); if(!n) return null; try{ const p=await api('/api/playlists',{json:{name:n}}); await loadPlaylists(); return p; }catch(e){ notify(e.message); return null; } }
-$('#newPl').onclick=createPlaylist;
-async function toggleFav(t){
-  const r=await api('/api/favorites',{json:slim(t)});
-  r.fav?favs.add(key(t)):favs.delete(key(t));
-  updateBar(); paintFavs(); libCounts();
-  if(page==='favs') go('favs',undefined,true);
-}
-function paintFavs(){ document.querySelectorAll('.tr [data-a=fav]').forEach(b=>{ const f=favs.has(b.closest('.tr').dataset.tk); b.classList.toggle('on',f); setIc(b,'heart',f); }); }
-function markNow(){ const k=cur?key(cur):null; document.querySelectorAll('[data-tk]').forEach(el=>el.classList.toggle('now',el.dataset.tk===k||(cur&&cur.orig&&el.dataset.tk===cur.orig))); }
-function addMenu(t,e){
-  document.querySelectorAll('.pop').forEach(x=>x.remove());
-  const pop=document.createElement('div'); pop.className='pop'; pop.style.left=Math.max(8,Math.min(e.clientX,innerWidth-220))+'px'; pop.style.top=Math.max(8,Math.min(e.clientY,innerHeight-60-playlists.length*38))+'px';
-  pop.innerHTML=playlists.map(p=>`<div data-id="${p.id}">${esc(p.name)}</div>`).join('')+'<div data-id="new">＋ Playlist mới…</div>';
-  pop.onclick=async ev=>{ const d=ev.target.closest('[data-id]'); if(!d) return; pop.remove();
-    let id=d.dataset.id; if(id==='new'){ const p=await createPlaylist(); if(!p) return; id=p.id; }
-    try{ await api(`/api/playlists/${id}/tracks`,{json:slim(t)}); loadPlaylists(); notify('Đã thêm vào playlist'); }catch(err){ notify(err.message); } };
-  document.body.appendChild(pop); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0);
-}
-async function removeFromPl(t){ await api(`/api/playlists/${curPl}/tracks/${encodeURIComponent(key(t))}`,{method:'DELETE'}); loadPlaylists(); go('playlist',curPl,true); }
 
-async function wsTicket(){ const r=await api('/api/ws-ticket',{method:'POST'}); return r.ticket; }
-let wsTimer=0, wsBusy=false;
-async function connect(){
-  if(wsBusy||(ws&&(ws.readyState===0||ws.readyState===1))) return;
-  clearTimeout(wsTimer); wsBusy=true;
-  try{
-    if(!room){ const p=new URLSearchParams(location.search); room=p.get('room')||Math.random().toString(36).slice(2,10);
-      if(!p.get('room')) history.replaceState(null,'','?room='+room);
-      setRoomUi(room); }
-    let tk; try{ tk=await wsTicket(); }catch{ if(token) wsTimer=setTimeout(connect,3000); return; }
-    const sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws/'+room+'?ticket='+encodeURIComponent(tk));
-    ws=sock;
-    sock.onopen=()=>send({type:'hello'});
-    sock.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
-    sock.onclose=()=>{ if(ws===sock&&token){ clearTimeout(wsTimer); wsTimer=setTimeout(connect,2000); } };
-  } finally { wsBusy=false; }
+async fn yt_best_artists(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtBestQ>) -> R<Value> {
+    let use_proxy = match require(&st, &headers) {
+        Ok(user) => user_net_prefs(&st, user.id).1,
+        Err(_) => false,
+    };
+    let client = pick_client(&st, use_proxy);
+    let region: String = q.region.unwrap_or_default().trim().to_uppercase().chars().filter(|c| c.is_ascii_alphabetic()).take(2).collect();
+    let ckey = format!("{}|{}", region, use_proxy as u8);
+    if let Some((t, v)) = best_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 1800 {
+            return Ok(Json(v.clone()));
+        }
+    }
+
+    // 1) bảng xếp hạng YouTube Music: toàn cầu + khu vực của người dùng
+    let mut regions: Vec<String> = vec!["ZZ".to_string()];
+    if region.len() == 2 && region != "ZZ" {
+        regions.push(region.clone());
+    }
+    let pages = futures_util::future::join_all(regions.iter().map(|r| {
+        let cl = client.clone();
+        let r = r.clone();
+        async move { yt_chart_page(&cl, &r).await }
+    }))
+    .await;
+    let mut tracks: Vec<HotTrack> = Vec::new();
+    let mut charted: Vec<HotArtist> = Vec::new();
+    let mut source = "charts";
+    for pg in pages.into_iter().flatten() {
+        let mut acc = ChartAcc::default();
+        yt_chart_walk(&pg, &mut acc);
+        chart_finish(acc, &mut tracks, &mut charted);
+    }
+    // 2) bảng không đọc được (YouTube đổi cấu trúc / bị chặn): dùng video đang thịnh hành từ tìm kiếm
+    if charted.len() < 6 && tracks.len() < 10 {
+        source = "search";
+        let qs = ["top songs this week", "trending music videos"];
+        let pages = futures_util::future::join_all(qs.iter().map(|text| {
+            let cl = client.clone();
+            let body = json!({ "context": yt_ctx(), "query": text, "params": yt_filter_params("videos").unwrap_or("") });
+            async move { yt_post(&cl, "search", body).await }
+        }))
+        .await;
+        for pg in pages.into_iter().flatten() {
+            let mut acc = ChartAcc::default();
+            yt_chart_walk(&pg, &mut acc);
+            chart_finish(acc, &mut tracks, &mut charted);
+        }
+    }
+    if tracks.is_empty() && charted.is_empty() {
+        return Ok(Json(json!({ "artists": [], "region": region, "source": "none" })));
+    }
+
+    // 3) gộp bài trùng (một bài có thể nằm ở nhiều bảng): lấy thứ hạng/lượt xem cao nhất
+    let mut tmap: HashMap<String, HotTrack> = HashMap::new();
+    for t in tracks {
+        if t.id.len() != 11 {
+            continue;
+        }
+        if let Some(e) = tmap.get_mut(&t.id) {
+            if t.rank > e.rank {
+                e.rank = t.rank;
+            }
+            if t.views > e.views {
+                e.views = t.views;
+            }
+            if t.trend > e.trend {
+                e.trend = t.trend;
+            }
+            continue;
+        }
+        tmap.insert(t.id.clone(), t);
+    }
+    let mut tv: Vec<HotTrack> = tmap.into_values().collect();
+    tv.sort_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap_or(std::cmp::Ordering::Equal));
+
+    // 4) lượt thích (và lượt xem nếu bảng không ghi) cho các bài đứng đầu
+    let top_n = tv.len().min(30);
+    let votes = futures_util::future::join_all(tv.iter().take(top_n).map(|t| {
+        let cl = client.clone();
+        let id = t.id.clone();
+        async move { ryd_votes(&cl, &id).await }
+    }))
+    .await;
+    for (t, v) in tv.iter_mut().zip(votes.into_iter()) {
+        if let Some((likes, views)) = v {
+            t.likes = likes;
+            if t.views <= 0.0 {
+                t.views = views;
+            }
+        }
+    }
+
+    // 5) chấm điểm từng nghệ sĩ
+    let mut agg: HashMap<String, ArtistAgg> = HashMap::new();
+    let skip_name = |k: &str| k.is_empty() || k == "variousartists" || k == "youtubemusic" || k == "unknown" || k == "various";
+    for a in charted {
+        let k = norm_name(&a.name);
+        if skip_name(&k) {
+            continue;
+        }
+        let e = agg.entry(k).or_insert_with(|| ArtistAgg {
+            name: a.name.clone(),
+            id: String::new(),
+            image: String::new(),
+            heats: Vec::new(),
+            chart_rank: 0.0,
+            trend: 0,
+            audience: 0.0,
+        });
+        if a.rank > e.chart_rank {
+            e.chart_rank = a.rank;
+        }
+        if e.id.is_empty() {
+            e.id = a.id;
+        }
+        if e.image.is_empty() {
+            e.image = a.image;
+        }
+        if a.audience > e.audience {
+            e.audience = a.audience;
+        }
+        if a.trend > e.trend {
+            e.trend = a.trend;
+        }
+    }
+    for t in &tv {
+        let heat = track_heat(t.rank, t.views, t.likes);
+        for name in &t.artists {
+            let k = norm_name(name);
+            if skip_name(&k) {
+                continue;
+            }
+            let e = agg.entry(k).or_insert_with(|| ArtistAgg {
+                name: name.clone(),
+                id: String::new(),
+                image: String::new(),
+                heats: Vec::new(),
+                chart_rank: 0.0,
+                trend: 0,
+                audience: 0.0,
+            });
+            e.heats.push(heat);
+            if t.trend > e.trend {
+                e.trend = t.trend;
+            }
+        }
+    }
+    let mut ranked: Vec<(f64, ArtistAgg)> = agg
+        .into_values()
+        .map(|a| (artist_heat(a.heats.clone(), a.chart_rank, a.trend, a.audience), a))
+        .collect();
+    ranked.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    ranked.truncate(24);
+
+    // 6) lấy ảnh + trang nghệ sĩ cho người chưa có (bảng nghệ sĩ đã kèm sẵn thì khỏi tìm)
+    let resolved = futures_util::future::join_all(ranked.iter().map(|(_, a)| {
+        let cl = client.clone();
+        let name = a.name.clone();
+        let have = !a.id.is_empty() && !a.image.is_empty();
+        async move {
+            if have {
+                None
+            } else {
+                yt_find_artist_cached(&cl, &name).await
+            }
+        }
+    }))
+    .await;
+    let mut out: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for ((heat, a), r) in ranked.into_iter().zip(resolved.into_iter()) {
+        let mut id = a.id;
+        let mut image = a.image;
+        let mut title = a.name;
+        if let Some(e) = r {
+            id = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let t = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+            if !t.is_empty() {
+                title = t.to_string();
+            }
+        }
+        if id.is_empty() || image.is_empty() || !seen.insert(id.clone()) {
+            continue;
+        }
+        out.push(json!({ "kind": "artist", "id": id, "title": title, "sub": "Nghệ sĩ", "image": image, "heat": (heat * 1000.0).round() / 1000.0 }));
+    }
+    let val = json!({ "artists": out, "region": region, "source": source });
+    if out_len_ok(&val) {
+        let mut c = best_cache().lock().unwrap();
+        if c.len() > 50 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
 }
-function send(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }
-function pushChat(html){ chatLog.push(html); if(chatLog.length>200) chatLog.shift(); const c=$('#chat'); if(c){ c.insertAdjacentHTML('beforeend',html); c.scrollTop=1e9; } }
-const sysLine=t=>pushChat(`<div class="sys">${esc(t)}</div>`);
-/* Báo vào/thoát phòng: mỗi người, mỗi loại thông báo tối đa 1 lần / 20 giây (chống lặp khi mạng chập chờn hoặc server cũ). */
-const presSeen=new Map();
-function presLine(name,what){ const k=name+'|'+what, t=Date.now(); if(t-(presSeen.get(k)||0)<20000) return; presSeen.set(k,t); sysLine(name+' '+what); }
-function onMsg(m){
-  if(m.type==='hello'){ presLine(m.from,'đã vào phòng'); if(cur&&leader) broadcastState(); }
-  else if(m.type==='leave') presLine(m.from,'đã thoát phòng');
-  else if(m.type==='chat') pushChat(`<div><b>${esc(m.from)}:</b> ${esc(m.text)}</div>`);
-  else if(m.type==='state'&&m.track){
-    if(m.cid===CID) return;
-    leader=false;
-    const pos=m.pos+(m.playing?(now()-m.ts)/1000:0);
-    if(!cur||key(cur)!==key(m.track)){
-      let i=queue.findIndex(x=>key(x)===key(m.track)); if(i<0){ queue.push(m.track); i=queue.length-1; } qi=i;
-      qname='Nghe cùng nhau'; loadTrack(m.track,m.pos,m.playing,m.ts);
+
+fn out_len_ok(v: &Value) -> bool {
+    v.get("artists").and_then(|a| a.as_array()).map(|a| a.len() >= 3).unwrap_or(false)
+}
+
+// Thêm lượt xem / album / thời lượng (cột cố định của trang playlist) vào bài hát lấy từ một trang YouTube Music.
+fn yt_collect_meta(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(item) = m.get("musicResponsiveListItemRenderer") {
+                if let Some(mut t) = yt_track(item) {
+                    let p1 = yt_flex_parts(item, 1);
+                    let p2 = yt_flex_parts(item, 2);
+                    let views = parse_views(&p1).max(parse_views(&p2));
+                    if views > 0.0 {
+                        t["views"] = json!(views);
+                    }
+                    let alb2 = p2.into_iter().find(|p| !yt_junk_part(p));
+                    let alb1 = p1.iter().skip(1).find(|p| !yt_junk_part(p)).cloned();
+                    if let Some(a) = alb2.or(alb1) {
+                        t["album"] = json!(a);
+                    }
+                    if t["dur"].as_u64().unwrap_or(0) == 0 {
+                        let fixed = item
+                            .pointer("/fixedColumns/0/musicResponsiveListItemFixedColumnRenderer/text")
+                            .map(yt_text)
+                            .unwrap_or_default();
+                        if let Some(d) = yt_dur(&fixed) {
+                            t["dur"] = json!(d);
+                        }
+                    }
+                    out.push(t);
+                }
+            } else {
+                for x in m.values() {
+                    yt_collect_meta(x, out);
+                }
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_meta(x, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+// GET /api/yt/this-is?name=Tên&id=browseId → { title:"This Is …", name, id, image, tracks:[…tối đa 50 bài tiêu biểu…] }
+// Bài lấy từ mục "Songs" của trang nghệ sĩ (YouTube Music xếp theo độ phổ biến, nút "See all" cho cả danh sách), thiếu thì bổ sung bằng tìm kiếm.
+#[derive(Deserialize)]
+struct YtThisQ {
+    name: Option<String>,
+    id: Option<String>,
+}
+
+async fn yt_this_is(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtThisQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let client = pick_client(&st, use_proxy);
+    let name: String = q.name.unwrap_or_default().trim().chars().take(80).collect();
+    if name.is_empty() {
+        return Err(bad("Thiếu tên nghệ sĩ"));
+    }
+    let mut aid: String = q.id.unwrap_or_default().trim().chars().take(80).collect();
+    if !aid.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        aid.clear();
+    }
+    let ckey = format!("{}|{}|{}|{}", name.to_lowercase(), aid, allow_explicit as u8, use_proxy as u8);
+    if let Some((t, v)) = thisis_cache().lock().unwrap().get(&ckey) {
+        if now_secs().saturating_sub(*t) < 3600 {
+            return Ok(Json(v.clone()));
+        }
+    }
+    let mut title = name.clone();
+    let mut image = String::new();
+    if aid.is_empty() {
+        if let Some(e) = yt_find_artist_cached(&client, &name).await {
+            aid = e.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            image = e.get("image").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let t = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+            if !t.is_empty() {
+                title = t.to_string();
+            }
+        }
+    }
+
+    // 1) trang nghệ sĩ: mục Songs (5 bài đầu) + danh sách đầy đủ ở nút "See all"
+    let mut cand: Vec<Value> = Vec::new();
+    if !aid.is_empty() {
+        if let Some(bv) = yt_post(&client, "browse", json!({ "context": yt_ctx(), "browseId": aid })).await {
+            if image.is_empty() {
+                let header = ["musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer", "musicDetailHeaderRenderer"].iter().find_map(|k| yt_find(&bv, k));
+                image = yt_thumb_last(header.and_then(|h| yt_find(h, "thumbnails")));
+            }
+            yt_collect_meta(&bv, &mut cand);
+            let all_ep = yt_find(&bv, "musicShelfRenderer").and_then(|s| s.pointer("/bottomEndpoint/browseEndpoint").or_else(|| s.pointer("/title/runs/0/navigationEndpoint/browseEndpoint")));
+            if let Some(be) = all_ep {
+                let pid = be.get("browseId").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                if !pid.is_empty() && pid != aid {
+                    let mut body = json!({ "context": yt_ctx(), "browseId": pid });
+                    if let Some(p) = be.get("params").and_then(|x| x.as_str()) {
+                        body["params"] = json!(p);
+                    }
+                    if let Some(pv) = yt_post(&client, "browse", body).await {
+                        yt_collect_meta(&pv, &mut cand);
+                    }
+                }
+            }
+        }
+    }
+    for t in cand.iter_mut() {
+        if t.get("artist").and_then(|x| x.as_str()).unwrap_or("").is_empty() {
+            t["artist"] = json!(title);
+        }
+    }
+
+    // 2) chưa đủ bài: bổ sung từ tìm kiếm, chỉ giữ bài thật sự có tên nghệ sĩ này
+    if cand.len() < 15 {
+        let qs = [name.clone(), format!("{name} best songs")];
+        let found = futures_util::future::join_all(qs.iter().map(|text| {
+            let cl = client.clone();
+            let text = text.clone();
+            async move { yt_songs(&cl, &text).await }
+        }))
+        .await;
+        let mine: HashSet<String> = [norm_name(&name), norm_name(&title)].into_iter().filter(|x| !x.is_empty()).collect();
+        for list in found {
+            for t in list {
+                let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("");
+                if credit_names(a).iter().any(|n| mine.contains(n) || mine.iter().any(|m| m.chars().count() >= 3 && n.contains(m.as_str()))) {
+                    cand.push(t);
+                }
+            }
+        }
+    }
+
+    // 3) lọc trùng (cùng id hoặc cùng tên bài), bỏ bản dài bất thường và nội dung nhạy cảm nếu người dùng tắt
+    let mut seen_id: HashSet<String> = HashSet::new();
+    let mut seen_title: HashSet<String> = HashSet::new();
+    let mut tracks: Vec<Value> = Vec::new();
+    for t in cand {
+        let id = t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        if id.is_empty() || seen_id.contains(&id) {
+            continue;
+        }
+        if !allow_explicit && t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        if t.get("dur").and_then(|x| x.as_u64()).unwrap_or(0) > 12 * 60 {
+            continue;
+        }
+        let raw = t.get("title").and_then(|x| x.as_str()).unwrap_or("");
+        let base = raw.split(|c: char| c == '(' || c == '[').next().unwrap_or(raw);
+        let tk = norm_name(base);
+        if !tk.is_empty() && !seen_title.insert(tk) {
+            continue;
+        }
+        seen_id.insert(id);
+        tracks.push(t);
+        if tracks.len() >= 50 {
+            break;
+        }
+    }
+    if image.is_empty() {
+        image = tracks.first().and_then(|t| t.get("image")).and_then(|x| x.as_str()).unwrap_or("").to_string();
+    }
+    let val = json!({ "title": format!("This Is {title}"), "name": title, "id": aid, "image": image, "tracks": tracks });
+    if val.get("tracks").and_then(|a| a.as_array()).map(|a| a.len() >= 3).unwrap_or(false) {
+        let mut c = thisis_cache().lock().unwrap();
+        if c.len() > 200 {
+            c.clear();
+        }
+        c.insert(ckey, (now_secs(), val.clone()));
+    }
+    Ok(Json(val))
+}
+
+// Mở một album / nghệ sĩ / danh sách phát / podcast từ kết quả tìm kiếm: trả {title, sub, image, tracks}.
+#[derive(Deserialize)]
+struct YtBrowseQ {
+    id: Option<String>,
+    kind: Option<String>,
+}
+
+async fn yt_browse_music(State(st): State<AppState>, headers: HeaderMap, Query(q): Query<YtBrowseQ>) -> R<Value> {
+    let (allow_explicit, use_proxy) = net_prefs(&st, &headers).await;
+    let client = pick_client(&st, use_proxy);
+    let id: String = q.id.unwrap_or_default().trim().chars().take(80).collect();
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err(bad("Mục không hợp lệ"));
+    }
+    let kind = q.kind.unwrap_or_default();
+    let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    // Danh sách phát thường: đọc bằng đường InnerTube sẵn có của phần nhập playlist.
+    if kind == "playlist" {
+        let pid = id.strip_prefix("VL").unwrap_or(&id).to_string();
+        let (title, mut tracks) = innertube_playlist(&client, &pid).await?;
+        if !allow_explicit {
+            tracks.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+        }
+        return Ok(Json(json!({ "title": title, "sub": "Danh sách phát", "image": "", "tracks": tracks })));
+    }
+    let body = json!({
+        "context": { "client": { "clientName": "WEB_REMIX", "clientVersion": "1.20250310.01.00", "hl": "en", "gl": "VN" } },
+        "browseId": id,
+    });
+    let resp = client
+        .post("https://music.youtube.com/youtubei/v1/browse?prettyPrint=false")
+        .header("origin", "https://music.youtube.com")
+        .header("referer", "https://music.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(25))
+        .send()
+        .await
+        .map_err(|_| fail("Không kết nối được YouTube Music"))?;
+    if !resp.status().is_success() {
+        return Err(fail("YouTube Music trả về lỗi"));
+    }
+    let v: Value = resp.json().await.map_err(|_| fail("YouTube Music trả dữ liệu lạ"))?;
+    let header = ["musicResponsiveHeaderRenderer", "musicDetailHeaderRenderer", "musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer", "musicEditablePlaylistDetailHeaderRenderer"]
+        .iter()
+        .find_map(|k| yt_find(&v, k));
+    let title = header.and_then(|h| h.get("title")).map(yt_text).unwrap_or_default();
+    let strap = header
+        .and_then(|h| h.get("straplineTextOne").or_else(|| h.get("subtitle")))
+        .map(yt_text)
+        .unwrap_or_default();
+    let image = header
+        .and_then(|h| yt_find(h, "thumbnails"))
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|u| u.as_str())
+        .unwrap_or("")
+        .to_string();
+    let mut tracks: Vec<Value> = Vec::new();
+    yt_collect(&v, &mut tracks);
+    if tracks.is_empty() || kind == "podcast" {
+        yt_collect_episodes(&v, &mut tracks);
+    }
+    let is_album = kind == "album";
+    let artist_hdr = if kind == "artist" { title.clone() } else { strap.split(" \u{2022} ").next().unwrap_or("").trim().to_string() };
+    for t in tracks.iter_mut() {
+        let a = t.get("artist").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        // Trang album: cột 2 thường là lượt nghe ("1.2M plays"), không phải tên nghệ sĩ.
+        if a.is_empty() || a.to_lowercase().contains("plays") {
+            t["artist"] = json!(artist_hdr);
+        }
+        if is_album && !image.is_empty() {
+            t["image"] = json!(image);
+        }
+    }
+    let mut seen: HashSet<String> = HashSet::new();
+    tracks.retain(|t| seen.insert(t.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string()));
+    if !allow_explicit {
+        tracks.retain(|t| !t.get("explicit").and_then(|x| x.as_bool()).unwrap_or(false));
+    }
+    if tracks.is_empty() {
+        return Err(bad("Không mở được mục này"));
+    }
+    Ok(Json(json!({ "title": title, "sub": strap, "image": image, "tracks": tracks })))
+}
+
+// ===== Luồng âm thanh YouTube (để áp dụng Bộ chỉnh âm / Độ trễ / Độ vang bằng Web Audio) =====
+// Server lấy địa chỉ luồng âm thanh qua InnerTube rồi chuyển tiếp từng đoạn (Range) cho trình duyệt,
+// nhờ đó <audio> cùng nguồn gốc và Web Audio xử lý được (player iframe của YouTube thì không).
+#[derive(Deserialize)]
+struct AudQ {
+    t: Option<String>,
+    f: Option<String>,
+    debug: Option<String>,
+    h: Option<u32>, // chiều cao video yêu cầu (240/360/480/720/1080); không có thì dùng YT_VIDEO_HEIGHT hoặc 360
+}
+
+const AUDIO_CHUNK: u64 = 2 * 1024 * 1024;
+// Đoạn đầu tăng lên 512 KB để đủ buffer cho kết nối chậm (256 KB hay bị stall trên Render free-tier
+// do cold-start + độ trễ cao; 512 KB vẫn lên tiếng trong ~1 giây trên mạng bình thường).
+const AUDIO_FIRST_CHUNK: u64 = 512 * 1024;
+const AUDIO_TTL: u64 = 3 * 60 * 60;
+// Thời gian tối đa cho resolve_race. Mỗi link giờ được tải thử (kể cả thử sâu trong file) và client cần PO token
+// bắt đầu muộn hơn, nên cần rộng hơn bản cũ (12s). Vẫn có trần để không bắt người dùng chờ vô hạn.
+const AUDIO_RACE_TIMEOUT_SECS: u64 = 30;
+// Khi bật plugin wpc (mở Chrome để sinh PO token, mất vài giây mỗi lần) thì cuộc đua cần dài hơn.
+fn audio_race_timeout_secs() -> u64 {
+    let wpc = std::env::var("YT_WPC").map(|x| matches!(x.trim(), "1" | "true" | "yes")).unwrap_or(false)
+        || std::env::var("YT_CHROME").map(|x| !x.trim().is_empty()).unwrap_or(false);
+    if wpc { 75 } else { AUDIO_RACE_TIMEOUT_SECS }
+}
+// So le giữa các client để không bắn cùng lúc (giống NativeYt.kt bên Android).
+const AUDIO_STAGGER_MS: u64 = 200;
+// Client cần PO token (IOS, TV_SIMPLY) chỉ là dự phòng: chờ thêm để client không cần token kịp trả lời trước.
+const AUDIO_LATE_DELAY_MS: u64 = 2500;
+// YouTube cho tải ~1MB đầu của link thiếu PO token rồi trả 403 (nhạc "chạy được vài giây rồi dừng").
+// Thử tải ở sâu trong file để loại link đó ngay từ đầu.
+const AUDIO_DEEP_PROBE: u64 = 1536 * 1024;
+
+// (clientName, header id, clientVersion, user-agent, phần context thêm)
+// Danh sách và thứ tự giống NativeYt.kt (Android): thêm ANDROID_VR 1.65.10, IOS 21.26.4, TV_SIMPLY.
+fn audio_clients() -> Vec<(&'static str, &'static str, &'static str, &'static str, Value)> {
+    let vr = || json!({ "deviceMake": "Oculus", "deviceModel": "Quest 3", "androidSdkVersion": 32, "osName": "Android", "osVersion": "12L" });
+    let ios = || json!({ "deviceMake": "Apple", "deviceModel": "iPhone16,2", "osName": "iPhone", "osVersion": "18.3.2.22D82" });
+    vec![
+        (
+            "ANDROID_VR",
+            "28",
+            "1.60.19",
+            "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            vr(),
+        ),
+        (
+            "ANDROID_VR",
+            "28",
+            "1.65.10",
+            "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            vr(),
+        ),
+        (
+            "IOS",
+            "5",
+            "21.26.4",
+            "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            ios(),
+        ),
+        (
+            "IOS",
+            "5",
+            "20.10.4",
+            "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            ios(),
+        ),
+        (
+            "TVHTML5_SIMPLY",
+            "75",
+            "1.0",
+            "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
+            json!({}),
+        ),
+    ]
+}
+
+// Client hay cần PO token (link có nhưng tải bị 403): chỉ chạy muộn làm dự phòng.
+fn audio_client_late(ci: usize) -> bool {
+    matches!(audio_clients().get(ci).map(|c| c.0), Some("IOS") | Some("TVHTML5_SIMPLY"))
+}
+
+// Xin một đoạn [start, end] bằng header Range, rồi bằng tham số &range= (cách yt-dlp/NewPipe dùng).
+// Chỉ đọc khối dữ liệu đầu tiên rồi bỏ, không kéo cả file. Trả về (số byte đọc được, tổng dung lượng nếu có Content-Range).
+async fn probe_range(client: &reqwest::Client, url: &str, ua: &str, start: u64, end: u64) -> Option<(usize, Option<u64>)> {
+    for via_param in [false, true] {
+        let req = if via_param {
+            let sep = if url.contains('?') { '&' } else { '?' };
+            client.get(format!("{url}{sep}range={start}-{end}"))
+        } else {
+            client.get(url).header("range", format!("bytes={start}-{end}"))
+        };
+        let Ok(mut r) = req.header("user-agent", ua).timeout(Duration::from_secs(8)).send().await else { continue };
+        let code = r.status().as_u16();
+        // Với header Range phải là 206; 200 nghĩa là máy chủ bỏ qua Range và sẽ gửi cả file (chỉ chấp nhận ở cách ?range=).
+        if !(code == 206 || (via_param && code == 200)) {
+            continue;
+        }
+        let total = r
+            .headers()
+            .get("content-range")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.rsplit('/').next())
+            .and_then(|x| x.trim().parse::<u64>().ok());
+        match r.chunk().await {
+            Ok(Some(b)) if !b.is_empty() => return Some((b.len(), total)),
+            Ok(_) => return Some((0, total)),
+            Err(_) => continue,
+        }
+    }
+    None
+}
+
+// Dò một đoạn nhỏ ở sâu trong file (link thiếu PO token thường chết ở đây).
+async fn deep_check(client: &reqwest::Client, url: &str, ua: &str, size: u64, at: u64) -> Result<(), String> {
+    if at <= 1024 || at + 16 >= size {
+        return Ok(());
+    }
+    match probe_range(client, url, ua, at, at + 15).await {
+        Some((m, _)) if m > 0 => Ok(()),
+        Some(_) => Err(format!("link trả dữ liệu rỗng ở byte {at}")),
+        None => Err(format!("link chỉ tải được phần đầu, bị chặn từ byte {at} (thiếu PO token)")),
+    }
+}
+
+// Tải thử link trước khi tin nó (giống NativeYt.verified bên Android). Client cần PO token vẫn trả link nhưng link đó 403
+// khi tải, hoặc chỉ tải được ~1MB đầu rồi chết. Bản cũ tin link đó nên cuộc đua chọn nhầm client hỏng và nhạc dừng giữa chừng.
+// Trả về dung lượng thật của luồng (lấy từ Content-Range nếu client không báo).
+async fn verify_link(client: &reqwest::Client, url: &str, ua: &str, size_hint: u64) -> Result<u64, String> {
+    // YouTube thường báo sẵn contentLength: biết dung lượng rồi thì chạy CẢ 3 lần dò (đầu, sâu, cuối) cùng lúc
+    // thay vì dò đầu xong mới dò tiếp – bớt hẳn một lượt chờ mạng (đáng kể khi IP nhà ở xa máy chủ Google).
+    if size_hint > 0 {
+        let size = size_hint;
+        let (p0, r1, r2) = tokio::join!(
+            probe_range(client, url, ua, 0, 1023),
+            deep_check(client, url, ua, size, AUDIO_DEEP_PROBE),
+            deep_check(client, url, ua, size, size.saturating_sub(64 * 1024))
+        );
+        let Some((n, _)) = p0 else {
+            return Err("link không tải được (403/hết hạn/cần PO token)".to_string());
+        };
+        if n == 0 {
+            return Err("link trả dữ liệu rỗng".to_string());
+        }
+        r1?;
+        r2?;
+        return Ok(size);
+    }
+    // Không có dung lượng báo sẵn: dò đầu để lấy dung lượng từ Content-Range, rồi mới dò sâu (hai lần dò sau chạy song song).
+    let Some((n, total)) = probe_range(client, url, ua, 0, 1023).await else {
+        return Err("link không tải được (403/hết hạn/cần PO token)".to_string());
+    };
+    if n == 0 {
+        return Err("link trả dữ liệu rỗng".to_string());
+    }
+    let size = total.unwrap_or(0);
+    if size == 0 {
+        return Err("không biết dung lượng luồng".to_string());
+    }
+    let (r1, r2) = tokio::join!(
+        deep_check(client, url, ua, size, AUDIO_DEEP_PROBE),
+        deep_check(client, url, ua, size, size.saturating_sub(64 * 1024))
+    );
+    r1?;
+    r2?;
+    Ok(size)
+}
+
+async fn resolve_audio(client: &reqwest::Client, vid: &str, webm: bool, from: usize) -> Result<(String, u64, String, usize), String> {
+    let mut last = "Không lấy được luồng âm thanh".to_string();
+    for (ci, (name, hid, ver, ua, extra)) in audio_clients().into_iter().enumerate().skip(from).take(1) {
+        let mut c = json!({ "clientName": name, "clientVersion": ver, "hl": "en", "gl": "VN" });
+        if let (Some(o), Some(e)) = (c.as_object_mut(), extra.as_object()) {
+            for (k, v) in e {
+                o.insert(k.clone(), v.clone());
+            }
+        }
+        let mut body = json!({ "context": { "client": c }, "videoId": vid, "contentCheckOk": true, "racyCheckOk": true });
+        if name == "TVHTML5_SIMPLY_EMBEDDED_PLAYER" {
+            body["context"]["thirdParty"] = json!({ "embedUrl": "https://www.youtube.com/" });
+        }
+        let resp = match client
+            .post("https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false")
+            .header("user-agent", ua)
+            .header("x-youtube-client-name", hid)
+            .header("x-youtube-client-version", ver)
+            .json(&body)
+            .send()
+            .await
+        {
+            Ok(r) if r.status().is_success() => r,
+            Ok(r) => {
+                last = format!("{name} {ver}: YouTube trả về HTTP {}", r.status().as_u16());
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+            Err(e) => {
+                last = format!("{name} {ver}: không kết nối được YouTube ({e})");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+        };
+        let v: Value = match resp.json().await {
+            Ok(v) => v,
+            Err(e) => {
+                last = format!("{name} {ver}: YouTube trả dữ liệu không đọc được ({e})");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+        };
+        if v.pointer("/playabilityStatus/status").and_then(|x| x.as_str()) != Some("OK") {
+            last = format!(
+                "{name} {ver}: {} ({})",
+                v.pointer("/playabilityStatus/reason").and_then(|x| x.as_str()).unwrap_or("video không phát được"),
+                v.pointer("/playabilityStatus/status").and_then(|x| x.as_str()).unwrap_or("?")
+            );
+            eprintln!("[audio] {vid} {last}");
+            continue;
+        }
+        let Some(fmts) = v.pointer("/streamingData/adaptiveFormats").and_then(|x| x.as_array()) else {
+            last = format!("{name} {ver}: không có danh sách định dạng");
+            eprintln!("[audio] {vid} {last}");
+            continue;
+        };
+        // Ưu tiên AAC/MP4 (itag 140): chạy được trên mọi trình duyệt; sau đó là bitrate cao nhất.
+        let mut best: Option<(i64, &Value)> = None;
+        for f in fmts {
+            let mime = f.get("mimeType").and_then(|x| x.as_str()).unwrap_or("");
+            if !mime.starts_with("audio/") || f.get("url").and_then(|x| x.as_str()).is_none() {
+                continue;
+            }
+            let mut score = f.get("bitrate").and_then(|x| x.as_i64()).unwrap_or(0) / 1000;
+            let itag = f.get("itag").and_then(|x| x.as_i64());
+            if webm {
+                if mime.starts_with("audio/webm") {
+                    score += 100_000;
+                }
+                if itag == Some(251) {
+                    score += 1_000_000;
+                }
+            } else {
+                if mime.starts_with("audio/mp4") {
+                    score += 100_000;
+                }
+                if itag == Some(140) {
+                    score += 1_000_000;
+                }
+            }
+            if best.map(|b| score > b.0).unwrap_or(true) {
+                best = Some((score, f));
+            }
+        }
+        let Some((_, f)) = best else {
+            last = format!("{name} {ver}: không có luồng âm thanh nào có link trực tiếp (YouTube đòi PO token/SABR)");
+            eprintln!("[audio] {vid} {last}");
+            continue;
+        };
+        let url = f.get("url").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        let size: u64 = f
+            .get("contentLength")
+            .and_then(|x| x.as_str())
+            .and_then(|x| x.parse().ok())
+            .or_else(|| f.get("contentLength").and_then(|x| x.as_u64()))
+            .unwrap_or(0);
+        if url.is_empty() {
+            last = format!("{name} {ver}: định dạng không có URL trực tiếp (có thể cần PO token)");
+            eprintln!("[audio] {vid} {last}");
+            continue;
+        }
+        let mime = f
+            .get("mimeType")
+            .and_then(|x| x.as_str())
+            .unwrap_or("audio/mp4")
+            .split(';')
+            .next()
+            .unwrap_or("audio/mp4")
+            .to_string();
+        // Chỉ nhận link thật sự tải được (xem verify_link); link chết thì bỏ để client kế tiếp thắng cuộc đua.
+        match verify_link(client, &url, ua, size).await {
+            Ok(real_size) => return Ok((url, real_size, mime, ci)),
+            Err(e) => {
+                last = format!("{name} {ver}: {e}");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+        }
+    }
+    Err(last)
+}
+
+// Thứ tự thử các nguồn: client YouTube -> yt-dlp (90) -> Piped (99).
+// Có YT_COOKIES thì yt-dlp (đăng nhập bằng cookies) được thử đầu tiên vì tránh được "Sign in to confirm you're not a bot".
+fn audio_order() -> Vec<usize> {
+    let mut v: Vec<usize> = (0..audio_clients().len()).collect();
+    let has = |k: &str| std::env::var(k).map(|x| !x.trim().is_empty()).unwrap_or(false);
+    // yt-dlp chỉ là phương án dự phòng TUỲ CHỌN: có sẵn thì dùng, không có thì bỏ qua (không bắt người dùng cài yt-dlp / Deno).
+    let ytdlp_ok = ytdlp_ready() || ytdlp_in_path();
+    if ytdlp_ok && (has("YT_COOKIES") || has("YT_BROWSER")) {
+        v.insert(0, 90);
+    } else if ytdlp_ok {
+        v.push(90);
+    }
+    // Piped trả link gắn với IP của máy chủ Piped chứ không phải IP người dùng (Android cũng đã bỏ) nên ở chế độ IP nhà (desktop/Android) không dùng.
+    if !home_ip_mode() {
+        v.push(99);
+    }
+    v
+}
+
+// Server đang chạy trên máy người dùng (cổng nhà của desktop, hoặc AUDIO_ONLY của Android): mọi luồng nhạc phải đi bằng IP của họ.
+fn home_ip_mode() -> bool {
+    std::env::var("GATEWAY_REMOTE").map(|x| !x.trim().is_empty()).unwrap_or(false)
+        || std::env::var("AUDIO_ONLY").map(|x| x.trim() == "1").unwrap_or(false)
+}
+
+// Có file yt-dlp trong PATH không (không chạy nó, chỉ tìm file).
+fn ytdlp_in_path() -> bool {
+    let Some(paths) = std::env::var_os("PATH") else { return false };
+    std::env::split_paths(&paths).any(|d| d.join("yt-dlp.exe").is_file() || d.join("yt-dlp").is_file())
+}
+
+async fn resolve_source(client: &reqwest::Client, vid: &str, webm: bool, src: usize, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+    match src {
+        // Link yt-dlp -g hay bị 403 khi server tự tải, nên bỏ bước lấy link: cho yt-dlp tải thẳng file (chỉ chạy yt-dlp 1 lần).
+        90 => {
+            let _ = client;
+            let (_p, total, mime) = ytdlp_local(vid, webm, use_proxy).await?;
+            Ok((format!("local:{vid}"), total, mime, 90))
+        }
+        99 => resolve_piped(client, vid, webm).await,
+        n => resolve_audio(client, vid, webm, n).await,
+    }
+}
+
+// Nhớ 10 phút nguồn nào đã bị chặn cho video này để khỏi thử lại ở mỗi yêu cầu đoạn.
+static AUDIO_BAD: std::sync::OnceLock<Mutex<HashMap<(String, usize), u64>>> = std::sync::OnceLock::new();
+fn bad_map() -> &'static Mutex<HashMap<(String, usize), u64>> {
+    AUDIO_BAD.get_or_init(|| Mutex::new(HashMap::new()))
+}
+fn audio_bad(id: &str, src: usize) -> bool {
+    let m = bad_map().lock().unwrap();
+    m.get(&(id.to_string(), src)).map(|t| now_secs().saturating_sub(*t) < 600).unwrap_or(false)
+}
+fn audio_mark_bad(id: &str, src: usize) {
+    let mut m = bad_map().lock().unwrap();
+    if m.len() > 2000 {
+        m.clear();
+    }
+    m.insert((id.to_string(), src), now_secs());
+}
+
+// Hỏi các client YouTube (ANDROID_VR / TV / IOS ...) gần như cùng lúc, cái nào có link TẢI THỬ ĐƯỢC trước thì dùng.
+// Các client bắt đầu so le nhau (AUDIO_STAGGER_MS); client cần PO token (IOS, TV_SIMPLY) chỉ làm dự phòng nên bắt đầu muộn hơn.
+// Trước đây thử lần lượt: client đầu bị lỗi là mất thêm 1-2 lượt gọi mạng trước khi nhạc lên tiếng.
+async fn resolve_race(client: &reqwest::Client, vid: &str, webm: bool, cands: &[usize]) -> Result<(String, u64, String, usize), String> {
+    let mut set = tokio::task::JoinSet::new();
+    // Các client "chính" (không phải yt-dlp, không phải client cần PO token). Khi tất cả đều đã báo lỗi thì không cần chờ
+    // thêm nữa: client dự phòng và yt-dlp được thả chạy ngay (trước đây vẫn phải ngồi chờ 1,2s–2,5s vô ích).
+    let is_early = |ci: usize| ci != 90 && !audio_client_late(ci);
+    let early_total = cands.iter().filter(|&&ci| is_early(ci)).count();
+    let (go_tx, go_rx) = tokio::sync::watch::channel(early_total == 0);
+    let mut early_failed = 0usize;
+    for (i, &ci) in cands.iter().enumerate() {
+        let c = client.clone();
+        let v = vid.to_string();
+        let mut rx = go_rx.clone();
+        let early = is_early(ci);
+        // yt-dlp (nguồn 90) bắt đầu sau ~1,2s: client nhanh (ANDROID_VR) thắng thì khỏi chạy yt-dlp; nếu không thì yt-dlp đã chạy sẵn.
+        let wait = if ci == 90 { 1200 } else { i as u64 * AUDIO_STAGGER_MS + if audio_client_late(ci) { AUDIO_LATE_DELAY_MS } else { 0 } };
+        set.spawn(async move {
+            if wait > 0 {
+                if early {
+                    tokio::time::sleep(Duration::from_millis(wait)).await;
+                } else {
+                    tokio::select! {
+                        _ = tokio::time::sleep(Duration::from_millis(wait)) => {}
+                        _ = async {
+                            loop {
+                                if *rx.borrow() {
+                                    break;
+                                }
+                                if rx.changed().await.is_err() {
+                                    break;
+                                }
+                            }
+                        } => {}
+                    }
+                }
+            }
+            if ci == 90 {
+                return (ci, resolve_source(&c, &v, webm, 90, false).await);
+            }
+            (ci, resolve_audio(&c, &v, webm, ci).await)
+        });
+    }
+    // Gom lý do lỗi của TỪNG client (không chỉ cái cuối) để người dùng thấy vì sao bài không phát được.
+    let mut errs: Vec<String> = Vec::new();
+    let why = |errs: &Vec<String>| if errs.is_empty() { "Không lấy được luồng âm thanh".to_string() } else { errs.join(" | ") };
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(audio_race_timeout_secs());
+    loop {
+        match tokio::time::timeout_at(deadline, set.join_next()).await {
+            Ok(Some(joined)) => match joined {
+                Ok((_, Ok(x))) => {
+                    set.abort_all();
+                    return Ok(x);
+                }
+                Ok((ci, Err(e))) => {
+                    eprintln!("[audio] {vid} nguồn {ci}: {e}");
+                    audio_mark_bad(vid, ci);
+                    errs.push(e);
+                    if is_early(ci) {
+                        early_failed += 1;
+                        if early_failed >= early_total {
+                            let _ = go_tx.send(true);
+                        }
+                    }
+                }
+                Err(_) => {}
+            },
+            Ok(None) => break, // tất cả task đã xong
+            Err(_) => {
+                // Hết thời gian AUDIO_RACE_TIMEOUT_SECS: huỷ các task còn lại, trả lỗi ngay.
+                set.abort_all();
+                return Err(format!("hết thời gian chờ ({}s): {}", audio_race_timeout_secs(), why(&errs)));
+            }
+        }
+    }
+    Err(why(&errs))
+}
+
+// Xoá dấu "đã hỏng" của các client YouTube (không đụng yt-dlp/Piped) cho một bài.
+// Dùng khi MỌI client đều đang bị đánh dấu hỏng: thay vì báo lỗi ngay suốt 10 phút, cho thử lại tất cả từ đầu (giống NativeYt.kt).
+fn audio_clear_bad(id: &str) {
+    let mut m = bad_map().lock().unwrap();
+    m.retain(|(vid, src), _| !(vid == id && *src < 90));
+}
+
+// Mỗi bài chỉ cho một yêu cầu đi lấy luồng tại một thời điểm: trình duyệt hay gửi nhiều yêu cầu Range cùng lúc
+// (kèm yêu cầu "làm nóng" trước đó), các yêu cầu sau chờ rồi dùng kết quả đã có trong cache thay vì lặp lại việc lấy luồng.
+static AUDIO_GATES: std::sync::OnceLock<Mutex<HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
+fn audio_gate(key: &str) -> std::sync::Arc<tokio::sync::Mutex<()>> {
+    let mut m = AUDIO_GATES.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    if m.len() > 500 {
+        m.clear();
+    }
+    m.entry(key.to_string()).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
+}
+
+// yt-dlp (cài riêng, đặt trong PATH hoặc biến YTDLP_PATH). YT_COOKIES = đường dẫn file cookies.txt (định dạng Netscape).
+fn ytdlp_fmt(webm: bool) -> &'static str {
+    if webm {
+        "251/bestaudio[ext=webm]/bestaudio"
     } else {
-      if(m.playing!==playing) setPlaying(m.playing);
-      if(Math.abs(getTime()-pos)>0.4) seekTo(pos);
+        "140/bestaudio[ext=m4a]/bestaudio"
     }
-  }
 }
-function broadcastState(){ leader=true; send({type:'state',cid:CID,track:slim(cur),playing,pos:getTime(),ts:now()}); }
-async function copyRoomCode(){ try{ await navigator.clipboard.writeText(room); notify('Đã chép mã phòng'); }catch{ await askText('Mã phòng',room); } }
-async function shareTrack(t){
-  if(!t) return;
-  const url=t.src==='yt'?'https://music.youtube.com/watch?v='+t.id:(/^https?:/.test(t.url||'')?t.url:'');
-  const text=(t.title||'')+(t.artist?' – '+t.artist:'')+(url?'\n'+url:'');
-  try{ if(window.MuseNative&&typeof MuseNative.share==='function'&&MuseNative.share(text)) return; }catch{}
-  try{ if(navigator.share){ await navigator.share({title:t.title||'BBeat',text:(t.title||'')+(t.artist?' – '+t.artist:''),url:url||undefined}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
-  try{ await navigator.clipboard.writeText(text); notify('Đã chép link bài hát để chia sẻ'); }catch{ await askText('Chia sẻ nhạc',text); }
+
+// Lệnh yt-dlp dùng chung (đường dẫn, Deno, cookies, proxy) cho cả lấy link lẫn tải file.
+// yt-dlp đi kèm app desktop (nằm cạnh muse-server): ưu tiên YTDLP_PATH, rồi file cạnh chương trình, cuối cùng mới là PATH.
+fn ytdlp_bundled() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let dir = exe.parent()?;
+    ["yt-dlp.exe", "yt-dlp"].iter().map(|n| dir.join(n)).find(|p| p.is_file())
 }
-async function copyInvite(msg){ try{await navigator.clipboard.writeText(room);notify(msg||'Đã chép mã phòng')}catch{await askText('Mã phòng',room)} }
-const fmap=new Map();
-function setRoomUi(r){
-  const ri=$('#roomInfo'); if(ri){ ri.style.display=''; ri.innerHTML=ic('users','sm')+' Phòng '+esc(r); }
-  const rb=$('#roomBar'); if(rb){ rb.innerHTML=ic('users')+'<span>Phòng</span>'; rb.title='Phòng '+r; }
-  const sub=$('#roomSub'); if(sub) sub.textContent='Phòng '+r;
+
+// Có yt-dlp dùng được ngay không (YTDLP_PATH hoặc bản đi kèm app) → cho yt-dlp chạy song song với các client để nhạc lên nhanh.
+fn ytdlp_ready() -> bool {
+    std::env::var("YTDLP_PATH").map(|x| !x.trim().is_empty()).unwrap_or(false) || ytdlp_bundled().is_some()
 }
-function parseRoom(v){
-  v=(v||'').trim(); if(!v) return '';
-  try{ const u=new URL(v); v=u.searchParams.get('room')||''; }catch{ const mm=v.match(/[?&]room=([^&#\s]+)/); if(mm) v=decodeURIComponent(mm[1]); }
-  return /^[A-Za-z0-9_-]{1,40}$/.test(v)?v:'';
+
+fn ytdlp_base(use_proxy: bool) -> tokio::process::Command {
+    let bin = std::env::var("YTDLP_PATH")
+        .ok()
+        .filter(|x| !x.trim().is_empty())
+        .or_else(|| ytdlp_bundled().map(|p| p.to_string_lossy().into_owned()))
+        .unwrap_or_else(|| "yt-dlp".to_string());
+    let mut cmd = tokio::process::Command::new(&bin);
+    cmd.arg("--no-playlist").arg("--no-warnings");
+    // yt-dlp cần JS runtime (Deno) để giải mã YouTube: nếu deno.exe nằm cạnh server thì chỉ thẳng đường dẫn, khỏi phụ thuộc PATH.
+    {
+        let mut cands: Vec<std::path::PathBuf> = vec![std::path::PathBuf::from("deno.exe"), std::path::PathBuf::from("deno")];
+        if let Ok(e) = std::env::current_exe() {
+            if let Some(d) = e.parent() {
+                cands.insert(0, d.join("deno.exe"));
+            }
+        }
+        if let Some(f) = cands.into_iter().find(|f| f.is_file()) {
+            if let Ok(abs) = std::fs::canonicalize(&f) {
+                let p = abs.to_string_lossy().trim_start_matches(r"\\?\").to_string();
+                cmd.arg("--js-runtimes").arg(format!("deno:{p}"));
+            }
+        }
+    }
+    // PO token: plugin bgutil (HTTP server, mặc định http://127.0.0.1:4416) và plugin wpc (Chrome).
+    // YT_POT_URL = địa chỉ provider bgutil khi không nằm ở mặc định (vd. http://bgutil:4416 trong docker-compose).
+    if let Ok(u) = std::env::var("YT_POT_URL") {
+        let u = u.trim().to_string();
+        if !u.is_empty() {
+            cmd.arg("--extractor-args").arg(format!("youtubepot-bgutilhttp:base_url={u}"));
+        }
+    }
+    // YT_CHROME = đường dẫn Chrome/Chromium cho plugin wpc (không đặt thì plugin tự tìm).
+    if let Ok(c) = std::env::var("YT_CHROME") {
+        let c = c.trim().to_string();
+        if !c.is_empty() {
+            cmd.arg("--extractor-args").arg(format!("youtubepot-wpc:browser_path={c}"));
+        }
+    }
+    if let Ok(c) = std::env::var("YT_COOKIES") {
+        let c = c.trim().to_string();
+        if !c.is_empty() {
+            cmd.arg("--cookies").arg(c);
+        }
+    }
+    if let Ok(b) = std::env::var("YT_BROWSER") {
+        // lấy cookies trực tiếp từ trình duyệt trên máy (firefox, edge, chrome, brave...), khỏi phải xuất file
+        let b = b.trim().to_string();
+        if !b.is_empty() {
+            cmd.arg("--cookies-from-browser").arg(b);
+        }
+    }
+    if use_proxy {
+        if let Ok(p) = std::env::var("YT_PROXY") {
+            let p = p.trim().to_string();
+            if !p.is_empty() {
+                cmd.arg("--proxy").arg(p);
+            }
+        }
+    }
+    cmd.kill_on_drop(true);
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    cmd
 }
-function switchRoom(r){
-  if(r===room){ notify('Bạn đang ở phòng này rồi'); return; }
-  if(ws){ ws.onclose=null; ws.onmessage=null; try{ ws.close(); }catch{} }
-  room=r; leader=false; chatLog.length=0; presSeen.clear(); wsBusy=false;
-  history.replaceState(null,'','?room='+encodeURIComponent(r));
-  setRoomUi(r);
-  connect();
-  if(page==='together') go('together',null,true);
-  notify('Đã tham gia phòng '+r);
+
+#[allow(dead_code)]
+async fn resolve_ytdlp(client: &reqwest::Client, vid: &str, webm: bool, use_proxy: bool) -> Result<(String, u64, String, usize), String> {
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-g").arg("-f").arg(ytdlp_fmt(webm));
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    let out = tokio::time::timeout(Duration::from_secs(45), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp: {line}"));
+    }
+    let text = String::from_utf8_lossy(&out.stdout).to_string();
+    let url = text.lines().map(|l| l.trim()).find(|l| l.starts_with("http")).ok_or_else(|| "yt-dlp: không trả về link".to_string())?.to_string();
+    let q = |k: &str| -> Option<String> { url.split(['?', '&']).find_map(|p| p.strip_prefix(k).map(|x| x.to_string())) };
+    let mut size: u64 = q("clen=").and_then(|x| x.parse().ok()).unwrap_or(0);
+    let mime = q("mime=").map(|m| m.replace("%2F", "/").replace("%2f", "/")).unwrap_or_else(|| "audio/mp4".to_string());
+    if size == 0 {
+        if let Ok(r) = client.get(&url).header("range", "bytes=0-0").send().await {
+            size = r
+                .headers()
+                .get("content-range")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.rsplit('/').next())
+                .and_then(|x| x.parse::<u64>().ok())
+                .unwrap_or(0);
+        }
+    }
+    if size == 0 {
+        return Err("yt-dlp: không đọc được kích thước luồng".to_string());
+    }
+    Ok((url, size, mime, 90))
 }
-async function refreshFriendBadge(){
-  try{ const r=await api('/api/friends/requests'); const n=r.incoming.length; const el=$('#friendSub'); if(el) el.textContent=n?n+' lời mời mới':'Bạn bè & lời mời'; return r; }catch{ return null; }
+
+// Link yt-dlp trả về (-g) gắn với client / header / PO token của chính yt-dlp, nên khi server tự tải bằng reqwest
+// thì googlevideo hay trả 403. Cách chắc nhất: cho yt-dlp tải file âm thanh về thư mục tạm rồi phát từ file đó.
+static YTDLP_DL_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+// yt-dlp đang bận tải một bài khác? (dùng để yêu cầu "tải trước" không xếp hàng chen trước bài người dùng thật sự bấm)
+fn ytdlp_busy() -> bool {
+    YTDLP_DL_LOCK.get().map(|l| l.try_lock().is_err()).unwrap_or(false)
 }
-async function renderFriendsPage(){
-  const box=$('#friendList'), rq=$('#reqs'); if(!box||!rq) return;
-  const [list,reqs]=await Promise.all([api('/api/friends'),api('/api/friends/requests')]);
-  fmap.clear(); list.forEach(f=>fmap.set(f.id,f));
-  const sig=JSON.stringify([list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]),reqs]);
-  if(box.dataset.sig===sig&&box.childElementCount) return;
-  box.dataset.sig=sig;
-  const el=$('#friendSub'); if(el) el.textContent=reqs.incoming.length?reqs.incoming.length+' lời mời mới':'Bạn bè & lời mời';
-  const line=(u,right)=>`<div class="item" data-id="${u.id}"><span style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${avU(u)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(u.display_name)}</span></span>${right}</div>`;
-  rq.innerHTML=(reqs.incoming.map(u=>line(u,'<button class="pri" data-a="accept">Chấp nhận</button><button data-a="decline">Từ chối</button>')).join('')
-    +reqs.outgoing.map(u=>line(u,'<small>Đang chờ</small><button data-a="cancel">Huỷ</button>')).join(''))||'<p class="empty">Không có lời mời nào.</p>';
-  $('#fCount').textContent='· '+list.length;
-  box.innerHTML=list.map(f=>`<div class="item" data-id="${f.id}"><span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button data-a="invite">Mời nghe</button><button data-a="remove">Xoá</button></div>`).join('')||'<p class="empty">Chưa có bạn bè nào. Hãy gửi lời mời bằng mã bạn bè ở trên.</p>';
+// Bài vừa bị YouTube chặn ở MỌI nguồn: nhớ lại để không thử đi thử lại (mỗi lần thử tốn 4-20 giây và giữ chỗ của yt-dlp).
+static AUDIO_DEAD: std::sync::OnceLock<Mutex<HashMap<String, u64>>> = std::sync::OnceLock::new();
+fn audio_dead_age(id: &str) -> Option<u64> {
+    let m = AUDIO_DEAD.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    m.get(id).map(|t| now_secs().saturating_sub(*t))
 }
-function showFriendReq(m){
-  if(isMuted(m.from)) return;
-  const t=document.createElement('div'); t.className='toast';
-  t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> gửi lời mời kết bạn</div></div><div class="row"><button class="pri">Xem</button><button>Bỏ qua</button></div>`;
-  const [view,skip]=t.querySelectorAll('button');
-  view.onclick=()=>{ t.remove(); go('friends'); }; skip.onclick=()=>{ muted[m.from]=Date.now()+6e5; t.remove(); };
-  pushToast(t,'fr:'+m.from,30000);
+fn audio_dead_set(id: &str) {
+    let mut m = AUDIO_DEAD.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap();
+    if m.len() > 500 {
+        m.clear();
+    }
+    m.insert(id.to_string(), now_secs());
 }
-async function loadFriends(){
-  const box=$('#friends'); if(!box) return;
-  const list=await api('/api/friends');
-  warmBanners(list); list.forEach(f=>warmProfile(f,false));
-  const sig=JSON.stringify(list.map(f=>[f.id,f.display_name,f.online,f.avatar,f.crop]));
-  if(box.dataset.sig===sig&&box.childElementCount) return;
-  box.dataset.sig=sig; box.innerHTML='';
-  list.forEach(f=>{
-    const d=document.createElement('div'); d.className='item';
-    d.innerHTML=`<span class="fr" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0" title="Xem hồ sơ">${avU(f)}<span style="flex:1">${esc(f.display_name)} <span class="dot ${f.online?'on':''}"></span></span></span><button>Mời</button>`;
-    d.querySelector('.fr').onclick=e=>{ e.stopPropagation(); showProfilePop(f,d.querySelector('.fr')); };
-    d.querySelector('button').onclick=async()=>{
-      try{ await sendInvite(f.id); sysLine('Đã gửi lời mời tới '+f.display_name); notify('Đã gửi lời mời tới '+f.display_name); }
-      catch(e){ if(!e.quiet) notify(e.message); }
+
+fn audio_cache_dir() -> PathBuf {
+    std::env::temp_dir().join("muse-audio")
+}
+
+fn find_local_audio(vid: &str, webm: bool) -> Option<(PathBuf, u64, String)> {
+    let prefix = format!("{vid}_{}.", if webm { "w" } else { "m" });
+    for e in std::fs::read_dir(audio_cache_dir()).ok()?.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) {
+            continue;
+        }
+        let ext = name[prefix.len()..].to_lowercase();
+        if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
+            continue; // file đang tải dở
+        }
+        let Ok(md) = e.metadata() else { continue };
+        if md.len() == 0 {
+            continue;
+        }
+        let mime = match ext.as_str() {
+            "webm" => "audio/webm",
+            "opus" | "ogg" => "audio/ogg",
+            _ => "audio/mp4",
+        };
+        return Some((e.path(), md.len(), mime.to_string()));
+    }
+    None
+}
+
+async fn ytdlp_local(vid: &str, webm: bool, use_proxy: bool) -> Result<(PathBuf, u64, String), String> {
+    if let Some(x) = find_local_audio(vid, webm) {
+        return Ok(x);
+    }
+    // Chỉ cho 1 lượt tải tại một thời điểm (trình duyệt gửi nhiều yêu cầu Range cùng lúc cho một bài).
+    let lock = YTDLP_DL_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
+    let _guard = lock.lock().await;
+    if let Some(x) = find_local_audio(vid, webm) {
+        return Ok(x);
+    }
+    let dir = audio_cache_dir();
+    let _ = tokio::fs::create_dir_all(&dir).await;
+    // Dọn file cũ hơn 6 giờ.
+    if let Ok(rd) = std::fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let old = e
+                .metadata()
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.elapsed().ok())
+                .map(|d| d.as_secs() > 6 * 3600)
+                .unwrap_or(false);
+            if old {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
+    }
+    let template = dir.join(format!("{vid}_{}.%(ext)s", if webm { "w" } else { "m" }));
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-f").arg(ytdlp_fmt(webm)).arg("--no-mtime").arg("--no-progress").arg("-o").arg(&template);
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    let out = tokio::time::timeout(Duration::from_secs(120), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: tải file quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp (tải file): {line}"));
+    }
+    find_local_audio(vid, webm).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file".to_string())
+}
+
+// Trả đoạn Range từ file cục bộ.
+async fn serve_local(path: &PathBuf, total: u64, mime: String, start: u64, end_req: Option<u64>) -> Result<Response, String> {
+    use tokio::io::{AsyncReadExt, AsyncSeekExt};
+    if start >= total {
+        return Ok((StatusCode::RANGE_NOT_SATISFIABLE, [(header::CONTENT_RANGE, format!("bytes */{total}"))]).into_response());
+    }
+    let end = end_req.unwrap_or(total - 1).min(total - 1).min(start + AUDIO_CHUNK - 1);
+    let n = (end - start + 1) as usize;
+    let mut f = tokio::fs::File::open(path).await.map_err(|e| format!("mở file lỗi: {e}"))?;
+    f.seek(std::io::SeekFrom::Start(start)).await.map_err(|e| format!("seek lỗi: {e}"))?;
+    let mut buf = vec![0u8; n];
+    f.read_exact(&mut buf).await.map_err(|e| format!("đọc file lỗi: {e}"))?;
+    Ok(Response::builder()
+        .status(StatusCode::PARTIAL_CONTENT)
+        .header(header::CONTENT_TYPE, mime)
+        .header(header::ACCEPT_RANGES, "bytes")
+        .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{total}"))
+        .header(header::CONTENT_LENGTH, n.to_string())
+        .header(header::CACHE_CONTROL, "private, max-age=600")
+        .body(Body::from(buf))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()))
+}
+
+// ===== Video phát bằng thẻ <video> của app (không dùng khung YouTube) =====
+// yt-dlp tải luồng video (không âm thanh, tối đa YT_VIDEO_HEIGHT, mặc định 480p) về thư mục tạm rồi phát lại theo Range.
+// Âm thanh vẫn do engine âm thanh hiện có phát, phía trình duyệt chỉ đồng bộ hình theo thời gian của âm thanh.
+// Mỗi video một khóa riêng: tải sẵn bài kế tiếp không chặn bài đang phát (trước đây dùng 1 khóa chung nên phải chờ nhau).
+static YTDLP_VID_LOCKS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, std::sync::Arc<tokio::sync::Mutex<()>>>>> = std::sync::OnceLock::new();
+
+fn find_local_video(vid: &str, h: u32) -> Option<(PathBuf, u64, String)> {
+    let prefix = format!("{vid}_v{h}."); // mỗi độ phân giải một file riêng
+    for e in std::fs::read_dir(audio_cache_dir()).ok()?.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) {
+            continue;
+        }
+        let ext = name[prefix.len()..].to_lowercase();
+        if ext.contains("part") || ext.contains("ytdl") || ext.contains("temp") {
+            continue; // file đang tải dở
+        }
+        let Ok(md) = e.metadata() else { continue };
+        if md.len() == 0 {
+            continue;
+        }
+        let mime = if ext == "webm" { "video/webm" } else { "video/mp4" };
+        return Some((e.path(), md.len(), mime.to_string()));
+    }
+    None
+}
+
+// Quy yêu cầu về các mức cố định để không sinh ra quá nhiều file cache khác nhau.
+fn video_height(req: Option<u32>) -> u32 {
+    let def = std::env::var("YT_VIDEO_HEIGHT")
+        .ok()
+        .and_then(|x| x.trim().parse::<u32>().ok())
+        .filter(|n| *n >= 144 && *n <= 2160)
+        .unwrap_or(360);
+    match req.unwrap_or(def) {
+        0..=240 => 240,
+        241..=360 => 360,
+        361..=480 => 480,
+        481..=720 => 720,
+        _ => 1080,
+    }
+}
+
+async fn ytdlp_video(vid: &str, use_proxy: bool, h: u32) -> Result<(PathBuf, u64, String), String> {
+    if let Some(x) = find_local_video(vid, h) {
+        return Ok(x);
+    }
+    let lock = {
+        let m = YTDLP_VID_LOCKS.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+        let mut g = m.lock().unwrap();
+        g.entry(format!("{vid}_{h}")).or_insert_with(|| std::sync::Arc::new(tokio::sync::Mutex::new(()))).clone()
     };
-    box.appendChild(d);
-  });
-}
-async function connectUser(){
-  let tk; try{ tk=await wsTicket(); }catch{ return; }
-  const u=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws-user?ticket='+encodeURIComponent(tk));
-  u.onmessage=e=>{ try{ const m=JSON.parse(e.data);
-    if(m.type==='invite') showInvite(m);
-    else if(m.type==='friend_request'){ showFriendReq(m); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); }
-    else if(m.type==='friend_update'){ refreshFriendBadge(); if(m.accepted) notify(m.from+' đã chấp nhận lời mời kết bạn'); if(page==='friends') renderFriendsPage().catch(()=>{}); else if(page==='together') loadFriends().catch(()=>{}); }
-  }catch{} };
-  u.onclose=()=>{ if(token) setTimeout(connectUser,3000); };
-}
-function showInvite(m){
-  if(isMuted(m.from)) return;
-  const t=document.createElement('div'); t.className='toast';
-  t.innerHTML=`<div class="row">${avHtml(m.avatar)}<div><b>${esc(m.from)}</b> mời bạn nghe nhạc chung</div></div><div class="row"><button class="pri">Tham gia</button><button>Bỏ qua</button></div>`;
-  const [join,skip]=t.querySelectorAll('button');
-  join.onclick=()=>{ t.remove(); switchRoom(m.room); }; skip.onclick=()=>{ muted[m.from]=Date.now()+6e5; t.remove(); };
-  const dup=!!$('#toasts').querySelector('.toast[data-k="'+('inv:'+m.from).replace(/"/g,'')+'"]');
-  pushToast(t,'inv:'+m.from,30000);
-  if(dup) return;
-  try{ if('Notification' in window&&Notification.permission==='granted') new Notification('BBeat',{body:m.from+' mời bạn nghe nhạc chung'}); }catch{}
-}
-async function syncClock(n){
-  let best=null;
-  for(let i=0;i<n;i++){ try{ const w0=Date.now(),p0=performance.now(); const r=await (await fetch('/api/time',{cache:'no-store'})).json(); const rtt=performance.now()-p0;
-    if(!best||rtt<best.rtt) best={rtt,off:r.t-(w0+rtt/2)}; }catch{} await new Promise(r=>setTimeout(r,60)); }
-  if(best) offset=best.off;
+    let _guard = lock.lock().await;
+    if let Some(x) = find_local_video(vid, h) {
+        return Ok(x);
+    }
+    let dir = audio_cache_dir();
+    let _ = tokio::fs::create_dir_all(&dir).await;
+    // Dọn file cũ hơn 6 giờ.
+    if let Ok(rd) = std::fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let old = e
+                .metadata()
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.elapsed().ok())
+                .map(|d| d.as_secs() > 6 * 3600)
+                .unwrap_or(false);
+            if old {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
+    }
+    let fmt = format!("bv[height<={h}][ext=mp4][vcodec^=avc1]/bv[height<={h}][ext=mp4]/bv[height<={h}]/b[height<={h}]/bv/b");
+    let template = dir.join(format!("{vid}_v{h}.%(ext)s"));
+    let mut cmd = ytdlp_base(use_proxy);
+    cmd.arg("-f").arg(fmt).arg("--no-mtime").arg("--no-progress").arg("-N").arg("4").arg("--socket-timeout").arg("15").arg("-o").arg(&template);
+    cmd.arg(format!("https://www.youtube.com/watch?v={vid}"));
+    let out = tokio::time::timeout(Duration::from_secs(120), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: tải video quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp (tải video): {line}"));
+    }
+    find_local_video(vid, h).ok_or_else(|| "yt-dlp: tải xong nhưng không thấy file video".to_string())
 }
 
-let ytLiveTm=0, ytSeen=false, ytHold=0;
-/* Bài lỗi thì chuyển bài kế, nhưng tối đa 3 lần trong 90 giây: mất mạng/server chết không được làm nhạc "nhảy" hết cả danh sách. */
-let failSkips=[], ytResume=[], everPlayed=false; const coldRetry={};
-/* Bài không phát được (YouTube chặn/lỗi) → ẨN khỏi danh sách chứ không xoá khỏi thư viện/playlist/yêu thích.
-   Lưu {khoá: thời điểm} trong LS, tự hiện lại sau UNPLAY_TTL (YouTube hay chỉ chặn tạm), và hiện lại ngay khi bài đó phát được. */
-const UNPLAY_TTL=12*3600*1000; let unplay={};
-try{ unplay=JSON.parse(LS.get('muse_unplay','{}'))||{}; const n0=Date.now(); for(const k in unplay) if(n0-unplay[k]>UNPLAY_TTL) delete unplay[k]; }catch{ unplay={}; }
-const isUnplay=t=>!!t&&t.src==='yt'&&unplay[key(t)]!==undefined&&Date.now()-unplay[key(t)]<UNPLAY_TTL;
-const unplaySave=()=>{ try{ LS.set('muse_unplay',JSON.stringify(unplay)); }catch{} };
-function hideUnplay(root){
-  const keys=Object.keys(unplay); if(!keys.length) return;
-  const r=root||document.getElementById('main'); if(!r) return;
-  r.querySelectorAll('[data-l][data-i]').forEach(el=>{ const l=lists[el.dataset.l], t=l&&l[+el.dataset.i]; if(t&&isUnplay(t)&&!(cur&&key(cur)===key(t))) el.style.display='none'; });
-}
-let unplayTm=0; const unplayHideSoon=()=>{ clearTimeout(unplayTm); unplayTm=setTimeout(()=>{ try{ hideUnplay(); }catch{} },120); };
-function unplayMark(t){
-  if(!t||t.src!=='yt'||netDown||(typeof navigator!=='undefined'&&navigator.onLine===false)) return;
-  unplay[key(t)]=Date.now(); unplaySave();
-  const qi0=queue.indexOf(cur); // bỏ khỏi hàng đợi hiện tại (giữ đúng vị trí đang phát)
-  for(let i=queue.length-1;i>=0;i--) if(queue[i]!==t&&key(queue[i])===key(t)){ queue.splice(i,1); if(i<qi) qi--; }
-  void qi0; hideUnplay();
-  const n=Object.keys(unplay).length; notify('Đã ẩn “'+(t.title||'bài này')+'” vì không phát được (đang ẩn '+n+' bài, tự hiện lại sau 12 giờ)');
-}
-try{ new MutationObserver(unplayHideSoon).observe(document.getElementById('main'),{childList:true,subtree:true}); }catch{}
-function failSkip(t){
-  // Từ lúc mở app chưa phát được bài nào = nguồn nhạc còn "nguội" (kết nối YouTube lần đầu có thể mất vài chục giây).
-  // Lúc này KHÔNG nhảy bài (bài kế cũng nguội y như vậy): thử lại đúng bài này vài lần, bài sau mới tính.
-  if(!everPlayed&&t&&cur===t&&(coldRetry[t.id]||0)<2){
-    const k=coldRetry[t.id]=(coldRetry[t.id]||0)+1; wdTries[t.id]=0; fxTried[t.id]=false;
-    adminNotify('Nguồn nhạc đang khởi động – thử lại bài này…');
-    setTimeout(()=>{ if(cur===t&&!everPlayed) loadTrack(t,0,true); },Math.min(5000,1000*k)); return; }
-  unplayMark(t);
-  const n=Date.now(); failSkips=failSkips.filter(x=>n-x<90000); failSkips.push(n);
-  // Chỉ tự nhảy qua 1 bài hỏng; bài kế cũng hỏng thì DỪNG (thường do YouTube chặn IP/đòi đăng nhập – nhảy tiếp chỉ làm app chạy loạn).
-  if(failSkips.length>1){ failSkips=[]; setPlaying(false); try{ broadcastState(); updateBar(); }catch{} notify('Không phát được bài này (YouTube đang chặn – cần đăng nhập/cookies cho yt-dlp). Đã dừng, không tự nhảy bài nữa.'); return; }
-  if(queue.length>1) nextTrack(true); else setPlaying(false);
-}
-function ytHideNow(keep,hold){ if(hold) ytHold=Date.now()+hold; clearTimeout(ytLiveTm); ytLiveTm=0; if(!keep) ytSeen=false; const yb=document.getElementById('ytbox'); if(yb){ yb.style.transition='none'; yb.classList.remove('live'); void yb.offsetWidth; yb.style.transition=''; } }
-function onYouTubeIframeAPIReady(){
-  yt=new YT.Player('ytp',{width:'100%',height:'100%',playerVars:{playsinline:1,rel:0,controls:0,disablekb:1,fs:0,modestbranding:1,iv_load_policy:3,cc_load_policy:0},events:{
-    onReady:()=>{ytReady=true;applyVol()},
-    onError:()=>{
-      const t=cur; if(!t||eng!=='yt') return;
-      if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube không phát được bài này – chuyển sang luồng của server'); loadTrack(t,0,true); return; }
-      adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-      setTimeout(()=>{ if(cur===t) failSkip(t); },800);
-    },
-    onStateChange:e=>{
-      ytCheckAlb();
-      { const yb=$('#ytbox'); if(yb){
-        if(e.data===1){ if(!yb.classList.contains('live')&&!ytLiveTm) ytLiveTm=setTimeout(()=>{ ytLiveTm=0; yb.classList.add('live'); },Math.max(ytSeen?600:1500,ytHold-Date.now())); ytSeen=true; }
-        else if(e.data===2||e.data===0){ clearTimeout(ytLiveTm); ytLiveTm=0; yb.classList.remove('live'); }
-        else if(e.data===3){ if(yb.classList.contains('live')) ytHideNow(true,1200); }
-        else if(e.data===-1||e.data===5){ clearTimeout(ytLiveTm); ytLiveTm=0; ytSeen=false; yb.classList.remove('live'); } } }
-      if(e.data===1) everPlayed=true;
-      if(e.data===0){ playing=false; onEnded(); }
-      // Player YouTube tự dừng khi mình vẫn đang "phát" (không phải do người dùng bấm) → bật lại, tối đa 3 lần/15 giây.
-      if(e.data===2&&playing&&eng==='yt'&&cur&&!document.hidden&&!(navigator.userActivation&&!navigator.userActivation.hasBeenActive)){
-        const n=Date.now(); ytResume=ytResume.filter(x=>n-x<15000);
-        if(ytResume.length<3){ ytResume.push(n); setTimeout(()=>{ try{ if(playing&&eng==='yt'&&ytReady&&yt.getPlayerState()===2) yt.playVideo(); }catch{} },500); } }
-      if(e.data===1&&pend){ const p=pend; pend=null; if(p.play){ const want=p.pos+(now()-p.ts)/1000; if(Math.abs(yt.getCurrentTime()-want)>0.4) yt.seekTo(want,true); } }
-    }}});
-}
-(function(){
-  if(window.YT&&window.YT.Player){ onYouTubeIframeAPIReady(); return; }
-  const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.async=true; document.head.appendChild(s);
-})();
-const audYt=new Audio(); audYt.preload='auto'; audYt.crossOrigin='anonymous'; // anonymous: phát từ proxy 127.0.0.1 của app Android (khác nguồn) mà EQ/hiệu ứng vẫn chạy
-/* App Android: nhạc phát THẲNG từ máy chủ cục bộ của app (IP điện thoại, một luồng liền mạch, tự nối lại khi đứt). '' = không có (PC/web). */
-const nativeAudioUrl=(id,fmt)=>{ try{ const N=window.MuseNative; if(N&&typeof N.audioUrl==='function'){ const u=String(N.audioUrl(String(id),fmt)||''); if(/^http:\/\/127\.0\.0\.1:\d+\//.test(u)) return u; } }catch{} return ''; };
-let eng='yt'; const fxFail={};
-const A=()=>eng==='fx'?audYt:aud;
-let fxFmt=(()=>{ try{ return audYt.canPlayType('audio/webm; codecs="opus"')?'webm':'mp4'; }catch{ return 'mp4'; } })(); const fxTried={};
-let fxDownUntil=0;
-const MOBILE=(()=>{ try{ return (window.ANDROID_APP||matchMedia('(pointer:coarse)').matches)&&LS.get('bgplay','1')==='1'; }catch{ return !!window.ANDROID_APP; } })();
-const fxNeeded=()=>!!(S.eq_on||S.delay_on||S.reverb_on);
-const ytFail={}, wdTries={};
-// App Android: player YouTube (iframe) bị tạm dừng khi tắt màn hình → luôn phát bằng luồng âm thanh, kể cả khi bài/luồng từng lỗi
-// (trước đây lỗi 1 lần là bị "cấm luồng" 5 phút và rơi về iframe → nhạc nền im lặng, lúc được lúc không).
-const BGONLY=!!window.ANDROID_APP;
-// App desktop / cổng nhà (127.0.0.1:38417): giống Android, nhạc lấy bằng IP riêng của máy qua luồng âm thanh <audio>.
-// Khác Android: luồng lỗi (fxFail) thì tự rơi về player YouTube (iframe) chứ không im lặng. Tắt ở Cài đặt → Nguồn nhạc.
-const HOMEGW=(()=>{ try{ return !window.ANDROID_APP&&location.hostname==='127.0.0.1'&&location.port==='38417'; }catch{ return false; } })();
-const homeIpOn=()=>HOMEGW&&LS.get('homeip','1')==='1';
-const wantStream=t=>t&&t.src==='yt'&&(BGONLY||(!fxFail[t.id]&&Date.now()>=fxDownUntil&&(ytFail[t.id]||MOBILE||homeIpOn()||fxNeeded()||(S.proxy&&cfg.proxy_available))));
-const OFF=(()=>{
-  let dbp=null;
-  const open=()=>dbp||(dbp=new Promise((res,rej)=>{
-    if(!window.indexedDB){ rej(new Error('IndexedDB không khả dụng')); return; }
-    const r=indexedDB.open('muse_offline',1);
-    r.onupgradeneeded=()=>{ const d=r.result; ['a','m','i'].forEach(n=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
-    r.onsuccess=()=>res(r.result); r.onerror=()=>{ dbp=null; rej(r.error); };
-  }));
-  const req=(store,mode,fn)=>open().then(d=>new Promise((res,rej)=>{
-    const t=d.transaction(store,mode), r=fn(t.objectStore(store));
-    t.oncomplete=()=>res(r&&r.result); t.onerror=t.onabort=()=>rej(t.error||new Error('IndexedDB lỗi'));
-  }));
-  return { get:(s,k)=>req(s,'readonly',o=>o.get(k)), all:s=>req(s,'readonly',o=>o.getAll()), put:(s,k,v)=>req(s,'readwrite',o=>o.put(v,k)), del:(s,k)=>req(s,'readwrite',o=>o.delete(k)) };
-})();
-const offInit=OFF.all('m').then(ms=>{ (ms||[]).forEach(x=>offSet.add(x.k)); return ms||[]; }).catch(()=>[]);
-// Nhạc người dùng tự thêm từ máy (nút folder ở Tải xuống): id bắt đầu bằng "loc_", chỉ có trong kho offline, không có trên YouTube → luôn phát từ kho.
-const isLoc=t=>!!t&&t.src==='yt'&&String(t.id).startsWith('loc_');
-const useLocal=t=>!!t&&t.src==='yt'&&offSet.has(key(t))&&!offBad[t.id]&&(isLoc(t)||offlineNow()||MOBILE||fxNeeded()||!!ytFail[t.id]||(S.proxy&&cfg.proxy_available));
-function offRevoke(id){ if(offUrl[id]){ try{ URL.revokeObjectURL(offUrl[id]); }catch{} delete offUrl[id]; } offOrder=offOrder.filter(x=>x!==id); }
-async function offOpen(t){
-  const k=key(t);
-  try{
-    const b=await OFF.get('a',k); if(!b||!b.size) return false;
-    const m=await OFF.get('m',k).catch(()=>null);
-    const blob=b.type?b:new Blob([b],{type:(m&&m.mime)||'audio/mp4'});
-    offUrl[t.id]=URL.createObjectURL(blob);
-    offOrder=offOrder.filter(x=>x!==t.id); offOrder.push(t.id);
-    offOrder.slice(0,-4).forEach(o=>{ try{ URL.revokeObjectURL(offUrl[o]); }catch{} delete offUrl[o]; }); offOrder=offOrder.slice(-4);
-    return true;
-  }catch{ return false; }
-}
-async function offSave(t,blob,mime,fmt){
-  const k=key(t);
-  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch{}
-  await OFF.put('a',k,blob);
-  await OFF.put('m',k,{k,track:slim(t),mime:mime||blob.type||'audio/mp4',size:blob.size,at:Date.now(),fmt:fmt||''});
-  offSet.add(k); delete offBad[t.id]; offRevoke(t.id);
-  (async()=>{ try{ if(!t.image) return; const r=await fetch(thumb(t.image,300),{mode:'cors'}); if(!r.ok) return; const b=await r.blob(); if(b.size&&b.size<2e6) await OFF.put('i',k,b); }catch{} })();
-  return true;
-}
-async function offDelete(k){
-  offSet.delete(k); offRevoke(k.slice(k.indexOf(':')+1));
-  await Promise.all(['a','m','i'].map(s=>OFF.del(s,k).catch(()=>{})));
-}
-async function offCoverUrl(k){ try{ const b=await OFF.get('i',k); return b?URL.createObjectURL(b):''; }catch{ return ''; } }
-const EQ_F=[31,62,125,250,500,1000,2000,4000,8000,16000];
-const EQ_PRESETS={'Flat':[0,0,0,0,0,0,0,0,0,0],'Acoustic':[5,5,4,1,2,2,3,4,3,2],'Bass booster':[6,5,4,2,1,0,0,0,0,0],'Bass reducer':[-6,-5,-4,-2,-1,0,0,0,0,0],'Classical':[5,4,3,3,-1,-1,0,2,3,4],'Dance':[6,5,2,0,0,-3,-4,-4,0,0],'Deep':[5,4,2,1,3,2,1,-2,-4,-5],'Electronic':[4,4,1,0,-2,2,1,1,4,5],'HipHop':[5,4,1,3,-1,-1,1,-1,2,3],'Jazz':[4,3,1,2,-2,-2,0,1,3,4],'Latin':[4,2,0,0,-2,-2,-2,0,3,5],'Loudness':[6,4,0,0,-2,0,-1,-5,5,1],'Lounge':[-3,-1,0,1,3,2,0,-1,2,1],'Piano':[3,2,0,3,3,1,3,4,3,4],'Pop':[-1,2,4,5,3,0,-1,-2,-2,-2],'RnB':[3,7,6,1,-2,-1,2,2,3,3],'Rock':[5,4,3,1,-1,-2,0,2,3,4]};
-const fx={ctx:null};
-function makeIR(ctx,type){
-  const P={room:{d:.7,k:3.2,damp:.55},hall:{d:2.8,k:2.2,damp:.3},plate:{d:1.9,k:1.7,damp:.05}}[type]||{d:2,k:2,damp:.3};
-  const rate=ctx.sampleRate, len=Math.floor(rate*P.d), buf=ctx.createBuffer(2,len,rate);
-  for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch); let lp=0;
-    for(let i=0;i<len;i++){ const n=Math.random()*2-1; lp=lp*P.damp+n*(1-P.damp); d[i]=lp*Math.pow(1-i/len,P.k); } }
-  return buf;
-}
-function fxBuild(){
-  if(fx.ctx) return true;
-  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
-  try{
-    const c=new AC(); fx.ctx=c; fx.src=c.createMediaElementSource(audYt);
-    fx.pre=c.createGain();
-    fx.bands=EQ_F.map((f,i)=>{ const b=c.createBiquadFilter(); b.type=i===0?'lowshelf':i===9?'highshelf':'peaking'; b.frequency.value=f; b.Q.value=1.1; b.gain.value=0; return b; });
-    fx.mix=c.createGain(); fx.dry=c.createGain();
-    fx.del=c.createDelay(2); fx.fb=c.createGain(); fx.dWet=c.createGain();
-    fx.conv=c.createConvolver(); fx.rWet=c.createGain(); fx.rType='';
-    fx.master=c.createGain(); fx.lim=c.createDynamicsCompressor(); fx.lim.threshold.value=-3; fx.lim.knee.value=0; fx.lim.ratio.value=20; fx.lim.attack.value=.003; fx.lim.release.value=.15;
-    let n=fx.src.connect(fx.pre); for(const b of fx.bands) n=n.connect(b); n.connect(fx.mix);
-    fx.mix.connect(fx.dry).connect(fx.lim);
-    fx.mix.connect(fx.del); fx.del.connect(fx.dWet).connect(fx.lim); fx.del.connect(fx.fb).connect(fx.del);
-    fx.mix.connect(fx.conv); fx.conv.connect(fx.rWet).connect(fx.lim);
-    fx.lim.connect(fx.master); fx.master.connect(c.destination);
-    return true;
-  }catch(e){ fx.ctx=null; return false; }
-}
-function applyFx(){
-  if(!fx.ctx) return; const c=fx.ctx, t=c.currentTime, sm=(p,v)=>p.setTargetAtTime(v,t,.03);
-  const g=S.eq_on?S.eq_gains:[0,0,0,0,0,0,0,0,0,0];
-  fx.bands.forEach((b,i)=>sm(b.gain,+g[i]||0));
-  sm(fx.pre.gain,Math.pow(10,(S.eq_on?(+S.eq_pre||0):0)/20));
-  sm(fx.del.delayTime,Math.min(2,Math.max(.05,(+S.delay_ms||300)/1000)));
-  sm(fx.fb.gain,Math.min(.9,(+S.delay_fb||0)/100)); sm(fx.dWet.gain,S.delay_on?(+S.delay_mix||0)/100:0);
-  if(fx.rType!==S.reverb_type){ fx.rType=S.reverb_type; try{ fx.conv.buffer=makeIR(c,S.reverb_type); }catch{} }
-  sm(fx.rWet.gain,S.reverb_on?(+S.reverb_mix||0)/100*1.4:0);
-  applyVol();
-}
-const midTries={}, midAt={}, earlyEnd={};
-audYt.addEventListener('ended',()=>{
-  if(eng!=='fx') return;
-  // Luồng báo "hết" khi chưa tới cuối bài (bị cắt giữa chừng): tải lại đúng vị trí đó thay vì nhảy sang bài khác.
-  const t=cur, el=audYt, d=(isFinite(el.duration)&&el.duration>0)?el.duration:((t&&t.dur)||0);
-  if(t&&d>15&&el.currentTime>1&&el.currentTime<d-5&&(earlyEnd[t.id]||0)<3){
-    earlyEnd[t.id]=(earlyEnd[t.id]||0)+1; midAt[t.id]=el.currentTime; loadTrack(t,el.currentTime,true); return; }
-  playing=false; onEnded(); });
-audYt.addEventListener('playing',()=>{ everPlayed=true; failSkips=[]; try{ if(cur&&unplay[key(cur)]!==undefined){ delete unplay[key(cur)]; unplaySave(); } }catch{} });
-audYt.addEventListener('timeupdate',()=>{ const t=cur; if(!t||eng!=='fx') return; const m=midAt[t.id];
-  if(m!==undefined&&audYt.currentTime>m+8){ delete midAt[t.id]; midTries[t.id]=0; earlyEnd[t.id]=0; } });
-aud.addEventListener('ended',()=>{ if(eng==='aud'){ playing=false; onEnded(); } });
-audYt.addEventListener('error',()=>{
-  if(eng!=='fx'||!cur) return;
-  const t=cur, pos=audYt.currentTime||0, was=playing, ec=audYt.error?audYt.error.code:0;
-  if(offUrl[t.id]&&(audYt.currentSrc||audYt.src)===offUrl[t.id]){
-    offBad[t.id]=true; offRevoke(t.id); adminNotify('Bản lưu offline bị lỗi – hãy tải lại bài này'); loadTrack(t,pos,was); return; }
-  // Lỗi giữa bài (đã phát được > 2 giây): chỉ tải lại đúng vị trí, tối đa 4 lần có chờ tăng dần.
-  // Không đổi định dạng, không "cấm luồng" 5 phút và không đổi sang player khác – đó chính là lý do nhạc dựt rồi nhảy bài.
-  if(pos>2&&(midTries[t.id]||0)<4&&!(isFinite(audYt.duration)&&audYt.duration-pos<3)){
-    const n=midTries[t.id]=(midTries[t.id]||0)+1; midAt[t.id]=pos;
-    setTimeout(()=>{ if(cur===t&&eng==='fx') loadTrack(t,pos,was); },Math.min(3000,400*n*n)); return; }
-  if(!fxTried[t.id]){
-    fxTried[t.id]=true; fxFmt=fxFmt==='webm'?'mp4':'webm'; loadTrack(t,pos,was); return; }
-  if(BGONLY){
-    const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
-    if(n<=2){ setTimeout(()=>{ if(cur===t&&eng==='fx') loadTrack(t,pos,was); },1200*n); return; }
-    wdTries[t.id]=0; fxTried[t.id]=false; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-    failSkip(t);
-    return; }
-  fxFail[t.id]=true; fxDownUntil=Date.now()+5*60000;
-  fetch((audYt.currentSrc||audYt.src)+'&debug=1').then(r=>r.ok?r.text().then(x=>'media '+ec+' | '+x):r.text().then(x=>'HTTP '+r.status+(x?' – '+x:r.status===404?' – server chưa có tính năng này, hãy build và chạy lại server bản mới':''))).catch(()=>'mất kết nối tới server').then(async why=>{
-    let real='';
-    try{ const u=(audYt.currentSrc||audYt.src), r=await fetch(u,{headers:{Range:'bytes=0-65535'}}), b=new Uint8Array(await r.arrayBuffer());
-      real=' || thật: HTTP '+r.status+' ct='+r.headers.get('content-type')+' cr='+r.headers.get('content-range')+' n='+b.length+(r.ok?'':' '+new TextDecoder().decode(b.slice(0,200))); }
-    catch(e){ real=' || thật: '+e; }
-    return why+real;
-  }).then(why=>{
-    console.warn('Luồng âm thanh lỗi:',why);
-    adminNotify('Không kết nối được');
-  });
-  loadTrack(t,pos,was);
-});
-function applyVol(){
-  const v=Math.max(0,Math.min(1,vol*fadeMul));
-  aud.volume=v;
-  if(fx.ctx){ audYt.volume=1; fx.master.gain.value=v; } else audYt.volume=v;
-  if(ytReady) yt.setVolume(vol*fadeMul*100); $('#vol').value=vol*100; $('#vol').style.setProperty('--p',vol*100+'%'); setIc($('#bVol'),vol===0?'volx':'vol');
-}
-$('#vol').oninput=e=>{ vol=e.target.value/100; LS.set('vol',vol); applyVol(); };
-$('#bVol').onclick=()=>{ if(vol>0){ lastVol=vol; vol=0; } else vol=lastVol||.8; LS.set('vol',vol); applyVol(); };
-const getTime=()=>!cur?0:eng==='yt'?(ytReady?yt.getCurrentTime():0):A().currentTime;
-// Phần đã tải sẵn (0..1) để vẽ vùng đệm trên thanh tua.
-function bufFrac(){
-  try{
-    if(!cur) return 0;
-    if(eng==='yt') return ytReady&&yt.getVideoLoadedFraction?yt.getVideoLoadedFraction()||0:0;
-    const a=A(), d=a.duration; if(!d||!isFinite(d)) return 0;
-    const b=a.buffered, t=a.currentTime; let end=0;
-    for(let i=0;i<b.length;i++){ if(b.start(i)<=t+0.5&&b.end(i)>end) end=b.end(i); }
-    return Math.min(1,end/d);
-  }catch{ return 0; }
-}
-const getDur=()=>!cur?0:eng==='yt'?(ytReady?yt.getDuration():0):(A().duration||cur.dur||0);
-function seekTo(t){ if(!cur) return; if(eng==='yt'){ if(ytReady){ ytHideNow(true,4500); yt.seekTo(t,true); } } else A().currentTime=t; }
-function setPlaying(p){
-  playing=p; if(!cur) return;
-  if(eng==='yt'){ if(ytReady) p?yt.playVideo():yt.pauseVideo(); }
-  else { if(fx.ctx&&fx.ctx.state==='suspended'&&p) fx.ctx.resume().catch(()=>{}); p?A().play().catch(()=>{}):A().pause(); }
-  pushPresence(); msUpdate();
-}
-let startGuard=0;
-document.addEventListener('visibilitychange',()=>{
-  try{
-    if(document.hidden&&window.ANDROID_APP&&cur&&cur.src==='yt'&&playing&&eng==='yt'&&!fxFail[cur.id]){ ytFail[cur.id]=true; loadTrack(cur,getTime(),true); }
-    else if(!document.hidden&&playing&&eng==='fx'&&audYt.paused) audYt.play().catch(()=>{});
-  }catch{}
-});
-let bgResume=[];
-audYt.addEventListener('pause',()=>{
-  if(eng==='fx'&&playing&&cur&&!audYt.ended){
-    // Chạy nền bị hệ thống/WebView tạm dừng ngoài ý muốn → bật lại. Nhưng nếu app khác giành âm thanh liên tục
-    // (3 lần trong 15 giây) thì thôi, chuyển sang trạng thái tạm dừng thật để thông báo hiện đúng và người dùng bấm Phát.
-    const n=Date.now(); bgResume=bgResume.filter(x=>n-x<15000);
-    if(bgResume.length>=3){ bgResume=[]; setPlaying(false); broadcastState(); updateBar(); return; }
-    bgResume.push(n);
-    setTimeout(()=>{ if(eng==='fx'&&playing&&audYt.paused) audYt.play().catch(()=>{}); },400);
-  }
-});
-function loadTrack(t,pos=0,play=true,ts=null){
-  hoTok++; hoBusy=false; audYt.muted=false;
-  if(useLocal(t)&&!offUrl[t.id]){
-    cur=t; updateBar();
-    offOpen(t).then(ok=>{
-      if(!ok){
-        if(isLoc(t)){ if(cur===t){ notify('File nhạc này không còn trong bộ nhớ của app – hãy thêm lại'); setPlaying(false); } return; } // không có trên YouTube để dự phòng
-        offBad[t.id]=true; offSet.delete(key(t));
-      }
-      if(cur===t) loadTrack(t,pos,play,ts); });
-    return;
-  }
-  const loc=(t.src==='yt'&&useLocal(t))?offUrl[t.id]:'';
-  fadeInAt=(play&&S.crossfade)?performance.now():0;
-  cur=t; pend=ts?{pos,ts,play}:null; lyrLines=null;
-  eng=t.src!=='yt'?'aud':(loc||(wantStream(t)&&(!fxNeeded()||fxBuild())))?'fx':'yt'; syncVid();
-  if(loc&&fxNeeded()) fxBuild();
-  const startAt=()=>pos+(play&&ts?(now()-ts)/1000:0);
-  if(eng==='yt'){
-    aud.pause(); audYt.pause();
-    if(!ytReady){ setTimeout(()=>{ if(cur===t) loadTrack(t,pos,play,ts); },200); updateBar(); return; }
-    ytHideNow(); yt.loadVideoById({videoId:t.id,startSeconds:startAt()}); playing=true; if(!play){yt.pauseVideo();playing=false}
-  } else if(eng==='fx'){
-    if(ytReady){ try{ yt.stopVideo(); }catch{} } aud.pause(); applyFx();
-    audYt.onloadedmetadata=()=>{ const p=startAt(); if(p>0.5) audYt.currentTime=p; };
-    audYt.src=loc||nativeAudioUrl(t.id,fxFmt)||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)+(wdTries[t.id]?'&r='+wdTries[t.id]:'')); setPlaying(play);
-    if(!loc&&play&&!ytFail[t.id]&&!wdTries[t.id]){ clearTimeout(startGuard); startGuard=setTimeout(()=>{
-      if(cur!==t||eng!=='fx'||!playing||audYt.readyState>=3||audYt.currentTime>0.2) return;
-      ytFail[t.id]=true; loadTrack(t,0,true);
-    },everPlayed?7000:30000); }   // lần phát đầu sau khi mở app: chờ lâu hơn (kết nối YouTube còn nguội)
-  } else {
-    if(ytReady) yt.pauseVideo(); audYt.pause();
-    aud.src=t.url; aud.onloadedmetadata=()=>{aud.currentTime=startAt()}; setPlaying(play);
-  }
-  trackExtras(t); applyVol(); updateBar(); prefetchLyrics(t); if(lyrActive()) openLyrics(); if(queueActive()) renderQueue(); if(npOpen&&npTab==='c') renderComments(); pushPresence(); msUpdate(); warmNext();
-}
-const wd={k:'',pos:-1,at:0};
-function wdRecover(){
-  const t=cur, pos=getTime(), was=playing; if(!t) return;
-  const n=(wdTries[t.id]=(wdTries[t.id]||0)+1);
-  if(eng==='fx'){
-    if(n===1){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
-    if(BGONLY){
-      if(n===2){ adminNotify('Nhạc bị đứng – thử lại…'); loadTrack(t,pos,was); return; }
-      wdTries[t.id]=0; { const w=natWhy(t.id); if(w) notify('Không phát được “'+(t.title||'')+'”: '+w); else adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp'); }
-      failSkip(t);
-      return; }
-    fxFail[t.id]=true; adminNotify('Luồng server bị đứng – chuyển sang player YouTube'); loadTrack(t,pos,was); return;
-  }
-  if(eng==='yt'){
-    if(!ytFail[t.id]&&!fxFail[t.id]&&Date.now()>=fxDownUntil){ ytFail[t.id]=true; adminNotify('Player YouTube bị đứng – chuyển sang luồng của server'); loadTrack(t,pos,was); return; }
-    if(n<=2){ adminNotify('Nhạc bị đứng – đang tải lại…'); loadTrack(t,pos,was); return; }
-  }
-  if(eng==='aud'&&n<=1){ loadTrack(t,pos,was); return; }
-  wdTries[t.id]=0; adminNotify('Không phát được “'+(t.title||'')+'” – chuyển bài kế tiếp');
-  failSkip(t);
-}
-setInterval(()=>{
-  try{
-    if(!cur||!playing){ wd.at=0; return; }
-    if(navigator.userActivation&&!navigator.userActivation.hasBeenActive) return;
-    const id=cur.id+'|'+eng, pos=getTime(); let stuck;
-    if(eng==='yt'){ if(!ytReady) return; const s=yt.getPlayerState(); stuck=(s===-1||s===3); }
-    else{ const a=A(); stuck=!a.paused&&!a.ended&&a.readyState<3; }
-    if(!stuck||wd.k!==id||Math.abs(pos-wd.pos)>0.3){
-      if(!stuck&&wd.k===id&&pos>wd.pos+0.5) wdTries[cur.id]=0;
-      wd.k=id; wd.pos=pos; wd.at=Date.now(); return;
-    }
-    if(Date.now()-wd.at<((!everPlayed&&pos<1)?35000:12000)) return;
-    wd.at=Date.now(); wdRecover();
-  }catch{}
-},2000);
-let hoTok=0, hoBusy=false;
-function seamlessToFx(){
-  const t=cur; if(!t||t.src!=='yt'||!ytReady) return false;
-  if(hoBusy) return true;
-  if(fxNeeded()&&!fxBuild()) return false;
-  const lc=useLocal(t); if(lc&&!offUrl[t.id]) return false;
-  const my=++hoTok; hoBusy=true;
-  const url=lc?offUrl[t.id]:(nativeAudioUrl(t.id,fxFmt)||('/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token)));
-  const ok=()=>cur===t&&hoTok===my&&eng==='yt';
-  let done=false, tm=0;
-  const cleanup=()=>{ audYt.removeEventListener('canplay',onCan); audYt.removeEventListener('playing',onPlay); audYt.removeEventListener('error',onErr); clearTimeout(tm); hoBusy=false; };
-  const abort=()=>{ if(done) return; done=true; cleanup(); if(hoTok===my&&eng==='yt'){ try{ audYt.pause(); audYt.muted=false; audYt.removeAttribute('src'); audYt.load(); }catch{} } };
-  const onErr=()=>{ const was=ok(); abort(); if(was) notify('Không bật được hiệu ứng âm thanh cho bài này'); };
-  const onCan=()=>{ if(!ok()){ abort(); return; } try{ audYt.currentTime=Math.max(0,getTime()+0.25); }catch{} audYt.play().catch(onErr); };
-  const onPlay=()=>{
-    if(done) return; if(!ok()){ abort(); return; } done=true; cleanup();
-    eng='fx'; try{ yt.setVolume(0); yt.stopVideo(); }catch{}
-    aud.pause(); audYt.muted=false;
-    if(fx.ctx&&fx.ctx.state==='suspended') fx.ctx.resume().catch(()=>{});
-    applyFx(); applyVol(); syncVid(); updateBar(); msUpdate(); pushPresence();
-    if(!playing) audYt.pause();
-  };
-  audYt.muted=true; audYt.onloadedmetadata=null;
-  audYt.addEventListener('canplay',onCan); audYt.addEventListener('playing',onPlay); audYt.addEventListener('error',onErr);
-  tm=setTimeout(abort,20000);
-  audYt.src=url;
-  return true;
-}
-function reloadEngine(){
-  if(!cur||cur.src!=='yt') return;
-  const want=(useLocal(cur)||wantStream(cur))?'fx':'yt';
-  if(want===eng){ if(eng==='fx') applyFx(); return; }
-  if(want==='fx'&&eng==='yt'&&playing&&seamlessToFx()) return;
-  loadTrack(cur,getTime(),playing);
-}
-const uKey=n=>n+'_'+((typeof me!=='undefined'&&me&&me.id)||0);
-const mainArtist=a=>canonArtist(String(a||'').split(/\s*(?:,|&|;| x | ft\.? | feat\.? |\/|、|・)\s*/i)[0].trim());
-const followGet=()=>{ try{ const a=JSON.parse(LS.get(uKey('muse_follow'),'[]')); return Array.isArray(a)?a:[]; }catch{ return []; } };
-const isFollow=n=>{ const c=canonArtist(n).toLowerCase(); return followGet().some(x=>canonArtist(x).toLowerCase()===c); };
-function toggleFollow(n){ n=canonArtist(n); if(!n) return false; const c=n.toLowerCase(); const a=followGet(); const i=a.findIndex(x=>canonArtist(x).toLowerCase()===c); if(i>=0) a.splice(i,1); else a.unshift(n); LS.set(uKey('muse_follow'),JSON.stringify(a.slice(0,200))); syncDirty('follow'); return i<0; }
-function updFollowBtn(){ const b=document.getElementById('npFollow'); if(!b) return; const n=cur?mainArtist(cur.artist):''; b.style.display=n?'':'none'; const on=!!n&&isFollow(n); b.classList.toggle('on',on); b.textContent=on?'Đã theo dõi':'Theo dõi'; }
-document.getElementById('npFollow').onclick=()=>{ const n=cur?mainArtist(cur.artist):''; if(!n) return; const on=toggleFollow(n); updFollowBtn(); notify(on?'Đã theo dõi '+n:'Đã bỏ theo dõi '+n); };
-const playsGet=()=>{ try{ const o=JSON.parse(LS.get(uKey('muse_plays'),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-function countPlay(t){ try{ if(!t||!t.id) return; const o=playsGet(), k=key(t); const e=o[k]||{t:slim(t),n:0}; e.n++; e.t=slim(t); e.last=Date.now(); o[k]=e;
-  const ks=Object.keys(o); if(ks.length>400){ ks.sort((a,b)=>o[a].n-o[b].n).slice(0,ks.length-400).forEach(x=>delete o[x]); }
-  LS.set(uKey('muse_plays'),JSON.stringify(o));
-  const d=devPlaysGet(), de=d[k]||{t:slim(t),n:0}; de.n++; de.t=slim(t); de.last=Date.now(); d[k]=de;
-  const dk=Object.keys(d); if(dk.length>400) dk.sort((a,b)=>d[a].n-d[b].n).slice(0,dk.length-400).forEach(x=>delete d[x]);
-  LS.set('muse_plays_dev',JSON.stringify(d)); syncDirty('plays'); }catch{} }
-const playsList=()=>Object.values(playsGet()).filter(e=>e&&e.t).sort((a,b)=>b.n-a.n).slice(0,50).map(e=>e.t);
-pages.top=async function(m){
-  const l=playsList(); const cnt=playsGet();
-  m.innerHTML='<div id="rows"></div>';
-  $('#rows').innerHTML=l.length?hero('Phát nhiều nhất','Danh sách phát · '+l.length+' bài hát',l)+tracksHtml(l,false,'Phát nhiều nhất')
-    :'<h2>Phát nhiều nhất</h2><p class="empty">Chưa có dữ liệu. Nghe vài bài rồi quay lại đây nhé.</p>';
-  markNow();
-};
-pages.followed=function(m){
-  const a=followGet();
-  m.innerHTML='<h2>Đã theo dõi</h2>'+(a.length
-    ?`<div class="libL">${a.map(n=>`<div class="li" data-ar="${esc(n)}" tabindex="0"><div class="tile">${ic('userplus')}</div><div class="meta"><b>${esc(n)}</b><span>Nghệ sĩ · bấm để nghe</span></div><button class="ico" data-un="${esc(n)}" title="Bỏ theo dõi">${ic('x')}</button></div>`).join('')}</div>`
-    :'<p class="empty">Chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.</p>');
-  m.querySelectorAll('[data-ar]').forEach(n=>{ n.onclick=e=>{ if(e.target.closest('[data-un]')) return; go('search',n.dataset.ar); }; n.onkeydown=e=>{ if(e.key==='Enter') n.click(); }; });
-  m.querySelectorAll('[data-un]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); toggleFollow(b.dataset.un); go('followed'); });
-};
-let autoAdv=false;
-const JUMP_MAX=10, jumpKey=()=>uKey('muse_jump');
-const jumpGet=()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a.filter(x=>x&&x.n&&Array.isArray(x.tr)&&x.tr.length).map(x=>({...x,n:String(x.n).replace(/^Kết quả: /,'')})):[]; }catch{ return []; } };
-function noteJump(){
-  if(!qname||!queue.length||qi<0||qi>=queue.length) return;
-  const from=Math.max(0,qi-4), tr=queue.slice(from,from+40).map(slim), i=qi-from;
-  const cov=queue.map(t=>t.image).filter(Boolean).slice(0,4);
-  const a=jumpGet().filter(x=>x.n!==qname); a.unshift({n:qname,tr,i,cov,t:Date.now()});
-  LS.set(jumpKey(),JSON.stringify(a.slice(0,JUMP_MAX))); syncDirty('jump');
-}
-function userPlay0(t){ setTimeout(()=>{ try{ syncVid(); const n=queue&&queue[qi+1]; if(n&&n.src==='yt'&&!n.fromVid&&(n.alb||!isWide(n))) albFind(n).catch(()=>{}); }catch{} },0); const prev=cur, auto=autoAdv; autoAdv=false; tasteCache=null;
-  const prevPos=prev&&prev.id?getTime():0, prevDur=prev&&prev.id?getDur():0;
-  // Ưu tiên khởi chạy audio trước; thống kê và đồng bộ dữ liệu không chặn thao tác Phát.
-  loadTrack(t,0,true); broadcastState();
-  setTimeout(()=>{ try{ noteJump(); }catch{} try{ if(prev&&prev.id&&t&&key(prev)!==key(t)) noteListen(prev,prevPos,prevDur,auto); }catch{} try{ countPlay(t); }catch{} },0);
-  if(S.track_history) setTimeout(()=>api('/api/history',{json:slim(t)}).catch(()=>{}),0); }
-const blocked=t=>!!t&&!!t.explicit&&!S.explicit;
-const disGet=()=>{ try{ const o=JSON.parse(LS.get('muse_dislike_dev','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-const isDis=t=>!!t&&!!disGet()[key(t)];
-function toggleDislike(t){ if(!t||!t.id) return; const o=disGet(), k=key(t), L=listenGet();
-  if(o[k]){ delete o[k]; if(L[k]){ L[k].sk=Math.max(0,(L[k].sk||0)-3); L[k].last=Date.now(); LS.set('muse_listen_dev',JSON.stringify(L)); syncDirty('listen'); } LS.set('muse_dislike_dev',JSON.stringify(o)); syncDirty('dislike'); tasteCache=null; notify('Đã bỏ "không thích"'); updateBar(); return; }
-  o[k]={t:slim(t),at:Date.now()}; LS.set('muse_dislike_dev',JSON.stringify(o)); syncDirty('dislike');
-  const e=L[k]||{t:slim(t),ok:0,sk:0,last:0}; e.t=slim(t); e.ok=0; e.sk=(e.sk||0)+3; e.last=Date.now(); L[k]=e; LS.set('muse_listen_dev',JSON.stringify(L)); syncDirty('listen');
-  tasteCache=null; if(favs.has(k)) toggleFav(t);
-  notify('Đã ghi nhận: không thích bài này – sẽ ít gợi ý bài tương tự'); updateBar();
-  if(cur&&key(cur)===k&&queue.length>1) nextTrack(false); }
-function playList(list,i,name){
-  if(blocked(list[i])){ notify('Bài hát có nội dung nhạy cảm – bật "Phát bài hát chứa nội dung nhạy cảm" trong Cài đặt để nghe'); return; }
-  const want=list[i];
-  // Bấm lại đúng bài đang nghe: KHÔNG tải/phát lại từ đầu, chỉ cập nhật hàng đợi và (nếu đang tạm dừng) phát tiếp.
-  // Bài đang lỗi/chưa nạp được thì vẫn cho phát lại như cũ để người dùng thử lại.
-  if(want&&cur&&key(cur)===key(want)&&curHealthy()){
-    queue=list.slice(); qi=i; qname=name||'';
-    if(!playing){ setPlaying(true); broadcastState(); }
-    if(!npOpen) setNp(true,'play');
-    return;
-  }
-  queue=list.slice(); qi=i; qname=name||''; userPlay(queue[qi]); if(!npOpen) setNp(true,'play');
-}
-function curHealthy(){
-  try{
-    if(eng==='fx') return !audYt.error&&!!(audYt.currentSrc||audYt.src)&&(audYt.readyState>=1||audYt.networkState===2);
-    if(eng==='yt') return !!ytReady&&!ytFail[cur.id];
-    return !aud.error&&!!aud.src&&(aud.readyState>=1||aud.networkState===2);
-  }catch{ return false; }
-}
-function nextTrack(auto){
-  if(!queue.length) return;
-  if(auto&&rep===2){ seekTo(0); setPlaying(true); broadcastState(); return; }
-  let i, tries=0;
-  do{
-    if(shuf&&queue.length>1){ do{ i=Math.floor(Math.random()*queue.length) }while(i===qi); }
-    else { i=qi+1; if(i>=queue.length){ if(rep===1||!auto) i=0; else { setPlaying(false); broadcastState(); return; } } }
-    qi=i; tries++;
-  }while((blocked(queue[qi])||isDis(queue[qi])||isUnplay(queue[qi]))&&tries<queue.length);
-  if(blocked(queue[qi])||isDis(queue[qi])||isUnplay(queue[qi])){ setPlaying(false); return; }
-  autoAdv=!!auto;
-  userPlay(queue[qi]);
-}
-function prevTrack(){ if(!queue.length) return; if(getTime()>3){ seekTo(0); broadcastState(); return; } qi=(qi-1+queue.length)%queue.length; userPlay(queue[qi]); }
-setInterval(()=>{
-  let mul=1;
-  if(S.crossfade&&cur&&playing){
-    const d=getDur(), t=getTime(), N=Math.max(1,S.crossfade_secs||5);
-    const hasNext=rep===1||(shuf&&queue.length>1)||qi<queue.length-1;
-    if(d>0&&rep!==2&&hasNext){ const rem=d-t; if(rem>0&&rem<N) mul=Math.max(0,rem/N); }
-    if(fadeInAt){ const el=(performance.now()-fadeInAt)/1000; if(el<N/2) mul=Math.min(mul,Math.max(.05,el/(N/2))); else fadeInAt=0; }
-  }
-  if(Math.abs(mul-fadeMul)>.02||(mul===1&&fadeMul!==1)){ fadeMul=mul; applyVol(); }
-},200);
-const psKey=()=>'muse_ps_'+(me&&me.id);
-function savePlayState(){
-  if(!S.save_state||!cur) return;
-  try{ const st=Math.max(0,qi-20), q=queue.slice(st,st+100).map(slim);
-    LS.set(psKey(),JSON.stringify({q,qi:qi>=0?qi-st:0,qn:qname,pos:getTime(),t:slim(cur)})); }catch{}
-}
-setInterval(savePlayState,5000); addEventListener('beforeunload',savePlayState);
-function restorePlayState(){
-  if(!S.save_state||cur) return;
-  try{ const j=JSON.parse(LS.get(psKey(),'null')); if(!j||!j.t||!j.t.id) return;
-    queue=Array.isArray(j.q)&&j.q.length?j.q:[j.t]; qi=Number.isInteger(j.qi)?Math.min(Math.max(0,j.qi),queue.length-1):0; qname=String(j.qn||'').replace(/^Kết quả: /,'');
-    loadTrack(j.t,+j.pos||0,false); }catch{}
-}
-function onEnded(){ const t=cur; if(leader) nextTrack(true); else setTimeout(()=>{ if(cur===t) nextTrack(true); },3000); }
-function msUpdate(){
-  if(!('mediaSession' in navigator)){ nativeSync(true); return; }
-  const m=navigator.mediaSession, t=cur;
-  try{
-    if(!t){ m.metadata=null; m.playbackState='none'; return; }
-    m.metadata=new MediaMetadata({title:t.title||'',artist:t.artist||'',album:qname||'BBeat',
-      artwork:t.image?[{src:t.image,sizes:'512x512'}]:[{src:'/icon-512.png',sizes:'512x512',type:'image/png'}]});
-    m.playbackState=playing?'playing':'paused';
-  }catch{}
-  nativeSync(true);
-}
-function hiArt(u){
-  u=String(u||'');
-  const px=Math.min(1600,Math.max(600,Math.round(Math.min(screen.width||360,screen.height||800)*Math.min(window.devicePixelRatio||2,4)/100)*100));
-  if(/googleusercontent\.com|ggpht\.com/.test(u)){
-    if(/=w\d+-h\d+/.test(u)) return u.replace(/=w\d+-h\d+[^?#]*$/,`=w${px}-h${px}-l90-rj`);
-    if(/=s\d+/.test(u)) return u.replace(/=s\d+[^?#]*$/,`=s${px}`);
-    return u;
-  }
-  const m=u.match(/i\.ytimg\.com\/vi\/([\w-]{11})\//); if(m) return 'https://i.ytimg.com/vi/'+m[1]+(px>480?'/hq720.jpg':'/mqdefault.jpg');
-  return u;
-}
-function nativeSync(meta){
-  try{
-    const N=window.MuseNative; if(!N) return;
-    const t=cur, du=t?getDur():0, pos=t?getTime():0;
-    N.update(t?(t.title||''):'', t?(t.artist||''):'', t?hiArt(t.image):'', !!(t&&playing),
-      Math.round((isFinite(pos)?pos:0)*1000), Math.round((isFinite(du)?du:0)*1000), !!t);
-  }catch{}
-}
-window.museCmd=function(c,v){
-  try{
-    if(c==='play'){ if(cur&&!playing){ setPlaying(true); broadcastState(); updateBar(); } }
-    else if(c==='pause'){ if(cur&&playing){ setPlaying(false); broadcastState(); updateBar(); } }
-    else if(c==='resume'){ if(cur){ setPlaying(true); updateBar(); } }
-    else if(c==='toggle'){ if(cur){ setPlaying(!playing); broadcastState(); updateBar(); } }
-    else if(c==='next') nextTrack(false);
-    else if(c==='prev') prevTrack();
-    else if(c==='seek'&&cur&&isFinite(+v)){ seekTo(+v/1000); broadcastState(); nativeSync(); }
-  }catch{}
-};
-[aud,audYt].forEach(a=>{ try{ a.addEventListener('seeked',()=>{ if(window.MuseNative&&cur) nativeSync(); }); }catch{} });
-setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
-(function msInit(){
-  if(!('mediaSession' in navigator)) return;
-  const m=navigator.mediaSession, h=(a,f)=>{ try{ m.setActionHandler(a,f); }catch{} };
-  h('play',()=>{ if(cur&&!playing){ setPlaying(true); broadcastState(); updateBar(); } });
-  h('pause',()=>{ if(cur&&playing){ setPlaying(false); broadcastState(); updateBar(); } });
-  h('previoustrack',()=>prevTrack()); h('nexttrack',()=>nextTrack(false));
-  h('seekto',d=>{ if(cur&&d&&isFinite(d.seekTime)){ seekTo(d.seekTime); broadcastState(); } });
-  h('seekbackward',d=>{ if(cur){ seekTo(Math.max(0,getTime()-((d&&d.seekOffset)||10))); broadcastState(); } });
-  h('seekforward',d=>{ if(cur){ const du=getDur(); seekTo(Math.min(du||1e9,getTime()+((d&&d.seekOffset)||10))); broadcastState(); } });
-  setInterval(()=>{ if(window.MuseNative&&cur&&playing) nativeSync(); },5000);
-  setInterval(()=>{ try{ const du=getDur(); if(cur&&du&&isFinite(du)&&m.setPositionState) m.setPositionState({duration:du,position:Math.min(Math.max(0,getTime()),du),playbackRate:1}); }catch{} },1000);
-})();
-$('#pp').onclick=()=>{ if(!cur) return; setPlaying(!playing); broadcastState(); };
-$('#bNext').onclick=()=>nextTrack(false); $('#bPrev').onclick=prevTrack;
-/* ===== [PERF PATCH] Chỉ THÊM, không sửa code cũ. Dán ngay sau dòng: $('#bNext').onclick=()=>nextTrack(false); $('#bPrev').onclick=prevTrack; =====
-   1) Home: giới hạn 3 request danh sách chạy cùng lúc (Render gói Free rất yếu), tạm nhường chỗ ~2.5s sau khi bấm phát nhạc.
-   2) Next/Prev bấm dồn: bấm đầu chạy ngay, các lần bấm nhanh sau đó gộp thành 1 lần phát (không bắn request cho bài trung gian).
-   3) Chặn sự kiện "hết bài" giả ngay sau khi vừa bấm bài (bài >20s mà đang ở giây <3 trong 6s đầu).
-   4) Ghi lại mọi lần tự chuyển bài vào window.__autoNext (xem bằng F12 > Console) để biết chính xác ai kích hoạt.
-   5) Ping /api/time mỗi 8 phút khi đang mở/đang phát để Render không ngủ giữa chừng. */
-let perfRun=0, perfHold=0, manualAt=0, lastSkipAt=0, skipTm=0; const perfQ=[];
-const PERF_RE=/^\/api\/(yt\/(artists|best-artists|browse|fresh|search|similar|this-is)|recommend)(\?|\/|$)/;
-function perfPump(){
-  while(perfRun<3&&perfQ.length){
-    if(Date.now()<perfHold){ setTimeout(perfPump,Math.max(50,perfHold-Date.now())); return; }
-    const j=perfQ.shift(); perfRun++;
-    api0(j.p,j.o).then(j.res,j.rej).finally(()=>{ perfRun--; perfPump(); });
-  }
-}
-const api0=api;
-api=function(path,opt){
-  opt=opt||{};
-  if(typeof path==='string'&&page==='home'&&PERF_RE.test(path)&&!opt.method&&opt.json===undefined&&opt.body===undefined)
-    return new Promise((res,rej)=>{ perfQ.push({p:path,o:opt,res,rej}); perfPump(); });
-  return api0(path,opt);
-};
-const userPlay0_orig=userPlay0;
-userPlay0=function(t){ if(!autoAdv){ manualAt=Date.now(); perfHold=manualAt+2500; } return userPlay0_orig.apply(this,arguments); };
-function burstSkip(fn){
-  const n=Date.now(), fast=n-lastSkipAt<500; lastSkipAt=n;
-  if(!fast){ fn(); return; }
-  const real=userPlay; let tgt=null;
-  userPlay=t=>{ tgt=t; };
-  try{ fn(); } finally{ userPlay=real; }
-  clearTimeout(skipTm);
-  if(tgt) skipTm=setTimeout(()=>{ if(queue[qi]===tgt) userPlay(tgt); },300);
-}
-$('#bNext').onclick=()=>burstSkip(()=>nextTrack(false));
-$('#bPrev').onclick=()=>burstSkip(prevTrack);
-const nextTrack_orig=nextTrack;
-nextTrack=function(auto){
-  if(auto){ try{
-    const s=(new Error().stack||'').split('\n').slice(2,6).map(x=>{ const m=x.trim().match(/^at\s+(\S+)/); return m&&!/^https?:/.test(m[1])?m[1]:'anon'; }).join(' < ');
-    const L=(window.__autoNext=window.__autoNext||[]); L.push({at:new Date().toTimeString().slice(0,8),track:cur&&cur.title,pos:Math.round(getTime()),from:s}); if(L.length>20) L.shift();
-    console.warn('[auto-next]',s);
-  }catch{} }
-  return nextTrack_orig.apply(this,arguments);
-};
-const onEnded_orig=onEnded;
-onEnded=function(){
-  try{ if(cur&&manualAt&&Date.now()-manualAt<6000&&getTime()<3&&(getDur()>20||!getDur())){
-    (window.__autoNext=window.__autoNext||[]).push({at:new Date().toTimeString().slice(0,8),track:cur.title,from:'BLOCKED fake-ended'});
-    console.warn('[auto-next] đã chặn "hết bài" giả ngay sau khi bấm bài'); playing=true; try{ updateBar(); }catch{} return; } }catch{}
-  return onEnded_orig.apply(this,arguments);
-};
-setInterval(()=>{ try{ if(!document.hidden||playing) fetch('/api/time',{cache:'no-store'}).catch(()=>{}); }catch{} },8*60*1000);
-/* ===== [/PERF PATCH] ===== */
-
-$('#bShuf').onclick=()=>{ shuf=!shuf; $('#bShuf').classList.toggle('on',shuf); $('#bShuf').title=shuf?'Ngẫu nhiên: bật':'Ngẫu nhiên: tắt'; };
-const REP=['Lặp lại: tắt','Lặp danh sách','Lặp một bài'];
-$('#bMode').onclick=()=>{ rep=(rep+1)%3; setIc($('#bMode'),rep===2?'repeat1':'repeat'); $('#bMode').classList.toggle('on',rep>0); $('#bMode').title=REP[rep]; };
-$('#bFav').onclick=$('#npFav').onclick=()=>cur&&toggleFav(cur);
-$('#npDis').onclick=()=>cur&&toggleDislike(cur);
-(function(){
-  const vd=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
-  let openDd=null;
-  function closeMenu(){ if(!openDd) return; openDd.menu.remove(); openDd.wrap.classList.remove('open'); document.removeEventListener('mousedown',onDoc,true); window.removeEventListener('resize',closeMenu); openDd=null; }
-  function onDoc(e){ if(openDd&&!openDd.menu.contains(e.target)&&!openDd.wrap.contains(e.target)) closeMenu(); }
-  function enhance(sel){
-    if(sel.dataset.mdd||sel.dataset.native!==undefined||sel.multiple||sel.size>1) return;
-    sel.dataset.mdd='1';
-    const cs=getComputedStyle(sel);
-    const wrap=document.createElement('div'); wrap.className='mdd';
-    wrap.style.flex=cs.flex; wrap.style.width=sel.style.width||'100%'; if(sel.style.minWidth) wrap.style.minWidth=sel.style.minWidth;
-    const btn=document.createElement('button'); btn.type='button'; btn.className='mdd-btn'; btn.setAttribute('aria-haspopup','listbox');
-    btn.innerHTML='<span class="mdd-l"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
-    wrap.appendChild(btn); sel.parentNode.insertBefore(wrap,sel); sel.style.display='none';
-    const lab=btn.querySelector('.mdd-l');
-    const refresh=()=>{ const o=sel.options[sel.selectedIndex]; lab.textContent=o?o.textContent:''; btn.disabled=sel.disabled; };
-    Object.defineProperty(sel,'value',{get(){return vd.get.call(this)},set(v){vd.set.call(this,v); refresh();},configurable:true});
-    refresh();
-    function open(){
-      if(openDd&&openDd.wrap===wrap){ closeMenu(); return; }
-      closeMenu(); refresh();
-      const menu=document.createElement('div'); menu.className='mdd-menu'; menu.setAttribute('role','listbox');
-      const opts=[...sel.options]; let act=sel.selectedIndex;
-      opts.forEach((o,i)=>{ const d=document.createElement('div'); d.className='mdd-opt'+(i===sel.selectedIndex?' sel':''); d.textContent=o.textContent; d.setAttribute('role','option');
-        d.onmousemove=()=>{ setAct(i); }; d.onclick=()=>choose(i); menu.appendChild(d); });
-      const items=()=>[...menu.children];
-      function setAct(i){ act=i; items().forEach((e,k)=>e.classList.toggle('act',k===i)); const e=items()[i]; if(e) e.scrollIntoView({block:'nearest'}); }
-      function choose(i){ closeMenu(); btn.focus(); if(i!==sel.selectedIndex){ sel.selectedIndex=i; refresh(); sel.dispatchEvent(new Event('input',{bubbles:true})); sel.dispatchEvent(new Event('change',{bubbles:true})); } }
-      menu._key=e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); setAct(Math.min(opts.length-1,act+1)); } else if(e.key==='ArrowUp'){ e.preventDefault(); setAct(Math.max(0,act-1)); } else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); choose(act); } else if(e.key==='Escape'||e.key==='Tab'){ closeMenu(); btn.focus(); } };
-      document.body.appendChild(menu);
-      const r=btn.getBoundingClientRect(); menu.style.minWidth=r.width+'px';
-      const mh=Math.min(menu.scrollHeight,260), below=innerHeight-r.bottom-8, above=r.top-8;
-      if(below>=mh||below>=above){ menu.style.top=(r.bottom+6)+'px'; menu.style.maxHeight=Math.max(120,Math.min(260,below-6))+'px'; }
-      else{ menu.style.bottom=(innerHeight-r.top+6)+'px'; menu.style.maxHeight=Math.max(120,Math.min(260,above-6))+'px'; }
-      menu.style.left=Math.max(8,Math.min(r.left,innerWidth-menu.offsetWidth-8))+'px';
-      wrap.classList.add('open'); openDd={wrap,menu}; setAct(act);
-      document.addEventListener('mousedown',onDoc,true); window.addEventListener('resize',closeMenu);
-    }
-    btn.onclick=open;
-    btn.onkeydown=e=>{ if(openDd&&openDd.wrap===wrap){ openDd.menu._key(e); return; } if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); open(); } };
-  }
-  const scan=root=>{ (root.querySelectorAll?root.querySelectorAll('select'):[]).forEach(enhance); if(root.tagName==='SELECT') enhance(root); };
-  new MutationObserver(ms=>{ ms.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType===1) scan(n); })); }).observe(document.documentElement,{childList:true,subtree:true});
-  scan(document);
-})();
-
-const blobB64=b=>new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b); });
-const DL_MIME={mp3:'audio/mpeg',webm:'audio/webm',m4a:'audio/mp4',mp4:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',flac:'audio/flac',aac:'audio/aac'};
-// Bridge Android chỉ có MỘT luồng ghi (saveBegin/saveChunk/saveEnd dùng chung). Tải 2 bài song song
-// (DL_PAR=2) mà không xếp hàng thì saveBegin của bài sau sẽ đóng + xoá file đang ghi dở của bài trước.
-let nativeSaveQ=Promise.resolve();
-function nativeSave(name,mime,blob){
-  const run=async()=>{
-    const N=window.MuseNative, bad=r=>{ if(r) throw new Error(String(r).replace(/^err:/,'')); };
-    bad(N.saveBegin(name,mime));
-    try{ for(let o=0;o<blob.size;o+=786432) bad(N.saveChunk(await blobB64(blob.slice(o,o+786432)))); N.saveEnd(true); }
-    catch(x){ try{N.saveEnd(false)}catch{} throw x; }
-  };
-  const p=nativeSaveQ.then(run,run);
-  nativeSaveQ=p.catch(()=>{});
-  return p;
-}
-/* ===== Nhạc tải xuống nằm trong thư mục BBeat =====
-   Desktop: ghi thẳng vào <Nhạc>\BBeat qua cổng nhà (/api/local/save). Android: Music/BBeat. Chỉ bản web thuần (không có cổng nhà) mới rơi về tải của trình duyệt.
-   Mỗi bài nhớ đúng tên file đã lưu (bbMap: khoá bài → tên file) để khi xoá chỉ xoá đúng file đó. */
-let bbDir='';
-const bbMap=()=>{ try{ const o=JSON.parse(LS.get('muse_bbfiles','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-const bbGet=k=>bbMap()[k]||'';
-function bbSet(k,name){ try{ const o=bbMap(); if(name) o[k]=name; else delete o[k]; LS.set('muse_bbfiles',JSON.stringify(o)); }catch{} }
-/* Tên file của bài trong thư mục BBeat ('' nếu bài không có file ở đó, vd bài cũ tải ra thư mục Downloads của trình duyệt) */
-const bbNative=()=>!!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
-const bbFileOf=x=>bbGet(x.k)||((x.path||bbNative())&&x.name?x.name:'');
-async function bbInfo(){ if(bbDir) return bbDir;
-  if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function') return bbDir='Nhạc/BBeat (Music/BBeat)';
-  try{ const r=await fetch('/api/local/info',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j&&j.dir){ locOn=true; bbDir=String(j.dir); } } }catch{}
-  return bbDir; }
-async function dlSaveFile(name,blob,ext){
-  if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); bbDir=bbDir||'Nhạc/BBeat (Music/BBeat)'; return {name,dir:bbDir}; }
-  let why='';
-  try{ const r=await fetch('/api/local/save?name='+encodeURIComponent(name),{method:'POST',body:blob});
-    if(r.ok){ const j=await r.json(); if(j&&j.path&&j.name){ locOn=true; bbDir=String(j.dir||bbDir); return {name:String(j.name),path:String(j.path),dir:bbDir}; } why='phản hồi không hợp lệ'; }
-    else{ const tx=(await r.text().catch(()=>'')).slice(0,160); why='HTTP '+r.status+(tx?' · '+tx:''); if(r.status===404||r.status===405) why+=' (app đang chạy bản cổng nhà cũ, chưa có chức năng lưu vào thư mục BBeat — hãy cập nhật/chạy lại app)'; } }catch(e){ why=String(e&&e.message||e); }
-  /* Đang chạy cùng app desktop (có cổng nhà) mà không ghi được vào thư mục BBeat\Downloads: báo lỗi rõ ràng,
-     không âm thầm đẩy file ra thư mục Tải xuống của trình duyệt như trước (khiến file nằm sai chỗ và không xoá được). */
-  if(locOn) throw new Error('Không lưu được vào thư mục BBeat\\Downloads: '+why);
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
-  return null;
-}
-/* Xoá đúng file nhạc của bài này (không đụng file khác). Trả true nếu đã xoá. */
-async function bbDeleteFile(name){
-  if(!name) return false;
-  try{
-    if(window.MuseNative&&typeof window.MuseNative.deleteSaved==='function') return !!window.MuseNative.deleteSaved(name);
-    const r=await fetch('/api/local/delete?name='+encodeURIComponent(name),{method:'POST'}); return r.ok;
-  }catch{ return false; }
-}
-const WAV_MAX=14e6;
-function wavFromBuffer(buf){
-  const ch=Math.min(2,buf.numberOfChannels), n=buf.length, sr=buf.sampleRate, data=new Int16Array(n*ch), chs=[];
-  for(let c=0;c<ch;c++) chs.push(buf.getChannelData(c));
-  for(let i=0,o=0;i<n;i++) for(let c=0;c<ch;c++){ const s=Math.max(-1,Math.min(1,chs[c][i])); data[o++]=s<0?s*0x8000:s*0x7fff; }
-  const hdr=new ArrayBuffer(44), v=new DataView(hdr), W=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); }, bytes=data.length*2;
-  W(0,'RIFF'); v.setUint32(4,36+bytes,true); W(8,'WAVE'); W(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,ch,true);
-  v.setUint32(24,sr,true); v.setUint32(28,sr*ch*2,true); v.setUint16(32,ch*2,true); v.setUint16(34,16,true); W(36,'data'); v.setUint32(40,bytes,true);
-  return new Blob([hdr,data],{type:'audio/wav'});
-}
-async function dlToWav(blob){
-  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!OAC) throw new Error('trình duyệt không hỗ trợ');
-  const ctx=new OAC(2,1,44100), ab=await blob.arrayBuffer();
-  const buf=await new Promise((res,rej)=>{ const p=ctx.decodeAudioData(ab,res,rej); if(p&&p.catch) p.catch(rej); });
-  return wavFromBuffer(buf);
-}
-
-let dlFmt=LS.get('muse_dlfmt','wav')==='orig'?'orig':'wav';
-const dlKey=()=>'muse_dl_'+(me&&me.id);
-let dlItems=[], dlLoadedFor=null, dlRunning=0; const DL_PAR=2;
-function dlLoad(){
-  const who=me&&me.id; if(dlLoadedFor===who) return; dlLoadedFor=who;
-  try{ const a=JSON.parse(LS.get(dlKey(),'[]')); dlItems=(Array.isArray(a)?a:[]).filter(x=>x&&x.track&&x.status==='done'); }catch{ dlItems=[]; }
-  offSync();
-}
-async function offSync(){
-  try{
-    const ms=await offInit.then(()=>OFF.all('m')); offSet.clear();
-    for(const x of ms){ offSet.add(x.k);
-      const ex=dlItems.find(i=>i.k===x.k&&i.status==='done');
-      if(ex){ ex.osize=x.size; if(!ex.fmt&&x.fmt) ex.fmt=String(x.fmt).toLowerCase(); if(!ex.mime&&x.mime) ex.mime=x.mime; }
-      else dlItems.push({uid:'o-'+x.k,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.size,fmt:String(x.fmt||'').toLowerCase(),mime:x.mime||'',name:''}); }
-    dlItems.sort((a,b)=>(b.at||0)-(a.at||0)); dlRender();
-  }catch{}
-}
-const dlFileOn=()=>LS.get('muse_dlfile','1')!=='0';
-const dlPlayable=()=>dlItems.filter(x=>x.status==='done'&&(!offlineNow()||offSet.has(x.k))).map(x=>x.track);
-function dlSave(){
-  try{ LS.set(dlKey(),JSON.stringify(dlItems.filter(x=>x.status==='done').slice(0,200).map(x=>({uid:x.uid,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.osize,fmt:x.fmt,name:x.name,path:x.path,where:x.where})))); }catch{}
-}
-function dlSize(n){ return n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB'; }
-function dlStatus(x){
-  if(x.status==='queued') return 'Đang chờ';
-  if(x.status==='loading') return 'Đang tải '+(x.pct||0)+'%';
-  if(x.status==='converting') return 'Đang đổi sang WAV…';
-  if(x.status==='error') return 'Lỗi: '+(x.err||'không rõ');
-  return 'Xong · '+String(x.fmt||'').toUpperCase()+(x.size?' · '+dlSize(x.size):'')+(x.note?' · '+x.note:'');
-}
-function dlRowHtml(x){
-  const t=x.track, busy=x.status==='loading'||x.status==='converting', bar=(x.status==='loading'||x.status==='converting')?`<div class="dlbar"><i style="width:${x.status==='converting'?100:(x.pct||0)}%"></i></div>`:'';
-  const has=offSet.has(x.k), badge=x.status==='done'?(has?`<span class="offb">${ic('check','sm')} ${isLoc(t)?'Từ máy bạn':'Nghe offline'}</span>`:`<span class="offb no">Chưa lưu offline</span>`):'';
-  const redo=x.status==='error'||(x.status==='done'&&!has&&t.src==='yt');
-  return `<div class="dlr${x.status==='done'&&!has&&offlineNow()?' dim':''}" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" data-k="${esc(x.k)}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div>${x.status==='done'&&bbFileOf(x)?`<div class="t3" title="${esc(x.path||(bbDir?bbDir+' / ':'')+bbFileOf(x))}">${ic('folder','sm')} ${esc(bbFileOf(x))}</div>`:''}</div><div class="dls ${x.status}">${esc(dlStatus(x))} ${badge}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${redo?`<button class="ico" data-a="retry" title="${x.status==='error'?'Thử lại':'Tải lại để nghe offline'}">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
-}
-function dlRender(){
-  const done=dlItems.filter(x=>x.status==='done'), offN=done.filter(x=>offSet.has(x.k)).length, offB=done.reduce((n,x)=>n+(offSet.has(x.k)?(x.osize||0):0),0);
-  const sub=$('#dlSub'); if(sub){ const run=dlItems.filter(x=>x.status==='queued'||x.status==='loading'||x.status==='converting').length; sub.textContent=run?'Đang tải '+run+' bài…':offN?offN+' bài nghe được offline':done.length?done.length+' bài đã tải':'Danh sách tải xuống'; }
-  const box=$('#dlList'); if(!box||page!=='downloads') return;
-  const info=$('#dlInfo'); if(info) info.textContent=done.length?`${done.length} bài · ${offN} bài nghe được khi không có mạng${offB?' · '+dlSize(offB):''}`:'Chưa có bài nào. Bấm nút tải xuống ở bài hát để lưu về nghe offline.';
-  box.innerHTML=dlItems.length?dlItems.map(dlRowHtml).join(''):'<p class="empty">Chưa có bài nào được tải.</p>';
-  box.querySelectorAll('.dlr img[data-k]').forEach(img=>{ img.onerror=()=>{ img.onerror=null; offCoverUrl(img.dataset.k).then(u=>{ if(u) img.src=u; }); }; if(img.complete&&!img.naturalWidth) img.onerror&&img.onerror(); });
-}
-/* ===== Thêm nhạc có sẵn trên máy vào Tải xuống (nút folder) =====
-   File được chép vào cùng kho IndexedDB với bài đã tải (OFF), nên tự hiện trong danh sách, phát offline và xoá như bài khác.
-   MP3 đọc thẻ ID3 (tên, nghệ sĩ, ảnh bìa); file khác lấy tên theo tên file ("Nghệ sĩ - Tên bài"). */
-const AUD_EXT=/\.(mp3|m4a|aac|flac|wav|ogg|oga|opus|webm|wma|mka|mp4)$/i;
-const AUD_MIME={mp3:'audio/mpeg',m4a:'audio/mp4',mp4:'audio/mp4',aac:'audio/aac',flac:'audio/flac',wav:'audio/wav',ogg:'audio/ogg',oga:'audio/ogg',opus:'audio/ogg',webm:'audio/webm',wma:'audio/x-ms-wma',mka:'audio/x-matroska'};
-function locId(f){
-  const s=f.name+'|'+f.size+'|'+(f.lastModified||0); let a=5381,b=0;
-  for(let i=0;i<s.length;i++){ a=((a*33)^s.charCodeAt(i))>>>0; b=(b*31+s.charCodeAt(s.length-1-i))>>>0; }
-  return 'loc_'+a.toString(36)+b.toString(36); // cùng file thêm lại → cùng id → không bị trùng
-}
-function nameParts(fn){
-  const n=fn.replace(/\.[^.]+$/,'').replace(/_/g,' ').replace(/\s+/g,' ').trim(), m=n.match(/^(.+?)\s[-–—]\s(.+)$/);
-  return m?{artist:m[1].trim(),title:m[2].trim()}:{artist:'',title:n};
-}
-async function readTags(f){
-  const out={};
-  try{
-    const head=new Uint8Array(await f.slice(0,10).arrayBuffer());
-    if(head[0]!==0x49||head[1]!==0x44||head[2]!==0x33) return out; // không phải ID3v2
-    const ver=head[3], ss=(a,i)=>((a[i]&127)<<21)|((a[i+1]&127)<<14)|((a[i+2]&127)<<7)|(a[i+3]&127);
-    if(ver!==3&&ver!==4) return out;
-    const buf=new Uint8Array(await f.slice(10,10+Math.min(ss(head,6),8e6)).arrayBuffer());
-    const dec=(b,enc)=>{ try{ return new TextDecoder(enc===0?'latin1':enc===1?'utf-16':enc===2?'utf-16be':'utf-8').decode(b).replace(/\0+$/,'').trim(); }catch{ return ''; } };
-    let p=0;
-    while(p+10<=buf.length){
-      const id=String.fromCharCode(buf[p],buf[p+1],buf[p+2],buf[p+3]); if(!/^[A-Z0-9]{4}$/.test(id)) break;
-      const fs=ver===4?ss(buf,p+4):((buf[p+4]<<24)|(buf[p+5]<<16)|(buf[p+6]<<8)|buf[p+7])>>>0;
-      const body=buf.subarray(p+10,p+10+fs); p+=10+fs; if(!body.length) continue;
-      if(id==='TIT2') out.title=dec(body.subarray(1),body[0]);
-      else if(id==='TPE1') out.artist=dec(body.subarray(1),body[0]);
-      else if(id==='APIC'&&!out.cover){
-        const enc=body[0]; let i=1; while(i<body.length&&body[i]!==0) i++;
-        const mime=String.fromCharCode(...body.subarray(1,i)); i+=2; // bỏ byte 0 kết thúc mime + byte loại ảnh
-        if(enc===1||enc===2){ while(i+1<body.length&&!(body[i]===0&&body[i+1]===0)) i+=2; i+=2; } else { while(i<body.length&&body[i]!==0) i++; i++; }
-        const img=body.subarray(i); if(img.length>200) out.cover=new Blob([img],{type:/png/i.test(mime)?'image/png':'image/jpeg'});
-      }
-    }
-  }catch{}
-  return out;
-}
-function audioDur(url){
-  return new Promise(res=>{
-    const a=new Audio(); a.preload='metadata';
-    const done=v=>{ a.onloadedmetadata=a.onerror=null; try{ a.removeAttribute('src'); a.load(); }catch{} res(v); };
-    a.onloadedmetadata=()=>done(isFinite(a.duration)?Math.round(a.duration):0); a.onerror=()=>done(0);
-    setTimeout(()=>done(0),6000); a.src=url;
-  });
-}
-/* Thêm nhạc (app desktop): mở thư mục nhạc của app, người dùng thả file vào, app tự quét và thêm. Không có cổng nhà (web/Android) thì chọn file như cũ. */
-let locOn=false, locSyncBusy=false;
-async function locFolderSync(){
-  if(locSyncBusy||dlAddBusy) return;
-  locSyncBusy=true;
-  try{
-    const r=await fetch('/api/local/list',{cache:'no-store'}); if(!r.ok) return;
-    const list=await r.json(); if(!Array.isArray(list)) return; locOn=true;
-    await offInit; const files=[]; const known=new Set(Object.values(bbMap())); dlItems.forEach(i=>{ if(i.name) known.add(i.name); });
-    for(const it of list){
-      if(known.has(String(it.name))) continue;   /* file do chính app tải về, đã có trong danh sách */
-      if(/^Downloads\//i.test(String(it.name))) continue;   /* thư mục Downloads là của app (nhạc tải về), không nhập lại như "nhạc của bạn" */
-      const base=String(it.name).split('/').pop(), lm=+it.mtime||0;
-      if(offSet.has('yt:'+locId({name:base,size:it.size,lastModified:lm}))) continue;
-      const fr=await fetch('/api/local/file?name='+encodeURIComponent(it.name),{cache:'no-store'}); if(!fr.ok) continue;
-      { const f=new File([await fr.blob()],base,{lastModified:lm}); f._rel=String(it.name); files.push(f); }
-    }
-    locSyncBusy=false; if(files.length) await dlAddFiles(files);
-  }catch{} finally{ locSyncBusy=false; }
-}
-setInterval(()=>{ if(locOn&&page==='downloads'&&!document.hidden) locFolderSync(); },4000);
-window.addEventListener('focus',()=>{ if(locOn&&page==='downloads') locFolderSync(); });
-let dlAddBusy=false;
-async function dlAddFiles(files){
-  files=[...files].filter(f=>f&&(/^audio\//.test(f.type)||AUD_EXT.test(f.name)));
-  if(!files.length){ notify('Không có file âm thanh nào được chọn'); return; }
-  if(dlAddBusy){ notify('Đang thêm nhạc, vui lòng chờ…'); return; }
-  dlAddBusy=true; dlLoad(); let ok=0, dup=0, fail=0;
-  try{
-    notify('Đang thêm '+files.length+' file…');
-    for(const f of files){
-      try{
-        const id=locId(f), k='yt:'+id; // = key(t)
-        if(offSet.has(k)){ dup++; continue; }
-        const ext=((f.name.match(/\.([^.]+)$/)||[])[1]||'').toLowerCase(), mime=(f.type&&/^audio\//.test(f.type))?f.type:(AUD_MIME[ext]||'audio/mpeg');
-        const tg=await readTags(f), np=nameParts(f.name), u=URL.createObjectURL(f);
-        const dur=await audioDur(u); URL.revokeObjectURL(u);
-        const t={src:'yt',id,title:tg.title||np.title||f.name,artist:tg.artist||np.artist||'',image:'',url:'',dur,explicit:false};
-        await offSave(t,new Blob([f],{type:mime}),mime,ext);
-        if(tg.cover) await OFF.put('i',k,tg.cover).catch(()=>{});
-        if(f._rel) bbSet(k,f._rel);
-        ok++;
-      }catch(e){ fail++; }
-    }
-    await offSync(); dlSave();
-    notify('Đã thêm '+ok+' bài từ máy'+(dup?' · '+dup+' bài đã có':'')+(fail?' · '+fail+' file lỗi':''));
-  } finally{ dlAddBusy=false; }
-}
-function dlPump(){
-  while(dlRunning<DL_PAR){
-    const it=[...dlItems].reverse().find(x=>x.status==='queued'); if(!it) return;
-    dlRunning++; it.status='loading'; it.pct=0; dlRender();
-    dlRun(it).then(ok=>it.done&&it.done(ok),()=>it.done&&it.done(false)).finally(()=>{ dlRunning--; dlSave(); dlRender(); dlPump(); });
-  }
-}
-function downloadTrack(t,quiet){
-  if(!t) return Promise.resolve(false);
-  dlLoad(); const k=key(t);
-  const ex=dlItems.find(x=>x.k===k&&(x.status==='queued'||x.status==='loading'||x.status==='converting'));
-  if(ex){ if(!quiet) notify('Bài này đang trong danh sách tải'); return ex.p; }
-  const it={uid:Date.now()+'-'+Math.random().toString(36).slice(2,7),k,track:slim(t),status:'queued',pct:0,at:Date.now(),quiet:!!quiet};
-  it.p=new Promise(r=>{ it.done=r; });
-  dlItems.unshift(it);
-  if(!quiet) notify('Đã thêm vào danh sách tải: '+(t.title||''));
-  dlRender(); dlPump(); return it.p;
-}
-// App Android: tải từng đoạn ngay trong app (IP điện thoại) rồi trả về trang qua museChunk; fetch() trong WebView có thể nhận body rỗng.
-const museChunkWait={};
-window.museChunk=(rid,mime,total,b64,err)=>{ const f=museChunkWait[rid]; if(f) f(mime,total,b64,err); };
-/* Lý do thật khiến app không lấy được nhạc trên máy (từng client YouTube lỗi gì); rỗng nếu không biết. */
-const natWhy=id=>{ try{ return String((window.MuseNative&&typeof MuseNative.audioError==='function'&&MuseNative.audioError(String(id)))||'').slice(0,300); }catch{ return ''; } };
-function nativeChunk(id,fmt,start){
-  nativeChunk.err='';
-  return new Promise(res=>{
-    const rid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-    const tm=setTimeout(()=>{ delete museChunkWait[rid]; nativeChunk.err='quá thời gian chờ khi lấy nhạc trên máy'; res(null); },60000);
-    museChunkWait[rid]=(mime,total,b64,err)=>{
-      clearTimeout(tm); delete museChunkWait[rid];
-      if(!b64){ nativeChunk.err=String(err||''); return res(null); }
-      try{ const bin=atob(b64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-        res({blob:new Blob([u8],{type:mime||'audio/mp4'}),total:+total||0,mime:mime||''}); }catch{ res(null); }
+// GET /api/yt/video/:id?t=token  -> video (không có âm thanh), hỗ trợ Range
+async fn yt_video(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<AudQ>) -> Response {
+    let tok = q.t.clone().or_else(|| bearer(&headers));
+    let uid = {
+        let db = st.db.lock().unwrap();
+        tok.and_then(|t| user_from_token(&db, &t)).map(|u| u.id)
     };
-    try{ window.MuseNative.audioChunkAsync(rid,id,fmt,start); }catch{ clearTimeout(tm); delete museChunkWait[rid]; res(null); }
-  });
-}
-async function dlRun(it){
-  const t=it.track;
-  const safe=((t.artist?t.artist+' - ':'')+(t.title||'bai-hat')).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'_').trim().slice(0,120)||'bai-hat';
-  try{
-    let blob, ext, offOk=false;
-    if(t.src!=='yt'){
-      if(!t.url) throw new Error('Bài này không có file để tải');
-      const r=await fetch(t.url); if(!r.ok) throw new Error('HTTP '+r.status);
-      blob=await r.blob(); ext=(/\.(\w{2,4})(\?|$)/.exec(t.url)||[])[1]||'mp3';
-    } else {
-      const url='/api/yt/audio/'+encodeURIComponent(t.id)+'?f='+fxFmt+'&t='+encodeURIComponent(token);
-      const parts=[]; let pos=0,total=0,mime='';
-      let nat=!!(window.MuseNative&&typeof window.MuseNative.audioChunkAsync==='function');
-      let natErr='', restarts=0;
-      for(;;){
-        let b=null, partial=true;
-        if(nat){
-          // Trong app Android: chỉ tải bằng IP điện thoại, KHÔNG rơi về server.
-          let c=null; for(let tr=0;tr<(pos===0?2:1)&&!c;tr++) c=await nativeChunk(t.id,fxFmt,pos);
-          if(c&&c.blob.size){ b=c.blob; mime=c.mime||mime; total=c.total; }
-          else if(pos===0) throw new Error('Không lấy được nhạc bằng IP điện thoại: '+(nativeChunk.err||natWhy(t.id)||'không rõ nguyên nhân'));
-          else if(restarts<2){ // đứt giữa chừng (link chết sau ~1MB…): bỏ phần đã tải, lấy link/nguồn khác và tải lại từ đầu
-            restarts++; parts.length=0; pos=0; total=0; it.pct=0; dlRender(); continue;
-          }
-          else throw new Error('Đứt kết nối khi đang tải (đã được '+Math.round(pos/1024)+' KB, đã thử lại '+restarts+' lần)'+(nativeChunk.err?': '+nativeChunk.err:''));
+    if id.len() != 11 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let use_proxy = match uid {
+        Some(uid) => user_net_prefs(&st, uid).1,
+        None => false,
+    };
+    let (start, end_req) = parse_range(&headers);
+    let h = video_height(q.h);
+    match ytdlp_video(&id, use_proxy, h).await {
+        Ok((path, total, mime)) => match serve_local(&path, total, mime, start, end_req).await {
+            Ok(r) => r,
+            Err(e) => {
+                eprintln!("[video] {id}: {e}");
+                StatusCode::BAD_GATEWAY.into_response()
+            }
+        },
+        Err(e) => {
+            eprintln!("[video] {id}: {e}");
+            (StatusCode::BAD_GATEWAY, e).into_response()
         }
-        if(!b){
-          let r=null;
-          for(let tr=0;tr<3;tr++){
-            try{ r=await fetch(url,{headers:{Range:'bytes='+pos+'-'}}); if(r.ok) break; if(tr===2) throw new Error((await r.text())||('HTTP '+r.status)); }
-            catch(e){ if(tr===2){ if(natErr) throw new Error('Trên máy: '+natErr+' • Server: '+String(e&&e.message||e).slice(0,120)); throw e; } await new Promise(z=>setTimeout(z,800)); }
-          }
-          b=await r.blob(); if(!b.size) throw new Error('Nhận dữ liệu rỗng (HTTP '+r.status+', '+(r.headers.get('content-range')||'không có content-range')+')');
-          mime=r.headers.get('content-type')||mime;
-          const cr=r.headers.get('content-range');
-          total=(r.status===206&&cr)?(+cr.split('/')[1]||0):b.size;
-          partial=r.status===206;
+    }
+}
+
+fn ua_for(ci: usize) -> &'static str {
+    audio_clients().get(ci).map(|c| c.3).unwrap_or("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")
+}
+
+// Máy chủ Piped (mã nguồn mở) trả về link luồng âm thanh đã được proxy, không bị khoá theo IP của bạn.
+// Đặt PIPED_API="https://a,https://b" để dùng máy chủ riêng; mặc định thử vài máy chủ công cộng.
+async fn resolve_piped(client: &reqwest::Client, vid: &str, webm: bool) -> Result<(String, u64, String, usize), String> {
+    let bases: Vec<String> = std::env::var("PIPED_API")
+        .ok()
+        .map(|v| v.split(',').map(|x| x.trim().trim_end_matches('/').to_string()).filter(|x| !x.is_empty()).collect::<Vec<String>>())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| {
+            vec![
+                "https://pipedapi.kavin.rocks".to_string(),
+                "https://api.piped.private.coffee".to_string(),
+                "https://pipedapi.adminforge.de".to_string(),
+            ]
+        });
+    let mut last = String::from("Piped: không có máy chủ nào dùng được");
+    for base in bases {
+        let resp = match client.get(format!("{base}/streams/{vid}")).timeout(Duration::from_secs(15)).send().await {
+            Ok(r) if r.status().is_success() => r,
+            Ok(r) => {
+                last = format!("Piped {base}: HTTP {}", r.status().as_u16());
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+            Err(e) => {
+                last = format!("Piped {base}: {e}");
+                eprintln!("[audio] {vid} {last}");
+                continue;
+            }
+        };
+        let v: Value = match resp.json().await {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let Some(list) = v.get("audioStreams").and_then(|x| x.as_array()) else {
+            last = format!("Piped {base}: không có audioStreams");
+            continue;
+        };
+        let mut best: Option<(i64, &Value)> = None;
+        for f in list {
+            let mime = f.get("mimeType").and_then(|x| x.as_str()).unwrap_or("");
+            if !mime.starts_with("audio/") || f.get("url").and_then(|x| x.as_str()).is_none() {
+                continue;
+            }
+            let mut score = f.get("bitrate").and_then(|x| x.as_i64()).unwrap_or(0) / 1000;
+            if (webm && mime.starts_with("audio/webm")) || (!webm && mime.starts_with("audio/mp4")) {
+                score += 100_000;
+            }
+            if best.map(|b| score > b.0).unwrap_or(true) {
+                best = Some((score, f));
+            }
         }
-        parts.push(b); pos+=b.size;
-        it.pct=total?Math.min(99,Math.round(pos/total*100)):0; dlRender();
-        if(!partial||pos>=total) break;
-      }
-      blob=new Blob(parts,{type:mime||'audio/mp4'}); ext=/webm/i.test(mime)?'webm':'m4a';
-      try{ offOk=await offSave(t,blob,mime||'audio/mp4',ext); it.osize=blob.size; }
-      catch(e){ it.note='không lưu được bản offline trong app (hết bộ nhớ?)'; }
-    }
-    if((dlFileOn()&&!it.offOnly)||!offOk){
-      if(dlFmt==='wav'&&ext!=='wav'){
-        if(blob.size>WAV_MAX) it.note='quá dài nên giữ định dạng gốc';
-        else{
-          it.status='converting'; it.pct=100; dlRender();
-          try{ blob=await dlToWav(blob); ext='wav'; }
-          catch(e){ it.note='không đổi được sang WAV, đã lưu bản gốc'; }
+        let Some((_, f)) = best else { continue };
+        let url = f.get("url").and_then(|x| x.as_str()).unwrap_or("").to_string();
+        let mime = f.get("mimeType").and_then(|x| x.as_str()).unwrap_or("audio/mp4").split(';').next().unwrap_or("audio/mp4").to_string();
+        let mut size: u64 = f.get("contentLength").and_then(|x| x.as_i64()).filter(|n| *n > 0).map(|n| n as u64).unwrap_or(0);
+        if size == 0 {
+            // Piped không báo kích thước: hỏi 1 byte đầu để đọc tổng từ Content-Range
+            if let Ok(r) = client.get(&url).header("range", "bytes=0-0").send().await {
+                size = r
+                    .headers()
+                    .get("content-range")
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|v| v.rsplit('/').next())
+                    .and_then(|x| x.parse::<u64>().ok())
+                    .unwrap_or(0);
+            }
         }
-      }
-      try{
-        let sv=null;
-        try{ sv=await dlSaveFile(safe+'.'+ext,blob,ext); }
-        catch(e1){ await new Promise(z=>setTimeout(z,600)); sv=await dlSaveFile(safe+'.'+ext,blob,ext); } // thử lại 1 lần
-        it.name=(sv&&sv.name)||(safe+'.'+ext); it.path=(sv&&sv.path)||''; it.where=(sv&&sv.dir)||'';
-        if(sv&&sv.name) bbSet(it.k,sv.name);
-      }
-      catch(e){ if(!offOk) throw e; it.note=String(e&&e.message||e).slice(0,200); try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app: vẫn phát được, nhưng ghi chú lý do không có file
-    } else { it.name=''; }
-    it.offOnly=false;
-    it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
-    if(!it.quiet) notify('Đã tải xong: '+(t.title||'')+(it.where?' · lưu trong '+it.where:'')); return true;
-  }catch(e){
-    it.status='error'; it.err=String(e&&e.message||e).slice(0,400);
-    if(!it.quiet) notify('Không tải được: '+it.err); return false;
-  }
-}
-
-// ===== PC: "Chi tiết" kiểu foobar2000 khi bấm phát trong Tải xuống (Android giữ nguyên) =====
-let dlDetOn=false, dlDetTimer=0, dlDetKey='', dlDetTab='det', dlDetLyrKey='', dlDetPal=null, ddPalTok=0;
-// Bảng màu 4 màu từ bìa: [màu chính, màu phụ, màu nhấn, màu tối làm nền]. Chọn theo nhóm sắc độ (hue) ưu tiên màu rực.
-function ddPalette(img){
-  const N=32, c=document.createElement('canvas'); c.width=c.height=N; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0,N,N);
-  const d=x.getImageData(0,0,N,N).data, B=Array.from({length:24},()=>({w:0,r:0,g:0,b:0,h:0}));
-  let dr=0,dg=0,db=0,dn=0, ar=0,ag=0,ab=0,an=0;
-  for(let i=0;i<d.length;i+=4){
-    if(d[i+3]<128) continue; const r=d[i],g=d[i+1],b=d[i+2]; ar+=r;ag+=g;ab+=b;an++;
-    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/510,df=(mx-mn)/255,s=df===0?0:df/(1-Math.abs(2*l-1));
-    if(l<.16){ dr+=r;dg+=g;db+=b;dn++; }
-    if(s<.22||l<.14||l>.92) continue;
-    let h; const D=mx-mn; h=mx===r?((g-b)/D%6)*60:mx===g?((b-r)/D+2)*60:((r-g)/D+4)*60; if(h<0) h+=360;
-    const w=s*s*(1-Math.abs(2*l-1)), k=B[Math.floor(h/15)%24]; k.w+=w;k.r+=r*w;k.g+=g*w;k.b+=b*w;k.h=h;
-  }
-  const rgb2hsl=(r,g,b)=>{ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,D=mx-mn,s=D===0?0:D/(1-Math.abs(2*l-1)); let h=D===0?0:mx===r?((g-b)/D%6)*60:mx===g?((b-r)/D+2)*60:((r-g)/D+4)*60; if(h<0) h+=360; return [h,s,l]; };
-  const css=(h,s,l)=>{ const [r,g,b]=hsl2rgb(((h%360)+360)%360,s,l); return `rgb(${r|0},${g|0},${b|0})`; };
-  const hd=(a,b)=>{ const q=Math.abs(a-b)%360; return q>180?360-q:q; };
-  const picks=[]; B.map(k=>k.w>0?{w:k.w,hsl:rgb2hsl(k.r/k.w,k.g/k.w,k.b/k.w)}:null).filter(Boolean).sort((a,b)=>b.w-a.w).forEach(k=>{ if(picks.length<3&&picks.every(p=>hd(p.hsl[0],k.hsl[0])>=28)) picks.push(k); });
-  if(!picks.length){ // bìa trắng đen / xám: dùng màu trung bình, giữ xám
-    const [h,s,l]=an?rgb2hsl(ar/an,ag/an,ab/an):[220,.1,.3]; const L=Math.min(.42,Math.max(.22,l));
-    return [css(h,s*.6,L)]; }
-  const [h,sa,l]=picks[0].hsl; // một màu chủ đạo, hơi dịu để chữ trắng dễ đọc
-  return [css(h,Math.min(.65,Math.max(.35,sa)),Math.min(.46,Math.max(.3,l)))];
-}
-function ddApplyPal(dd,pal,animate){
-  const set=p=>p.forEach((v,i)=>dd.style.setProperty('--dd'+(i+1),v));
-  dlDetPal=pal;
-  if(animate&&dlDetPrev) set(dlDetPrev); // bắt đầu từ màu bài trước rồi chuyển sang màu mới (mượt, không giật)
-  void dd.offsetWidth; requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(dd.isConnected) set(pal); }));
-}
-let dlDetPrev=null;
-function ddLoadPal(dd,src,my){
-  const img=new Image(); img.crossOrigin='anonymous';
-  img.onload=()=>{ if(my!==ddPalTok||!dd.isConnected) return; try{ ddApplyPal(dd,ddPalette(img),true); }catch{} };
-  img.src=src;
-}
-const winCmd=c=>{ try{ if(window.__TAURI__&&window.__TAURI__.core&&!window.ANDROID_APP) return window.__TAURI__.core.invoke(c); }catch{} return null; };
-function toggleBrowserFs(){ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); }catch{} }
-// F11: phóng to toàn màn hình app desktop (trình duyệt thường đã tự có F11).
-document.addEventListener('keydown',e=>{ if(e.key==='F11'){ const p=winCmd('win_toggle_fullscreen'); if(p){ e.preventDefault(); p.catch(toggleBrowserFs); } } });
-async function dlDetLyrics(){
-  const box=$('#ddLyr'); if(!box||!cur) return; const t=cur, k=key(t);
-  if(dlDetLyrKey===k&&box.childElementCount) return;
-  dlDetLyrKey=k; box.innerHTML='<div class="none">Đang tải lời…</div>';
-  let txt=''; try{ txt=await getLyrics(t); }catch{}
-  if(cur!==t||!$('#ddLyr')||dlDetLyrKey!==k) return;
-  if(!txt){ box.innerHTML='<div class="none">Chưa tìm thấy lời bài này.</div>'; return; }
-  lyrLines=parseLrc(txt);
-  if(lyrLines) box.innerHTML=lyrLines.map((l,i)=>`<div data-k="${i}">${esc(l.s)}</div>`).join('');
-  else box.innerHTML='<div class="plain">'+esc(txt).replace(/\n/g,'<br>')+'</div>';
-}
-function dlDetHi(){
-  const box=$('#ddLyr'); if(!box||!lyrLines) return; const k=curLine(getTime()); if(k<0) return;
-  const old=box.querySelector('.cur'), el=box.querySelector(`[data-k="${k}"]`);
-  if(el&&el!==old){ old&&old.classList.remove('cur'); el.classList.add('cur'); box.scrollTop=el.offsetTop-box.clientHeight/2+el.offsetHeight/2; }
-}
-function dlDetSetTab(dd,tab){
-  dlDetTab=tab; dd.classList.toggle('dd-tab-lyr',tab==='lyr');
-  dd.querySelectorAll('.dd-nav .tabs [data-dd="det"],.dd-nav .tabs [data-dd="lyr"]').forEach(b=>b.classList.toggle('on',b.dataset.dd===tab));
-  if(tab==='lyr') dlDetLyrics().then(dlDetHi);
-}
-const dlDetOk=()=>!window.ANDROID_APP&&!window.UI_PC;
-function dlDetStats(t){
-  const L=listenGet(), P=playsAll()[key(t)]||{};
-  const last=P.last||P.t||0, n=P.n||0;
-  const d=ts=>{ if(!ts) return '—'; const o=new Date(ts); return o.getFullYear()+'-'+String(o.getMonth()+1).padStart(2,'0')+'-'+String(o.getDate()).padStart(2,'0')+' '+String(o.getHours()).padStart(2,'0')+':'+String(o.getMinutes()).padStart(2,'0'); };
-  return {last:d(last), n};
-}
-const DD_CODEC={m4a:'AAC (MPEG-4)',mp4:'AAC (MPEG-4)',aac:'AAC',webm:'Opus (WebM)',opus:'Opus',wav:'PCM (WAV)',mp3:'MP3',flac:'FLAC',ogg:'Vorbis (OGG)',oga:'Vorbis (OGG)',wma:'WMA',mka:'Matroska'};
-const ddMime=m=>{ m=String(m||'').toLowerCase(); return /wav/.test(m)?'wav':/flac/.test(m)?'flac':/mpeg|mp3/.test(m)?'mp3':/webm/.test(m)?'webm':/ogg|opus/.test(m)?'ogg':/aac/.test(m)?'aac':/mp4|m4a/.test(m)?'m4a':''; };
-const ddMeta={}; // key -> {dur,sr,ch,kbps}: đọc thẳng từ file đã lưu, dùng khi trình phát chưa/không báo được thời lượng
-function dlDetInfo(t){
-  const k=key(t), x=dlItems.find(i=>i.k===k||i.track&&key(i.track)===k)||{}, mt=ddMeta[k]||{};
-  const fm=String(x.fmt||ddMime(x.mime)||'').toLowerCase(), sz=x.osize||x.size||0;
-  const gd=getDur(), dur=(isFinite(gd)&&gd>0?gd:0)||t.dur||(x.track&&x.track.dur)||mt.dur||0;
-  let kb=mt.kbps||0; if(!kb&&sz&&dur) kb=Math.round(sz*8/1000/dur);
-  const sr=mt.sr?String(+(mt.sr/1000).toFixed(1)):(fm==='webm'||fm==='opus'?'48':'44.1');
-  const ageD=x.at?Math.max(0,Math.floor((Date.now()-x.at)/864e5)):0;
-  return {fm, codec:DD_CODEC[fm]||(fm?fm.toUpperCase():'—'), ch:mt.ch===1?'1.0 Mono':mt.ch>2?mt.ch+'.0 Surround':'2.0 Stereo', sr, dur, src:(mt.bits?mt.bits+' bit · ':'')+sr+' kHz',
-    data:(kb?kb+' kbps':'—')+(sz?' · '+dlSize(sz):''),
-    added:x.at?new Date(x.at).toISOString().slice(0,10)+' ('+ageD+' ngày)':'—'};
-}
-async function dlDetMeta(t){
-  const k=key(t); if(ddMeta[k]) return; ddMeta[k]={};
-  try{
-    const b=await OFF.get('a',k); if(!b||!b.size) return;
-    const m={}, dv=new DataView(await b.slice(0,Math.min(b.size,65536)).arrayBuffer());
-    if(dv.byteLength>44&&dv.getUint32(0)===0x52494646&&dv.getUint32(8)===0x57415645){ // RIFF....WAVE: đọc thẳng header
-      let p=12, byteRate=0, dataSize=0;
-      while(p+8<=dv.byteLength){
-        const id=dv.getUint32(p), sz=dv.getUint32(p+4,true);
-        if(id===0x666d7420){ m.ch=dv.getUint16(p+10,true); m.sr=dv.getUint32(p+12,true); byteRate=dv.getUint32(p+16,true); m.bits=dv.getUint16(p+22,true); }
-        else if(id===0x64617461){ dataSize=Math.min(sz,Math.max(0,b.size-p-8)); break; }
-        p+=8+sz+(sz&1);
-      }
-      if(byteRate){ m.kbps=Math.round(byteRate*8/1000); if(dataSize) m.dur=Math.round(dataSize/byteRate); }
+        if url.is_empty() || size == 0 {
+            last = format!("Piped {base}: không đọc được kích thước luồng");
+            continue;
+        }
+        return Ok((url, size, mime, 99));
     }
-    if(dv.byteLength>26&&dv.getUint32(0)===0x664C6143){ // fLaC: STREAMINFO cho sample rate / kênh / bit / thời lượng
-      const b18=dv.getUint8(18),b19=dv.getUint8(19),b20=dv.getUint8(20),b21=dv.getUint8(21);
-      const sr=(b18<<12)|(b19<<4)|(b20>>4); m.ch=((b20>>1)&7)+1; m.bits=(((b20&1)<<4)|(b21>>4))+1;
-      const tot=(b21&15)*4294967296+dv.getUint32(22); if(sr){ m.sr=sr; if(tot) m.dur=Math.round(tot/sr); }
+    Err(last)
+}
+
+fn parse_range(h: &HeaderMap) -> (u64, Option<u64>) {
+    let Some(v) = h.get("range").and_then(|x| x.to_str().ok()) else { return (0, None) };
+    let Some(r) = v.strip_prefix("bytes=") else { return (0, None) };
+    let r = r.split(',').next().unwrap_or("");
+    let mut it = r.splitn(2, '-');
+    let a = it.next().unwrap_or("").trim().parse::<u64>().unwrap_or(0);
+    let b = it.next().and_then(|x| x.trim().parse::<u64>().ok());
+    (a, b)
+}
+
+async fn yt_audio(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<AudQ>) -> Response {
+    // <audio> không gửi được header Authorization nên nhận token qua ?t=
+    let tok = q.t.clone().or_else(|| bearer(&headers));
+    let uid = {
+        let db = st.db.lock().unwrap();
+        tok.and_then(|t| user_from_token(&db, &t)).map(|u| u.id)
+    };
+    // Không bắt buộc đăng nhập: khách (không có token / token hết hạn) vẫn nghe được, dùng cài đặt mặc định.
+    if id.len() != 11 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return StatusCode::BAD_REQUEST.into_response();
     }
-    if(!m.dur){ const u=URL.createObjectURL(b); m.dur=await audioDur(u); URL.revokeObjectURL(u); }
-    ddMeta[k]=m; if(m.dur&&cur&&key(cur)===k&&!cur.dur) cur.dur=m.dur;
-  }catch{}
-}
-const DD_FMT={m4a:'aac',mp4:'aac',aac:'aac',webm:'opus',opus:'opus',wav:'wav',mp3:'mp3',flac:'flac',ogg:'ogg',oga:'ogg',wma:'wma',mka:'mka'};
-// Icon + tên định dạng (flac, mp3, aac...) thay cho chữ thường
-function ddCodecHtml(I){
-  const n=DD_FMT[I.fm]||(I.fm||'').toLowerCase();
-  if(!n) return esc(I.codec);
-  return `<span class="ddb ddb-c" title="${esc(I.codec)}"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9v0M5 6v6M8 2.5v13M11 5v8M14 7.5v3M16.5 9v0"/></svg>${esc(n)}</span>`;
-}
-// Huy hiệu kênh: [2.0] STEREO
-function ddChHtml(I){
-  const m=/^(\S+)\s+(.+)$/.exec(I.ch)||['',I.ch,''];
-  return `<span class="ddb ddb-ch" title="${esc(I.ch)}"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 7.5v3h2.6L9.5 14V4L5.6 7.5z" fill="currentColor" stroke-linejoin="round"/><path d="M12 6.2a4 4 0 0 1 0 5.6M14.2 4.3a6.8 6.8 0 0 1 0 9.4"/></svg><i>${esc(m[1])}</i><b>${esc(String(m[2]).toUpperCase())}</b></span>`;
-}
-function ddPlaysHtml(n){
-  const k=Math.min(n,10); let b=''; for(let i=0;i<k;i++) b+='<s></s>';
-  return `<span class="ddb ddb-pc">${k?'<u>'+b+'</u>':''}<span>${n}</span></span>`;
-}
-function dlDetHtml(){
-  const t=cur, I=dlDetInfo(t), st=dlDetStats(t);
-  const row=(a,b,id)=>`<dt>${a}</dt><dd${id?' id="'+id+'"':''}>${esc(String(b))}</dd>`;
-  const cimg=esc(thumb(t.image,800));
-  setTimeout(()=>ddFillIcons(),0);
-  return `<div class="dd-scrim" data-dd="menu-x"></div><div class="dd-nav"><button class="menu" data-dd="menu" title="Menu"><span style="font-size:15px">&#9776;</span>Menu</button><div class="tabs"><button data-dd="det" class="${dlDetTab==='det'?'on':''}">Chi tiết</button><button data-dd="list">Danh sách</button><button data-dd="lyr" class="${dlDetTab==='lyr'?'on':''}">Lời bài hát</button></div><div class="wc"><button data-dd="max" title="Toàn màn hình (F11)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button><button class="x" data-dd="close" title="Đóng">&#10005;</button></div></div>
-  <div class="dd-body"><div class="dd-info"><h2>${esc(t.title||'')}</h2><hr>
-   <dl>${row('Codec','','ddCodec')}${row('Kênh','','ddCh')}${row('Nguồn',I.src,'ddSr')}${row('Dữ liệu',I.data,'ddData')}${row('Thời lượng',fmt(I.dur),'ddDur')}${row('Đã thêm',I.added)}${row('Nghe lần cuối',st.last)}</dl></div>
-   <div class="dd-lyr" id="ddLyr"></div>
-   <div class="dd-art"><div class="dd-disc"><img class="dd-dimg" alt="" decoding="async" fetchpriority="low" src="${cimg}"></div><img class="dd-cov" alt="" decoding="async" fetchpriority="high" src="${cimg}"></div></div>
-  <div class="dd-ft"><div class="dd-now">${t.artist?'<b>'+esc(t.artist)+'</b>':''}<span>${esc(t.title||'')}</span></div>
-   <div class="dd-ctl"><button data-dd="stop" title="Dừng">${ic('stop','fill sm')}</button><button data-dd="prev" title="Bài trước"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3 1.5 8 8 13zM14.5 3 8 8l6.5 5z"/></svg></button><button data-dd="pp" id="ddPp"></button><button data-dd="next" title="Bài sau"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3l6.5 5L8 13zM1.5 3 8 8l-6.5 5z"/></svg></button><button data-dd="shuf" id="ddShuf" title="Ngẫu nhiên">${ic('shuffle','sm')}</button><span class="dd-vol"><button data-dd="vol" id="ddVol">${ic('vol','sm')}</button><input class="vol" id="ddVolR" type="range" min="0" max="100"></span></div>
-   <div class="dd-tm" id="ddTm">0:00 / 0:00</div>
-   <div class="dd-prog"><input type="range" id="ddSeek" min="0" max="1000" value="0"></div></div>`;
-}
-let ddIconKey='';
-function ddFillIcons(){
-  if(!cur) return; const I=dlDetInfo(cur), sig=[I.fm,I.ch].join('|');
-  const c=$('#ddCodec'), h=$('#ddCh'); if(!c||!h) return;
-  if(c.dataset.sig===sig) return; c.dataset.sig=sig;
-  c.innerHTML=ddCodecHtml(I); h.innerHTML=ddChHtml(I);
-}
-function dlDetTick(){
-  const m=$('#main'); if(!dlDetOn||page!=='downloads'||!m){ dlDetClose(); return; }
-  const dd=m.querySelector('.dd'); if(!cur){ dlDetClose(); return; }
-  if(!dd||dlDetKey!==key(cur)){ dlDetRender(); return; }
-  const d=getDur(), t=getTime(), sk=$('#ddSeek');
-  if(sk&&d&&document.activeElement!==sk){ sk.value=1000*t/d; sk.style.setProperty('--p',(100*t/d)+'%'); }
-  if(sk){ sk.style.setProperty('--b',(100*bufFrac())+'%'); }
-  const tm=$('#ddTm'); if(tm) tm.textContent=fmt(t)+' / '+fmt(d);
-  { const I=dlDetInfo(cur), set=(id,v)=>{ const e=$('#'+id); if(e&&e.textContent!==v) e.textContent=v; };
-    ddFillIcons(); set('ddSr',I.src); set('ddData',I.data); set('ddDur',fmt(I.dur)); }
-  setIc($('#ddPp'),playing?'pause':'play',true); dd.classList.toggle('dd-playing',!!playing);
-  const sh=$('#ddShuf'); if(sh) sh.classList.toggle('on',!!shuf);
-  const vr=$('#ddVolR'); if(vr&&document.activeElement!==vr) vr.value=Math.round(vol*100);
-  if(dlDetTab==='lyr') dlDetHi();
-}
-function dlDetRender(){
-  const m=$('#main'); if(!m||!cur) return;
-  dlDetKey=key(cur); try{ npColor(cur); }catch{} m.innerHTML='<div class="dd">'+dlDetHtml()+'</div>'; document.body.classList.add('dl-det');
-  const dd=m.querySelector('.dd'), sk=$('#ddSeek'), vr=$('#ddVolR');
-  const cov=dd.querySelector('.dd-cov'), dimg=dd.querySelector('.dd-dimg');
-  // Nền đổi màu theo bìa bài mới: bắt đầu từ bảng màu bài trước rồi chuyển mượt sang bảng màu mới.
-  dlDetPrev=dlDetPal; const palTok=++ddPalTok;
-  if(dlDetPrev) ddApplyPal(dd,dlDetPrev,false);
-  if(cur.image) ddLoadPal(dd,thumb(cur.image,96),palTok);
-  dlDetMeta(cur);
-  // Cover (và hình trên mặt đĩa) lỗi tải thì lấy bản đã lưu offline; không có thì ẩn hình trên đĩa, đĩa trơn như cũ.
-  cov.onerror=()=>{ cov.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; ddLoadPal(dd,u,palTok); } }); };
-  if(dimg) dimg.onerror=()=>{ dimg.onerror=null; offCoverUrl(dlDetKey).then(u=>{ if(u) dimg.src=u; else dimg.style.display='none'; }); };
-  if(isLoc(cur)&&!cur.image){ offCoverUrl(dlDetKey).then(u=>{ if(u){ cov.src=u; if(dimg) dimg.src=u; ddLoadPal(dd,u,palTok); } else if(dimg) dimg.style.display='none'; }); } // nhạc từ máy: bìa nằm trong kho offline
-  sk.oninput=()=>sk.style.setProperty('--p',sk.value/10+'%');
-  sk.onchange=()=>{ const d=getDur(); if(d){ seekTo(d*sk.value/1000); broadcastState(); } };
-  vr.oninput=()=>{ vol=vr.value/100; LS.set('vol',vol); applyVol(); };
-  dd.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b) return; const a=b.dataset.dd;
-    if(a==='menu') ddMenu();
-    else if(a==='menu-x') ddMenu(false);
-    else if(a==='close'||a==='list') dlDetClose(true);
-    else if(a==='pp') $('#pp').click();
-    else if(a==='next') nextTrack(false);
-    else if(a==='prev') prevTrack();
-    else if(a==='shuf') $('#bShuf').click();
-    else if(a==='vol') $('#bVol').click();
-    else if(a==='stop'){ setPlaying(false); seekTo(0); broadcastState(); }
-    else if(a==='det'||a==='lyr') dlDetSetTab(dd,a)
-    else if(a==='max'){ const p=winCmd('win_toggle_fullscreen'); if(p) p.catch(toggleBrowserFs); else toggleBrowserFs(); } };
-  dd.classList.toggle('dd-tab-lyr',dlDetTab==='lyr');
-  const lb=$('#ddLyr'); if(lb) lb.onclick=e=>{ const d=e.target.closest('[data-k]'); if(d&&lyrLines){ seekTo(lyrLines[+d.dataset.k].t); broadcastState(); } };
-  if(dlDetTab==='lyr') dlDetLyrics();
-  dlDetTick();
-}
-function dlDetOpen(){
-  if(!dlDetOk()||!cur) return; dlDetOn=true; setNp(false); dlDetRender();
-  clearInterval(dlDetTimer); dlDetTimer=setInterval(dlDetTick,400);
-}
-// Menu trong màn hình Chi tiết: mở thanh bên như bình thường (ngăn kéo), bấm ra ngoài / Esc / chọn mục thì đóng.
-function ddMenu(on){
-  const b=document.body; on=on===undefined?!b.classList.contains('dd-menu'):!!on;
-  if(on===b.classList.contains('dd-menu')) return;
-  if(on){ b.dataset.ddSm=b.classList.contains('side-min')?'1':''; b.classList.remove('side-min'); }
-  else if(b.dataset.ddSm){ b.classList.add('side-min'); b.dataset.ddSm=''; }
-  b.classList.toggle('dd-menu',on);
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.body.classList.contains('dd-menu')) ddMenu(false); });
-$('#side').addEventListener('click',e=>{
-  if(!document.body.classList.contains('dd-menu')) return;
-  const it=e.target.closest('[data-p],[data-pl]'); if(!it) return;
-  if(it.dataset.p==='downloads'){ e.stopPropagation(); e.preventDefault(); ddMenu(false); dlDetClose(true); return; }  // Tải xuống: về danh sách
-  ddMenu(false);   // mục khác: để go() chạy bình thường, màn hình Chi tiết tự đóng khi trang đổi
-},true);
-function dlDetClose(reload){
-  clearInterval(dlDetTimer); dlDetTimer=0; const was=dlDetOn; dlDetOn=false; ddMenu(false); document.body.classList.remove('dl-det');
-  if(was&&reload&&page==='downloads') go('downloads');
-}
-pages.downloads=function(m){
-  dlLoad();
-  m.innerHTML=`<div class="dlHead"><h2>Tải xuống</h2>
-    <p class="dlInfo" id="dlInfo"></p>
-    <p class="dlInfo dlWhere" id="dlWhere"></p>
-    <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button><button class="out" id="dlAdd" title="Thêm file nhạc từ máy">${ic('folder','sm')} Thêm nhạc</button><input type="file" id="dlFile" accept="audio/*" multiple hidden></div>
-    </div>
-    <div id="dlList"></div>`;
-  dlRender();
-  bbInfo().then(d=>{ const el=$('#dlWhere'); if(!el||!d) return; const desk=!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
-    el.innerHTML='Nhạc tải xuống được lưu tại: <b>'+esc(d)+'</b>'+(desk?' · <a id="dlOpenDir">Mở thư mục</a>':''); const a=$('#dlOpenDir'); if(a) a.onclick=()=>{ fetch('/api/local/open?dl=1',{method:'POST'}).catch(()=>{}); }; });
-  const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
-  $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
-  const dlFi=$('#dlFile');
-  $('#dlAdd').onclick=async()=>{
-    try{ const r=await fetch('/api/local/open',{method:'POST'}); if(r.ok){ await r.json(); locOn=true; notify('Đã mở thư mục nhạc – thả file nhạc vào đó, app sẽ tự thêm'); locFolderSync(); return; } }catch{}
-    dlFi.click();
-  };
-  locFolderSync();
-  dlFi.onchange=()=>{ const l=[...dlFi.files]; dlFi.value=''; dlAddFiles(l); };
-  $('#dlList').onclick=async e=>{
-    const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
-    const a=(e.target.closest('[data-a]')||{dataset:{}}).dataset.a;
-    if(a==='rm'){ if(x.status==='loading'||x.status==='converting') return;
-      const fn=x.status==='done'?bbFileOf(x):'', shared=fn&&dlItems.some(i=>i!==x&&bbFileOf(i)===fn);   /* file đang được bài khác dùng chung thì không xoá */
-      if(fn&&!shared){ if(!(await askConfirm('Xoá "'+(x.track.title||'bài này')+'" và xoá luôn file nhạc "'+fn+'" trong thư mục BBeat?','Xoá'))) return; }
-      dlItems=dlItems.filter(i=>i!==x); if(x.k) offDelete(x.k); dlSave(); dlRender();
-      if(fn&&!shared){ const ok=await bbDeleteFile(fn); if(ok||!x.path){ bbSet(x.k,''); } notify(ok?'Đã xoá file: '+fn:'Đã xoá khỏi danh sách (không tìm thấy file "'+fn+'" để xoá)'); } }
-    else if(a==='retry'){ if(offlineNow()){ notify('Cần có mạng để tải lại'); return; } if(x.status==='done') x.offOnly=true; x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); dlRender(); dlPump(); }
-    else {
-      if(x.status==='done'&&offlineNow()&&!offSet.has(x.k)){ notify('Bài này chưa lưu offline – hãy tải lại khi có mạng'); return; }
-      const list=dlPlayable(), i=list.indexOf(x.track); if(i>=0) playList(list,i,'Tải xuống'); else playList([x.track],0,'Tải xuống'); setTimeout(dlDetOpen,0); }
-  };
-};
-let dlAllBusy=false;
-async function downloadAll(list,name){
-  list=(list||[]).filter(Boolean); if(!list.length){ notify('Không có bài nào để tải'); return; }
-  if(dlAllBusy){ notify('Đang tải danh sách, vui lòng chờ…'); return; }
-  if(!(await askConfirm('Tải '+list.length+' bài trong "'+(name||'danh sách')+'" về máy?','Tải về'))) return;
-  dlAllBusy=true;
-  try{
-    notify('Đã thêm '+list.length+' bài vào danh sách tải xuống');
-    const rs=await Promise.all(list.map(t=>downloadTrack(t,true))), ok=rs.filter(Boolean).length, fail=rs.length-ok;
-    notify('Đã tải xong '+ok+'/'+list.length+' bài'+(fail?' ('+fail+' bài lỗi)':''));
-  } finally{ dlAllBusy=false; }
-}
-$('#npDl').onclick=()=>cur&&downloadTrack(cur);
-$('#bClose').onclick=()=>{ if(cur){ setPlaying(false); if(ytReady){ try{yt.stopVideo()}catch{} } } audYt.pause(); cur=null; playing=false; lyrLines=null; sbSegs=[]; updateBar(); };
-let seekEndAt=0;
-$('#seek').onpointerdown=e=>{ seeking=true; try{ e.target.setPointerCapture(e.pointerId); }catch{} e.stopPropagation(); if(eng==='yt') ytHideNow(true,4500); };
-['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('#seek').addEventListener(ev,()=>{ seekEndAt=Date.now(); }));
-$('#seek').addEventListener('click',e=>e.stopPropagation());
-$('#seek').oninput=e=>{ e.target.style.setProperty('--p',e.target.value/10+'%'); if(eng==='yt') ytHideNow(true,4500); };
-$('#seek').onchange=e=>{ seeking=false; const d=getDur(); if(d){ seekTo(d*e.target.value/1000); broadcastState(); } };
-(function(){
-  const m=$('#main'), mq=matchMedia('(max-width:700px)'); let pin=null;
-  const apply=()=>{
-    const b=document.body;
-    if(!mq.matches){ b.classList.remove('nav-min'); return; }
-    if(pin!==null && Math.abs(m.scrollTop-pin)<48) return;
-    pin=null; b.classList.toggle('nav-min',m.scrollTop>=24);
-  };
-  m.addEventListener('scroll',apply,{passive:true}); mq.addEventListener('change',apply);
-  $('#side').addEventListener('click',e=>{
-    if(document.body.classList.contains('nav-min') && e.target.closest('.navcap')){ e.stopPropagation(); pin=m.scrollTop; document.body.classList.remove('nav-min'); }
-  },true);
-})();
-let npKey=null;
-const MQ_GAP=56, MQ_SPEED=32;
-function mqFit(el){
-  const text=el.dataset.mq; if(text==null) return; const cw=el.clientWidth; if(!cw) return;
-  const active=el.classList.contains('mq');
-  const nat=active?el.querySelector('.mqt>span').offsetWidth-MQ_GAP:el.scrollWidth;
-  if(!active&&nat>cw+2){
-    el.textContent=''; const tr=document.createElement('span'); tr.className='mqt';
-    for(let i=0;i<2;i++){ const sp=document.createElement('span'); sp.textContent=text; tr.appendChild(sp); }
-    el.classList.add('mq'); el.appendChild(tr);
-    const w=tr.firstChild.offsetWidth; tr.style.setProperty('--mw',w+'px'); tr.style.animationDuration=(w/MQ_SPEED)+'s';
-  } else if(active&&nat<=cw){ el.classList.remove('mq'); el.textContent=text; }
-}
-function setMarq(el,text){
-  if(!el||el.dataset.mq===text) return; el.dataset.mq=text; el.classList.remove('mq'); el.textContent=text; el.title=text;
-  if(!el._mqo&&window.ResizeObserver){ el._mqo=new ResizeObserver(()=>mqFit(el)); el._mqo.observe(el); }
-  requestAnimationFrame(()=>mqFit(el));
-}
-const MQ_SEL='.ca,.t2,.tr>.ar';
-function mqScan(root){
-  if(!root||root.nodeType!==1) return;
-  const list=root.matches&&root.matches(MQ_SEL)?[root]:[];
-  root.querySelectorAll&&root.querySelectorAll(MQ_SEL).forEach(e=>list.push(e));
-  for(const el of list){ if(el.dataset.mq!==undefined||el.children.length||!el.textContent.trim()) continue; setMarq(el,el.textContent); }
-}
-(function(){ const run=()=>{ mqScan(document.body); new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) mqScan(n); }).observe(document.body,{childList:true,subtree:true}); };
-  if(document.body) run(); else document.addEventListener('DOMContentLoaded',run); })();
-function updateBar(){
-  const b=document.body; b.classList.toggle('has-cur',!!cur); b.classList.toggle('has-np',!!cur&&npOpen); $('#bPip').classList.toggle('on',!!cur&&npOpen);
-  setMarq($('#bTitle'),cur?cur.title:'Chưa phát'); setMarq($('#bArtist'),cur?.artist||'');
-  const f=!!(cur&&favs.has(key(cur)));
-  for(const id of ['#bFav','#npFav']){ $(id).classList.toggle('on',f); setIc($(id),'heart',f); }
-  { const d=isDis(cur); $('#npDis').classList.toggle('on',d); }
-  setIc($('#pp'),playing?'pause':'play',true);
-  const k=cur?key(cur):null;
-  if(k!==npKey){ npKey=k; setImg($('#bCov'),cur?.image,96); setImg($('#npCov'),cur?.image,800); artFit(); setMarq($('#npTitle'),cur?cur.title:'Chưa phát'); setMarq($('#npArtist'),cur?.artist||''); updFollowBtn(); $('#npLine').textContent=''; $('#npInfoBox').classList.remove('show'); if(cur) npColor(cur); }
-  $('#npCtx').textContent=qname; $('#npCtxW').hidden=!qname; $('#npInfoBox').innerHTML=cur?infoHtml(cur):'';
-  markNow();
-}
-function infoHtml(t){ const v=t.src==='yt'&&votesCache[t.id]; const vt=v&&typeof v.likes==='number'?`Thích ${kfmt(v.likes)} · Không thích ${kfmt(v.dislikes)}<br>`:''; return `${vt}Nguồn: YouTube Music${t.dur?' · '+fmt(t.dur):''}`; }
-$('#npInfo').onclick=()=>$('#npInfoBox').classList.toggle('show');
-$('#npLyr').onclick=()=>setNp(true,'lyr');
-let vidOv=null;
-const vidWant=()=>!!(cur&&vidOv&&vidOv.k===key(cur)?vidOv.on:showVideo);
-function setVideo(v){ showVideo=!!v; vidOv=null; LS.set('vid',v?'1':'0'); syncVid(); }
-var vidEl=document.getElementById('vidEl'), vidFail={}, vidId='', vidWaitK='', vidWaitT=0;
-if(vidEl){ vidEl.muted=true; vidEl.onerror=()=>{ const id=vidId; if(id&&!vidFail[id]){ vidFail[id]=true;
-    if(me&&me.is_admin&&S.show_errors) fetch('/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token),{headers:{Range:'bytes=0-1'}}).then(async r=>{ const tx=r.ok?'':(await r.text().catch(()=>'')); try{ if(/yt-dlp/.test(tx)) adminNotify('Server chưa cài yt-dlp hoặc yt-dlp lỗi – giữ ảnh album'); else adminNotify('Không phát được video: '+(r.ok?'định dạng không đọc được':(r.status===404?'server chưa có /api/yt/video (cần dùng main.rs mới)':(tx||('HTTP '+r.status))).slice(0,160))); }catch{} }).catch(()=>{ try{ adminNotify('Không phát được video: không kết nối được server'); }catch{} }); }
-  vidEl.classList.remove('on'); try{ syncVid(); }catch{} }; }
-function vidSync(){ try{ vidSync0(); }catch(e){} }
-function vidSync0(){
-  if(!vidEl||!vidFail) return;
-  const on=document.body.classList.contains('vid')&&cur&&cur.src==='yt'&&!vidFail[cur.id];
-  if(!on){ vidEl.classList.remove('on'); if(vidId){ vidId=''; try{ vidEl.pause(); vidEl.removeAttribute('src'); vidEl.load(); }catch{} } return; }
-  if(vidId!==cur.id){
-    // Chờ nhạc lên tiếng rồi mới xin video: yt-dlp tải video chạy song song với tải âm thanh nên làm bài vào chậm. Tối đa chờ 12 giây.
-    if(vidWaitK!==cur.id){ vidWaitK=cur.id; vidWaitT=Date.now(); }
-    if(!(playing&&getTime()>0.8)&&Date.now()-vidWaitT<12000){ vidEl.classList.remove('on'); if(!vidEl.paused) try{ vidEl.pause(); }catch{} return; }
-    vidId=cur.id; vidEl.classList.remove('on'); vidQ=vidWantH(); vidEl.src=vidUrl(cur.id,vidQ); try{ vidEl.load(); }catch{} vidPrefetchNext(); return; }
-  { const wh=vidWantH(), uk=cur.id+'_'+wh;
-    if(wh>vidQ&&!vidUp[uk]){ vidUp[uk]=1; const id=cur.id;
-      fetch(vidUrl(id,wh),{headers:{Range:'bytes=0-1'}}).then(r=>{ if(r.ok||r.status===206){ if(cur&&cur.id===id&&vidId===id&&wh>vidQ){ vidQ=wh; vidEl.src=vidUrl(id,wh); try{ vidEl.load(); }catch{} } } else setTimeout(()=>{ vidUp[uk]=0; },20000); }).catch(()=>{ setTimeout(()=>{ vidUp[uk]=0; },20000); }); } }
-  if(vidEl.readyState<2) return;
-  const t=getTime(), du=vidEl.duration||0; if(!(t>=0)) return;
-  const tt=du?Math.min(t,du-0.05):t, d=tt-vidEl.currentTime, ad=Math.abs(d);
-  if(playing){
-    if(ad>0.8) { vidEl.currentTime=tt; vidEl.playbackRate=1; }
-    else if(ad>0.15){ vidEl.playbackRate=d>0?1.08:0.92; }
-    else if(vidEl.playbackRate!==1) vidEl.playbackRate=1;
-    if(vidEl.paused) vidEl.play().catch(()=>{});
-  }
-  else { if(!vidEl.paused) vidEl.pause(); if(ad>0.2) vidEl.currentTime=tt; }
-  if(ad<1.5) vidEl.classList.add('on');
-}
-function vidUrl(id,h){ return '/api/yt/video/'+encodeURIComponent(id)+'?t='+encodeURIComponent(token)+(h?'&h='+h:''); }
-/* Độ phân giải video theo khung đang xem: khung nhỏ 360p, toàn màn hình 720p (240p/360p phóng ra toàn màn hình sẽ rất mờ). */
-function vidWantH(){ try{ const fe=document.fullscreenElement||document.webkitFullscreenElement; return (document.querySelector('.art.pfs')||(fe&&fe.classList&&fe.classList.contains('art')))?720:360; }catch{ return 360; } }
-var vidQ=360, vidUp={};
-var vidWarm={};
-function vidPrefetchNext(){ try{
-  if(shuf||!queue||qi<0) return; const n=queue[qi+1]; if(!n||n.src!=='yt'||vidWarm[n.id]||vidFail[n.id]) return;
-  vidWarm[n.id]=1; fetch(vidUrl(n.id,vidWantH()),{headers:{Range:'bytes=0-1'}}).catch(()=>{});
-}catch{} }
-if(vidEl){ ['loadeddata','canplay','seeked'].forEach(ev=>vidEl.addEventListener(ev,vidSync)); }
-setInterval(vidSync,250);
+    let use_proxy = match uid {
+        Some(uid) => user_net_prefs(&st, uid).1,
+        None => false,
+    };
+    let client = pick_client(&st, use_proxy);
+    let webm = q.f.as_deref() == Some("webm");
+    let ckey = format!("{id}|{}|{}", use_proxy as u8, webm as u8);
+    let (start, end_req) = parse_range(&headers);
+    let mut notes = String::new();
 
-function pwEnhance(root){
-  (root||document).querySelectorAll('input[type=password]:not([data-pw])').forEach(inp=>{
-    inp.dataset.pw='1'; const w=document.createElement('span'); w.className='pwW';
-    inp.parentNode.insertBefore(w,inp); w.appendChild(inp);
-    const b=document.createElement('button'); b.type='button'; b.className='pwEye'; b.tabIndex=-1;
-    const paint=()=>{ const sh=inp.type==='text'; b.classList.toggle('on',sh); b.title=b.ariaLabel=sh?'Ẩn mật khẩu':'Hiện mật khẩu'; b.innerHTML=ic(sh?'eyeoff':'eye'); try{ if(window.BB_LANG==='en') b.title=b.ariaLabel=sh?'Hide password':'Show password'; }catch{} };
-    b.onmousedown=e=>e.preventDefault();
-    b.onclick=()=>{ const s=inp.selectionStart,e=inp.selectionEnd; inp.type=inp.type==='password'?'text':'password'; paint(); try{ inp.focus(); inp.setSelectionRange(s,e); }catch{} };
-    paint(); w.appendChild(b);
-  });
-}
-pwEnhance();
-new MutationObserver(m=>{ if(m.some(x=>x.addedNodes.length)) pwEnhance(); }).observe(document.body,{childList:true,subtree:true});
-['#tLogin','#tReg'].forEach(q=>{ const el=document.querySelector(q); if(el) el.addEventListener('click',()=>{ const i=$('#aPass'); if(i&&i.type==='text'){ i.type='password'; const b=i.parentNode.querySelector('.pwEye'); if(b){ b.classList.remove('on'); b.innerHTML=ic('eye'); } } }); });
+    // Thử lần lượt các nguồn (client YouTube -> yt-dlp -> Piped); nguồn nào bị chặn thì bỏ qua và thử nguồn kế tiếp.
+    let order = audio_order();
+    let mut pos = 0usize;
+    // Mỗi nguồn được thử lại 1 lần (lấy link mới) trước khi bị coi là hỏng: link googlevideo hay hết hạn / lỗi thoáng qua.
+    let mut retried: HashSet<usize> = HashSet::new();
+    for _round in 0..=order.len() * 2 {
+        let cached = {
+            let c = st.audio.lock().unwrap();
+            c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).cloned()
+        };
+        let (url, size, mime, ci) = match cached {
+            Some((u, s, m, _, ci)) => (u, s, m, ci),
+            None => {
+                // "Tải trước" của giao diện luôn là Range bytes=0-1; bài người dùng bấm phát thì không phải. Tải trước chỉ là tiện, không được làm chậm bài thật.
+                let is_warm = start == 0 && end_req == Some(1);
+                if let Some(age) = audio_dead_age(&id) {
+                    // Bài vừa bị chặn ở mọi nguồn: báo lỗi ngay (tải trước: nhớ 10 phút; người dùng bấm thật: 15 giây rồi cho thử lại).
+                    let keep: u64 = if is_warm { 600 } else { 120 }; // bài vừa bị chặn: không hỏi lại YouTube trong 2 phút (mỗi lần hỏi là thêm 1 lượt bị gắn cờ)
+                    if age < keep {
+                        dbg_log(&format!("[AUDIO] id={id} bỏ_qua (vừa bị chặn {age}s trước) warm={is_warm}"));
+                        return (StatusCode::BAD_GATEWAY, "Bài này đang bị YouTube chặn, thử lại sau ít phút".to_string()).into_response();
+                    }
+                }
+                if is_warm && ytdlp_ready() && ytdlp_busy() {
+                    dbg_log(&format!("[AUDIO] id={id} bỏ_qua tải trước (yt-dlp đang bận)"));
+                    return StatusCode::SERVICE_UNAVAILABLE.into_response();
+                }
+                // Chỉ một yêu cầu cho mỗi bài đi lấy luồng; yêu cầu đến sau chờ rồi dùng luôn kết quả trong cache.
+                let gate = audio_gate(&ckey);
+                let _gate_guard = gate.lock().await;
+                let mut res = {
+                    let c = st.audio.lock().unwrap();
+                    c.get(&ckey).filter(|e| now_secs().saturating_sub(e.3) < AUDIO_TTL).map(|(u, s, m, _, ci)| (u.clone(), *s, m.clone(), *ci))
+                };
+                // Hỏi song song các client YouTube thay vì lần lượt: nhạc lên tiếng nhanh hơn khi client đầu bị chặn/chậm.
+                if res.is_none() && pos == 0 {
+                    // Có yt-dlp đi kèm (app desktop) thì cho nó chạy song song trong cuộc đua, không đợi các client chết hết rồi mới thử.
+                    let ytdlp_in_race = ytdlp_ready();
+                    let pick = |s: &usize| *s < 90 || (ytdlp_in_race && *s == 90);
+                    let mut cands: Vec<usize> = order.iter().copied().filter(|s| pick(s) && !audio_bad(&id, *s)).collect();
+                    if cands.is_empty() {
+                        // Mọi client đều từng lỗi ở bài này (có thể chỉ là lỗi thoáng qua): cho thử lại tất cả từ đầu
+                        // thay vì báo "bị YouTube chặn" suốt 10 phút.
+                        audio_clear_bad(&id);
+                        cands = order.iter().copied().filter(|s| pick(s)).collect();
+                    }
+                    if cands.len() > 1 {
+                        let dbg_tr = std::time::Instant::now();
+                        let dbg_r = resolve_race(&client, &id, webm, &cands).await;
+                        match &dbg_r {
+                            Ok(x) => dbg_log(&format!("[AUDIO] id={id} cache=MISS race_ok nguồn_thắng={} resolve={}ms ứng_viên={:?}", x.3, dbg_tr.elapsed().as_millis(), cands)),
+                            Err(e) => dbg_log(&format!("[AUDIO] id={id} cache=MISS race_FAIL resolve={}ms ứng_viên={:?} lỗi={e}", dbg_tr.elapsed().as_millis(), cands)),
+                        }
+                        match dbg_r {
+                            Ok(x) => res = Some(x),
+                            Err(e) => {
+                                notes.push_str(&format!("[{e}] "));
+                                pos = order.iter().position(|s| *s >= 90).unwrap_or(order.len());
+                            }
+                        }
+                    }
+                }
+                while res.is_none() && pos < order.len() {
+                    let src = order[pos];
+                    if audio_bad(&id, src) {
+                        pos += 1;
+                        continue;
+                    }
+                    let dbg_ts = std::time::Instant::now();
+                    match resolve_source(&client, &id, webm, src, use_proxy).await {
+                        Ok(x) => {
+                            dbg_log(&format!("[AUDIO] id={id} nguồn={src} ok resolve={}ms", dbg_ts.elapsed().as_millis()));
+                            res = Some(x);
+                            break;
+                        }
+                        Err(e) => {
+                            dbg_log(&format!("[AUDIO] id={id} nguồn={src} LỖI resolve={}ms {e}", dbg_ts.elapsed().as_millis()));
+                            notes.push_str(&format!("[{e}] "));
+                            audio_mark_bad(&id, src);
+                            pos += 1;
+                        }
+                    }
+                }
+                match res {
+                    Some((u, s, m, ci)) => {
+                        let mut c = st.audio.lock().unwrap();
+                        if c.len() > 300 {
+                            c.clear();
+                        }
+                        c.insert(ckey.clone(), (u.clone(), s, m.clone(), now_secs(), ci));
+                        (u, s, m, ci)
+                    }
+                    None => {
+                        if notes.is_empty() {
+                            notes = "mọi nguồn âm thanh đang bị YouTube chặn, thử lại sau vài phút".to_string();
+                        }
+                        audio_dead_set(&id);
+                        return (StatusCode::BAD_GATEWAY, notes).into_response();
+                    }
+                }
+            }
+        };
+        pos = order.iter().position(|x| *x == ci).map(|p| p + 1).unwrap_or(order.len());
+        let ua = ua_for(ci);
+        if q.debug.is_some() {
+            // Chẩn đoán: tải thử 64 byte đầu và báo trạng thái/định dạng
+            let up = client.get(&url).header("user-agent", ua).header("range", "bytes=0-63").send().await;
+            let info = match up {
+                Ok(r) => {
+                    let st_code = r.status().as_u16();
+                    let hv = |k: &str| r.headers().get(k).and_then(|v| v.to_str().ok()).unwrap_or("").to_string();
+                    let (ct, cr) = (hv("content-type"), hv("content-range"));
+                    match r.bytes().await {
+                        Ok(b) => {
+                            let hex: String = b.iter().take(16).map(|x| format!("{x:02x}")).collect();
+                            format!(
+                                "client={ci} fmt={} mime={mime} size={size} up={st_code} ct={ct} cr={cr} n={} head={hex}",
+                                if webm { "webm" } else { "mp4" },
+                                b.len()
+                            )
+                        }
+                        Err(e) => format!("client={ci} up={st_code} lỗi đọc dữ liệu: {e}"),
+                    }
+                }
+                Err(e) => format!("lỗi kết nối googlevideo: {e}"),
+            };
+            eprintln!("[audio] debug {id}: {info}");
+            return (StatusCode::OK, info).into_response();
+        }
+        // Bài này đã được yt-dlp tải về file tạm (do link trực tiếp bị 403) thì phát thẳng từ file.
+        if ci == 90 {
+            if let Some((p, total, lm)) = find_local_audio(&id, webm) {
+                if let Ok(r) = serve_local(&p, total, lm, start, end_req).await {
+                    return r;
+                }
+            }
+        }
+        if start >= size {
+            return (StatusCode::RANGE_NOT_SATISFIABLE, [(header::CONTENT_RANGE, format!("bytes */{size}"))]).into_response();
+        }
+        let last = size - 1;
+        let chunk = if start == 0 { AUDIO_FIRST_CHUNK } else { AUDIO_CHUNK };
+        let end = end_req.unwrap_or(last).min(last).min(start + chunk - 1);
 
-(function(){
-  const art=document.querySelector('#vPlay .art'), vc=document.getElementById('vctl'); if(!art||!vc) return;
-  let hideTm=0, hov=false;
-  const show=()=>{ vc.classList.add('show'); clearTimeout(hideTm); if(!hov) hideTm=setTimeout(()=>vc.classList.remove('show'),2500); };
-  const hide=()=>{ clearTimeout(hideTm); vc.classList.remove('show'); };
-  const act=fn=>e=>{ e.stopPropagation(); if(cur) fn(); show(); };
-  const skip=d=>{ const du=getDur(); seekTo(Math.max(0,Math.min(du?du-0.3:1e9,getTime()+d))); broadcastState(); };
-  $('#vcBack').onclick=act(()=>skip(-5));
-  $('#vcFwd').onclick=act(()=>skip(5));
-  vc.addEventListener('click',e=>{ if(e.target!==vc) return; if(e.pointerType==='mouse'||hov){ show(); return; } if(vc.classList.contains('show')) hide(); else show(); });
-  vc.addEventListener('pointermove',e=>{ if(e.pointerType!=='mouse') return; hov=true; show(); });
-  vc.addEventListener('pointerleave',e=>{ if(e.pointerType!=='mouse') return; hov=false; hide(); });
-  vc.addEventListener('pointerdown',e=>{ if(e.pointerType!=='mouse') hov=false; });
-  const isFs=()=>document.fullscreenElement===art||document.webkitFullscreenElement===art||art.classList.contains('pfs');
-  const paintFs=()=>{ const f=isFs(); setIc($('#vcFull'),f?'fullx':'full'); $('#vcFull').title=$('#vcFull').ariaLabel=f?(window.BB_LANG==='en'?'Exit fullscreen':'Thoát toàn màn hình'):(window.BB_LANG==='en'?'Fullscreen':'Toàn màn hình'); };
-  const enter=async()=>{ const rq=art.requestFullscreen||art.webkitRequestFullscreen; if(rq){ try{ await rq.call(art); try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch{} return; }catch{} } art.classList.add('pfs'); paintFs(); };
-  const leave=()=>{ if(art.classList.contains('pfs')){ art.classList.remove('pfs'); } else { try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch{} try{ screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock(); }catch{} } paintFs(); };
-  $('#vcFull').onclick=act(()=>{ isFs()?leave():enter(); });
-  document.addEventListener('fullscreenchange',paintFs); document.addEventListener('webkitfullscreenchange',paintFs);
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&art.classList.contains('pfs')) leave(); });
-  new MutationObserver(()=>{ if(!document.body.classList.contains('vc')&&isFs()) leave(); }).observe(document.body,{attributes:true,attributeFilter:['class']});
-})();
-var ytAlb={};
-function artFit(){ try{ const a=document.querySelector('#vPlay .art'), im=document.getElementById('npCov'); if(!a||!im) return;
-  const w=!!cur&&isWide(cur)&&!(ytAlb&&ytAlb[cur.id]); a.classList.toggle('wide',w);
-  a.style.setProperty('--bgi',w&&im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
-function ytCheckAlb(){ try{ const d=yt&&yt.getVideoData&&yt.getVideoData(); if(!d||!d.video_id) return; const a=/\s-\s*Topic\s*$/i.test(d.author||''); if(ytAlb[d.video_id]!==a){ ytAlb[d.video_id]=a; if(cur&&cur.id===d.video_id){ syncVid(); artFit(); } } }catch{} }
-function syncVid(){ document.body.classList.toggle('vc',!!cur); document.body.classList.toggle('ytfb',!!cur&&!!vidFail&&!!vidFail[cur.id]); document.body.classList.toggle('vid',vidWant()&&!!cur&&cur.src==='yt'); vidSync(); $('#npVid').classList.toggle('on',vidWant()); }
-$('#npVid').onclick=()=>{ if(!cur) return; vidOv={k:key(cur),on:!vidWant()}; syncVid(); };
-const lyrActive=()=>!!cur&&npOpen&&npTab==='lyr', queueActive=()=>npOpen&&npTab==='q';
-function setNp(open,tab){ npOpen=open; if(tab) npTab=tab; if(!open) setNpMax(false); LS.set('npopen',open?'1':'0'); updateBar(); showTab(); }
-// Phóng to / thu nhỏ khung Đang phát (nút cạnh nút X). Đóng khung thì tự thu nhỏ lại.
-function setNpMax(on){
-  on=!!on&&!!npOpen; document.body.classList.toggle('np-max',on);
-  const b=$('#npMax'); if(!b) return;
-  b.innerHTML=ic(on?'fullx':'full'); b.title=on?'Thu nhỏ':'Phóng to';
-}
-function showTab(){
-  document.querySelectorAll('.npTabs [data-nt]').forEach(b=>{ const on=b.dataset.nt===npTab; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
-  $('#vPlay').classList.toggle('show',npTab==='play'); $('#vLyr').classList.toggle('show',npTab==='lyr'); $('#vQ').classList.toggle('show',npTab==='q'); $('#vC').classList.toggle('show',npTab==='c');
-  try{ const on=document.querySelector('.npTabs .on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'nearest'}); }catch{}
-  if(!npOpen) return;
-  if(npTab==='lyr') openLyrics(); else if(npTab==='q') renderQueue(); else if(npTab==='c') renderComments();
-}
-document.querySelectorAll('.npTabs [data-nt]').forEach(b=>b.onclick=()=>{ npTab=b.dataset.nt; showTab(); });
-$('#npHide').onclick=()=>setNp(false);
-$('#npMax').onclick=()=>setNpMax(!document.body.classList.contains('np-max'));
-$('#bPip').onclick=()=>setNp(!npOpen);
-$('#bar').addEventListener('click',e=>{ if(e.target.closest('button,input,.vol')||seeking||Date.now()-seekEndAt<500) return; setNp(!npOpen); });
-$('#bOpen').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setNp(!npOpen); } };
-$('#npQ').onclick=()=>setNp(true,'q');
-$('#bQueue').onclick=()=>setNp(!(npOpen&&npTab==='q'),'q');
-$('#npAdd').onclick=e=>cur&&addMenu(cur,e);
-$('#npMore').onclick=e=>{ if(!cur) return; document.querySelectorAll('.pop').forEach(x=>x.remove());
-  const pop=document.createElement('div'); pop.className='pop'; const r=e.currentTarget.getBoundingClientRect(); pop.style.left=Math.max(8,r.right-210)+'px'; pop.style.top=r.bottom+6+'px';
-  pop.innerHTML=`<div data-a="vid">${vidWant()?'Ẩn video':'Hiện video'}</div><div data-a="shr">Chia sẻ nhạc</div><div data-a="code">Chép mã phòng</div>`;
-  pop.onclick=ev=>{ const a=ev.target.dataset.a; pop.remove(); if(a==='dis') toggleDislike(cur); else if(a==='vid') $('#npVid').click(); else if(a==='lnk'&&cur.src==='yt') navigator.clipboard?.writeText('https://music.youtube.com/watch?v='+cur.id).then(()=>notify('Đã chép link')); else if(a==='room') copyInvite('Đã chép link phòng!'); else if(a==='code') copyRoomCode(); else if(a==='shr') shareTrack(cur); };
-  document.body.appendChild(pop); e.stopPropagation(); setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),0); };
-let lastNpLine='';
-setInterval(()=>{
-  if(document.hidden) return;
-  const d=getDur(),t=getTime();
-  if(d&&!seeking){ const v=1000*t/d; $('#seek').value=v; $('#seek').style.setProperty('--p',v/10+'%'); $('#bOpen').style.setProperty('--rp',(v/10).toFixed(1)); }
-  $('#seek').style.setProperty('--b',(100*bufFrac())+'%');
-  $('#tm').textContent=cur?fmt(t)+' / '+fmt(d):'0:00 / 0:00'; setIc($('#pp'),playing?'pause':'play',true);
-  if(lyrLines){ const k=curLine(t); const s=k>=0?lyrLines[k].s:''; if(s!==lastNpLine){ lastNpLine=s; $('#npLine').textContent=s; } if(lyrActive()) hiLyric(k); }
-},400);
-
-let colTok=0;
-const AMB_ON=()=>LS.get('bb_amb','1')==='1';
-function ambSync(){ try{ const im=document.getElementById('npCov'), a=document.getElementById('npAmb'); if(!im||!a) return; a.style.setProperty('--ambi',im.src?'url("'+im.src.replace(/"/g,'%22')+'")':'none'); }catch{} }
-function applyAmb(){ document.body.classList.toggle('amb',AMB_ON()); ambSync(); }
-{ const im=document.getElementById('npCov'); if(im) im.addEventListener('load',ambSync); applyAmb(); }
-function hsl2rgb(h,s,l){ const a=s*Math.min(l,1-l), f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))}; return [f(0)*255,f(8)*255,f(4)*255]; }
-function npColor(t){
-  const my=++colTok, img=new Image(); img.crossOrigin='anonymous';
-  img.onload=()=>{ if(my!==colTok) return; try{
-    const c=document.createElement('canvas'); c.width=c.height=24; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0,24,24);
-    const d=x.getImageData(0,0,24,24).data; let R=0,G=0,B=0,W=0,r0=0,g0=0,b0=0,n=0;
-    for(let i=0;i<d.length;i+=4){ const r=d[i],g=d[i+1],b=d[i+2]; r0+=r;g0+=g;b0+=b;n++;
-      const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/510,dl=1-Math.abs(2*l-1),s=dl<=0?0:(mx-mn)/255/dl,w=(s*s+.02)*dl; R+=r*w;G+=g*w;B+=b*w;W+=w; }
-    paintNp(W>.5?[R/W,G/W,B/W]:[r0/n,g0/n,b0/n]); }catch{ paintNp(null,t); } };
-  img.onerror=()=>{ if(my===colTok) paintNp(null,t); };
-  img.src=thumb(t.image,64);
-}
-function paintNp(rgb,t){
-  let h,s,l;
-  if(rgb){ const [r,g,b]=rgb.map(v=>v/255), mx=Math.max(r,g,b), mn=Math.min(r,g,b); l=(mx+mn)/2; const d=mx-mn; s=d===0?0:d/(1-Math.abs(2*l-1));
-    h=d===0?0:mx===r?((g-b)/d%6)*60:mx===g?((b-r)/d+2)*60:((r-g)/d+4)*60; if(h<0) h+=360; l=Math.min(.55,Math.max(.27,l)); s=Math.min(.92,s); }
-  else { let x=0; for(const c of String(t?.title||'')) x=(x*31+c.charCodeAt(0))%360; h=x; s=.35; l=.3; }
-  const [R,G,B]=hsl2rgb(h,s,l), lum=(R*299+G*587+B*114)/255000, st=document.documentElement.style;
-  st.setProperty('--npbg',`rgb(${R|0},${G|0},${B|0})`); st.setProperty('--npfg',lum>.58?'#101010':'#ffffff');
-}
-
-/* BÌNH LUẬN: lưu trên server của app theo từng bài (key = nguồn:id), chỉ người dùng app này thấy; không dính bình luận YouTube. */
-let cmSeq=0;
-const cmAgo=iso=>{ const t=Date.parse(String(iso).replace(' ','T')+'Z'); if(!t) return ''; const m=Math.max(0,Math.floor((Date.now()-t)/60000));
-  if(m<1) return 'vừa xong'; if(m<60) return m+' phút trước'; const h=Math.floor(m/60); if(h<24) return h+' giờ trước'; const d=Math.floor(h/24); if(d<30) return d+' ngày trước'; return new Date(t).toLocaleDateString(); };
-async function renderComments(){
-  const box=$('#vC'); if(!box) return; const t=cur, seq=++cmSeq;
-  if(!t){ box.innerHTML='<p style="opacity:.8">Hãy phát một bài để xem bình luận.</p>'; return; }
-  if(guest){ box.innerHTML='<p style="opacity:.8">Đăng nhập để xem và viết bình luận.</p>'; return; }
-  const k=key(t);
-  const draw=(data)=>{
-    if(seq!==cmSeq||cur!==t) return;
-    const keep=(box.querySelector('textarea')||{}).value||'';
-    box.innerHTML=`<div class="qh"><b>Bình luận · ${data.count}</b></div>
-      <div id="cmList">${data.items.length?data.items.map(c=>`<div class="cmi" data-cid="${c.id}">${avHtml(c.avatar,'')}<div class="cmb"><b>${esc(c.display_name)}</b><small>${esc(cmAgo(c.created_at))}</small><p>${esc(c.body)}</p></div>${c.can_delete?'<button class="cmx" data-del="1" title="Xoá bình luận">Xoá</button>':''}</div>`).join(''):'<p style="opacity:.8">Chưa có bình luận nào cho bài này. Hãy là người đầu tiên!</p>'}</div>
-      <div class="cmf"><textarea id="cmIn" maxlength="500" rows="1" placeholder="Viết bình luận…"></textarea><button class="pri sm" id="cmSend">Gửi</button></div>`;
-    const ta=$('#cmIn'); ta.value=keep;
-    const send=async()=>{ const body=ta.value.trim(); if(!body) return; $('#cmSend').disabled=true;
-      try{ await api('/api/comments',{json:{key:k,body}}); ta.value=''; renderComments(); }
-      catch(e){ notify(e.message||'Không gửi được bình luận'); $('#cmSend').disabled=false; } };
-    $('#cmSend').onclick=send;
-    ta.onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } };
-    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ const id=b.closest('[data-cid]').dataset.cid;
-      try{ await api('/api/comments/'+id,{method:'DELETE'}); renderComments(); }catch(e){ notify(e.message||'Không xoá được'); } });
-  };
-  if(!box.querySelector('#cmList')) box.innerHTML='<p style="opacity:.8">Đang tải bình luận…</p>';
-  try{ draw(await api('/api/comments?key='+encodeURIComponent(k))); }
-  catch(e){ if(seq===cmSeq) box.innerHTML='<p style="opacity:.8">Không tải được bình luận.</p>'; }
-}
-function renderQueue(){
-  const q=$('#vQ'); if(!q) return;
-  q.innerHTML=`<div class="qh"><b>Tiếp theo · ${queue.length} bài</b><button id="qClr">Xoá</button></div>`+
-   (queue.length?queue.map((t,i)=>`<div class="qi ${i===qi?'act':''}" data-qi="${i}"><img src="${esc(thumb(t.image,96))}" alt=""><div class="qm"><div>${esc(t.title)}</div><small>${esc(t.artist)}</small></div></div>`).join(''):'<p style="opacity:.8">Chưa có bài nào trong hàng đợi.</p>');
-  q.querySelectorAll('[data-qi]').forEach(el=>el.onclick=()=>{ qi=+el.dataset.qi; userPlay(queue[qi]); renderQueue(); });
-  $('#qClr').onclick=()=>{ queue=cur?[cur]:[]; qi=cur?0:-1; renderQueue(); };
-  const act=q.querySelector('.act'); if(act) act.scrollIntoView({block:'center'});
-}
-const SIMP='https://api-lyrics.simpmusic.org/v1', LRC='https://lrclib.net/api';
-const cleanTitle=s=>String(s||'').replace(/\s*[\(\[][^\)\]]*(official|video|audio|lyrics?|mv|visuali[sz]er|remaster)[^\)\]]*[\)\]]/ig,'').replace(/\s*-\s*topic$/i,'').trim();
-const cleanArtist=s=>String(s||'').replace(/\s*-\s*topic$/i,'').replace(/VEVO$/i,'').trim();
-const isLrc=x=>/\[\d+:\d+/.test(x||'');
-async function jget(url){ const r=await fetch(url); if(!r.ok) return null; try{ return await r.json(); }catch{ return null; } }
-async function fromSimp(t){
-  let list;
-  if(t.src==='yt'){ const j=await jget(`${SIMP}/${encodeURIComponent(t.id)}`); list=j&&(Array.isArray(j.data)?j.data:(j.data?[j.data]:[])); }
-  else { const j=await jget(`${SIMP}/search?q=${encodeURIComponent((cleanTitle(t.title)+' '+cleanArtist(t.artist)).trim())}`); list=j&&Array.isArray(j.data)?j.data:[]; }
-  list=(list||[]).filter(o=>!(t.src!=='yt'&&t.dur&&o.durationSeconds&&Math.abs(o.durationSeconds-t.dur)>3));
-  const a=list.find(o=>o.syncedLyrics); if(a) return a.syncedLyrics;
-  const b=list.find(o=>o.plainLyric||o.plainLyrics); return b?(b.plainLyric||b.plainLyrics):'';
-}
-async function fromLrclib(t){
-  const title=cleanTitle(t.title), artist=cleanArtist(t.artist);
-  const dur=Math.round(t.dur||(t.src==='yt'&&cur===t?getDur():0)||0);
-  const p=new URLSearchParams({track_name:title,artist_name:artist}); if(dur) p.set('duration',dur);
-  const g=await jget(`${LRC}/get?${p}`); if(g&&(g.syncedLyrics||g.plainLyrics)) return g.syncedLyrics||g.plainLyrics;
-  const s=await jget(`${LRC}/search?${new URLSearchParams({track_name:title,artist_name:artist})}`);
-  if(Array.isArray(s)){ const ok=s.filter(o=>!dur||!o.duration||Math.abs(o.duration-dur)<=3); const a=ok.find(o=>o.syncedLyrics)||ok.find(o=>o.plainLyrics); if(a) return a.syncedLyrics||a.plainLyrics; }
-  return '';
-}
-async function getLyrics(t){
-  const k=key(t); if(lyrCache[k]!==undefined) return lyrCache[k];
-  let best='';
-  for(const f of [fromSimp,fromLrclib]){
-    try{ const x=await f(t); if(x){ if(isLrc(x)){ best=x; break; } if(!best) best=x; } }catch{}
-  }
-  lyrCache[k]=best; return best;
-}
-function parseLrc(txt){ const timed=[...String(txt||'').matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]([^\[\n]*)/g)];
-  return timed.length>3?timed.map(m=>({t:+m[1]*60+ +m[2],s:m[3].trim()})).filter(l=>l.s):null; }
-async function prefetchLyrics(t){ lastNpLine=''; const txt=await getLyrics(t); if(cur!==t) return; lyrLines=parseLrc(txt); }
-const curLine=t=>{ let k=-1; if(!lyrLines) return k; for(let i=0;i<lyrLines.length;i++){ if(lyrLines[i].t<=t) k=i; else break; } return k; };
-async function openLyrics(){
-  if(!cur) return; $('#lTitle').textContent=cur.title; $('#lArtist').textContent=(cur.artist||'')+votesText(cur);
-  const body=$('#lyrBody'); body.innerHTML='<div class="none">Đang tải lời…</div>';
-  const t=cur, txt=await getLyrics(t); if(cur!==t) return;
-  if(!txt){ body.innerHTML='<div class="none">Chưa tìm thấy lời bài này.</div>'; return; }
-  lyrLines=parseLrc(txt);
-  if(lyrLines) body.innerHTML=lyrLines.map((l,i)=>`<div data-k="${i}">${esc(l.s)}</div>`).join('');
-  else body.innerHTML='<div class="plain">'+esc(txt).replace(/\n/g,'<br>')+'</div>';
-  const k=curLine(getTime()); if(lyrLines&&k>=0) hiLyric(k);
-}
-$('#lyrBody').addEventListener('click',e=>{ const d=e.target.closest('[data-k]'); if(d&&lyrLines){ seekTo(lyrLines[+d.dataset.k].t); broadcastState(); } });
-function hiLyric(k){
-  const body=$('#lyrBody'); const old=body.querySelector('.cur'); const el=body.querySelector(`[data-k="${k}"]`);
-  if(el&&el!==old){ old&&old.classList.remove('cur'); el.classList.add('cur'); body.scrollTop=el.offsetTop-body.clientHeight/2+el.offsetHeight/2; }
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&innerWidth<1100&&npOpen) setNp(false); });
-
-const SB_CATS=['sponsor','selfpromo','interaction','intro','outro','music_offtopic'];
-let sbSegs=[];
-async function sha256Hex(s){ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
-async function loadSponsorBlock(t){
-  sbSegs=[];
-  try{
-    const q=new URLSearchParams({categories:JSON.stringify(SB_CATS),actionTypes:JSON.stringify(['skip'])});
-    let url;
-    if(window.crypto&&crypto.subtle) url=`https://sponsor.ajay.app/api/skipSegments/${(await sha256Hex(t.id)).slice(0,4)}?${q}`;
-    else { q.set('videoID',t.id); url=`https://sponsor.ajay.app/api/skipSegments?${q}`; }
-    const r=await fetch(url); if(!r.ok||cur!==t) return;
-    let j=await r.json(); if(!Array.isArray(j)) return;
-    const e=j.find(x=>x.videoID===t.id)||(j.length&&!j[0].videoID?{segments:j}:null);
-    if(cur!==t) return;
-    sbSegs=((e&&e.segments)||[]).filter(x=>x.actionType==='skip'&&x.segment&&x.segment[1]>x.segment[0]).map(x=>x.segment);
-  }catch{}
-}
-setInterval(()=>{
-  if(!cur||cur.src!=='yt'||!playing||!sbSegs.length||(eng==='yt'&&!ytReady)) return;
-  const t=getTime();
-  for(const [a,b] of sbSegs){ if(t>=a&&t<b-0.5){ seekTo(b); break; } }
-},250);
-
-const votesCache={};
-const kfmt=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
-const votesText=t=>{ const v=t&&t.src==='yt'&&votesCache[t.id]; return v&&typeof v.likes==='number'&&typeof v.dislikes==='number'?` · Thích ${kfmt(v.likes)} · Không thích ${kfmt(v.dislikes)}`:''; };
-async function loadVotes(t){
-  if(votesCache[t.id]===undefined){
-    try{ const r=await fetch('https://returnyoutubedislikeapi.com/votes?videoId='+encodeURIComponent(t.id)); votesCache[t.id]=r.ok?await r.json():null; }
-    catch{ votesCache[t.id]=null; }
-  }
-  if(cur===t){ $('#npInfoBox').innerHTML=infoHtml(t); if(lyrActive()) $('#lArtist').textContent=(t.artist||'')+votesText(t); }
-}
-function trackExtras(t){ if(t.src==='yt'){ loadSponsorBlock(t); loadVotes(t); } else sbSegs=[]; }
-
-const plKey=()=>'muse_plc_'+(me&&me.id);
-const plTkKey=id=>'muse_plt_'+(me&&me.id)+'_'+id;
-function clearPlCache(){ try{ const pre='muse_pl'; Object.keys(localStorage).filter(k=>k.startsWith(pre)).forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('muse_me'); }catch{} }
-let lastPlCache=0;
-async function cachePlaylists(force){
-  if(!S.offline_pl||!me||(!force&&Date.now()-lastPlCache<60000)) return; lastPlCache=Date.now();
-  try{ LS.set(plKey(),JSON.stringify(playlists)); LS.set('muse_me',JSON.stringify(me)); }catch{}
-  for(const p of playlists){ try{ const d=await api('/api/playlists/'+p.id); LS.set(plTkKey(p.id),JSON.stringify({id:d.id,name:d.name,tracks:(d.tracks||[]).map(slim)})); }catch{} }
-}
-const cachedPlaylists=()=>{ try{ return JSON.parse(LS.get(plKey(),'null')); }catch{ return null; } };
-const cachedPlaylist=id=>{ try{ return JSON.parse(LS.get(plTkKey(id),'null')); }catch{ return null; } };
-
-const DESK=!!(window.__TAURI__&&window.__TAURI__.core)&&!/Android/i.test(navigator.userAgent);
-const dc={user:'',timer:0};
-let dl={linked:false,name:'',sdk:false};
-const dInvoke=(c,a)=>DESK?window.__TAURI__.core.invoke(c,a):Promise.reject(new Error('Chỉ có trên app desktop'));
-const AND=!!window.MuseNative&&typeof window.MuseNative.sdkAvailable==='function';
-const sdkP={ok:false,last:0};
-async function sdkProbe(){
-  try{ sdkP.ok=DESK?!!(await dInvoke('sdk_available')):AND?!!window.MuseNative.sdkAvailable():false; }catch{ sdkP.ok=false; }
-}
-const sdkOn=()=>!!(sdkP.ok&&dl.linked&&dl.sdk&&cfg.discord_app_id);
-async function sdkStatus(){
-  if(DESK) return await dInvoke('sdk_presence_status');
-  const st=String(window.MuseNative.sdkStatus()); if(st.startsWith('err:')) throw new Error(st.slice(4)||'lỗi Discord'); return st;
-}
-async function sdkStart(){
-  const r=await api('/api/discord/token');
-  if(DESK) await dInvoke('sdk_presence_start',{appId:String(r.app_id),token:r.token});
-  else{ const e=window.MuseNative.sdkStart(String(r.app_id),r.token); if(e) throw new Error(String(e)); }
-  for(let i=0;i<40;i++){ if(await sdkStatus()==='ready') return; await new Promise(x=>setTimeout(x,500)); }
-  throw new Error('hết thời gian chờ Discord phản hồi');
-}
-const sdkSend=a=>DESK?dInvoke('sdk_presence_update',a):Promise.resolve(window.MuseNative.sdkUpdate(a.title,a.artist,a.image,a.startMs,a.endMs));
-const sdkClear=()=>DESK?dInvoke('sdk_presence_clear'):Promise.resolve(window.MuseNative.sdkClear());
-const sdkPage=label=>DESK?dInvoke('sdk_presence_page',{label}):Promise.resolve(window.MuseNative.sdkPage(label));
-/* Khi không phát nhạc (đã dừng / chưa chọn bài): Discord hiện vị trí đang đứng trong app. Mix tính là Trang chủ. */
-const PRES_LOC={home:'Trang chủ',mix:'Trang chủ',thisis:'Trang chủ',bestartists:'Trang chủ',ybrowse:'Trang chủ',
-  search:'Tìm kiếm',settings:'Cài đặt',profile:'Chỉnh sửa hồ sơ',charts:'Bảng xếp hạng',
-  library:'Thư viện',favs:'Thư viện',history:'Thư viện',top:'Thư viện',followed:'Thư viện',playlist:'Thư viện',downloads:'Thư viện',
-  together:'Nghe cùng nhau',friends:'Bạn bè',blend:'Hoà trộn gu'};
-let presEdit=0;   /* 1 khi hộp thoại "Chỉnh sửa hồ sơ" đang mở (nó không đổi `page`) */
-const presLabel=()=>'Đang ở '+(presEdit?PRES_LOC.profile:(PRES_LOC[page]||'Trang chủ'));
-function discordClear(){ (dc.sdk?sdkClear():(DESK?dInvoke('discord_clear'):Promise.resolve())).catch(()=>{}); }
-async function discordConnect(){
-  if(!cfg.discord_app_id) throw new Error('Server chưa đặt DISCORD_CLIENT_ID');
-  if(!dl.linked) throw new Error('Hãy đăng nhập Discord để liên kết tài khoản trước');
-  let sdkErr='';
-  if(sdkOn()){
-    try{ await sdkStart(); dc.sdk=true; dc.user=dl.name||'Discord'; pushPresence(); return dc.user; }
-    catch(e){ dc.sdk=false; dc.user=''; sdkErr=String(e&&e.message||e); if(!DESK) throw new Error('Không kết nối được Discord: '+sdkErr); }
-  }
-  if(!DESK) throw new Error('Chỉ có trên app desktop/Android bản mới');
-  try{ dc.user=await dInvoke('discord_connect',{appId:cfg.discord_app_id}); dc.sdk=false; }
-  catch(e){ dc.user=''; throw new Error(sdkErr?'Không kết nối được Discord: '+sdkErr:'Không kết nối được Discord – hãy mở ứng dụng Discord trên máy này rồi thử lại'); }
-  pushPresence(); return dc.user;
-}
-function pushPresence(){
-  if(!(DESK||sdkP.ok)||!S.discord_rpc||!dc.user) return;
-  clearTimeout(dc.timer);
-  dc.timer=setTimeout(()=>{
-    if(!cur||!playing){ const l=presLabel(); (dc.sdk?sdkPage(l):dInvoke('discord_page',{label:l})).catch(()=>{ dc.user=''; }); return; }
-    const d=getDur()||cur.dur||0, t=getTime(), startMs=Math.round(Date.now()-t*1000);
-    const a={title:cur.title||'BBeat',artist:cur.artist||'',image:cur.image||'',startMs,endMs:d>0?Math.round(startMs+d*1000):0};
-    (dc.sdk?sdkSend(a):dInvoke('discord_activity',a)).catch(()=>{ dc.user=''; });
-  },400);
-}
-setInterval(()=>{
-  if(!(DESK||sdkP.ok)||!S.discord_rpc) return;
-  if(dc.user) pushPresence();
-  else if(sdkOn()&&Date.now()-sdkP.last>60000){ sdkP.last=Date.now(); discordConnect().catch(()=>{}); }
-},15000);
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
-
-const SYNC={
-  listen:{get:()=>listenGet(),set:v=>LS.set('muse_listen_dev',JSON.stringify(v))},
-  plays:{get:()=>playsAll(),set:v=>{ LS.set(uKey('muse_plays'),JSON.stringify(v)); LS.set('muse_plays_dev',JSON.stringify(v)); }},
-  dislike:{get:()=>disGet(),set:v=>LS.set('muse_dislike_dev',JSON.stringify(v))},
-  follow:{get:()=>followGet(),set:v=>LS.set(uKey('muse_follow'),JSON.stringify(v))},
-  jump:{get:()=>{ try{ const a=JSON.parse(LS.get(jumpKey(),'[]')); return Array.isArray(a)?a:[]; }catch{ return []; } },set:v=>LS.set(jumpKey(),JSON.stringify(v))}
-};
-let syncOn=false, syncRev=0, syncTm=0, syncBusy=false, syncWired=false;
-const syncTsKey=()=>uKey('muse_sync_ts');
-const syncTsGet=()=>{ try{ const o=JSON.parse(LS.get(syncTsKey(),'{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
-function syncDirty(k){
-  if(!syncOn) return;
-  try{ const t=syncTsGet(); t[k]=Date.now(); LS.set(syncTsKey(),JSON.stringify(t)); }catch{}
-  syncRev++; clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },3000);
-}
-async function syncNow(){
-  if(!syncOn||syncBusy||guest) return;
-  syncBusy=true; const rev=syncRev;
-  try{
-    const ts=syncTsGet(), body={};
-    for(const k in SYNC) body[k]={v:SYNC[k].get(),ts:ts[k]||0};
-    const r=await api('/api/sync',{json:body});
-    if(r&&typeof r==='object'){
-      if(rev===syncRev){
-        const nts=syncTsGet();
-        for(const k in SYNC){ const e=r[k]; if(e&&e.v!==undefined&&e.v!==null){ SYNC[k].set(e.v); nts[k]=e.ts||nts[k]||0; } }
-        LS.set(syncTsKey(),JSON.stringify(nts)); tasteCache=null;
-      }else{ clearTimeout(syncTm); syncTm=setTimeout(()=>{ syncNow(); },500); }
+        // Thử 2 cách xin đoạn: header Range, rồi tham số ?range= (một số link chỉ nhận cách này)
+        let mut got: Option<Bytes> = None;
+        for variant in 0..3 {
+            let req = if variant == 0 {
+                client.get(&url).header("range", format!("bytes={start}-{end}"))
+            } else if variant == 2 {
+                // googlevideo đôi khi chỉ chặn đoạn lớn: thử lại với đoạn 256KB
+                let e2 = end.min(start + 256 * 1024 - 1);
+                client.get(&url).header("range", format!("bytes={start}-{e2}"))
+            } else {
+                let sep = if url.contains('?') { '&' } else { '?' };
+                client.get(format!("{url}{sep}range={start}-{end}"))
+            };
+            match req.header("user-agent", ua).timeout(Duration::from_secs(15)).send().await {
+                Ok(r) if r.status().is_success() => {
+                    let partial = r.status().as_u16() == 206 || variant == 1;
+                    match r.bytes().await {
+                        Ok(b) if !b.is_empty() => {
+                            // Nếu YouTube bỏ qua Range và trả cả file (HTTP 200) thì tự cắt đúng đoạn cần
+                            got = Some(if partial {
+                                b
+                            } else {
+                                let s0 = (start as usize).min(b.len());
+                                let e0 = ((end as usize) + 1).min(b.len());
+                                b.slice(s0..e0)
+                            });
+                            break;
+                        }
+                        _ => notes.push_str(&format!("[client {ci} v{variant}: dữ liệu rỗng/đứt] ")),
+                    }
+                }
+                Ok(r) => notes.push_str(&format!("[client {ci} v{variant}: HTTP {}] ", r.status().as_u16())),
+                Err(e) => notes.push_str(&format!("[client {ci} v{variant}: {e}] ")),
+            }
+        }
+        // Link do yt-dlp trả về bị googlevideo từ chối (403): cho yt-dlp tự tải file về rồi phát từ file.
+        if got.is_none() && ci == 90 {
+            eprintln!("[audio] {id} link yt-dlp bị từ chối, chuyển sang để yt-dlp tải file về...");
+            match ytdlp_local(&id, webm, use_proxy).await {
+                Ok((p, total, lm)) => match serve_local(&p, total, lm, start, end_req).await {
+                    Ok(r) => return r,
+                    Err(e) => notes.push_str(&format!("[{e}] ")),
+                },
+                Err(e) => {
+                    eprintln!("[audio] {id} {e}");
+                    notes.push_str(&format!("[{e}] "));
+                }
+            }
+        }
+        if let Some(b) = got {
+            let len = b.len() as u64;
+            if len == 0 {
+                return (StatusCode::BAD_GATEWAY, "googlevideo trả về đoạn rỗng").into_response();
+            }
+            return Response::builder()
+                .status(StatusCode::PARTIAL_CONTENT)
+                .header(header::CONTENT_TYPE, mime)
+                .header(header::ACCEPT_RANGES, "bytes")
+                .header(header::CONTENT_RANGE, format!("bytes {start}-{}/{size}", start + len - 1))
+                .header(header::CONTENT_LENGTH, len.to_string())
+                // Tăng cache-control lên 1 giờ: link googlevideo sống ~6h, client có thể
+                // tua lại mà không cần hỏi server lại. Vẫn private để không bị CDN cache chung.
+                .header(header::CACHE_CONTROL, "private, max-age=3600")
+                .body(Body::from(b))
+                .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
+        }
+        eprintln!("[audio] {id} googlevideo từ chối đoạn {start}-{end}: {notes}");
+        st.audio.lock().unwrap().remove(&ckey);
+        if ci < 90 && retried.insert(ci) {
+            // thử lại cùng nguồn với link mới trước khi loại nó (và tránh nhảy sang nguồn khác giữa chừng bài)
+            pos = order.iter().position(|x| *x == ci).unwrap_or(0);
+            continue;
+        }
+        audio_mark_bad(&id, ci);
     }
-  }catch{}
-  finally{ syncBusy=false; }
-}
-function syncFirstMerge(remote){
-  const nts=syncTsGet(), now=Date.now();
-  const uniq=(a,f)=>{ const s=new Set(); return a.filter(x=>{ const k=f(x); if(!k||s.has(k)) return false; s.add(k); return true; }); };
-  const rv=k=>remote&&remote[k]&&remote[k].v;
-  { const m=uniq([...SYNC.follow.get(),...(Array.isArray(rv('follow'))?rv('follow'):[])].map(canonArtist),x=>String(x).toLowerCase()); if(m.length){ SYNC.follow.set(m.slice(0,200)); nts.follow=now; } }
-  { const a=SYNC.dislike.get(), b=(rv('dislike')&&typeof rv('dislike')==='object')?rv('dislike'):{}, m={...b}; for(const k in a){ if(!m[k]||(a[k].at||0)>(m[k].at||0)) m[k]=a[k]; } if(Object.keys(m).length){ SYNC.dislike.set(m); nts.dislike=now; } }
-  { const m=uniq([...SYNC.jump.get(),...(Array.isArray(rv('jump'))?rv('jump'):[])],x=>x&&x.n).sort((x,y)=>(y.t||0)-(x.t||0)).slice(0,JUMP_MAX); if(m.length){ SYNC.jump.set(m); nts.jump=now; } }
-  LS.set(syncTsKey(),JSON.stringify(nts));
-}
-async function syncInit(){
-  if(guest||!me||!me.id) return;
-  const lastU=LS.get('muse_sync_uid','');
-  if(lastU&&lastU!==String(me.id)){ ['muse_listen_dev','muse_plays_dev','muse_dislike_dev','muse_taste3_dev'].forEach(k=>{ try{ localStorage.removeItem(k); }catch{} }); }
-  LS.set('muse_sync_uid',String(me.id)); tasteCache=null;
-  if(!syncWired){ syncWired=true;
-    setInterval(()=>{ if(!document.hidden) syncNow(); },300000);
-    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncNow(); }); }
-  if(LS.get(syncTsKey(),null)===null){ try{ syncFirstMerge(await api('/api/sync')); }catch{ return; } }
-  syncOn=true;
-  await syncNow();
+    (StatusCode::BAD_GATEWAY, format!("googlevideo từ chối: {notes}")).into_response()
 }
 
-async function start(u,offlineBoot,resume){
-  applyUser(u);
-  if(LS.get('sidemin','0')==='1') document.body.classList.add('side-min');
-  try{ const o=JSON.parse(LS.get('muse_s','null')); if(o) Object.assign(S,o); }catch{}
-  const [c,s,f]=await Promise.all([
-    offlineBoot?null:api('/api/config').catch(()=>null),
-    offlineBoot?null:api('/api/settings').catch(()=>null),
-    offlineBoot?null:api('/api/favorites').catch(()=>null),
-    loadPlaylists().catch(()=>{}),
-    sdkProbe(),
-    offInit
-  ]);
-  const offline=!!offlineBoot||(!c&&!s&&netDown);
-  if(c) cfg=c;
-  if(c&&c.artist_aliases&&typeof c.artist_aliases==='object') ARTIST_ALIAS={...ARTIST_ALIAS,...c.artist_aliases};
-  if(s) Object.assign(S,s);
-  LS.set('muse_s',JSON.stringify(S));
-  if(Array.isArray(f)){ favs=new Set(f.map(key)); libCounts(); }
-  if(cfg.discord_login&&!guest){ try{ dl=await api('/api/discord/status'); }catch{} }
-  { const du=cfg.donate_url||ABOUT.supportUrl; if(du){ const b=$('#donateBtn'); b.style.display=''; b.onclick=()=>openExt(du); } }
-  if(S.discord_rpc&&cfg.discord_app_id&&dl.linked&&(DESK||sdkOn())) discordConnect().catch(()=>{});
-  if(offline){
-    netDown=true; bootedOffline=true; applyVol(); restorePlayState(); offBar(true); offWatch(); go('downloads'); return; }
-  if(!guest) await Promise.race([syncInit().catch(()=>{}),new Promise(r=>setTimeout(r,1500))]);
-  if(!resume){ applyVol(); restorePlayState(); }
-  go('home'); try{ openPendingUser(); }catch{}
-  { const dp=new URLSearchParams(location.search).get('discord');
-    if(dp){ history.replaceState(null,'',location.pathname);
-      if(dp==='ok'&&dl.linked){ notify('Đã liên kết Discord: '+dl.name); go('settings'); } else notify('Liên kết Discord thất bại, hãy thử lại'); } }
-  if(guest){
-    leader=true; setTimeout(autoUpdate,4000);
-    const rb=$('#roomBar'); if(rb) rb.innerHTML=ic('users')+'<span>Phòng</span>';
-    return;
-  }
-  syncClock(6).catch(()=>{}); connect(); connectUser(); refreshFriendBadge(); setTimeout(autoUpdate,4000); startListenTimer();
-  setInterval(()=>syncClock(4),60000);
-  setInterval(()=>{ if(leader&&playing&&cur) broadcastState(); },5000);
-  setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
-  try{ qrHandleUrl(); }catch{}
+
+// ===== Nhập playlist YouTube công khai bằng link (không cần đăng nhập) =====
+// Dùng InnerTube (giống lúc tìm nhạc). Chỉ đọc được playlist công khai / không công khai (có link); playlist riêng tư thì không.
+fn yt_playlist_id(input: &str) -> Option<String> {
+    let s = input.trim();
+    let ok = |x: &str| !x.is_empty() && x.len() <= 64 && x.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+    if let Some(i) = s.find("list=") {
+        let rest = &s[i + 5..];
+        let id: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
+        return if ok(&id) { Some(id) } else { None };
+    }
+    // Dán thẳng ID playlist (PL..., OLAK5uy_..., UU...)
+    if !s.contains('/') && !s.contains('.') && ok(s) && s.len() >= 12 {
+        return Some(s.to_string());
+    }
+    None
 }
-/* VÁ (chỉ thêm, không sửa dòng cũ): banner xanh lá cũ (#31c27c) còn lưu trong hồ sơ làm thẻ hồ sơ/thẻ chia sẻ trên Android bị xanh,
-   không khớp màu chủ đạo/nền. Coi màu đó như "chưa chọn màu banner" → dùng màu chủ đạo (xanh dương) như bản PC. Màu banner người dùng tự chọn giữ nguyên. */
-(function(){
-  const LEG=/^#31c27c$/i, fix=u=>(u&&LEG.test(u.banner_color||''))?{...u,banner_color:''}:u;
-  const _pc=profileCard;     profileCard=function(u,o){ return _pc.call(this,fix(u),o); };
-  const _sc=shareCard;       shareCard=function(u,o){ return _sc.call(this,fix(u),o); };
-  const _op=openProfilePage; openProfilePage=function(u,m){ return _op.call(this,fix(u),m); };
-  const _pt=pfThemeApply;    pfThemeApply=function(el,u,m){ return _pt.call(this,el,fix(u),m); };
-})();
-(async()=>{
-  { // Mở link/QR có ?pair=<6 số> → đăng nhập luôn (chỉ khi máy này chưa đăng nhập, để không tiêu mã vô ích)
-    let pq=''; try{ const v=new URLSearchParams(location.search).get('pair')||''; if(v){ const u=new URL(location.href); u.searchParams.delete('pair'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); } pq=/^\d{6}$/.test(v)?v:''; }catch{}
-    if(pq&&(!token||guest)){ try{ await pairRedeem(pq); return; }catch(e){ setTimeout(()=>notify((e&&e.message)||'Mã ghép sai hoặc đã hết hạn'),500); } }
-  }
-  if(!token){ if(guest){ $('#auth').style.display='none'; start(GUEST_USER); } else showAuth(); return; }
-  let c=null; try{ c=JSON.parse(LS.get('muse_me','null')); }catch{}
-  if(c) warmBanners([c]); // hồ sơ đã lưu: bắt đầu tải banner/avatar NGAY, không chờ /api/me
-  try{
-    const req=api('/api/me');
-    // Đã có hồ sơ lưu sẵn: chỉ chờ server tối đa 6 giây (server Render ngủ có thể mất cả phút mới dậy), quá thì vào app luôn.
-    let u;
-    if(c){ req.catch(()=>{}); u=await Promise.race([req,new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{net:true})),6000))]); }
-    else u=await req;
-    LS.set('muse_me',JSON.stringify(u)); warmBanners([u]); start(u);
-  }catch(e){
-    // Chỉ khi server trả đúng 401 (phiên hết hạn/không còn) mới bắt đăng nhập lại.
-    // Mạng lỗi, server chậm/đang khởi động, 5xx... → KHÔNG đăng xuất: vào bằng hồ sơ đã lưu, tự tải lại khi server sống lại (offWatch).
-    if(e.message==='401'||!c) showAuth(); else start(c,true);
-  }
-})();
-</script>
-</body>
-</html>
+
+fn yt_find<'a>(v: &'a Value, key: &str) -> Option<&'a Value> {
+    match v {
+        Value::Object(m) => {
+            if let Some(x) = m.get(key) {
+                return Some(x);
+            }
+            m.values().find_map(|x| yt_find(x, key))
+        }
+        Value::Array(a) => a.iter().find_map(|x| yt_find(x, key)),
+        _ => None,
+    }
+}
+
+#[allow(dead_code)]
+fn yt_collect_videos(v: &Value, out: &mut Vec<Value>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistVideoRenderer") {
+                out.push(r.clone());
+                return;
+            }
+            for x in m.values() {
+                yt_collect_videos(x, out);
+            }
+        }
+        Value::Array(a) => a.iter().for_each(|x| yt_collect_videos(x, out)),
+        _ => {}
+    }
+}
+
+fn yt_rtext(v: Option<&Value>) -> String {
+    let Some(v) = v else { return String::new() };
+    if let Some(s) = v.get("simpleText").and_then(|x| x.as_str()) {
+        return s.to_string();
+    }
+    v.get("runs")
+        .and_then(|r| r.as_array())
+        .map(|r| r.iter().filter_map(|x| x.get("text").and_then(|t| t.as_str())).collect::<String>())
+        .unwrap_or_default()
+}
+
+async fn yt_browse(client: &reqwest::Client, body: Value) -> Result<Value, ApiErr> {
+    let fail = |m: &str| -> ApiErr { (StatusCode::BAD_GATEWAY, m.to_string()) };
+    let r = client
+        .post("https://www.youtube.com/youtubei/v1/browse?prettyPrint=false")
+        .header("origin", "https://www.youtube.com")
+        .header("referer", "https://www.youtube.com/")
+        .json(&body)
+        .timeout(Duration::from_secs(25))
+        .send()
+        .await
+        .map_err(|_| fail("Không kết nối được YouTube"))?;
+    if !r.status().is_success() {
+        return Err(fail("YouTube từ chối yêu cầu, thử lại sau"));
+    }
+    r.json().await.map_err(|_| fail("YouTube trả dữ liệu lạ"))
+}
+
+// Đổi "3:45" / "1:02:03" thành số giây (0 nếu không đọc được).
+fn yt_clock_secs(s: &str) -> u64 {
+    let mut sec = 0u64;
+    for x in s.trim().split(':') {
+        match x.trim().parse::<u64>() {
+            Ok(n) => sec = sec * 60 + n,
+            Err(_) => return 0,
+        }
+    }
+    sec
+}
+
+// Thêm 1 bài vào danh sách nhập (bỏ qua bài trùng, video đã xóa/riêng tư không có thời lượng).
+fn yt_push_track(tracks: &mut Vec<Value>, seen: &mut HashSet<String>, vid: &str, name: &str, artist: &str, secs: u64, allow_zero: bool, image: String) {
+    if tracks.len() >= MAX_PL_TRACKS || vid.len() != 11 || name.is_empty() || (secs == 0 && !allow_zero) {
+        return;
+    }
+    if !seen.insert(vid.to_string()) {
+        return;
+    }
+    let artist = artist.strip_suffix(" - Topic").unwrap_or(artist);
+    tracks.push(json!({ "src": "yt", "id": vid, "title": name, "artist": artist, "image": image, "url": "", "dur": secs, "explicit": false }));
+}
+
+// Dạng cũ của YouTube: playlistVideoRenderer.
+fn yt_push_pl_renderer(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    let vid = r.get("videoId").and_then(|x| x.as_str()).unwrap_or("");
+    let name = yt_rtext(r.get("title"));
+    let secs: u64 = r.get("lengthSeconds").and_then(|x| x.as_str()).and_then(|x| x.parse().ok()).unwrap_or(0);
+    let artist = yt_rtext(r.get("shortBylineText"));
+    let image = r
+        .pointer("/thumbnail/thumbnails")
+        .and_then(|t| t.as_array())
+        .and_then(|t| t.last())
+        .and_then(|t| t.get("url"))
+        .and_then(|x| x.as_str())
+        .map(|x| x.split('?').next().unwrap_or(x).to_string())
+        .unwrap_or_else(|| format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+    yt_push_track(tracks, seen, vid, &name, &artist, secs, false, image);
+}
+
+// Dạng mới của YouTube: lockupViewModel (contentId = ID video).
+fn yt_push_lockup(r: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    let vid = r.get("contentId").and_then(|x| x.as_str()).unwrap_or("");
+    let name = r.pointer("/metadata/lockupMetadataViewModel/title/content").and_then(|x| x.as_str()).unwrap_or("");
+    let artist = r
+        .pointer("/metadata/lockupMetadataViewModel/metadata/contentMetadataViewModel/metadataRows/0/metadataParts/0/text/content")
+        .and_then(|x| x.as_str())
+        .unwrap_or("");
+    let secs = yt_find(r, "thumbnailBadgeViewModel")
+        .and_then(|b| b.get("text"))
+        .and_then(|t| t.as_str())
+        .map(yt_clock_secs)
+        .unwrap_or(0);
+    yt_push_track(tracks, seen, vid, name, artist, secs, false, format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+}
+
+fn yt_collect_playlist_tracks(v: &Value, tracks: &mut Vec<Value>, seen: &mut HashSet<String>) {
+    match v {
+        Value::Object(m) => {
+            if let Some(r) = m.get("playlistVideoRenderer") {
+                yt_push_pl_renderer(r, tracks, seen);
+                return;
+            }
+            if let Some(r) = m.get("lockupViewModel") {
+                yt_push_lockup(r, tracks, seen);
+                return;
+            }
+            for x in m.values() {
+                yt_collect_playlist_tracks(x, tracks, seen);
+            }
+        }
+        Value::Array(a) => {
+            for x in a {
+                yt_collect_playlist_tracks(x, tracks, seen);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Cách 1: đọc qua InnerTube. Err(400) = YouTube báo rõ lý do (riêng tư / không tồn tại); lỗi khác thì để đi cách 2.
+async fn innertube_playlist(client: &reqwest::Client, pid: &str) -> Result<(String, Vec<Value>), ApiErr> {
+    let ctx = json!({ "client": { "clientName": "WEB", "clientVersion": "2.20250310.01.00", "hl": "vi", "gl": "VN" } });
+    let first = yt_browse(client, json!({ "context": ctx, "browseId": format!("VL{pid}") })).await?;
+    {
+        let s = first.to_string();
+        eprintln!(
+            "[yt-import] {pid}: InnerTube trả {} byte, playlistVideoRenderer={}, lockupViewModel={}, alerts={}",
+            s.len(),
+            s.contains("playlistVideoRenderer"),
+            s.contains("lockupViewModel"),
+            first.get("alerts").is_some()
+        );
+    }
+    if first.get("alerts").is_some() && yt_find(&first, "playlistVideoRenderer").is_none() && yt_find(&first, "lockupViewModel").is_none() {
+        let msg = yt_find(&first, "alertWithButtonRenderer")
+            .or_else(|| yt_find(&first, "alertRenderer"))
+            .map(|a| yt_rtext(a.get("text")))
+            .unwrap_or_default();
+        return Err(bad(if msg.is_empty() { "Không đọc được playlist (riêng tư hoặc không tồn tại)" } else { &msg }));
+    }
+    let title = yt_find(&first, "playlistHeaderRenderer")
+        .map(|h| yt_rtext(h.get("title")))
+        .filter(|t| !t.is_empty())
+        .or_else(|| yt_find(&first, "playlistMetadataRenderer").and_then(|m| m.get("title")).and_then(|t| t.as_str()).map(|t| t.to_string()))
+        .unwrap_or_default();
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut cur = first;
+    for _page in 0..(MAX_PL_TRACKS / 90 + 2) {
+        yt_collect_playlist_tracks(&cur, &mut tracks, &mut seen);
+        if tracks.len() >= MAX_PL_TRACKS {
+            break;
+        }
+        let token = yt_find(&cur, "continuationCommand").and_then(|c| c.get("token")).and_then(|t| t.as_str()).map(|t| t.to_string());
+        let Some(token) = token else { break };
+        match yt_browse(client, json!({ "context": ctx, "continuation": token })).await {
+            Ok(v) => cur = v,
+            Err(_) => break,
+        }
+    }
+    Ok((title, tracks))
+}
+
+// Cách 2 (dự phòng): dùng yt-dlp (đã có sẵn cho phần phát nhạc) để liệt kê playlist, không cần đăng nhập/cookies.
+async fn ytdlp_playlist(pid: &str, use_proxy: bool) -> Result<(String, Vec<Value>), String> {
+    let bin = std::env::var("YTDLP_PATH").ok().filter(|x| !x.trim().is_empty()).unwrap_or_else(|| "yt-dlp".to_string());
+    let mut cmd = tokio::process::Command::new(&bin);
+    cmd.arg("--flat-playlist").arg("-J").arg("--no-warnings").arg("--yes-playlist");
+    if use_proxy {
+        if let Ok(p) = std::env::var("YT_PROXY") {
+            let p = p.trim().to_string();
+            if !p.is_empty() {
+                cmd.arg("--proxy").arg(p);
+            }
+        }
+    }
+    cmd.arg(format!("https://www.youtube.com/playlist?list={pid}"));
+    cmd.kill_on_drop(true);
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // không bật cửa sổ console
+    let out = tokio::time::timeout(Duration::from_secs(90), cmd.output())
+        .await
+        .map_err(|_| "yt-dlp: quá thời gian".to_string())?
+        .map_err(|e| format!("yt-dlp: không chạy được ({e}) – cài yt-dlp hoặc đặt YTDLP_PATH"))?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        let line: String = err.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("lỗi").chars().take(200).collect();
+        return Err(format!("yt-dlp: {line}"));
+    }
+    let v: Value = serde_json::from_slice(&out.stdout).map_err(|_| "yt-dlp: dữ liệu trả về không đọc được".to_string())?;
+    let title = v.get("title").and_then(|x| x.as_str()).unwrap_or("").to_string();
+    let entries = v.get("entries").and_then(|x| x.as_array()).cloned().unwrap_or_default();
+    let mut tracks: Vec<Value> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for e in entries {
+        let vid = e.get("id").and_then(|x| x.as_str()).unwrap_or("");
+        let name = e.get("title").and_then(|x| x.as_str()).unwrap_or("");
+        if name == "[Private video]" || name == "[Deleted video]" {
+            continue;
+        }
+        let secs = e.get("duration").and_then(|x| x.as_f64()).unwrap_or(0.0).max(0.0) as u64;
+        let artist = e.get("channel").and_then(|x| x.as_str()).filter(|s| !s.is_empty()).or_else(|| e.get("uploader").and_then(|x| x.as_str())).unwrap_or("");
+        yt_push_track(&mut tracks, &mut seen, vid, name, artist, secs, true, format!("https://i.ytimg.com/vi/{vid}/hqdefault.jpg"));
+    }
+    Ok((title, tracks))
+}
+
+// Nhập 1 playlist: body {"url":"https://www.youtube.com/playlist?list=PL...","title":"(tùy chọn)"} (hoặc "urls": lấy link đầu tiên)
+async fn yt_import_url(State(st): State<AppState>, headers: HeaderMap, Json(body): Json<Value>) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let raw = body
+        .get("url")
+        .and_then(|x| x.as_str())
+        .or_else(|| body.get("urls").and_then(|x| x.as_str()))
+        .and_then(|s| s.lines().map(|l| l.trim()).find(|l| !l.is_empty()))
+        .unwrap_or("");
+    let Some(pid) = yt_playlist_id(raw) else {
+        return Err(bad("Link playlist không hợp lệ. Hãy dán link dạng youtube.com/playlist?list=..."));
+    };
+    if pid.starts_with("RD") || pid == "LL" || pid == "WL" {
+        return Err(bad("Không nhập được playlist này (Mix, Video đã thích hoặc Xem sau là danh sách riêng). Hãy tạo playlist công khai rồi dán link."));
+    }
+    let (_, use_proxy) = user_net_prefs(&st, u.id);
+    let client = pick_client(&st, use_proxy);
+
+    let mut note = String::new();
+    let (mut title, mut tracks) = match innertube_playlist(&client, &pid).await {
+        Ok(x) => x,
+        Err(e) if e.0 == StatusCode::BAD_REQUEST => return Err(e),
+        Err(e) => {
+            eprintln!("[yt-import] {pid}: InnerTube lỗi: {}", e.1);
+            note = e.1.clone();
+            (String::new(), Vec::new())
+        }
+    };
+    if tracks.is_empty() {
+        eprintln!("[yt-import] {pid}: InnerTube không có bài nào, thử yt-dlp...");
+        match ytdlp_playlist(&pid, use_proxy).await {
+            Ok((t, tr)) => {
+                if title.is_empty() {
+                    title = t;
+                }
+                tracks = tr;
+            }
+            Err(e) => {
+                eprintln!("[yt-import] {pid}: {e}");
+                note = e;
+            }
+        }
+    }
+    if tracks.is_empty() {
+        let extra = if note.is_empty() { String::new() } else { format!(" [{note}]") };
+        return Err(bad(&format!(
+            "Không đọc được bài nào từ playlist này. Hãy mở link trong cửa sổ ẩn danh để chắc chắn playlist ở chế độ Công khai hoặc Không công khai và có video.{extra}"
+        )));
+    }
+    if let Some(t) = body.get("title").and_then(|x| x.as_str()).map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        title = t.to_string();
+    }
+    if title.is_empty() {
+        title = "Playlist YouTube".to_string();
+    }
+    let title: String = title.chars().take(100).collect();
+
+    let db = st.db.lock().unwrap();
+    let (np, nt) = insert_playlists(&db, u.id, &[json!({ "name": title, "tracks": tracks })])?;
+    Ok(Json(json!({ "playlists": np, "tracks": nt, "name": title })))
+}
+
+// ===== Liên kết tài khoản Discord (OAuth2, scope "identify") =====
+// Cần 3 biến môi trường: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, PUBLIC_URL (vd. https://muse.example.com).
+// Trong discord.com/developers → OAuth2 → Redirects phải thêm đúng: {PUBLIC_URL}/api/discord/callback
+fn discord_cfg() -> Option<(String, String, String)> {
+    let id = std::env::var("DISCORD_CLIENT_ID").ok()?.trim().to_string();
+    let secret = std::env::var("DISCORD_CLIENT_SECRET").ok()?.trim().to_string();
+    let base = std::env::var("PUBLIC_URL").ok()?.trim().trim_end_matches('/').to_string();
+    if id.is_empty() || secret.is_empty() || !(base.starts_with("https://") || base.starts_with("http://")) {
+        return None;
+    }
+    Some((id, secret, format!("{base}/api/discord/callback")))
+}
+
+fn urlenc(s: &str) -> String {
+    let mut o = String::with_capacity(s.len() * 2);
+    for b in s.bytes() {
+        if b.is_ascii_alphanumeric() || b"-._~".contains(&b) {
+            o.push(b as char);
+        } else {
+            o.push_str(&format!("%{:02X}", b));
+        }
+    }
+    o
+}
+
+async fn discord_status(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    let (id, name, avatar, refresh): (String, String, String, String) = db
+        .query_row("SELECT discord_id, discord_name, discord_avatar, discord_refresh FROM users WHERE id=?1", [u.id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+        })
+        .map_err(|_| e500())?;
+    // sdk=true: đã có token OAuth để dùng Discord Social SDK (Rich Presence không cần mở app Discord)
+    Ok(Json(json!({ "linked": !id.is_empty(), "name": name, "avatar": avatar, "sdk": !refresh.is_empty() })))
+}
+
+// Trả về URL đăng nhập Discord; client điều hướng tới đó. `state` dùng 1 lần, gắn với tài khoản đang đăng nhập.
+async fn discord_link(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Some((cid, _, redirect)) = discord_cfg() else {
+        return Err(bad("Server chưa cấu hình đăng nhập Discord"));
+    };
+    let state = new_token();
+    {
+        let db = st.db.lock().unwrap();
+        let _ = db.execute("DELETE FROM discord_states WHERE created_at < datetime('now','-10 minutes')", []);
+        db.execute("INSERT INTO discord_states(state,user_id) VALUES(?1,?2)", params![state, u.id])
+            .map_err(|_| e500())?;
+    }
+    let url = format!(
+        "https://discord.com/oauth2/authorize?response_type=code&client_id={}&scope=identify%20openid%20sdk.social_layer_presence&redirect_uri={}&state={}",
+        urlenc(&cid),
+        urlenc(&redirect),
+        state
+    );
+    Ok(Json(json!({ "url": url })))
+}
+
+async fn discord_unlink(State(st): State<AppState>, headers: HeaderMap) -> Result<StatusCode, ApiErr> {
+    let u = require(&st, &headers)?;
+    let db = st.db.lock().unwrap();
+    db.execute("UPDATE users SET discord_id='', discord_name='', discord_avatar='', discord_access='', discord_refresh='', discord_expires=0 WHERE id=?1", [u.id])
+        .map_err(|_| e500())?;
+    // Hủy liên kết thì tắt luôn Rich Presence.
+    let mut cur = load_settings(&db, u.id);
+    cur.insert("discord_rpc".into(), json!(false));
+    let _ = db.execute(
+        "UPDATE users SET settings=?1 WHERE id=?2",
+        params![Value::Object(cur).to_string(), u.id],
+    );
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize)]
+struct DiscordCb {
+    code: Option<String>,
+    state: Option<String>,
+    error: Option<String>,
+}
+
+async fn discord_callback(State(st): State<AppState>, Query(q): Query<DiscordCb>) -> Response {
+    let back = |ok: bool| Redirect::to(if ok { "/?discord=ok" } else { "/?discord=err" }).into_response();
+    if q.error.is_some() {
+        return back(false);
+    }
+    let (Some(code), Some(state)) = (q.code, q.state) else { return back(false) };
+    let uid: Option<i64> = {
+        let db = st.db.lock().unwrap();
+        let r = db
+            .query_row(
+                "SELECT user_id FROM discord_states WHERE state=?1 AND created_at > datetime('now','-10 minutes')",
+                [&state],
+                |r| r.get(0),
+            )
+            .ok();
+        let _ = db.execute("DELETE FROM discord_states WHERE state=?1", [&state]);
+        r
+    };
+    let Some(uid) = uid else { return back(false) };
+    let Some((cid, secret, redirect)) = discord_cfg() else { return back(false) };
+
+    let body = format!(
+        "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&client_secret={}",
+        urlenc(&code),
+        urlenc(&redirect),
+        urlenc(&cid),
+        urlenc(&secret)
+    );
+    let tok: Value = match st
+        .http
+        .post("https://discord.com/api/oauth2/token")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return back(false),
+    };
+    let Some(access) = tok["access_token"].as_str() else { return back(false) };
+    let me: Value = match st.http.get("https://discord.com/api/users/@me").bearer_auth(access).send().await {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return back(false),
+    };
+    let id = me["id"].as_str().unwrap_or("");
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_digit()) {
+        return back(false);
+    }
+    let name: String = me["global_name"]
+        .as_str()
+        .filter(|s| !s.is_empty())
+        .or_else(|| me["username"].as_str())
+        .unwrap_or("Discord")
+        .chars()
+        .take(40)
+        .collect();
+    let avatar = match me["avatar"].as_str() {
+        Some(h) if !h.is_empty() && h.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') => {
+            format!("https://cdn.discordapp.com/avatars/{id}/{h}.png?size=64")
+        }
+        _ => String::new(),
+    };
+    let db = st.db.lock().unwrap();
+    if db
+        .execute(
+            "UPDATE users SET discord_id=?1, discord_name=?2, discord_avatar=?3, discord_access=?4, discord_refresh=?5, discord_expires=?6 WHERE id=?7",
+            params![
+                id,
+                name,
+                avatar,
+                access,
+                tok["refresh_token"].as_str().unwrap_or(""),
+                (now_secs() + tok["expires_in"].as_u64().unwrap_or(604800)) as i64,
+                uid
+            ],
+        )
+        .is_err()
+    {
+        return back(false);
+    }
+    back(true)
+}
+
+// Trả access token Discord còn hạn (tự làm mới bằng refresh token) cho client dùng với Discord Social SDK.
+async fn discord_token(State(st): State<AppState>, headers: HeaderMap) -> R<Value> {
+    let u = require(&st, &headers)?;
+    let Some((cid, secret, _)) = discord_cfg() else {
+        return Err(bad("Server chưa cấu hình đăng nhập Discord"));
+    };
+    let (access, refresh, exp): (String, String, i64) = {
+        let db = st.db.lock().unwrap();
+        db.query_row("SELECT discord_access, discord_refresh, discord_expires FROM users WHERE id=?1", [u.id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+        })
+        .map_err(|_| e500())?
+    };
+    if refresh.is_empty() {
+        return Err(bad("Hãy hủy liên kết rồi đăng nhập Discord lại để cấp quyền Rich Presence"));
+    }
+    if !access.is_empty() && exp as u64 > now_secs() + 300 {
+        return Ok(Json(json!({ "token": access, "app_id": cid })));
+    }
+    let body = format!(
+        "grant_type=refresh_token&refresh_token={}&client_id={}&client_secret={}",
+        urlenc(&refresh),
+        urlenc(&cid),
+        urlenc(&secret)
+    );
+    let tok: Value = match st
+        .http
+        .post("https://discord.com/api/oauth2/token")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => r.json().await.unwrap_or(Value::Null),
+        _ => return Err(bad("Phiên Discord hết hạn, hãy hủy liên kết rồi đăng nhập Discord lại")),
+    };
+    let Some(new_access) = tok["access_token"].as_str() else {
+        return Err(bad("Discord không trả token"));
+    };
+    {
+        let db = st.db.lock().unwrap();
+        let _ = db.execute(
+            "UPDATE users SET discord_access=?1, discord_refresh=?2, discord_expires=?3 WHERE id=?4",
+            params![
+                new_access,
+                tok["refresh_token"].as_str().unwrap_or(&refresh),
+                (now_secs() + tok["expires_in"].as_u64().unwrap_or(604800)) as i64,
+                u.id
+            ],
+        );
+    }
+    Ok(Json(json!({ "token": new_access, "app_id": cid })))
+}
