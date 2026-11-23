@@ -5348,11 +5348,6 @@ const pages={
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord','<span class="sbadge">Cần đăng nhập và tải app BBeat</span>'+tog('tDc',false,true),'dis')}`:`${cfg.discord_login
         ?row('Đăng nhập Discord',dl.linked?'Tài khoản Discord đã liên kết. Bấm để hủy liên kết.':'Đăng nhập Discord để liên kết tài khoản (bắt buộc để bật Rich Presence)',`<span class="sbadge" id="dlSt">${dl.linked?'Đã liên kết: '+esc(dl.name):'Chưa liên kết'}</span>`,'btn','dlBtn')
         :row('Đăng nhập Discord','Đăng nhập Discord để liên kết tài khoản','<span class="sbadge">Server chưa đặt DISCORD_CLIENT_SECRET / PUBLIC_URL</span>','dis')}
-      ${useSdk
-        ?row('Kết nối Discord','Tự động dùng tài khoản đã đăng nhập, không cần mở ứng dụng Discord',`<span class="sbadge" id="dcSt">${dc.user?'Đã kết nối: '+esc(dc.user):'Tự động'}</span>`,'dis')
-        :DESK&&cfg.discord_app_id
-        ?row('Kết nối Discord','Kết nối với ứng dụng Discord đang mở trên máy này (không cần nhập mật khẩu)',`<span class="sbadge" id="dcSt">${dc.user?'Đã kết nối: '+esc(dc.user):'Chưa kết nối'}</span>`,'btn','dcBtn')
-        :row('Kết nối Discord','Kết nối với ứng dụng Discord',`<span class="sbadge">${!cfg.discord_app_id?'Server chưa đặt DISCORD_CLIENT_ID':'Chỉ có trên app desktop/Android bản mới'}</span>`,'dis')}
       ${row('Kích hoạt Rich Presence','Hiển thị phiên phát nhạc trên tài khoản Discord',(canRpc?'':'<span class="sbadge">'+(!cfg.discord_app_id?'Cần DISCORD_CLIENT_ID':!dl.linked?'Cần đăng nhập Discord':sdkP.ok&&!dl.sdk?'Hủy liên kết rồi đăng nhập lại Discord':'Chỉ có trên app desktop/Android bản mới')+'</span>')+tog('tDc',S.discord_rpc&&canRpc,!canRpc),canRpc?'':'dis')}`}
     </div></div>
     <div class="sgrp"${guest?' style="display:none"':''}><div class="sgh">Sao lưu</div><div class="scard">
