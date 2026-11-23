@@ -4045,11 +4045,29 @@ async function shareCardLink(u,r,no){
 }
 async function openUserCard(name){
   name=String(name||'').trim(); if(!/^[A-Za-z0-9_.\-]{1,64}$/.test(name)) return;
+  if(window.__ouN===name&&Date.now()-(window.__ouT||0)<4000) return;   /* nhiều đường (bbeat://, cổng nhà) cùng báo một link → chỉ mở một lần */
+  window.__ouN=name; window.__ouT=Date.now();
   let u=null; try{ const r=await fetch('/api/u/'+encodeURIComponent(name)); if(r.ok) u=await r.json(); else { notify('Không tìm thấy thẻ này'); return; } }catch{ notify(NET_ERR); return; }
   const mine=!!(me&&me.id&&me.id===u.id);
   showBigCard(mine?{...me,online:true}:u,mine);
 }
 window.museOpenUser=openUserCard;
+/* Link thẻ trên web → app ĐANG CHẠY tự hiện thẻ, không cần Windows đăng ký bbeat://:
+   trang /u/<tên> báo cho cổng nhà (127.0.0.1) tên cần mở, giao diện app hỏi cổng nhà mỗi ~1,5 giây. Không phải app desktop (không có cổng nhà) thì tự dừng. */
+(function(){
+  if(window.ANDROID_APP||!/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) return;
+  let miss=0, busy=false;
+  const tick=async()=>{
+    if(busy||miss>=3) return; busy=true;
+    try{
+      const r=await fetch('/api/local/pending-user',{cache:'no-store'});
+      if(!r.ok){ miss++; return; }
+      miss=0; const j=await r.json(), n=j&&j.name;
+      if(n){ try{ const p=window.__TAURI__&&window.__TAURI__.core&&window.__TAURI__.core.invoke('win_focus'); if(p&&p.catch) p.catch(()=>{}); }catch{} openUserCard(n); }
+    }catch{ miss++; } finally{ busy=false; }
+  };
+  setTimeout(()=>setInterval(tick,1500),3000);
+})();
 function openPendingUser(){
   let n=''; try{ const q=new URLSearchParams(location.search).get('u')||''; if(q){ n=q; const x=new URL(location.href); x.searchParams.delete('u'); history.replaceState(null,'',x.pathname+(x.search||'')+x.hash); } }catch{}
   try{ if(!n&&window.MuseNative&&typeof MuseNative.takePendingUser==='function') n=String(MuseNative.takePendingUser()||''); }catch{}
