@@ -4330,16 +4330,16 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <style>html,body{margin:0;background:#07070b}</style>
 <noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
 </head><body style="font-family:system-ui,Segoe UI,Arial,sans-serif;color:#cfd0dc;text-align:center;padding-top:18vh">
-<div id="m" style="display:none"><p>Đang mở BBeat…</p><p><a id="a" href="@APP@" style="color:#8ecbff">Mở trong BBeat</a> · <a href="@WEB@" style="color:#8ecbff">Xem trên web</a></p></div>
+<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p></div>
 <script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
 if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
-/* Máy tính (Windows/macOS/Linux): thử mở app BBeat bằng bbeat://u/<tên>; nếu app không mở (chưa cài) thì sau ~1.8s mới chuyển sang web.
+/* Máy tính (Windows/macOS/Linux): thử mở app BBeat bằng bbeat://u/<tên>; nếu app không mở (chưa cài) thì hiện nút "Mở trong BBeat" / "Xem trên web" (không tự đẩy sang web vì trình duyệt có thể chặn mở app khi chưa bấm gì).
    Trình duyệt hỏi "Mở BBeat?" hoặc app giành focus → trang bị ẩn/mất focus → không chuyển sang web nữa. */
 if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
 var stop=false,m=document.getElementById("m"),halt=function(){stop=true;};
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
 m.style.display="block";location.href=app;
-setTimeout(function(){if(!stop)location.replace(web);},1800);return;}
+setTimeout(function(){if(!stop)document.getElementById("t").textContent="Trình duyệt chưa tự mở được app BBeat. Bấm \"Mở trong BBeat\" (nếu app chưa cài thì chọn \"Xem trên web\").";},1800);return;}
 }catch(e){}location.replace(web);})();</script>
 </body></html>"##;
 
