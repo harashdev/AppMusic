@@ -186,6 +186,25 @@ class MuseBridge(private val ctx: Context) {
         } catch (_: Exception) {}
     }
 
+    // Xoá đúng file nhạc đã tải (cùng tên đã lưu bằng saveBegin) trong Music/BBeat hoặc Download/BBeat. Trả true nếu đã xoá.
+    @JavascriptInterface
+    fun deleteSaved(name: String): Boolean {
+        val safe = name.filter { it >= ' ' }.replace(Regex("[\\/:*?\"<>|]"), "_").take(120)
+        if (safe.isBlank()) return false
+        var n = 0
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val sel = "${MediaStore.MediaColumns.DISPLAY_NAME}=? AND ${MediaStore.MediaColumns.RELATIVE_PATH}=?"
+                n += runCatching { ctx.contentResolver.delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, sel, arrayOf(safe, "Music/BBeat/")) }.getOrDefault(0)
+                n += runCatching { ctx.contentResolver.delete(MediaStore.Downloads.EXTERNAL_CONTENT_URI, sel, arrayOf(safe, "Download/BBeat/")) }.getOrDefault(0)
+            } else {
+                val f = File(File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "BBeat"), safe)
+                if (f.isFile && f.delete()) n++
+            }
+        } catch (_: Exception) {}
+        return n > 0
+    }
+
     @JavascriptInterface
     fun share(text: String): Boolean = try {
         val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }
