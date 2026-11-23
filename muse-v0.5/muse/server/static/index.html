@@ -7835,8 +7835,8 @@ async function start(u,offlineBoot,resume){
   .pe-hero::after{background:linear-gradient(to bottom,rgba(0,0,0,.28),rgba(0,0,0,0) 30%),linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,.04) 64%)}
   .pe-id{padding-bottom:8px}
   /* Khung xem trước banner = đúng 2:1 như thẻ hồ sơ + thanh Căn chỉnh (trước đây trải ngang toàn màn hình ~3:1 nên lộ vùng ảnh khác thẻ) */
-  .pe-left{width:100%;max-width:none}
-  .pe-hero{height:clamp(340px,27.5vw,525px)!important;aspect-ratio:auto;min-height:0}
+  .pe-left{width:100%;max-width:720px;margin-left:auto;margin-right:auto;justify-self:center}
+  .pe-hero{height:auto!important;aspect-ratio:2/1;min-height:260px}
   `;
   document.head.appendChild(st);
   const _pc=profileCard;
