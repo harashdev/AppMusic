@@ -7227,7 +7227,7 @@ pages.downloads=function(m){
     <div id="dlList"></div>`;
   dlRender();
   bbInfo().then(d=>{ const el=$('#dlWhere'); if(!el||!d) return; const desk=!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
-    el.innerHTML='Nhạc tải xuống được lưu tại: <b>'+esc(d)+'</b>'+(desk?' · <a id="dlOpenDir">Mở thư mục</a>':''); const a=$('#dlOpenDir'); if(a) a.onclick=()=>{ fetch('/api/local/open',{method:'POST'}).catch(()=>{}); }; });
+    el.innerHTML='Nhạc tải xuống được lưu tại: <b>'+esc(d)+'</b>'+(desk?' · <a id="dlOpenDir">Mở thư mục</a>':''); const a=$('#dlOpenDir'); if(a) a.onclick=()=>{ fetch('/api/local/open?dl=1',{method:'POST'}).catch(()=>{}); }; });
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
   const dlFi=$('#dlFile');
