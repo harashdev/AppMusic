@@ -4329,8 +4329,18 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <meta name="theme-color" content="#07070b">
 <style>html,body{margin:0;background:#07070b}</style>
 <noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
-</head><body>
-<script>(function(){try{if(/Android/i.test(navigator.userAgent||"")&&!/[?&]web=1/.test(location.search)){location.replace("@INTENT_JS@");return;}}catch(e){}location.replace("@WEB@");})();</script>
+</head><body style="font-family:system-ui,Segoe UI,Arial,sans-serif;color:#cfd0dc;text-align:center;padding-top:18vh">
+<div id="m" style="display:none"><p>Đang mở BBeat…</p><p><a id="a" href="@APP@" style="color:#8ecbff">Mở trong BBeat</a> · <a href="@WEB@" style="color:#8ecbff">Xem trên web</a></p></div>
+<script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
+if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
+/* Máy tính (Windows/macOS/Linux): thử mở app BBeat bằng bbeat://u/<tên>; nếu app không mở (chưa cài) thì sau ~1.8s mới chuyển sang web.
+   Trình duyệt hỏi "Mở BBeat?" hoặc app giành focus → trang bị ẩn/mất focus → không chuyển sang web nữa. */
+if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
+var stop=false,m=document.getElementById("m"),halt=function(){stop=true;};
+addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
+m.style.display="block";location.href=app;
+setTimeout(function(){if(!stop)location.replace(web);},1800);return;}
+}catch(e){}location.replace(web);})();</script>
 </body></html>"##;
 
 #[derive(Deserialize)]
@@ -4363,6 +4373,8 @@ async fn card_page(State(st): State<AppState>, headers: HeaderMap, Path(username
         return (StatusCode::FOUND, [(header::LOCATION, intent.clone()), (header::CACHE_CONTROL, "no-store".to_string())]).into_response();
     }
     let html = CARD_PAGE
+        .replace("@APP_JS@", &format!("bbeat://u/{uname}")) // uname chỉ gồm [A-Za-z0-9_.-]
+        .replace("@APP@", &card_esc(&format!("bbeat://u/{uname}")))
         .replace("@INTENT_JS@", &intent) // chuỗi này chỉ chứa ký tự an toàn trong "..." (tên đã lọc, URL đã mã hoá)
         .replace("@INTENT@", &card_esc(&intent))
         .replace("@WEB@", &card_esc(&format!("{base}/?u={uname}")))
