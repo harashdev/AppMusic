@@ -372,7 +372,9 @@ body.vid .npt{margin-top:0}
 #lyrBody .cur{opacity:1}
 #lyrBody .plain{font-size:16px;font-weight:500;opacity:.9;line-height:1.7;cursor:default}
 #lyrBody .none{font-size:15px;font-weight:500;opacity:.8;cursor:default}
-.cmf{display:flex;gap:8px;align-items:flex-end;position:sticky;bottom:0;padding:8px 0 4px;background:linear-gradient(to top,var(--npbg,#17141f) 70%,transparent)}
+.cmf{display:flex;gap:8px;align-items:flex-end;position:sticky;bottom:0;padding:8px 0 4px;background:none;isolation:isolate}
+.cmf::before{content:"";position:absolute;inset:-14px 0 0;z-index:-1;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);-webkit-mask-image:linear-gradient(to top,#000 60%,transparent);mask-image:linear-gradient(to top,#000 60%,transparent)}
+.cmf textarea,.cmf button{position:relative}
 .cmf textarea{flex:1;resize:none;min-height:40px;max-height:110px;border-radius:12px;border:0;padding:10px 12px;font:inherit;font-size:14px;background:color-mix(in srgb,var(--npfg,#fff) 14%,transparent);color:inherit}
 .cmf textarea::placeholder{color:inherit;opacity:.6}
 .cmi{display:flex;gap:10px;padding:8px 0;align-items:flex-start}
@@ -1795,7 +1797,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.':'Couldn’t create the image (a background from another site blocks export). Use an uploaded banner instead.',
     'Mới nghe':'Newcomer','Tập sự':'Apprentice','Mê nhạc':'Music lover','Sành nghe':'Connoisseur','Cao thủ':'Expert','Bậc thầy':'Master','Huyền thoại':'Legend',
     'Đã nghe':'Listened','Đã đạt cấp cao nhất':'Max level reached','trên BBeat':'on BBeat','Không tìm thấy thẻ này':'Card not found','Thẻ danh tính':'ID card',
-    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Đã gửi lời mời':'Request sent','Đã là bạn bè':'Friends','Nghệ sĩ đã theo dõi':'Followed artists','Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You haven’t followed any artists yet. While a song plays, tap “Follow” under the artist name.','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
+    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Không lưu được vào thư mục BBeat\\Downloads: ':'Couldn’t save to the BBeat\\Downloads folder: ','Đã gửi lời mời':'Request sent','Đã là bạn bè':'Friends','Nghệ sĩ đã theo dõi':'Followed artists','Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You haven’t followed any artists yet. While a song plays, tap “Follow” under the artist name.','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
     'Chưa có playlist nào.':'No playlists yet.','Thêm ›':'More ›','Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.':'You haven’t liked any songs yet. Tap ♡ on a song to add it here.','Nhạc đã thích':'Liked music',
     'Đã chép UID':'UID copied','Đã lưu tên hiển thị':'Display name saved','Không lưu được':'Couldn’t save','Không gửi được lời mời':'Couldn’t send the invite','Không mở được':'Couldn’t open',
     'Đăng nhập để chỉnh sửa hồ sơ':'Log in to edit your profile','Biệt danh':'Nickname','Đã lưu biệt danh':'Nickname saved','Chữ ký cá nhân':'Bio','Đã lưu chữ ký':'Bio saved',
@@ -6699,8 +6701,13 @@ async function bbInfo(){ if(bbDir) return bbDir;
   return bbDir; }
 async function dlSaveFile(name,blob,ext){
   if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); bbDir=bbDir||'Nhạc/BBeat (Music/BBeat)'; return {name,dir:bbDir}; }
+  let why='';
   try{ const r=await fetch('/api/local/save?name='+encodeURIComponent(name),{method:'POST',body:blob});
-    if(r.ok){ const j=await r.json(); if(j&&j.path&&j.name){ locOn=true; bbDir=String(j.dir||bbDir); return {name:String(j.name),path:String(j.path),dir:bbDir}; } } }catch{}
+    if(r.ok){ const j=await r.json(); if(j&&j.path&&j.name){ locOn=true; bbDir=String(j.dir||bbDir); return {name:String(j.name),path:String(j.path),dir:bbDir}; } why='phản hồi không hợp lệ'; }
+    else{ const tx=(await r.text().catch(()=>'')).slice(0,160); why='HTTP '+r.status+(tx?' · '+tx:''); if(r.status===404||r.status===405) why+=' (app đang chạy bản cổng nhà cũ, chưa có chức năng lưu vào thư mục BBeat — hãy cập nhật/chạy lại app)'; } }catch(e){ why=String(e&&e.message||e); }
+  /* Đang chạy cùng app desktop (có cổng nhà) mà không ghi được vào thư mục BBeat\Downloads: báo lỗi rõ ràng,
+     không âm thầm đẩy file ra thư mục Tải xuống của trình duyệt như trước (khiến file nằm sai chỗ và không xoá được). */
+  if(locOn) throw new Error('Không lưu được vào thư mục BBeat\\Downloads: '+why);
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
   return null;
 }
@@ -6833,6 +6840,7 @@ async function locFolderSync(){
     await offInit; const files=[]; const known=new Set(Object.values(bbMap())); dlItems.forEach(i=>{ if(i.name) known.add(i.name); });
     for(const it of list){
       if(known.has(String(it.name))) continue;   /* file do chính app tải về, đã có trong danh sách */
+      if(/^Downloads\//i.test(String(it.name))) continue;   /* thư mục Downloads là của app (nhạc tải về), không nhập lại như "nhạc của bạn" */
       const base=String(it.name).split('/').pop(), lm=+it.mtime||0;
       if(offSet.has('yt:'+locId({name:base,size:it.size,lastModified:lm}))) continue;
       const fr=await fetch('/api/local/file?name='+encodeURIComponent(it.name),{cache:'no-store'}); if(!fr.ok) continue;
@@ -6968,7 +6976,7 @@ async function dlRun(it){
         it.name=(sv&&sv.name)||(safe+'.'+ext); it.path=(sv&&sv.path)||''; it.where=(sv&&sv.dir)||'';
         if(sv&&sv.name) bbSet(it.k,sv.name);
       }
-      catch(e){ if(!offOk) throw e; try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app, không báo lỗi
+      catch(e){ if(!offOk) throw e; it.note=String(e&&e.message||e).slice(0,200); try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app: vẫn phát được, nhưng ghi chú lý do không có file
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
