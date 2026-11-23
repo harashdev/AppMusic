@@ -43,10 +43,13 @@ object MuseSdk {
         if (loaded) nUpdate(title, artist, image, startMs / 1000, endMs / 1000)
     }
 
+    fun page(label: String) { if (loaded) nPage(label) }
+
     fun clear() { if (loaded) nClear() }
 
     @JvmStatic private external fun nStart(appId: Long, token: String): Int
     @JvmStatic private external fun nUpdate(title: String, artist: String, image: String, startS: Long, endS: Long)
+    @JvmStatic private external fun nPage(label: String)
     @JvmStatic private external fun nClear()
     @JvmStatic private external fun nStatus(): Int
     @JvmStatic private external fun nError(): String
