@@ -916,11 +916,61 @@ fn local_music_dir() -> PathBuf {
     PathBuf::from(home).join("Music").join("BBeat")
 }
 
-// Nhạc do app tải về nằm riêng trong thư mục con này (<Nhạc>\\BBeat\\Downloads), tách khỏi file người dùng tự thả vào BBeat để "Thêm nhạc".
+// Nhạc do app tải về nằm trong thư mục RIÊNG của app (Windows: %LOCALAPPDATA%\\BBeat\\Downloads), không nằm trong thư mục Nhạc của người dùng.
+// "Thêm nhạc" vẫn dùng <Nhạc>\\BBeat. Đặt MUSE_DL_DIR để đổi chỗ lưu. Tên tương đối trả cho giao diện vẫn là "Downloads/<file>".
 const LOCAL_DL_SUB: &str = "Downloads";
 
+fn local_app_dir() -> PathBuf {
+    std::env::var_os("LOCALAPPDATA")
+        .filter(|v| !v.is_empty())
+        .map(|p| PathBuf::from(p).join("BBeat"))
+        .or_else(|| std::env::var_os("XDG_DATA_HOME").filter(|v| !v.is_empty()).map(|p| PathBuf::from(p).join("bbeat")))
+        .or_else(|| std::env::var_os("HOME").filter(|v| !v.is_empty()).map(|p| PathBuf::from(p).join(".local").join("share").join("bbeat")))
+        .unwrap_or_else(|| std::env::temp_dir().join("bbeat"))
+}
+
 fn local_dl_dir() -> PathBuf {
-    local_music_dir().join(LOCAL_DL_SUB)
+    if let Ok(d) = std::env::var("MUSE_DL_DIR") {
+        if !d.trim().is_empty() {
+            return PathBuf::from(d.trim());
+        }
+    }
+    local_app_dir().join(LOCAL_DL_SUB)
+}
+
+// Tên tương đối "Downloads/<file>" nằm trong thư mục riêng của app; tên khác nằm trong thư mục Nhạc.
+fn local_base_for(name: &str) -> (PathBuf, String) {
+    match name.strip_prefix("Downloads/") {
+        Some(rest) => (local_dl_dir(), rest.to_string()),
+        None => (local_music_dir(), name.to_string()),
+    }
+}
+
+// Một lần mỗi lần chạy: chuyển nhạc đã tải từ chỗ cũ (<Nhạc>\\BBeat\\Downloads) sang thư mục riêng của app.
+static LOCAL_DL_MIGRATED: std::sync::Once = std::sync::Once::new();
+fn local_migrate_dl() {
+    LOCAL_DL_MIGRATED.call_once(|| {
+        let old = local_music_dir().join(LOCAL_DL_SUB);
+        let new = local_dl_dir();
+        if old == new {
+            return;
+        }
+        let Ok(rd) = std::fs::read_dir(&old) else { return };
+        let _ = std::fs::create_dir_all(&new);
+        for ent in rd.flatten() {
+            let name = ent.file_name().to_string_lossy().into_owned();
+            if !ent.metadata().map(|m| m.is_file()).unwrap_or(false) || local_ext_of(&name).is_none() {
+                continue;
+            }
+            let dest = new.join(&name);
+            if dest.exists() {
+                continue;
+            }
+            if std::fs::rename(ent.path(), &dest).is_err() && std::fs::copy(ent.path(), &dest).is_ok() {
+                let _ = std::fs::remove_file(ent.path());
+            }
+        }
+    });
 }
 
 // ===== Mở thẻ hồ sơ trong app đang chạy, không cần Windows đăng ký bbeat:// =====
@@ -989,11 +1039,17 @@ fn local_ext_of(name: &str) -> Option<String> {
     }
 }
 
-async fn local_open(headers: HeaderMap) -> Response {
+#[derive(Deserialize)]
+struct LocalOpenQ {
+    dl: Option<String>,
+}
+
+async fn local_open(headers: HeaderMap, Query(q): Query<LocalOpenQ>) -> Response {
     if !local_host_ok(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
-    let dir = local_music_dir();
+    local_migrate_dl();
+    let dir = if q.dl.as_deref() == Some("1") { local_dl_dir() } else { local_music_dir() };
     if let Err(e) = std::fs::create_dir_all(&dir) {
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("Không tạo được thư mục nhạc: {e}")).into_response();
     }
@@ -1032,9 +1088,12 @@ async fn local_list(headers: HeaderMap) -> Response {
         return StatusCode::FORBIDDEN.into_response();
     }
     let root = local_music_dir();
+    let dl = local_dl_dir();
     let out = tokio::task::spawn_blocking(move || {
+        local_migrate_dl();
         let mut files: Vec<Value> = Vec::new();
-        let mut stack: Vec<(PathBuf, String, u8)> = vec![(root, String::new(), 0)];
+        // Thư mục Nhạc (không quét "Downloads" cũ trong đó) + thư mục tải xuống riêng của app (tên tương đối bắt đầu bằng "Downloads/")
+        let mut stack: Vec<(PathBuf, String, u8)> = vec![(root, String::new(), 0), (dl, LOCAL_DL_SUB.to_string(), 1)];
         while let Some((dir, rel, depth)) = stack.pop() {
             let Ok(rd) = std::fs::read_dir(&dir) else { continue };
             for ent in rd.flatten() {
@@ -1042,6 +1101,9 @@ async fn local_list(headers: HeaderMap) -> Response {
                 let Ok(md) = ent.metadata() else { continue };
                 let relname = if rel.is_empty() { name.clone() } else { format!("{rel}/{name}") };
                 if md.is_dir() {
+                    if rel.is_empty() && name.eq_ignore_ascii_case(LOCAL_DL_SUB) {
+                        continue;
+                    }
                     if depth < 3 {
                         stack.push((ent.path(), relname, depth + 1));
                     }
@@ -1073,8 +1135,8 @@ async fn local_file(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
     if name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let root = local_music_dir();
-    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&name).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    let (root, rel) = local_base_for(&name);
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&rel).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
     if !path_c.starts_with(&root_c) || !path_c.is_file() {
         return StatusCode::NOT_FOUND.into_response();
     }
@@ -1100,6 +1162,7 @@ async fn local_info(headers: HeaderMap) -> Response {
     if !local_host_ok(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
+    local_migrate_dl();
     let root = local_music_dir();
     let dir = local_dl_dir();
     let _ = std::fs::create_dir_all(&dir);
@@ -1157,8 +1220,8 @@ async fn local_delete(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
     if local_ext_of(&name).is_none() || name.contains('\\') || name.contains(':') || name.split('/').any(|seg| seg.is_empty() || seg == "." || seg == "..") {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let root = local_music_dir();
-    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&name).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
+    let (root, rel) = local_base_for(&name);
+    let (Ok(root_c), Ok(path_c)) = (root.canonicalize(), root.join(&rel).canonicalize()) else { return StatusCode::NOT_FOUND.into_response() };
     if !path_c.starts_with(&root_c) || path_c == root_c || !path_c.is_file() {
         return StatusCode::NOT_FOUND.into_response();
     }
