@@ -123,7 +123,7 @@ async fn security_headers(req: Request<Body>, next: Next) -> Response {
     if std::env::var("CSP_OFF").ok().as_deref() != Some("1") {
         if is_card_page {
             // Trang thẻ /u/<tên> được gọi tới cổng nhà (127.0.0.1) bằng một ảnh 1x1 để app đang chạy tự mở thẻ.
-            let csp = CSP.replace("img-src 'self' data: blob: https:", "img-src 'self' data: blob: https: http://127.0.0.1:38417 http://localhost:38417");
+            let csp = CSP.replace("img-src 'self' data: blob: https:", "img-src 'self' data: blob: https: http://127.0.0.1:38417 http://localhost:38417").replace("connect-src 'self'", "connect-src 'self' http://127.0.0.1:38417 http://localhost:38417");
             if let Ok(v) = HeaderValue::from_str(&csp) {
                 h.insert(header::CONTENT_SECURITY_POLICY, v);
             }
@@ -870,7 +870,7 @@ async fn run_gateway(remote: String) {
         .route("/api/local/log", get(local_log))
         .route("/api/local/file", get(local_file))
         .route("/api/local/info", get(local_info))
-        .route("/api/local/open-user", get(local_open_user))
+        .route("/api/local/open-user", get(local_open_user).options(local_open_user_preflight))
         .route("/api/local/pending-user", get(local_pending_user))
         .route("/api/local/save", post(local_save).layer(DefaultBodyLimit::max(400 * 1024 * 1024)))
         .route("/api/local/delete", post(local_delete))
@@ -940,7 +940,25 @@ async fn local_open_user(headers: HeaderMap, Query(q): Query<LocalQ>) -> Respons
         0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04, 0x01, 0x00,
         0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b,
     ];
-    ([(header::CONTENT_TYPE, "image/gif"), (header::CACHE_CONTROL, "no-store")], GIF).into_response()
+    ([(header::CONTENT_TYPE, "image/gif"), (header::CACHE_CONTROL, "no-store"), (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")], GIF).into_response()
+}
+
+// Trình duyệt (Chrome/Opera/Edge) có thể hỏi trước (preflight) khi trang https gọi về cổng nhà 127.0.0.1: trả lời cho phép.
+async fn local_open_user_preflight(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    (
+        StatusCode::NO_CONTENT,
+        [
+            (header::ACCESS_CONTROL_ALLOW_ORIGIN, "*"),
+            (header::ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS"),
+            (header::ACCESS_CONTROL_ALLOW_HEADERS, "*"),
+            (header::ACCESS_CONTROL_MAX_AGE, "600"),
+            (header::HeaderName::from_static("access-control-allow-private-network"), "true"),
+        ],
+    )
+        .into_response()
 }
 
 async fn local_pending_user(headers: HeaderMap) -> Response {
@@ -4471,13 +4489,16 @@ if(window.__TAURI__||window.__TAURI_INTERNALS__||window.MuseNative){location.rep
 if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
 var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn=document.getElementById("a"),timer=0,halt=function(){stop=true;};
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
-var who=app.split("/").pop(),opened=function(){stop=true;clearTimeout(timer);t.textContent="BBeat đã được mở. Có thể đóng tab này.";};
+var okd=false,who=app.split("/").pop(),opened=function(){stop=true;clearTimeout(timer);t.textContent="BBeat đã được mở. Có thể đóng tab này.";};
 /* Cách 1 (không cần đăng ký gì với Windows): báo cho app ĐANG CHẠY qua cổng nhà 127.0.0.1 để nó tự hiện thẻ. */
 var st=document.getElementById("s"),say=function(x){if(st)st.textContent=x;};
-var ping=function(ok,no){var im=new Image();im.onload=function(){opened();say("Đã báo cho app đang chạy trên máy này (cổng nhà 127.0.0.1:38417 trả lời). Nếu thẻ không hiện trong app: giao diện web (Render) chưa được cập nhật.");if(ok)ok();};im.onerror=function(){say("Không thấy app đang chạy trên máy này (127.0.0.1:38417 không trả lời): app chưa bật, là bản app cũ chưa cập nhật, hoặc trình duyệt đang chặn truy cập mạng nội bộ.");if(no)no();};im.src="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();};
+var ping=function(ok,no){var done=false,url="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();
+var fin=function(good){if(done)return;done=true;if(good){okd=true;opened();say("Đã báo cho app đang chạy trên máy này (cổng nhà 127.0.0.1:38417 trả lời). Nếu thẻ không hiện trong app: giao diện web (Render) chưa được cập nhật.");if(ok)ok();}else{say("Không thấy app đang chạy trên máy này (127.0.0.1:38417 không trả lời): app chưa bật, là bản app cũ chưa cập nhật, hoặc trình duyệt đang chặn truy cập mạng nội bộ (bấm biểu tượng ổ khoá cạnh địa chỉ → cho phép \"Thiết bị trong mạng cục bộ\" / Local network access rồi bấm lại).");if(no)no();}};
+var viaImg=function(){var im=new Image();im.onload=function(){fin(true);};im.onerror=function(){fin(false);};im.src=url;};
+try{if(window.fetch){fetch(url,{mode:"no-cors",cache:"no-store",targetAddressSpace:"loopback"}).then(function(){fin(true);},viaImg);}else viaImg();}catch(e){viaImg();}};
 /* Cách 2: gọi bbeat:// để Windows/macOS/Linux bật app khi nó đang tắt (installer của app tự đăng ký link này). */
 var launch=function(){location.href=app;};
-var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){opened();return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
+var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){if(!okd){t.textContent="Đã gửi yêu cầu mở BBeat. Nếu app không hiện lên, bấm lại \"Mở trong BBeat\".";}return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
 btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";ping();hint();});
 var wl=document.getElementById("w");if(wl)wl.addEventListener("click",function(){stop=true;clearTimeout(timer);});
 /* Không còn nhớ lựa chọn "Xem trên web" để tự chuyển về sau: chỉ chuyển khi người dùng bấm. Xoá giá trị cũ còn sót lại trong trình duyệt. */
