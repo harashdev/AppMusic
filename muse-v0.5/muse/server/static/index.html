@@ -976,6 +976,8 @@ button *,#gear *,#meAv *{pointer-events:none}
 .offc .offi .i{width:44px;height:44px}.offc h3{font-size:26px;margin:8px 0 0}.offc p{color:var(--sub);max-width:360px;margin:0 0 8px;line-height:1.5}
 .offc .offact{display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}.offc .offact button{padding:13px 18px;font-size:15px}
 .dlInfo{color:var(--sub);margin:-4px 0 12px}
+.dlWhere a{color:var(--accent);cursor:pointer;text-decoration:underline}.dlWhere{word-break:break-all}
+.dlr .t3{font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.dlr .t3 svg{vertical-align:-2px}
 .dlr.dim{opacity:.45}
 .offb{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent);vertical-align:middle}
 .offb .i{width:12px;height:12px}.offb.no{background:var(--hover2);color:var(--sub)}
@@ -1499,7 +1501,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Đã thêm':'Added',
     'Nghe lần cuối':'Last played',
     'Lượt nghe':'Plays',
-    'Xoá khỏi danh sách':'Remove from list',
+    'Xoá khỏi danh sách':'Remove from list','Nhạc tải xuống được lưu tại:':'Downloads are saved in:','Mở thư mục':'Open folder',
     'Tải nhạc':'Download',
     'Không thích bài này':'Dislike this song',
     'Về danh sách tải xuống':'Back to downloads',
@@ -6656,9 +6658,34 @@ function nativeSave(name,mime,blob){
   nativeSaveQ=p.catch(()=>{});
   return p;
 }
+/* ===== Nhạc tải xuống nằm trong thư mục BBeat =====
+   Desktop: ghi thẳng vào <Nhạc>\BBeat qua cổng nhà (/api/local/save). Android: Music/BBeat. Chỉ bản web thuần (không có cổng nhà) mới rơi về tải của trình duyệt.
+   Mỗi bài nhớ đúng tên file đã lưu (bbMap: khoá bài → tên file) để khi xoá chỉ xoá đúng file đó. */
+let bbDir='';
+const bbMap=()=>{ try{ const o=JSON.parse(LS.get('muse_bbfiles','{}')); return o&&typeof o==='object'?o:{}; }catch{ return {}; } };
+const bbGet=k=>bbMap()[k]||'';
+function bbSet(k,name){ try{ const o=bbMap(); if(name) o[k]=name; else delete o[k]; LS.set('muse_bbfiles',JSON.stringify(o)); }catch{} }
+/* Tên file của bài trong thư mục BBeat ('' nếu bài không có file ở đó, vd bài cũ tải ra thư mục Downloads của trình duyệt) */
+const bbNative=()=>!!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
+const bbFileOf=x=>bbGet(x.k)||((x.path||bbNative())&&x.name?x.name:'');
+async function bbInfo(){ if(bbDir) return bbDir;
+  if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function') return bbDir='Nhạc/BBeat (Music/BBeat)';
+  try{ const r=await fetch('/api/local/info',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j&&j.dir){ locOn=true; bbDir=String(j.dir); } } }catch{}
+  return bbDir; }
 async function dlSaveFile(name,blob,ext){
-  if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); return; }
+  if(window.MuseNative&&typeof window.MuseNative.saveBegin==='function'){ await nativeSave(name,DL_MIME[ext]||'audio/mp4',blob); bbDir=bbDir||'Nhạc/BBeat (Music/BBeat)'; return {name,dir:bbDir}; }
+  try{ const r=await fetch('/api/local/save?name='+encodeURIComponent(name),{method:'POST',body:blob});
+    if(r.ok){ const j=await r.json(); if(j&&j.path&&j.name){ locOn=true; bbDir=String(j.dir||bbDir); return {name:String(j.name),path:String(j.path),dir:bbDir}; } } }catch{}
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+  return null;
+}
+/* Xoá đúng file nhạc của bài này (không đụng file khác). Trả true nếu đã xoá. */
+async function bbDeleteFile(name){
+  if(!name) return false;
+  try{
+    if(window.MuseNative&&typeof window.MuseNative.deleteSaved==='function') return !!window.MuseNative.deleteSaved(name);
+    const r=await fetch('/api/local/delete?name='+encodeURIComponent(name),{method:'POST'}); return r.ok;
+  }catch{ return false; }
 }
 const WAV_MAX=14e6;
 function wavFromBuffer(buf){
@@ -6698,7 +6725,7 @@ async function offSync(){
 const dlFileOn=()=>LS.get('muse_dlfile','1')!=='0';
 const dlPlayable=()=>dlItems.filter(x=>x.status==='done'&&(!offlineNow()||offSet.has(x.k))).map(x=>x.track);
 function dlSave(){
-  try{ LS.set(dlKey(),JSON.stringify(dlItems.filter(x=>x.status==='done').slice(0,200).map(x=>({uid:x.uid,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.osize,fmt:x.fmt,name:x.name})))); }catch{}
+  try{ LS.set(dlKey(),JSON.stringify(dlItems.filter(x=>x.status==='done').slice(0,200).map(x=>({uid:x.uid,k:x.k,track:x.track,status:'done',at:x.at,size:x.size,osize:x.osize,fmt:x.fmt,name:x.name,path:x.path,where:x.where})))); }catch{}
 }
 function dlSize(n){ return n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB'; }
 function dlStatus(x){
@@ -6712,7 +6739,7 @@ function dlRowHtml(x){
   const t=x.track, busy=x.status==='loading'||x.status==='converting', bar=(x.status==='loading'||x.status==='converting')?`<div class="dlbar"><i style="width:${x.status==='converting'?100:(x.pct||0)}%"></i></div>`:'';
   const has=offSet.has(x.k), badge=x.status==='done'?(has?`<span class="offb">${ic('check','sm')} ${isLoc(t)?'Từ máy bạn':'Nghe offline'}</span>`:`<span class="offb no">Chưa lưu offline</span>`):'';
   const redo=x.status==='error'||(x.status==='done'&&!has&&t.src==='yt');
-  return `<div class="dlr${x.status==='done'&&!has&&offlineNow()?' dim':''}" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" data-k="${esc(x.k)}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div></div><div class="dls ${x.status}">${esc(dlStatus(x))} ${badge}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${redo?`<button class="ico" data-a="retry" title="${x.status==='error'?'Thử lại':'Tải lại để nghe offline'}">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
+  return `<div class="dlr${x.status==='done'&&!has&&offlineNow()?' dim':''}" data-u="${esc(x.uid)}"><img src="${esc(thumb(t.image,96))}" data-k="${esc(x.k)}" loading="lazy" alt=""><div class="ti"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.artist)}</div>${x.status==='done'&&bbFileOf(x)?`<div class="t3" title="${esc(x.path||(bbDir?bbDir+' / ':'')+bbFileOf(x))}">${ic('folder','sm')} ${esc(bbFileOf(x))}</div>`:''}</div><div class="dls ${x.status}">${esc(dlStatus(x))} ${badge}${bar}</div><div class="ac"><button class="ico" data-a="play" title="Phát">${ic('play','fill sm')}</button>${redo?`<button class="ico" data-a="retry" title="${x.status==='error'?'Thử lại':'Tải lại để nghe offline'}">${ic('download')}</button>`:''}<button class="ico" data-a="rm" title="Xoá khỏi danh sách"${busy?' disabled':''}>${ic('x')}</button></div></div>`;
 }
 function dlRender(){
   const done=dlItems.filter(x=>x.status==='done'), offN=done.filter(x=>offSet.has(x.k)).length, offB=done.reduce((n,x)=>n+(offSet.has(x.k)?(x.osize||0):0),0);
@@ -6778,12 +6805,13 @@ async function locFolderSync(){
   try{
     const r=await fetch('/api/local/list',{cache:'no-store'}); if(!r.ok) return;
     const list=await r.json(); if(!Array.isArray(list)) return; locOn=true;
-    await offInit; const files=[];
+    await offInit; const files=[]; const known=new Set(Object.values(bbMap())); dlItems.forEach(i=>{ if(i.name) known.add(i.name); });
     for(const it of list){
+      if(known.has(String(it.name))) continue;   /* file do chính app tải về, đã có trong danh sách */
       const base=String(it.name).split('/').pop(), lm=+it.mtime||0;
       if(offSet.has('yt:'+locId({name:base,size:it.size,lastModified:lm}))) continue;
       const fr=await fetch('/api/local/file?name='+encodeURIComponent(it.name),{cache:'no-store'}); if(!fr.ok) continue;
-      files.push(new File([await fr.blob()],base,{lastModified:lm}));
+      { const f=new File([await fr.blob()],base,{lastModified:lm}); f._rel=String(it.name); files.push(f); }
     }
     locSyncBusy=false; if(files.length) await dlAddFiles(files);
   }catch{} finally{ locSyncBusy=false; }
@@ -6808,6 +6836,7 @@ async function dlAddFiles(files){
         const t={src:'yt',id,title:tg.title||np.title||f.name,artist:tg.artist||np.artist||'',image:'',url:'',dur,explicit:false};
         await offSave(t,new Blob([f],{type:mime}),mime,ext);
         if(tg.cover) await OFF.put('i',k,tg.cover).catch(()=>{});
+        if(f._rel) bbSet(k,f._rel);
         ok++;
       }catch(e){ fail++; }
     }
@@ -6908,15 +6937,17 @@ async function dlRun(it){
         }
       }
       try{
-        try{ await dlSaveFile(safe+'.'+ext,blob,ext); }
-        catch(e1){ await new Promise(z=>setTimeout(z,600)); await dlSaveFile(safe+'.'+ext,blob,ext); } // thử lại 1 lần
-        it.name=safe+'.'+ext;
+        let sv=null;
+        try{ sv=await dlSaveFile(safe+'.'+ext,blob,ext); }
+        catch(e1){ await new Promise(z=>setTimeout(z,600)); sv=await dlSaveFile(safe+'.'+ext,blob,ext); } // thử lại 1 lần
+        it.name=(sv&&sv.name)||(safe+'.'+ext); it.path=(sv&&sv.path)||''; it.where=(sv&&sv.dir)||'';
+        if(sv&&sv.name) bbSet(it.k,sv.name);
       }
       catch(e){ if(!offOk) throw e; try{ console.warn('dlSaveFile',e); }catch{} } // đã có bản offline trong app, không báo lỗi
     } else { it.name=''; }
     it.offOnly=false;
     it.status='done'; it.size=blob.size; it.fmt=ext; it.at=Date.now(); it.pct=100;
-    if(!it.quiet) notify('Đã tải xong: '+(t.title||'')); return true;
+    if(!it.quiet) notify('Đã tải xong: '+(t.title||'')+(it.where?' · lưu trong '+it.where:'')); return true;
   }catch(e){
     it.status='error'; it.err=String(e&&e.message||e).slice(0,400);
     if(!it.quiet) notify('Không tải được: '+it.err); return false;
@@ -7144,10 +7175,13 @@ pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><h2>Tải xuống</h2>
     <p class="dlInfo" id="dlInfo"></p>
+    <p class="dlInfo dlWhere" id="dlWhere"></p>
     <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button><button class="out" id="dlAdd" title="Thêm file nhạc từ máy">${ic('folder','sm')} Thêm nhạc</button><input type="file" id="dlFile" accept="audio/*" multiple hidden></div>
     </div>
     <div id="dlList"></div>`;
   dlRender();
+  bbInfo().then(d=>{ const el=$('#dlWhere'); if(!el||!d) return; const desk=!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
+    el.innerHTML='Nhạc tải xuống được lưu tại: <b>'+esc(d)+'</b>'+(desk?' · <a id="dlOpenDir">Mở thư mục</a>':''); const a=$('#dlOpenDir'); if(a) a.onclick=()=>{ fetch('/api/local/open',{method:'POST'}).catch(()=>{}); }; });
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
   const dlFi=$('#dlFile');
@@ -7157,10 +7191,14 @@ pages.downloads=function(m){
   };
   locFolderSync();
   dlFi.onchange=()=>{ const l=[...dlFi.files]; dlFi.value=''; dlAddFiles(l); };
-  $('#dlList').onclick=e=>{
+  $('#dlList').onclick=async e=>{
     const row=e.target.closest('[data-u]'); if(!row) return; const x=dlItems.find(i=>i.uid===row.dataset.u); if(!x) return;
     const a=(e.target.closest('[data-a]')||{dataset:{}}).dataset.a;
-    if(a==='rm'){ if(x.status==='loading'||x.status==='converting') return; dlItems=dlItems.filter(i=>i!==x); if(x.k) offDelete(x.k); dlSave(); dlRender(); }
+    if(a==='rm'){ if(x.status==='loading'||x.status==='converting') return;
+      const fn=x.status==='done'?bbFileOf(x):'', shared=fn&&dlItems.some(i=>i!==x&&bbFileOf(i)===fn);   /* file đang được bài khác dùng chung thì không xoá */
+      if(fn&&!shared){ if(!(await askConfirm('Xoá "'+(x.track.title||'bài này')+'" và xoá luôn file nhạc "'+fn+'" trong thư mục BBeat?','Xoá'))) return; }
+      dlItems=dlItems.filter(i=>i!==x); if(x.k) offDelete(x.k); dlSave(); dlRender();
+      if(fn&&!shared){ const ok=await bbDeleteFile(fn); if(ok||!x.path){ bbSet(x.k,''); } notify(ok?'Đã xoá file: '+fn:'Đã xoá khỏi danh sách (không tìm thấy file "'+fn+'" để xoá)'); } }
     else if(a==='retry'){ if(offlineNow()){ notify('Cần có mạng để tải lại'); return; } if(x.status==='done') x.offOnly=true; x.status='queued'; x.err=''; x.p=new Promise(r=>{ x.done=r; }); dlRender(); dlPump(); }
     else {
       if(x.status==='done'&&offlineNow()&&!offSet.has(x.k)){ notify('Bài này chưa lưu offline – hãy tải lại khi có mạng'); return; }
