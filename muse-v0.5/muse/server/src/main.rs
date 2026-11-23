@@ -99,6 +99,7 @@ object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
 async fn security_headers(req: Request<Body>, next: Next) -> Response {
     let is_api = req.uri().path().starts_with("/api/");
+    let is_card_page = req.uri().path().starts_with("/u/");
     // Banner / avatar / nền tải lên có tên là UUID mới cho mỗi lần upload (không bao giờ đổi nội dung) → cho trình duyệt/WebView
     // giữ cả năm, lần mở sau hiện ngay không cần hỏi mạng.
     let is_upload = {
@@ -120,7 +121,15 @@ async fn security_headers(req: Request<Body>, next: Next) -> Response {
     set(h, "permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()");
     set(h, "strict-transport-security", "max-age=31536000");
     if std::env::var("CSP_OFF").ok().as_deref() != Some("1") {
-        set(h, "content-security-policy", CSP);
+        if is_card_page {
+            // Trang thẻ /u/<tên> được gọi tới cổng nhà (127.0.0.1) bằng một ảnh 1x1 để app đang chạy tự mở thẻ.
+            let csp = CSP.replace("img-src 'self' data: blob: https:", "img-src 'self' data: blob: https: http://127.0.0.1:38417 http://localhost:38417");
+            if let Ok(v) = HeaderValue::from_str(&csp) {
+                h.insert(header::CONTENT_SECURITY_POLICY, v);
+            }
+        } else {
+            set(h, "content-security-policy", CSP);
+        }
     }
     if is_api && !h.contains_key(header::CACHE_CONTROL) {
         set(h, "cache-control", "no-store");
@@ -861,6 +870,8 @@ async fn run_gateway(remote: String) {
         .route("/api/local/log", get(local_log))
         .route("/api/local/file", get(local_file))
         .route("/api/local/info", get(local_info))
+        .route("/api/local/open-user", get(local_open_user))
+        .route("/api/local/pending-user", get(local_pending_user))
         .route("/api/local/save", post(local_save).layer(DefaultBodyLimit::max(400 * 1024 * 1024)))
         .route("/api/local/delete", post(local_delete))
         .route("/ws/:room", get(gw_ws))
@@ -910,6 +921,40 @@ const LOCAL_DL_SUB: &str = "Downloads";
 
 fn local_dl_dir() -> PathBuf {
     local_music_dir().join(LOCAL_DL_SUB)
+}
+
+// ===== Mở thẻ hồ sơ trong app đang chạy, không cần Windows đăng ký bbeat:// =====
+// Trang /u/<tên> (trên trình duyệt) gọi GET http://127.0.0.1:38417/api/local/open-user?name=<tên> bằng một ảnh 1x1;
+// cổng nhà ghi nhớ tên đó, giao diện app hỏi /api/local/pending-user mỗi ~1,5 giây rồi tự hiện thẻ. Chỉ nhận Host = 127.0.0.1/localhost.
+static PENDING_USER: Mutex<Option<(String, std::time::Instant)>> = Mutex::new(None);
+
+async fn local_open_user(headers: HeaderMap, Query(q): Query<LocalQ>) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = q.name.unwrap_or_default();
+    if card_name_ok(&name) {
+        *PENDING_USER.lock().unwrap() = Some((name, std::time::Instant::now()));
+    }
+    const GIF: &[u8] = &[
+        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04, 0x01, 0x00,
+        0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b,
+    ];
+    ([(header::CONTENT_TYPE, "image/gif"), (header::CACHE_CONTROL, "no-store")], GIF).into_response()
+}
+
+async fn local_pending_user(headers: HeaderMap) -> Response {
+    if !local_host_ok(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let name = PENDING_USER
+        .lock()
+        .unwrap()
+        .take()
+        .filter(|(_, t)| t.elapsed() < Duration::from_secs(90))
+        .map(|(n, _)| n)
+        .unwrap_or_default();
+    ([(header::CACHE_CONTROL, "no-store")], Json(json!({ "name": name }))).into_response()
 }
 
 fn local_host_ok(h: &HeaderMap) -> bool {
@@ -4415,7 +4460,7 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <style>html,body{margin:0;background:#07070b}</style>
 <noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
 </head><body style="font-family:system-ui,Segoe UI,Arial,sans-serif;color:#cfd0dc;text-align:center;padding-top:18vh">
-<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p></div>
+<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a id="w" href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p></div>
 <script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
 if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
 /* Trang này đang mở TRONG chính app BBeat (cửa sổ app desktop): vào thẳng giao diện của app và hiện thẻ hồ sơ,
@@ -4426,10 +4471,19 @@ if(window.__TAURI__||window.__TAURI_INTERNALS__||window.MuseNative){location.rep
 if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
 var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn=document.getElementById("a"),timer=0,halt=function(){stop=true;};
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
+var who=app.split("/").pop(),opened=function(){stop=true;clearTimeout(timer);t.textContent="BBeat đã được mở. Có thể đóng tab này.";};
+/* Cách 1 (không cần đăng ký gì với Windows): báo cho app ĐANG CHẠY qua cổng nhà 127.0.0.1 để nó tự hiện thẻ. */
+var ping=function(ok,no){var im=new Image();im.onload=function(){opened();if(ok)ok();};im.onerror=function(){if(no)no();};im.src="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();};
+/* Cách 2: gọi bbeat:// để Windows/macOS/Linux bật app khi nó đang tắt (installer của app tự đăng ký link này). */
 var launch=function(){location.href=app;};
-var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){t.textContent="BBeat đã được mở. Có thể đóng tab này.";return;}t.textContent="Nếu BBeat chưa mở: trong hộp thoại \"Mở BBeat?\" của trình duyệt hãy chọn Mở (tick \"luôn cho phép\" để lần sau tự mở), hoặc bấm \"Mở trong BBeat\". Chưa cài app thì chọn \"Xem trên web\".";},2500);};
-btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";hint();}); /* không chặn link: bấm tay là thao tác người dùng nên trình duyệt cho mở app */
-m.style.display="block";launch();hint();return;}
+var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){opened();return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
+btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";ping();hint();});
+var wl=document.getElementById("w");if(wl)wl.addEventListener("click",function(){try{localStorage.setItem("bbeat_web",String(Date.now()));}catch(e){}});
+var pref=0;try{pref=+localStorage.getItem("bbeat_web")||0;}catch(e){}
+m.style.display="block";
+if(pref&&Date.now()-pref<2592000000){ /* người dùng từng chọn "Xem trên web" (chưa cài app): app đang chạy thì mở trong app, không thì vào web luôn */
+  t.textContent="Đang mở…";ping(null,function(){location.replace(web);});setTimeout(function(){if(!stop)location.replace(web);},1500);return;}
+ping();launch();hint();return;}
 }catch(e){}location.replace(web);})();</script>
 </body></html>"##;
 
