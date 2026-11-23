@@ -7766,6 +7766,15 @@ async function start(u,offlineBoot,resume){
   setInterval(()=>{ if(!document.hidden){ loadFriends().catch(()=>{}); refreshFriendBadge(); if(page==='friends') renderFriendsPage().catch(()=>{}); } },20000);
   try{ qrHandleUrl(); }catch{}
 }
+/* VÁ (chỉ thêm, không sửa dòng cũ): banner xanh lá cũ (#31c27c) còn lưu trong hồ sơ làm thẻ hồ sơ/thẻ chia sẻ trên Android bị xanh,
+   không khớp màu chủ đạo/nền. Coi màu đó như "chưa chọn màu banner" → dùng màu chủ đạo (xanh dương) như bản PC. Màu banner người dùng tự chọn giữ nguyên. */
+(function(){
+  const LEG=/^#31c27c$/i, fix=u=>(u&&LEG.test(u.banner_color||''))?{...u,banner_color:''}:u;
+  const _pc=profileCard;     profileCard=function(u,o){ return _pc.call(this,fix(u),o); };
+  const _sc=shareCard;       shareCard=function(u){ return _sc.call(this,fix(u)); };
+  const _op=openProfilePage; openProfilePage=function(u,m){ return _op.call(this,fix(u),m); };
+  const _pt=pfThemeApply;    pfThemeApply=function(el,u,m){ return _pt.call(this,el,fix(u),m); };
+})();
 (async()=>{
   { // Mở link/QR có ?pair=<6 số> → đăng nhập luôn (chỉ khi máy này chưa đăng nhập, để không tiêu mã vô ích)
     let pq=''; try{ const v=new URLSearchParams(location.search).get('pair')||''; if(v){ const u=new URL(location.href); u.searchParams.delete('pair'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); } pq=/^\d{6}$/.test(v)?v:''; }catch{}
