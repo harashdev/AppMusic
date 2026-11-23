@@ -1966,14 +1966,14 @@ async fn privacy_set(State(st): State<AppState>, headers: HeaderMap, Json(r): Js
 
 // Trang chủ của người khác: trả về cả trạng thái bạn bè (để ẩn nút "Kết bạn") và, nếu họ để công khai, playlist + nhạc đã thích gần đây.
 async fn user_home(State(st): State<AppState>, headers: HeaderMap, Path(uid): Path<i64>) -> R<Value> {
-    let me = require(&st, &headers)?;
+    let me_id: i64 = require(&st, &headers).map(|u| u.id).unwrap_or(-1);   // khách (chưa đăng nhập) vẫn xem được Trang chủ công khai
     let db = st.db.lock().unwrap();
     let public: i64 = db
         .query_row("SELECT home_public FROM users WHERE id=?1", [uid], |r| r.get(0))
         .map_err(|_| (StatusCode::NOT_FOUND, "Không tìm thấy người dùng".to_string()))?;
-    let friend = me.id == uid
-        || db.query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![me.id, uid], |_| Ok(())).is_ok();
-    if public == 0 && me.id != uid {
+    let friend = me_id == uid
+        || db.query_row("SELECT 1 FROM friends WHERE user_id=?1 AND friend_id=?2", params![me_id, uid], |_| Ok(())).is_ok();
+    if public == 0 && me_id != uid {
         return Ok(Json(json!({ "friend": friend, "public": false })));
     }
     let mut pls: Vec<Value> = Vec::new();
@@ -4421,8 +4421,7 @@ fn follow_count(db: &rusqlite::Connection, id: i64) -> i64 {
         .unwrap_or(0)
 }
 
-async fn fans_get(State(st): State<AppState>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
-    require(&st, &headers)?;
+async fn fans_get(State(st): State<AppState>, _headers: HeaderMap, Path(id): Path<i64>) -> Result<Json<Value>, ApiErr> {
     let db = st.db.lock().unwrap();
     Ok(Json(json!({ "id": id, "n": follow_count(&db, id) })))
 }
