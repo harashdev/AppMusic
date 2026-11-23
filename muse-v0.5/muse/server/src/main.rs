@@ -4426,9 +4426,9 @@ if(window.__TAURI__||window.__TAURI_INTERNALS__||window.MuseNative){location.rep
 if(!noapp&&/Windows|Macintosh|X11|Linux/i.test(ua)&&!/Mobile|iPhone|iPad/i.test(ua)){
 var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn=document.getElementById("a"),timer=0,halt=function(){stop=true;};
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
-var launch=function(){var l=document.createElement("a");l.href=app;l.style.display="none";document.body.appendChild(l);l.click();l.remove();};
-var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){t.textContent="BBeat đã được mở. Có thể đóng tab này.";return;}t.textContent="Nếu BBeat chưa mở: cho phép trình duyệt mở BBeat (hộp thoại \"Mở BBeat?\") rồi bấm \"Mở trong BBeat\" lần nữa. Chưa cài app thì chọn \"Xem trên web\".";},2200);};
-btn.onclick=function(e){e.preventDefault();stop=false;t.textContent="Đang mở BBeat…";launch();hint();};
+var launch=function(){location.href=app;};
+var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){t.textContent="BBeat đã được mở. Có thể đóng tab này.";return;}t.textContent="Nếu BBeat chưa mở: trong hộp thoại \"Mở BBeat?\" của trình duyệt hãy chọn Mở (tick \"luôn cho phép\" để lần sau tự mở), hoặc bấm \"Mở trong BBeat\". Chưa cài app thì chọn \"Xem trên web\".";},2500);};
+btn.addEventListener("click",function(){stop=false;t.textContent="Đang mở BBeat…";hint();}); /* không chặn link: bấm tay là thao tác người dùng nên trình duyệt cho mở app */
 m.style.display="block";launch();hint();return;}
 }catch(e){}location.replace(web);})();</script>
 </body></html>"##;
