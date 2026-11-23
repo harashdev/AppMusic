@@ -120,6 +120,19 @@ void muse_pres_update(const char* title, const char* artist, const char* image, 
     flush_pending_locked();
 }
 
+// Khi không phát nhạc: hiện vị trí đang đứng trong app (Trang chủ, Tìm kiếm, Cài đặt...) thay vì bài hát.
+void muse_pres_page(const char* label) {
+    std::lock_guard<std::mutex> lk(g_mu);
+    if (!g_client) return;
+    discordpp::Activity a;
+    a.SetType(discordpp::ActivityTypes::Playing);
+    a.SetDetails(cut(label, 120));
+    g_pending = a;
+    g_has_pending = true;
+    g_pending_clear = false;
+    flush_pending_locked();
+}
+
 void muse_pres_clear(void) {
     std::lock_guard<std::mutex> lk(g_mu);
     g_has_pending = false;
