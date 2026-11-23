@@ -17,6 +17,7 @@ JNIEXPORT jint JNICALL Java_vn_muse_app_MuseSdk_nStart(JNIEnv* env, jclass, jlon
 JNIEXPORT void JNICALL Java_vn_muse_app_MuseSdk_nUpdate(JNIEnv* env, jclass, jstring title, jstring artist, jstring image, jlong startS, jlong endS) {
     muse_pres_update(str(env, title).c_str(), str(env, artist).c_str(), str(env, image).c_str(), (int64_t)startS, (int64_t)endS);
 }
+JNIEXPORT void JNICALL Java_vn_muse_app_MuseSdk_nPage(JNIEnv* env, jclass, jstring label) { muse_pres_page(str(env, label).c_str()); }
 JNIEXPORT void JNICALL Java_vn_muse_app_MuseSdk_nClear(JNIEnv*, jclass) { muse_pres_clear(); }
 JNIEXPORT jint JNICALL Java_vn_muse_app_MuseSdk_nStatus(JNIEnv*, jclass) { return muse_pres_status(); }
 JNIEXPORT jstring JNICALL Java_vn_muse_app_MuseSdk_nError(JNIEnv* env, jclass) { return env->NewStringUTF(muse_pres_error()); }
