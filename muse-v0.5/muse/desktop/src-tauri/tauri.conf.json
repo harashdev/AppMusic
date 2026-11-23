@@ -11,6 +11,11 @@
       "csp": null
     }
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": { "schemes": ["bbeat"] }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
