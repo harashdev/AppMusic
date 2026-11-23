@@ -7823,6 +7823,34 @@ async function start(u,offlineBoot,resume){
   const _op=openProfilePage; openProfilePage=function(u,m){ return _op.call(this,fix(u),m); };
   const _pt=pfThemeApply;    pfThemeApply=function(el,u,m){ return _pt.call(this,el,fix(u),m); };
 })();
+/* VÁ 2 (chỉ thêm): làm thẻ hồ sơ + trang Chỉnh sửa hiển thị banner/avatar GIỐNG NHAU.
+   Nguyên nhân lệch: thẻ cắt banner theo tỉ lệ cố định 2 trong khi khung thật là 2:1 (thẻ nhỏ) hoặc 21:9 (thẻ to), còn trang Chỉnh sửa cắt theo khung thật.
+   Cách sửa: thẻ cũng đo khung thật của .pc-ban (ResizeObserver) rồi cắt lại đúng như trang Chỉnh sửa; đồng bộ viền avatar + lớp phủ tối. */
+(function(){
+  const st=document.createElement('style');
+  st.textContent=`
+  .pe-av,.pe-avc{width:92px;height:92px}
+  .pe-avc{border:4px solid var(--accent,#8ecbff)}
+  .pe-cam{border-color:#17141f}
+  .pe-hero::after{background:linear-gradient(to bottom,rgba(0,0,0,.28),rgba(0,0,0,0) 30%),linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,.04) 64%)}
+  .pe-id{padding-bottom:8px}
+  `;
+  document.head.appendChild(st);
+  const _pc=profileCard;
+  profileCard=function(u,o){ const h=_pc.call(this,u,o); return h.replace('<div class="pc','<div data-bc="'+esc((u&&u.crop)||'')+'" class="pc'); };
+  const fit=ban=>{
+    const pc=ban.closest('.pc'); if(!pc) return;
+    const w=ban.clientWidth,h=ban.clientHeight; if(!w||!h) return;
+    let c={}; try{ c=cropOf({crop:pc.getAttribute('data-bc')||''}); }catch{ return; }
+    ban.querySelectorAll(':scope>img,:scope>video').forEach(m=>m.setAttribute('style',cropStyle(c.bx,c.by,c.bz,c.ba,w/h)));
+  };
+  const ro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>fit(e.target))):null;
+  const hook=root=>{ if(!ro||!root||root.nodeType!==1) return;
+    const list=root.matches&&root.matches('.pc-ban')?[root]:[...root.querySelectorAll('.pc[data-bc] .pc-ban')];
+    list.forEach(b=>{ if(b._fit) return; b._fit=1; ro.observe(b); fit(b); }); };
+  try{ new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(hook))).observe(document.documentElement,{childList:true,subtree:true}); }catch{}
+  hook(document.documentElement);
+})();
 (async()=>{
   { // Mở link/QR có ?pair=<6 số> → đăng nhập luôn (chỉ khi máy này chưa đăng nhập, để không tiêu mã vô ích)
     let pq=''; try{ const v=new URLSearchParams(location.search).get('pair')||''; if(v){ const u=new URL(location.href); u.searchParams.delete('pair'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); } pq=/^\d{6}$/.test(v)?v:''; }catch{}
