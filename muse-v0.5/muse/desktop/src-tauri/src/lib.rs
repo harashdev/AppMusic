@@ -528,6 +528,13 @@ fn deep_user(urls: &[tauri::Url]) -> Option<String> {
     None
 }
 
+// Giao diện gọi khi có người bấm link thẻ trên web: đưa cửa sổ app lên trước.
+#[cfg(desktop)]
+#[tauri::command]
+fn win_focus(app: tauri::AppHandle) {
+    show_main(&app);
+}
+
 #[cfg(desktop)]
 fn show_main(app: &tauri::AppHandle) {
     use tauri::Manager;
@@ -577,6 +584,7 @@ pub fn run() {
             open_url,
             win_toggle_max,
             win_toggle_fullscreen,
+            win_focus,
             discord_rpc::discord_connect,
             discord_rpc::discord_activity,
             discord_rpc::discord_clear,
