@@ -467,6 +467,7 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pcov .pc{width:min(720px,100%);max-height:100%;display:flex;flex-direction:column;border-radius:22px;box-shadow:0 20px 60px #000a;animation:pcovPop .22s cubic-bezier(.2,.9,.3,1)}
 .pcov .pc-ban{aspect-ratio:21/9;flex:none;min-height:150px;border-radius:22px 22px 0 0}
 .pcov .pc-hd{padding:18px 22px;gap:16px}
+.pcov .pc-ban::after{background:linear-gradient(to right,rgba(0,0,0,.5),rgba(0,0,0,.16) 60%,rgba(0,0,0,0))}
 .pcov .pc-av{width:clamp(72px,13vw,96px);height:clamp(72px,13vw,96px);border-width:4px}
 .pcov .pc-name{font-size:clamp(22px,4vw,28px);font-weight:800}.pcov .pc-un{font-size:15px}
 .pcov .pc-body{flex:none;padding:16px 22px 20px;overflow:auto}
@@ -3810,7 +3811,7 @@ function warmBanners(users){
 }
 function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
-  const col=esc(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2'));
+  const col=esc(o.big?(/^#[0-9a-f]{6}$/i.test(u.accent||'')?u.accent:'#8ecbff'):(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2')));
   return `<div class="pc${o.full?' full':''}"><div class="pc-ban" style="background:${col}">${ban}
     <div class="pc-hd"><div class="pc-av${o.mine?' ed':(isImg(u.avatar)?' zm':'')}"${o.mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${o.mine?`<span class="av-pen">${ic('pen')}</span>`:''}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
@@ -4046,8 +4047,8 @@ function openPendingUser(){
 function showBigCard(u,mine){
   document.querySelectorAll('.pcpop,.pop,.pcov').forEach(x=>x.remove());
   const ov=document.createElement('div'); ov.className='pcov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
-  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button><button class="out sm" data-x="card">Thẻ chia sẻ</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
-  ov.innerHTML=profileCard(u,{extra,full:false,mine});
+  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
+  ov.innerHTML=profileCard(u,{extra,full:false,mine,big:true});
   const card=ov.firstElementChild; card.insertAdjacentHTML('beforeend','<button class="pcov-x" data-x="close" aria-label="Đóng">✕</button>');
   const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
   function onKey(e){ if(ov.style.display==='none'||!ov.isConnected){ if(!ov.isConnected) document.removeEventListener('keydown',onKey,true); return; } if(e.key==='Escape'&&!document.querySelector('.imgv,.dlgov,.shc-ov,.bp')){ e.preventDefault(); close(); } }
