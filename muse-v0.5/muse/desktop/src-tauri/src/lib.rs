@@ -505,9 +505,64 @@ fn win_toggle_fullscreen(window: tauri::WebviewWindow) -> Result<(), String> {
     window.set_fullscreen(!full).map_err(|e| e.to_string())
 }
 
+// ---------- Link thẻ hồ sơ: bbeat://u/<tên> (trang /u/<tên> của server mở app bằng link này) ----------
+#[cfg(desktop)]
+fn deep_user(urls: &[tauri::Url]) -> Option<String> {
+    for u in urls {
+        if !u.scheme().eq_ignore_ascii_case("bbeat") {
+            continue;
+        }
+        // bbeat://u/<tên> → host = "u", path = "/<tên>" (một số hệ điều hành bỏ host → "u/<tên>" nằm trong path)
+        let mut parts: Vec<&str> = Vec::new();
+        if let Some(h) = u.host_str() {
+            parts.push(h);
+        }
+        parts.extend(u.path().split('/').filter(|s| !s.is_empty()));
+        if parts.len() >= 2 && parts[0].eq_ignore_ascii_case("u") {
+            let n = parts[1];
+            if !n.is_empty() && n.len() <= 64 && n.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.' || c == '-') {
+                return Some(n.to_string());
+            }
+        }
+    }
+    None
+}
+
+#[cfg(desktop)]
+fn show_main(app: &tauri::AppHandle) {
+    use tauri::Manager;
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.unminimize();
+        let _ = w.show();
+        let _ = w.set_focus();
+    }
+}
+
+// App đang chạy: đưa cửa sổ lên trước rồi mở thẻ hồ sơ của người đó (web có sẵn window.museOpenUser; chưa có thì tải lại kèm ?u=)
+#[cfg(desktop)]
+fn open_user(app: &tauri::AppHandle, name: &str) {
+    use tauri::Manager;
+    show_main(app);
+    if let Some(w) = app.get_webview_window("main") {
+        let js = format!(
+            "(function(n){{try{{if(window.museOpenUser){{window.museOpenUser(n);}}else{{location.href=location.origin+'/?u='+encodeURIComponent(n);}}}}catch(e){{}}}})({});",
+            json!(name)
+        );
+        let _ = w.eval(&js);
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
+
+    // Plugin single-instance phải đứng đầu: bấm link bbeat:// khi app đang mở thì chỉ đưa app lên trước, không mở bản thứ hai.
+    #[cfg(desktop)]
+    let builder = builder
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_main(app);
+        }))
+        .plugin(tauri_plugin_deep_link::init());
 
     #[cfg(desktop)]
     let builder = builder
@@ -530,6 +585,27 @@ pub fn run() {
         .setup(|app| {
             #[allow(unused_mut)]
             let mut start_url: String = SERVER_URL.to_string();
+            #[allow(unused_mut)]
+            let mut cold_user: Option<String> = None;
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                let dl = app.deep_link();
+                // Bản không cài qua installer (portable/AppImage) vẫn tự đăng ký bbeat:// với hệ điều hành
+                #[cfg(any(windows, target_os = "linux"))]
+                {
+                    let _ = dl.register_all();
+                }
+                // Mở app lúc đang tắt bằng link bbeat://u/<tên>: tải thẳng trang kèm ?u=<tên>, web tự hiện thẻ hồ sơ
+                cold_user = dl.get_current().ok().flatten().and_then(|u| deep_user(&u));
+                // Mở link khi app đang chạy
+                let h = app.handle().clone();
+                dl.on_open_url(move |ev| {
+                    if let Some(n) = deep_user(&ev.urls()) {
+                        open_user(&h, &n);
+                    }
+                });
+            }
             #[cfg(desktop)]
             {
                 use tauri::Manager;
@@ -541,7 +617,10 @@ pub fn run() {
                     app.manage(gateway::GatewayChild(Mutex::new(child)));
                 }
             }
-            let url: tauri::Url = start_url.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
+            let mut url: tauri::Url = start_url.parse().map_err(|e| format!("MUSE_URL không hợp lệ: {e}"))?;
+            if let Some(n) = cold_user {
+                url.query_pairs_mut().append_pair("u", &n);
+            }
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
                 .title("BBeat")
                 .inner_size(1280.0, 820.0)
