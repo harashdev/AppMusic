@@ -3706,6 +3706,8 @@ async function logout(){
 }
 
 const LEGACY_ACCENT='#31c27c', NEW_ACCENT='#8ecbff';
+/* Tài khoản chưa chọn màu có accent cũ #31c27c (xanh lá, mặc định cũ của server). Với MÌNH app đã đổi sang màu mới lúc đăng nhập; với NGƯỜI KHÁC cũng phải đổi như vậy, nếu không thẻ/trang của họ luôn ra xanh lá. */
+const normAcc=a=>(!a||String(a).toLowerCase()===LEGACY_ACCENT)?NEW_ACCENT:a;
 function paintTheme(acc,bg,url){
   const rt=document.documentElement.style; rt.setProperty('--accent',acc);
   const n=parseInt(acc.slice(1),16), l=((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/255000; rt.setProperty('--on',l>.6?'#07131d':'#ffffff');
@@ -3811,7 +3813,7 @@ function warmBanners(users){
 }
 function profileCard(u,o={}){
   const cr=cropOf(u), ban=okImgUrl(u.banner)?gvHtml(u.banner,cropStyle(cr.bx,cr.by,cr.bz,cr.ba,2)):'';
-  const col=esc(o.big?(/^#[0-9a-f]{6}$/i.test(u.accent||'')?u.accent:'#8ecbff'):(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2')));
+  const ac=normAcc(u.accent), col=esc(o.big?(/^#[0-9a-f]{6}$/i.test(ac)?ac:'#8ecbff'):(/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(ac||'#5865f2')));
   return `<div class="pc${o.full?' full':''}"><div class="pc-ban" style="background:${col}">${ban}
     <div class="pc-hd"><div class="pc-av${o.mine?' ed':(isImg(u.avatar)?' zm':'')}"${o.mine?' title="Chỉnh sửa hồ sơ"':''}>${avHtml(u.avatar,'',cropOf(u),true)}${o.mine?`<span class="av-pen">${ic('pen')}</span>`:''}<i class="pc-dot ${u.online===false?'off':''}"></i>${u.status?`<span class="pc-badge">${esc(u.status)}</span>`:''}</div><div class="pc-id"><div class="pc-name">${esc(u.display_name)}</div>${u.username?`<div class="pc-un">@${esc(u.username)}</div>`:''}</div></div>
     </div><div class="pc-body">${o.extra||''}</div></div>`;
@@ -3881,7 +3883,7 @@ function shareCard(u){
   const cover=(im,x,y,w,h,cr)=>{ const ar=im.width/im.height, br=w/h; let sw=im.width,sh=im.height; if(ar>br) sw=sh*br; else sh=sw/br;
     const z=Math.max(1,cr.bz||1); sw/=z; sh/=z; const sx=Math.min(Math.max(0,(im.width-sw)*(cr.bx??50)/100),im.width-sw), sy=Math.min(Math.max(0,(im.height-sh)*(cr.by??50)/100),im.height-sh);
     g.drawImage(im,sx,sy,sw,sh,x,y,w,h); };
-  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
+  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:normAcc(u.accent||'#5865f2');
   let no='0'; const d=new Date(), date=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
   const ft='"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   /* Chỉnh chữ trên thẻ (chỉ thẻ của mình, lưu trên máy; ảnh thẻ gửi đi / link chia sẻ có kiểu chữ này). Banner + avatar vẫn đi theo ảnh của người dùng. 0/100 = giữ như mặc định cũ. */
@@ -4164,7 +4166,8 @@ function pfIdChips(u,mine){
 }
 function openProfilePage(u,mine){
   document.querySelectorAll('.pcpop,.pop,.bp,.bp-ed').forEach(x=>x.remove());
-  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:(u.accent||'#5865f2');
+  if(u&&!mine) u={...u,accent:normAcc(u.accent)};   /* người khác chưa chọn màu → màu mặc định mới, không phải xanh lá cũ */
+  const col=/^#[0-9a-f]{6}$/i.test(u.banner_color||'')?u.banner_color:normAcc(u.accent||'#5865f2');
   const ban=okImgUrl(u.banner)?gvHtml(u.banner,''):'';
   const tier=u.supporter>=2?'Thành viên lớn':u.supporter>=1?'Thành viên nhỏ':'';
   const d=document.createElement('div'); d.className='bp themed'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Hồ sơ '+(u.display_name||'')); pfThemeApply(d,u,mine);
