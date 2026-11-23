@@ -2172,7 +2172,7 @@ function warmImgs(list,s,n=14){ try{ let k=0; for(const t of (list||[])){ if(k>=
 
 let guest=!token&&LS.get('muse_guest','0')==='1';
 const GUEST_USER={id:0,username:'guest',display_name:'Khách',avatar:'🎧',accent:'#8ecbff',bg:'',bg_url:'',code:'',is_admin:false,banner:'',banner_color:'',status:'',crop:''};
-const GUEST_LOCAL=/^\/api\/(settings|favorites|history|playlists(\/.*)?)$/, GUEST_NET=/^\/api\/(yt\/|config$|time$)/;
+const GUEST_LOCAL=/^\/api\/(settings|favorites|history|playlists(\/.*)?)$/, GUEST_NET=/^\/api\/(yt\/|config$|time$|users\/\d+\/home$|fans\/\d+$)/;
 const GL={ get(k,d){ try{ const v=JSON.parse(LS.get('muse_g_'+k,'null')); return v===null?d:v; }catch{ return d; } }, set(k,v){ LS.set('muse_g_'+k,JSON.stringify(v)); } };
 async function guestApi(p,opt){
   const m=String(opt.method||(opt.json!==undefined?'POST':'GET')).toUpperCase(), j=opt.json;
@@ -4049,6 +4049,7 @@ async function openUserCard(name){
   window.__ouN=name; window.__ouT=Date.now();
   let u=null; try{ const r=await fetch('/api/u/'+encodeURIComponent(name)); if(r.ok) u=await r.json(); else { notify('Không tìm thấy thẻ này'); return; } }catch{ notify(NET_ERR); return; }
   const mine=!!(me&&me.id&&me.id===u.id);
+  if(guest&&!mine){ try{ openProfilePage(u,false); return; }catch{} }   /* khách: vào thẳng Trang chủ của người này */
   showBigCard(mine?{...me,online:true}:u,mine);
 }
 window.museOpenUser=openUserCard;
@@ -4076,7 +4077,7 @@ function openPendingUser(){
 function showBigCard(u,mine){
   document.querySelectorAll('.pcpop,.pop,.pcov').forEach(x=>x.remove());
   const ov=document.createElement('div'); ov.className='pcov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
-  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${(guest||mine)?'':'<button class="out big pc-fr" data-x="friend">Kết bạn</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
+  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
   ov.innerHTML=profileCard(u,{extra,full:false,mine,big:true});
   const card=ov.firstElementChild; card.insertAdjacentHTML('beforeend','<button class="pcov-x" data-x="close" aria-label="Đóng">✕</button>');
   const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
@@ -4101,7 +4102,6 @@ function showBigCard(u,mine){
     else if(act==='edit'){ close(); go('profile'); } };
   document.body.appendChild(ov);
   api('/api/fans/'+u.id).then(r=>{ const el=ov.querySelector('#pcvS1'); if(el) el.textContent=String(+r.n||0); },()=>{});
-  if(!mine&&!guest){ api('/api/users/'+u.id+'/home').then(r=>{ const b=ov.querySelector('.pc-fr'); if(b&&!(r&&r.friend)){ b.parentElement.classList.add('two'); } },()=>{}); }   /* chưa là bạn bè → hiện nút Kết bạn cạnh Trang chủ */
   try{ fillLevel(ov,u); }catch{}
 }
 function showProfilePop(u,anchor,mine){
@@ -4228,7 +4228,7 @@ function openProfilePage(u,mine){
   async function showHome(){
     if(!mine){
       body.innerHTML='<p class="bp-empty">Đang tải…</p>';
-      const r=guest?null:await loadOther();
+      const r=await loadOther();
       if(!body.isConnected||d.querySelector('.bp-tab.on').dataset.t!=='home') return;
       if(!r||r.public===false){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
       const pl=r.playlists||[], recent=r.likes||[], k=recent.length?reg(recent,'Yêu thích'):0;
