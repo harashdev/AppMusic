@@ -169,6 +169,17 @@ mod discord_rpc {
         set_activity(&mut d, a)
     }
 
+    // Không phát nhạc: hiện vị trí đang đứng trong app (kiểu "Playing", không có thời gian/ảnh bìa).
+    #[tauri::command]
+    pub fn discord_page(state: State<'_, DiscordState>, label: String) -> Result<(), String> {
+        let mut d = state.0.lock().map_err(|e| e.to_string())?;
+        let a = json!({
+            "type": 0,
+            "details": label.chars().take(120).collect::<String>(),
+        });
+        set_activity(&mut d, a)
+    }
+
     #[tauri::command]
     pub fn discord_clear(state: State<'_, DiscordState>) -> Result<(), String> {
         let mut d = state.0.lock().map_err(|e| e.to_string())?;
@@ -186,6 +197,7 @@ mod sdk {
     extern "C" {
         fn muse_pres_start(app_id: u64, token: *const c_char) -> c_int;
         fn muse_pres_update(title: *const c_char, artist: *const c_char, image: *const c_char, start_s: i64, end_s: i64);
+        fn muse_pres_page(label: *const c_char);
         fn muse_pres_clear();
         fn muse_pres_status() -> c_int;
         fn muse_pres_error() -> *const c_char;
@@ -233,6 +245,12 @@ mod sdk {
     }
 
     #[tauri::command]
+    pub fn sdk_presence_page(label: String) -> Result<(), String> {
+        unsafe { muse_pres_page(c(&label).as_ptr()) };
+        Ok(())
+    }
+
+    #[tauri::command]
     pub fn sdk_presence_clear() -> Result<(), String> {
         unsafe { muse_pres_clear() };
         Ok(())
@@ -255,6 +273,10 @@ mod sdk {
     }
     #[tauri::command]
     pub fn sdk_presence_update(_title: String, _artist: String, _image: String, _start_ms: i64, _end_ms: i64) -> Result<(), String> {
+        Ok(())
+    }
+    #[tauri::command]
+    pub fn sdk_presence_page(_label: String) -> Result<(), String> {
         Ok(())
     }
     #[tauri::command]
@@ -587,11 +609,13 @@ pub fn run() {
             win_focus,
             discord_rpc::discord_connect,
             discord_rpc::discord_activity,
+            discord_rpc::discord_page,
             discord_rpc::discord_clear,
             sdk::sdk_available,
             sdk::sdk_presence_start,
             sdk::sdk_presence_status,
             sdk::sdk_presence_update,
+            sdk::sdk_presence_page,
             sdk::sdk_presence_clear,
         ]);
 
