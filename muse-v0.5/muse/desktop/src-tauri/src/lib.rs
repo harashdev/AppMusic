@@ -544,8 +544,10 @@ fn open_user(app: &tauri::AppHandle, name: &str) {
     use tauri::Manager;
     show_main(app);
     if let Some(w) = app.get_webview_window("main") {
+        // Trang có thể chưa nạp xong (app vừa bật / đang tải lại): chờ tối đa ~30 giây cho tới khi có window.museOpenUser rồi mới mở thẻ;
+        // hết thời gian mà vẫn chưa có thì tải lại trang kèm ?u= để web tự hiện thẻ. Chống mở trùng khi 2 đường (single-instance + deep-link) cùng báo.
         let js = format!(
-            "(function(n){{try{{if(window.museOpenUser){{window.museOpenUser(n);}}else{{location.href=location.origin+'/?u='+encodeURIComponent(n);}}}}catch(e){{}}}})({});",
+            "(function(n){{try{{if(window.__bbU===n&&Date.now()-(window.__bbT||0)<4000)return;window.__bbU=n;window.__bbT=Date.now();}}catch(e){{}}var t=0;(function f(){{try{{if(window.museOpenUser){{window.museOpenUser(n);return;}}}}catch(e){{}}if(++t<60){{setTimeout(f,500);}}else{{try{{location.href=location.origin+'/?u='+encodeURIComponent(n);}}catch(e){{}}}}}})();}})({});",
             json!(name)
         );
         let _ = w.eval(&js);
@@ -559,8 +561,12 @@ pub fn run() {
     // Plugin single-instance phải đứng đầu: bấm link bbeat:// khi app đang mở thì chỉ đưa app lên trước, không mở bản thứ hai.
     #[cfg(desktop)]
     let builder = builder
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             show_main(app);
+            // Dự phòng: Windows truyền link bbeat://u/<tên> qua dòng lệnh của bản chạy thứ hai → mở thẻ ngay cả khi sự kiện deep-link không tới.
+            if let Some(n) = args.iter().filter_map(|a| tauri::Url::parse(a).ok()).find_map(|u| deep_user(&[u])) {
+                open_user(app, &n);
+            }
         }))
         .plugin(tauri_plugin_deep_link::init());
 
@@ -597,7 +603,13 @@ pub fn run() {
                     let _ = dl.register_all();
                 }
                 // Mở app lúc đang tắt bằng link bbeat://u/<tên>: tải thẳng trang kèm ?u=<tên>, web tự hiện thẻ hồ sơ
-                cold_user = dl.get_current().ok().flatten().and_then(|u| deep_user(&u));
+                cold_user = dl
+                    .get_current()
+                    .ok()
+                    .flatten()
+                    .and_then(|u| deep_user(&u))
+                    // Dự phòng: lấy link bbeat:// thẳng từ dòng lệnh lúc app được bật bằng link
+                    .or_else(|| std::env::args().filter_map(|a| tauri::Url::parse(&a).ok()).find_map(|u| deep_user(&[u])));
                 // Mở link khi app đang chạy
                 let h = app.handle().clone();
                 dl.on_open_url(move |ev| {
