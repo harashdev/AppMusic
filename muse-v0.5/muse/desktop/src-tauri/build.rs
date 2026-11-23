@@ -8,11 +8,13 @@ const COMMANDS: &[&str] = &[
     "open_url",
     "discord_connect",
     "discord_activity",
+    "discord_page",
     "discord_clear",
     "sdk_available",
     "sdk_presence_start",
     "sdk_presence_status",
     "sdk_presence_update",
+    "sdk_presence_page",
     "sdk_presence_clear",
 ];
 
