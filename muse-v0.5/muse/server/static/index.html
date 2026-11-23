@@ -473,6 +473,10 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .pcov .pc-body{flex:none;padding:16px 22px 20px;overflow:auto}
 .pcov .pc-st{display:flex;gap:28px;margin-bottom:14px}.pcov .pc-st b{display:block;font-size:20px}.pcov .pc-st span{font-size:12px;opacity:.7}
 .pcov .pc-act{margin-top:6px}.pcov .pc-act .big{flex:1 1 100%;justify-content:center;font-size:16px;padding:12px}
+.pcov .pc-act.two .big{flex:1 1 0;min-width:0}
+.pcov .pc-act .pc-fr{display:none;border-radius:999px;border:2px solid var(--pf-ac,var(--accent,#8ecbff));background:none;color:var(--pf-ac,var(--accent,#8ecbff));font-weight:700;cursor:pointer}
+.pcov .pc-act.two .pc-fr{display:inline-flex;align-items:center;justify-content:center}
+.pcov .pc-act .pc-fr:disabled{opacity:.65;cursor:default}
 .pcov-x{position:absolute;top:14px;right:14px;z-index:5;width:38px;height:38px;border-radius:50%;background:#0007;color:#fff;border:0;font-size:18px;cursor:pointer}
 .pcov .pc{position:relative}
 /* TRANG HỒ SƠ kiểu Bilibili: banner trên cùng, avatar + số liệu, tên + cấp độ, hai tab Trang chủ / Yêu thích */
@@ -492,6 +496,9 @@ input[type=range]::-moz-range-thumb{width:0;height:12px;border:0;background:#fff
 .bp-stats{display:flex;text-align:center}
 .bp-st{flex:1;min-width:0;padding:0 4px;border-left:1px solid var(--line)}
 .bp-st:first-child{border-left:0}
+.bp-st.clk{cursor:pointer;border-radius:10px;transition:background .15s}
+.bp-st.clk:hover,.bp-st.clk:focus-visible{background:rgba(255,255,255,.14);outline:none}
+.bp-tr .bp-avt{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surf2);color:var(--pf-ac,var(--sub));font-weight:700;font-size:18px}
 .bp-st b{display:block;font-size:18px}
 .bp-st span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
 .bp-ebs{display:flex;gap:8px;margin-top:12px}
@@ -1788,7 +1795,7 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
     'Không tạo được ảnh (ảnh nền từ trang khác chặn xuất). Hãy dùng banner tải lên.':'Couldn’t create the image (a background from another site blocks export). Use an uploaded banner instead.',
     'Mới nghe':'Newcomer','Tập sự':'Apprentice','Mê nhạc':'Music lover','Sành nghe':'Connoisseur','Cao thủ':'Expert','Bậc thầy':'Master','Huyền thoại':'Legend',
     'Đã nghe':'Listened','Đã đạt cấp cao nhất':'Max level reached','trên BBeat':'on BBeat','Không tìm thấy thẻ này':'Card not found','Thẻ danh tính':'ID card',
-    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
+    'Không có mô tả':'No description','Chỉnh sửa thông tin':'Edit info','Kết bạn':'Add friend','Đã gửi lời mời':'Request sent','Đã là bạn bè':'Friends','Nghệ sĩ đã theo dõi':'Followed artists','Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.':'You haven’t followed any artists yet. While a song plays, tap “Follow” under the artist name.','Trang chủ hồ sơ':'Profile home','Công khai':'Public','Riêng tư':'Private','Chỉ chủ hồ sơ mới xem được mục này.':'Only the profile owner can see this section.',
     'Chưa có playlist nào.':'No playlists yet.','Thêm ›':'More ›','Bạn chưa thích bài nào. Bấm ♡ ở bài hát để thêm vào đây.':'You haven’t liked any songs yet. Tap ♡ on a song to add it here.','Nhạc đã thích':'Liked music',
     'Đã chép UID':'UID copied','Đã lưu tên hiển thị':'Display name saved','Không lưu được':'Couldn’t save','Không gửi được lời mời':'Couldn’t send the invite','Không mở được':'Couldn’t open',
     'Đăng nhập để chỉnh sửa hồ sơ':'Log in to edit your profile','Biệt danh':'Nickname','Đã lưu biệt danh':'Nickname saved','Chữ ký cá nhân':'Bio','Đã lưu chữ ký':'Bio saved',
@@ -4049,13 +4056,13 @@ function openPendingUser(){
 function showBigCard(u,mine){
   document.querySelectorAll('.pcpop,.pop,.pcov').forEach(x=>x.remove());
   const ov=document.createElement('div'); ov.className='pcov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Hồ sơ '+(u.display_name||''));
-  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
+  const extra=`<div class="pc-st"><div><b id="pcvS1">–</b><span>Fan</span></div></div><div class="pc-lv"></div><div class="pc-act">${guest?'':'<button class="pri big" data-x="page">Trang chủ</button>'}${(guest||mine)?'':'<button class="out big pc-fr" data-x="friend">Kết bạn</button>'}${mine?'<button class="out sm" data-x="edit">Chỉnh sửa hồ sơ</button>':''}</div>`;
   ov.innerHTML=profileCard(u,{extra,full:false,mine,big:true});
   const card=ov.firstElementChild; card.insertAdjacentHTML('beforeend','<button class="pcov-x" data-x="close" aria-label="Đóng">✕</button>');
   const close=()=>{ document.removeEventListener('keydown',onKey,true); ov.remove(); };
   function onKey(e){ if(ov.style.display==='none'||!ov.isConnected){ if(!ov.isConnected) document.removeEventListener('keydown',onKey,true); return; } if(e.key==='Escape'&&!document.querySelector('.imgv,.dlgov,.shc-ov,.bp')){ e.preventDefault(); close(); } }
   document.addEventListener('keydown',onKey,true);
-  ov.onclick=e=>{
+  ov.onclick=async e=>{
     if(e.target===ov){ close(); return; }
     const x=e.target.closest('[data-x]');
     if(!x){
@@ -4069,10 +4076,12 @@ function showBigCard(u,mine){
       if(!document.querySelector('.bp')){ ov.style.display=''; return; }
       const mo=new MutationObserver(()=>{ if(!ov.isConnected){ mo.disconnect(); return; } if(!document.querySelector('.bp')){ mo.disconnect(); ov.style.display=''; } });
       mo.observe(document.body,{childList:true}); }
+    else if(act==='friend'){ try{ x.disabled=true; const r=await api('/api/friends',{json:{code:u.username||u.code}}); const ok=r&&r.status==='accepted'; notify(ok?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); x.textContent=ok?'Đã là bạn bè':'Đã gửi lời mời'; }catch(er){ x.disabled=false; notify((er&&er.message)||'Không gửi được lời mời'); } }
     else if(act==='card'){ shareCard(u); }   /* thẻ chia sẻ mở đè lên, đóng lại vẫn còn thẻ */
     else if(act==='edit'){ close(); go('profile'); } };
   document.body.appendChild(ov);
   api('/api/fans/'+u.id).then(r=>{ const el=ov.querySelector('#pcvS1'); if(el) el.textContent=String(+r.n||0); },()=>{});
+  if(!mine&&!guest){ api('/api/users/'+u.id+'/home').then(r=>{ const b=ov.querySelector('.pc-fr'); if(b&&!(r&&r.friend)){ b.parentElement.classList.add('two'); } },()=>{}); }   /* chưa là bạn bè → hiện nút Kết bạn cạnh Trang chủ */
   try{ fillLevel(ov,u); }catch{}
 }
 function showProfilePop(u,anchor,mine){
@@ -4174,13 +4183,13 @@ function openProfilePage(u,mine){
   d.innerHTML=`<div class="bp-w"><div class="bp-hero">
     <div class="bp-ban" style="background:${esc(col)}">${ban}<div class="bp-top"><button class="bp-ib" data-x="back" aria-label="Đóng">${ic('chev','flip')}</button><button class="bp-ib" data-x="scan" aria-label="Quét QR">${ic('scan')}</button></div></div>
     <div class="bp-head"><div class="bp-av${isImg(u.avatar)?' zm':''}" data-x="av">${avHtml(u.avatar,'',cropOf(u),true)}</div>
-      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st"><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st"><b id="bpS3">–</b><span>Lượt thích</span></div></div>
+      <div class="bp-hr"><div class="bp-stats"><div class="bp-st"><b id="bpS1">–</b><span>Fan</span></div><div class="bp-st${mine?' clk':''}"${mine?' data-t="follow" role="button" tabindex="0"':''}><b id="bpS2">–</b><span>Theo dõi</span></div><div class="bp-st${mine?' clk':''}"${mine?' data-t="fav" role="button" tabindex="0"':' data-t="home" role="button" tabindex="0"'}><b id="bpS3">–</b><span>Lượt thích</span></div></div>
         </div>
     <div class="bp-info"><div class="bp-nm"><b>${esc(u.display_name)}</b>${mine&&!guest?`<button class="bp-pen" data-x="rename" aria-label="Đổi tên hiển thị" title="Đổi tên hiển thị">${ic('pen')}</button>`:''}${tier?`<span class="bp-tier">${tier}</span>`:''}</div>
       <div class="bp-chips" id="bpChips">${pfIdChips(u,mine)}</div>
       <div class="bp-bio"><span class="bp-q">${esc(u.status||'Không có mô tả')}</span>${mine&&!guest?'<a data-x="edit">Chi tiết</a>':''}</div></div></div></div>
     ${mine&&guest?'':mine?'<div class="bp-ebs"><button class="bp-eb" data-x="edit">Chỉnh sửa thông tin</button><button class="bp-eb" data-x="edprof">Chỉnh sửa hồ sơ</button></div>':(guest?'':'<div class="bp-ebs" id="bpFr" style="display:none"><button class="bp-eb f" data-x="friend">Kết bạn</button></div>')}
-    <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button></div>
+    <div class="bp-tabs"><button class="bp-tab on" data-t="home">Trang chủ</button><button class="bp-tab" data-t="fav">Yêu thích</button>${mine?'<button class="bp-tab" data-t="follow">Đã theo dõi</button>':''}</div>
     <div id="bpBody"></div><div class="bp-pad"></div></div>`;
   document.body.appendChild(d);
   { const hero=d.querySelector('.bp-hero'), cr=cropOf(u);   /* áp dụng X/Y/zoom đã chỉnh theo đúng tỉ lệ khung banner hiện tại */
@@ -4226,9 +4235,16 @@ function openProfilePage(u,mine){
     const k=reg(favList,'Yêu thích');
     body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Nhạc đã thích</b><small>${favList.length}</small></div></div>${favList.length?profileRowsHtml(favList,k):'<p class="bp-empty">Bạn chưa thích bài nào.</p>'}</div>`;
   }
-  const tab=t=>{ d.querySelectorAll('.bp-tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); (t==='fav'?showFav:showHome)(); };
+  async function showFollow(){
+    if(!mine){ body.innerHTML=`<div class="bp-sec">${priv}</div>`; return; }
+    const a=followGet();
+    body.innerHTML=`<div class="bp-sec"><div class="bp-sh"><div><b>Nghệ sĩ đã theo dõi</b><small>${a.length}</small></div></div>${a.length?`<div class="bp-trs">${a.map(n=>`<div class="bp-tr" data-ar="${esc(n)}"><div class="bp-avt">${esc(String(n).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><div class="t1">${esc(n)}</div><div class="t2">Nghệ sĩ</div></div><button data-un="${esc(n)}" title="Bỏ theo dõi">${ic('x')}</button></div>`).join('')}</div>`:'<p class="bp-empty">Bạn chưa theo dõi nghệ sĩ nào. Khi đang phát nhạc, bấm “Theo dõi” dưới tên nghệ sĩ.</p>'}</div>`;
+  }
+  const tab=t=>{ d.querySelectorAll('.bp-tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); (t==='fav'?showFav:t==='follow'?showFollow:showHome)(); };
   d.onclick=async e=>{
-    const tb=e.target.closest('[data-t]'); if(tb){ tab(tb.dataset.t); return; }
+    const tb=e.target.closest('[data-t]'); if(tb){ tab(tb.dataset.t); if(tb.classList.contains('bp-st')){ const bar=d.querySelector('.bp-tabs'); if(bar&&bar.scrollIntoView) bar.scrollIntoView({behavior:'smooth',block:'start'}); } return; }
+    const un=e.target.closest('[data-un]'); if(un){ toggleFollow(un.dataset.un); const s=d.querySelector('#bpS2'); if(s) s.textContent=String(followGet().length); showFollow(); return; }
+    const ar=e.target.closest('[data-ar]'); if(ar){ close(); go('search',ar.dataset.ar); return; }
     const pl=e.target.closest('[data-pl]'); if(pl){ close(); go('playlist',+pl.dataset.pl||pl.dataset.pl); return; }
     const tr=e.target.closest('.bp-tr');
     if(tr){ const list=lists[tr.dataset.l], i=+tr.dataset.i, t=list&&list[i]; if(!t) return;
@@ -4250,6 +4266,7 @@ function openProfilePage(u,mine){
     if(a==='edprof') return openProfileDesign(d);
     if(a==='friend'){ try{ const r=await api('/api/friends',{json:{code:u.username}}); notify(r&&r.status==='accepted'?'Hai bạn đã trở thành bạn bè!':'Đã gửi lời mời kết bạn'); }catch(er){ notify((er&&er.message)||'Không gửi được lời mời'); } }
   };
+  d.addEventListener('keydown',e=>{ const st=e.target.closest&&e.target.closest('.bp-st.clk'); if(st&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); st.click(); } });
   tab('home');
   // Số liệu
   (async()=>{
