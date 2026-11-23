@@ -3965,7 +3965,7 @@ function shareCard(u,opt){
     // chữ cao hơn: kéo giãn theo chiều dọc
     const SY=1.22;
     shSet('nm','#fff',700,56,ft); let nm=u.display_name||''; while(g.measureText(nm).width>700&&nm.length>1) nm=nm.slice(0,-1);
-    g.save(); g.translate(0,ay+ar+20); g.scale(1,SY); g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+32,0); g.restore(); g.globalAlpha=1;
+    g.fillText(nm+(nm!==u.display_name?'…':''),ax+ar*2+32,ay+ar+20); g.globalAlpha=1;   /* tên KHÔNG kéo giãn dọc nữa: cùng font Segoe UI, cùng dáng chữ với thẻ nhỏ và trang chỉnh sửa */
     // chữ giãn cách đều (như thẻ FANS NO.): tự vẽ từng ký tự để máy nào cũng giãn giống nhau
     const spw=(t,gap)=>[...t].reduce((a,c)=>a+g.measureText(c).width+gap,-gap);
     const sp=(t,x,y,gap,right)=>{ let cx=right?x-spw(t,gap):x; g.textAlign='left'; g.save(); g.translate(0,y); g.scale(1,SY); for(const c of t){ g.fillText(c,cx,0); cx+=g.measureText(c).width+gap; } g.restore(); };
