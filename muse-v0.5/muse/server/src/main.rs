@@ -2009,7 +2009,7 @@ async fn update_profile(State(st): State<AppState>, headers: HeaderMap, Json(r):
                         e.insert("c".to_string(), json!(col.to_lowercase()));
                     }
                 }
-                for (pk, lo, hi) in [("s", -5i64, 5i64), ("w", -5, 5), ("o", -60, 0), ("z", -30, 40)] {
+                for (pk, lo, hi) in [("s", -5i64, 5i64), ("w", -6, 6), ("o", -60, 0), ("z", -30, 40)] {
                     let n = v.get(pk).and_then(|x| x.as_f64()).filter(|x| x.is_finite()).map(|x| (x.round() as i64).clamp(lo, hi)).unwrap_or(0);
                     if n != 0 {
                         e.insert(pk.to_string(), json!(n));
