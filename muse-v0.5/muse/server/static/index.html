@@ -4306,7 +4306,9 @@ function openProfileDesign(parent){
   const snap=()=>JSON.stringify([me.display_name,me.status,me.avatar,me.banner,me.banner_color,me.accent,me.bg,me.bg_url,me.crop]), before=snap();
   d.innerHTML=`<div class="bp-edw"><div class="bp-edh"><button class="bp-ib" data-x="back" aria-label="Quay lại">${ic('chev','flip')}</button>Chỉnh sửa hồ sơ</div><div class="bp-dsb"></div></div>`;
   document.body.appendChild(d);
+  presEdit=1; pushPresence();
   const close=()=>{ document.removeEventListener('keydown',onKey,true); if(mo) mo.disconnect();
+    presEdit=0; pushPresence();
     if(appPrev){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
     d.remove();
     if(parent&&parent.isConnected&&snap()!==before) openProfilePage({...me,online:true},true); };   /* hồ sơ đã đổi → vẽ lại trang cá nhân */
@@ -5546,7 +5548,8 @@ window.addEventListener('online',()=>{ if(offlineNow()) retryNet(page,undefined,
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&netDown) retryNet(page,undefined,false,null); });
 async function go(p,arg,keep){
   if(dlDetOn&&p!=='downloads') dlDetClose();
-  page=p; document.querySelectorAll('.ni,.li,.libh .t').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
+  page=p; pushPresence();
+  document.querySelectorAll('.ni,.li,.libh .t').forEach(n=>n.classList.toggle('act',n.dataset.p===p||(p==='playlist'&&n.dataset.pl==arg)));
   { const nl=document.querySelector('.navLib'); if(nl) nl.classList.toggle('act',['library','favs','history','charts','top','followed','downloads','playlist'].includes(p)||(p==='together'&&!$('#roomBar').firstChild)); }
   if(appPrev&&p!=='profile'){ appPrev=false; paintTheme(me.accent,me.bg,me.bg_url); }
   closeMoodPop(); const m=$('#main'); const sc=m.scrollTop; if(!keep) m.scrollTop=0; $('#topChips').innerHTML='';
@@ -7636,6 +7639,14 @@ async function sdkStart(){
 }
 const sdkSend=a=>DESK?dInvoke('sdk_presence_update',a):Promise.resolve(window.MuseNative.sdkUpdate(a.title,a.artist,a.image,a.startMs,a.endMs));
 const sdkClear=()=>DESK?dInvoke('sdk_presence_clear'):Promise.resolve(window.MuseNative.sdkClear());
+const sdkPage=label=>DESK?dInvoke('sdk_presence_page',{label}):Promise.resolve(window.MuseNative.sdkPage(label));
+/* Khi không phát nhạc (đã dừng / chưa chọn bài): Discord hiện vị trí đang đứng trong app. Mix tính là Trang chủ. */
+const PRES_LOC={home:'Trang chủ',mix:'Trang chủ',thisis:'Trang chủ',bestartists:'Trang chủ',ybrowse:'Trang chủ',
+  search:'Tìm kiếm',settings:'Cài đặt',profile:'Chỉnh sửa hồ sơ',charts:'Bảng xếp hạng',
+  library:'Thư viện',favs:'Thư viện',history:'Thư viện',top:'Thư viện',followed:'Thư viện',playlist:'Thư viện',downloads:'Thư viện',
+  together:'Nghe cùng nhau',friends:'Bạn bè',blend:'Hoà trộn gu'};
+let presEdit=0;   /* 1 khi hộp thoại "Chỉnh sửa hồ sơ" đang mở (nó không đổi `page`) */
+const presLabel=()=>'Đang ở '+(presEdit?PRES_LOC.profile:(PRES_LOC[page]||'Trang chủ'));
 function discordClear(){ (dc.sdk?sdkClear():(DESK?dInvoke('discord_clear'):Promise.resolve())).catch(()=>{}); }
 async function discordConnect(){
   if(!cfg.discord_app_id) throw new Error('Server chưa đặt DISCORD_CLIENT_ID');
@@ -7654,7 +7665,7 @@ function pushPresence(){
   if(!(DESK||sdkP.ok)||!S.discord_rpc||!dc.user) return;
   clearTimeout(dc.timer);
   dc.timer=setTimeout(()=>{
-    if(!cur||!playing){ discordClear(); return; }
+    if(!cur||!playing){ const l=presLabel(); (dc.sdk?sdkPage(l):dInvoke('discord_page',{label:l})).catch(()=>{ dc.user=''; }); return; }
     const d=getDur()||cur.dur||0, t=getTime(), startMs=Math.round(Date.now()-t*1000);
     const a={title:cur.title||'BBeat',artist:cur.artist||'',image:cur.image||'',startMs,endMs:d>0?Math.round(startMs+d*1000):0};
     (dc.sdk?sdkSend(a):dInvoke('discord_activity',a)).catch(()=>{ dc.user=''; });
@@ -7662,7 +7673,7 @@ function pushPresence(){
 }
 setInterval(()=>{
   if(!(DESK||sdkP.ok)||!S.discord_rpc) return;
-  if(dc.user){ if(playing) pushPresence(); }
+  if(dc.user) pushPresence();
   else if(sdkOn()&&Date.now()-sdkP.last>60000){ sdkP.last=Date.now(); discordConnect().catch(()=>{}); }
 },15000);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')) navigator.serviceWorker.register('/sw.js').catch(()=>{});
