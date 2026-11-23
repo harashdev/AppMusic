@@ -4460,7 +4460,7 @@ const CARD_PAGE: &str = r##"<!doctype html><html lang="vi"><head><meta charset="
 <style>html,body{margin:0;background:#07070b}</style>
 <noscript><meta http-equiv="refresh" content="0;url=@WEB@"></noscript>
 </head><body style="font-family:system-ui,Segoe UI,Arial,sans-serif;color:#cfd0dc;text-align:center;padding-top:18vh">
-<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a id="w" href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p></div>
+<div id="m" style="display:none"><p id="t" style="font-size:18px">Đang mở BBeat…</p><p><a id="a" href="@APP@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;background:#8ecbff;color:#07070b;text-decoration:none;font-weight:600">Mở trong BBeat</a><a id="w" href="@WEB@" style="display:inline-block;margin:6px;padding:10px 22px;border-radius:999px;border:1px solid #555;color:#cfd0dc;text-decoration:none">Xem trên web</a></p><p id="s" style="font-size:12px;opacity:.6;margin-top:18px"></p></div>
 <script>(function(){var web="@WEB@",app="@APP_JS@";try{var ua=navigator.userAgent||"",noapp=/[?&]web=1/.test(location.search);
 if(/Android/i.test(ua)&&!noapp){location.replace("@INTENT_JS@");return;}
 /* Trang này đang mở TRONG chính app BBeat (cửa sổ app desktop): vào thẳng giao diện của app và hiện thẻ hồ sơ,
@@ -4473,7 +4473,8 @@ var stop=false,m=document.getElementById("m"),t=document.getElementById("t"),btn
 addEventListener("blur",halt);addEventListener("pagehide",halt);document.addEventListener("visibilitychange",function(){if(document.hidden)halt();});
 var who=app.split("/").pop(),opened=function(){stop=true;clearTimeout(timer);t.textContent="BBeat đã được mở. Có thể đóng tab này.";};
 /* Cách 1 (không cần đăng ký gì với Windows): báo cho app ĐANG CHẠY qua cổng nhà 127.0.0.1 để nó tự hiện thẻ. */
-var ping=function(ok,no){var im=new Image();im.onload=function(){opened();if(ok)ok();};im.onerror=function(){if(no)no();};im.src="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();};
+var st=document.getElementById("s"),say=function(x){if(st)st.textContent=x;};
+var ping=function(ok,no){var im=new Image();im.onload=function(){opened();say("Đã báo cho app đang chạy trên máy này (cổng nhà 127.0.0.1:38417 trả lời). Nếu thẻ không hiện trong app: giao diện web (Render) chưa được cập nhật.");if(ok)ok();};im.onerror=function(){say("Không thấy app đang chạy trên máy này (127.0.0.1:38417 không trả lời): app chưa bật, là bản app cũ chưa cập nhật, hoặc trình duyệt đang chặn truy cập mạng nội bộ.");if(no)no();};im.src="http://127.0.0.1:38417/api/local/open-user?name="+encodeURIComponent(who)+"&_="+Date.now();};
 /* Cách 2: gọi bbeat:// để Windows/macOS/Linux bật app khi nó đang tắt (installer của app tự đăng ký link này). */
 var launch=function(){location.href=app;};
 var hint=function(){clearTimeout(timer);timer=setTimeout(function(){if(stop){opened();return;}t.textContent="Nếu BBeat chưa mở: chọn Mở ở hộp thoại \"Mở BBeat?\" của trình duyệt (tick \"luôn cho phép\" để lần sau tự mở). Chưa cài app thì chọn \"Xem trên web\".";},2500);};
