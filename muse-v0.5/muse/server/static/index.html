@@ -5284,8 +5284,7 @@ const pages={
     const txKey='muse_tx2_'+(me.id||'');
     /* Mỗi thuộc tính lưu dưới dạng ĐỘ LỆCH so với mặc định của chính chữ đó: 0 = giữ nguyên (nằm giữa thanh trượt).
        s: mức bóng (±5 quanh mức 5 mặc định) · w: bậc đậm (×100) · o: độ rõ (điểm %) · z: cỡ chữ (điểm %) */
-    const txLoad=()=>{ let T=txOf(me); if(!TX_KEYS.some(k=>!txIsDef(T[k]))){ let o=null; try{ o=JSON.parse(LS.get(txKey,'{}')); }catch{} if(o&&typeof o==='object') T=txClean(o); }   /* server là nguồn chính; bản lưu cũ trên máy chỉ dùng để chuyển sang server ở lần Lưu tới */
-      return T; };
+    const txLoad=()=>txOf(me);   /* CHỈ đọc từ hồ sơ của tài khoản đang đăng nhập (server), không dùng bản lưu trên máy → đổi tài khoản không bị dính kiểu chữ của tài khoản khác */
     let TX=txLoad(), txCur='name';
     const TXB={};   /* mặc định đo được của từng chữ (độ đậm gốc) để biết còn bao nhiêu chỗ chỉnh mỗi phía */
     const TX_U={s:1,w:1,o:5,z:5};
@@ -5319,7 +5318,7 @@ const pages={
       txPaint('txS','s'); txPaint('txW','w'); txPaint('txO','o'); txPaint('txZ','z');
       txLbl('txN',(v.s>0?'+':'−')+Math.abs(v.s),v.s); txLbl('txWn',String(Math.max(300,Math.min(900,w0+v.w*100))),v.w); txLbl('txOn',(100+v.o)+'%',v.o); txLbl('txZn',(100+v.z)+'%',v.z); };
     const txChanged=()=>{ txApply(); txUi(); if(peReady) pmsg('Chưa lưu thay đổi'); };
-    const txSave=()=>{ try{ LS.set(txKey,JSON.stringify(TX)); }catch{} };
+    const txSave=()=>{ try{ Object.keys(localStorage).filter(k=>/^muse_(tx2|shtx)_/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{} };   /* dọn kiểu chữ cũ còn lưu trên máy */
     $('#txChips').innerHTML=TX_K.map(([k,l])=>`<button type="button" class="pe-chip" data-k="${k}">${l}</button>`).join('');
     $('#txSw').innerHTML=TX_COLS.map(c=>`<button type="button" class="tdot" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')+'<input type="color" id="txCol" value="#ffffff" aria-label="Chọn màu chữ khác">';
     $('#txChips').onclick=e=>{ const b=e.target.closest('.pe-chip'); if(!b) return; txCur=b.dataset.k; txUi(); };
