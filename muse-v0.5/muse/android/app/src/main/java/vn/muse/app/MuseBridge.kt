@@ -231,5 +231,8 @@ class MuseBridge(private val ctx: Context) {
         MuseSdk.update(title, artist, image, startMs, endMs)
 
     @JavascriptInterface
+    fun sdkPage(label: String) = MuseSdk.page(label)
+
+    @JavascriptInterface
     fun sdkClear() = MuseSdk.clear()
 }
