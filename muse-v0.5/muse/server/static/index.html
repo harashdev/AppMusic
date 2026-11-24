@@ -1278,6 +1278,30 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .pe-rw input[type=range].pe-sl::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--accent,#8ecbff);box-shadow:0 1px 4px #0008}
 .pe-tn.dflt{opacity:.7}.pe-tn{min-width:18px;text-align:right;color:var(--sub);font-size:12.5px}
 .pe-bar .pe-b{padding:10px 22px}
+/* ===== THANH LƯU / HỦY: ghim cố định ở ĐÁY màn hình (không dính theo nội dung, không đi theo gì), màu theo nền hồ sơ ===== */
+body{--peb:#0e0c15}
+body.skin-dark{--peb:#000}
+body.skin-ocean{--peb:#14303c}
+body.skin-sunset{--peb:#3a2450}
+body.skin-forest{--peb:#1f3322}
+body.skin-custom{--peb:#050507}
+.bp-ds{--peb:var(--pf-bot,#0e0c15)}
+.pe{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+.pe-bar,.pe-bar.pe-bar{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:70;grid-column:auto;
+  margin:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));justify-content:flex-end;
+  background:color-mix(in srgb,var(--peb,#0e0c15) 94%,#000);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.35);color:#fff}
+@media(min-width:701px){#main .pe-bar{left:var(--sw,0px);right:var(--nw,0px)}}
+.pe-bar small{color:rgba(255,255,255,.82);font-weight:500;text-align:left}
+.pe-bar .pe-b{background:rgba(255,255,255,.14);color:#fff}
+.pe-bar .pe-b:hover{background:rgba(255,255,255,.22)}
+.pe-bar .pe-b.p{background:var(--accent);color:var(--on)}
+.pe-bar .pe-b.p:hover{filter:brightness(1.08)}
+/* chữ trong các thẻ chỉnh sửa luôn sáng, không bị đen */
+.pe,.pe-card,.pe-rw>b,.pe-chip{color:var(--text,#f3f0fa)}
+.pe-chip.s{color:var(--on,#07131d)}
+.pe-sec h4{color:rgba(255,255,255,.7)}
 .pe-lock{max-width:460px}.pe-lock p{margin:8px 0 14px;color:var(--sub)}
 /* Bố cục trang Chỉnh sửa hồ sơ (màn rộng): banner xem trước trải ngang trên cùng, các mục cài đặt xếp 2 cột phía dưới */
 @media(min-width:900px){
