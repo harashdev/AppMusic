@@ -11,6 +11,10 @@
     <!-- CHANGE_WIFI_STATE bắt buộc để WifiLock.acquire() không bị silent-fail trên Android 10+. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
+    <!-- Camera: quét mã QR đăng nhập (WebView getUserMedia). required=false để máy không có camera vẫn cài được. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- AAR của Discord SDK khai báo thêm các quyền thoại/Bluetooth mà Muse không dùng: gỡ ra. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" tools:node="remove" />
