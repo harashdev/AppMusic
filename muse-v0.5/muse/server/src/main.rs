@@ -903,7 +903,7 @@ async fn warm_youtube(c: &reqwest::Client) {
 
 // ===== Thư mục nhạc của app (chỉ có ở cổng nhà chạy trên máy người dùng) =====
 // "Thêm nhạc" mở thư mục này trong trình quản lý file; người dùng thả file nhạc vào, giao diện tự quét và thêm vào Tải xuống.
-// Mặc định: <Nhạc của người dùng>\BBeat (đặt MUSE_MUSIC_DIR để đổi). Chỉ nhận yêu cầu gọi tới 127.0.0.1/localhost.
+// Mặc định: CHÍNH là thư mục Downloads riêng của app (%LOCALAPPDATA%\\BBeat\\Downloads), không còn tạo <Nhạc>\\BBeat. Đặt MUSE_MUSIC_DIR để đổi. Chỉ nhận yêu cầu gọi tới 127.0.0.1/localhost.
 const LOCAL_AUDIO_EXT: &[&str] = &["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "webm", "wma", "mka", "mp4"];
 
 fn local_music_dir() -> PathBuf {
@@ -912,12 +912,11 @@ fn local_music_dir() -> PathBuf {
             return PathBuf::from(d.trim());
         }
     }
-    let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).unwrap_or_else(|_| ".".into());
-    PathBuf::from(home).join("Music").join("BBeat")
+    local_dl_dir()
 }
 
 // Nhạc do app tải về nằm trong thư mục RIÊNG của app (Windows: %LOCALAPPDATA%\\BBeat\\Downloads), không nằm trong thư mục Nhạc của người dùng.
-// "Thêm nhạc" vẫn dùng <Nhạc>\\BBeat. Đặt MUSE_DL_DIR để đổi chỗ lưu. Tên tương đối trả cho giao diện vẫn là "Downloads/<file>".
+// "Thêm nhạc" cũng mở đúng thư mục này. Đặt MUSE_DL_DIR để đổi chỗ lưu. Tên tương đối trả cho giao diện vẫn là "Downloads/<file>".
 const LOCAL_DL_SUB: &str = "Downloads";
 
 fn local_app_dir() -> PathBuf {
@@ -950,6 +949,9 @@ fn local_base_for(name: &str) -> (PathBuf, String) {
 static LOCAL_DL_MIGRATED: std::sync::Once = std::sync::Once::new();
 fn local_migrate_dl() {
     LOCAL_DL_MIGRATED.call_once(|| {
+        if local_music_dir() == local_dl_dir() {
+            return;
+        }
         let old = local_music_dir().join(LOCAL_DL_SUB);
         let new = local_dl_dir();
         if old == new {
@@ -1093,7 +1095,10 @@ async fn local_list(headers: HeaderMap) -> Response {
         local_migrate_dl();
         let mut files: Vec<Value> = Vec::new();
         // Thư mục Nhạc (không quét "Downloads" cũ trong đó) + thư mục tải xuống riêng của app (tên tương đối bắt đầu bằng "Downloads/")
-        let mut stack: Vec<(PathBuf, String, u8)> = vec![(root, String::new(), 0), (dl, LOCAL_DL_SUB.to_string(), 1)];
+        let mut stack: Vec<(PathBuf, String, u8)> = vec![(dl.clone(), LOCAL_DL_SUB.to_string(), 1)];
+        if root != dl {
+            stack.push((root, String::new(), 0));
+        }
         while let Some((dir, rel, depth)) = stack.pop() {
             let Ok(rd) = std::fs::read_dir(&dir) else { continue };
             for ent in rd.flatten() {
