@@ -1292,7 +1292,8 @@ body.skin-custom{--peb:#050507}
   background:color-mix(in srgb,var(--peb,#0e0c15) 94%,#000);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.35);color:#fff}
-@media(min-width:701px){#main .pe-bar{left:var(--sw,0px);right:var(--nw,0px)}}
+@media(min-width:701px){.pe-bar.in-main{left:var(--sw,0px);right:var(--nw,0px)}}
+.pe-bar-fx{position:fixed!important;left:0;right:0;bottom:0;top:auto!important;transform:none}
 .pe-bar small{color:rgba(255,255,255,.82);font-weight:500;text-align:left}
 .pe-bar .pe-b{background:rgba(255,255,255,.14);color:#fff}
 .pe-bar .pe-b:hover{background:rgba(255,255,255,.22)}
@@ -5178,6 +5179,7 @@ const pages={
   },
   async profile(m){
     try{ await window.__profSaveChain; }catch{}
+    document.querySelectorAll('.pe-bar-fx').forEach(x=>x.remove());
     const skins=[['','Mặc định','linear-gradient(135deg,#1a1530,#07070b)'],['dark','Tối','#000'],['ocean','Biển','linear-gradient(135deg,#0f2027,#2c5364)'],['sunset','Hoàng hôn','linear-gradient(135deg,#42275a,#734b6d)'],['forest','Rừng','linear-gradient(135deg,#1d2b1f,#3b5d3a)'],['custom','Ảnh riêng','']];
     const D={status:me.status||'',accent:me.accent,bg:me.bg||'',bgUrl:me.bg_url||'',bgFile:null,bgPrev:'',bannerColor:me.banner_color||'',bannerFile:null,bannerPrev:'',bannerClear:false,avatarFile:null,avatarPrev:'',...cropOf(me)};
     if(guest){ m.innerHTML=`<h2>Hồ sơ</h2><div class="panel pe-lock"><b>Cần đăng nhập</b><p>Khách không thể chỉnh sửa hồ sơ. Đăng nhập (hoặc tạo tài khoản) để đổi avatar, banner, nền và màu chủ đạo.</p><button class="pri" id="peLogin">Đăng nhập</button></div>`; $('#peLogin').onclick=goLogin; return; }
@@ -5209,6 +5211,12 @@ const pages={
     </div>
     <div class="pe-bar"><small id="profMsg"></small><button class="pe-b" id="peCancel">Hủy</button><button class="pe-b p" id="saveProfile">Lưu</button></div>
     </div>`;
+    /* Thanh Lưu/Hủy: gắn thẳng vào <body> (position:fixed, đáy màn hình) để không bị kẹt trong khung cuộn / backdrop-filter của Android. Tự gỡ khi rời trang. */
+    { const bar=m.querySelector('.pe-bar'); if(bar){
+        const ov=m.closest('.bp-ds'); bar.classList.add('pe-bar-fx'); bar.classList.toggle('in-main',!ov);
+        if(ov){ const c=getComputedStyle(ov).getPropertyValue('--pf-bot').trim(); if(c) bar.style.setProperty('--peb',c); }
+        document.body.appendChild(bar);
+        const gc=setInterval(()=>{ if(!m.isConnected||!m.querySelector('.pe')){ clearInterval(gc); bar.remove(); } },250); } }
     const pv=()=>({...me,status:D.status,accent:D.accent,avatar:D.avatarPrev||me.avatar,banner:D.bannerClear?'':(D.bannerPrev||me.banner),banner_color:D.bannerColor||'',crop:JSON.stringify({bx:D.bx,by:D.by,bz:D.bz,ba:D.ba,ax:D.ax,ay:D.ay,az:D.az,aa:D.aa})});
     const bgImg=()=>D.bgPrev||D.bgUrl;
     let peReady=false;
