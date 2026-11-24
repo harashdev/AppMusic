@@ -6938,7 +6938,6 @@ async function locFolderSync(){
     await offInit; const files=[]; const known=new Set(Object.values(bbMap())); dlItems.forEach(i=>{ if(i.name) known.add(i.name); });
     for(const it of list){
       if(known.has(String(it.name))) continue;   /* file do chính app tải về, đã có trong danh sách */
-      if(/^Downloads\//i.test(String(it.name))) continue;   /* thư mục Downloads là của app (nhạc tải về), không nhập lại như "nhạc của bạn" */
       const base=String(it.name).split('/').pop(), lm=+it.mtime||0;
       if(offSet.has('yt:'+locId({name:base,size:it.size,lastModified:lm}))) continue;
       const fr=await fetch('/api/local/file?name='+encodeURIComponent(it.name),{cache:'no-store'}); if(!fr.ok) continue;
@@ -7306,13 +7305,10 @@ pages.downloads=function(m){
   dlLoad();
   m.innerHTML=`<div class="dlHead"><h2>Tải xuống</h2>
     <p class="dlInfo" id="dlInfo"></p>
-    <p class="dlInfo dlWhere" id="dlWhere"></p>
     <div class="hb"><button class="pri" id="dlPlayAll">${ic('play','fill sm')} Phát tất cả</button><button class="out" id="dlShuf">${ic('shuffle','sm')} Xáo trộn</button><button class="out" id="dlAdd" title="Thêm file nhạc từ máy">${ic('folder','sm')} Thêm nhạc</button><input type="file" id="dlFile" accept="audio/*" multiple hidden></div>
     </div>
     <div id="dlList"></div>`;
   dlRender();
-  bbInfo().then(d=>{ const el=$('#dlWhere'); if(!el||!d) return; const desk=!(window.MuseNative&&typeof window.MuseNative.saveBegin==='function');
-    el.innerHTML='Nhạc tải xuống được lưu tại: <b>'+esc(d)+'</b>'+(desk?' · <a id="dlOpenDir">Mở thư mục</a>':''); const a=$('#dlOpenDir'); if(a) a.onclick=()=>{ fetch('/api/local/open?dl=1',{method:'POST'}).catch(()=>{}); }; });
   const playAll=sh=>{ const l=dlPlayable(); if(!l.length){ notify('Chưa có bài nào nghe được lúc này'); return; } const q=sh?l.slice().sort(()=>Math.random()-.5):l; playList(q,0,'Tải xuống'); };
   $('#dlPlayAll').onclick=()=>playAll(false); $('#dlShuf').onclick=()=>playAll(true);
   const dlFi=$('#dlFile');
