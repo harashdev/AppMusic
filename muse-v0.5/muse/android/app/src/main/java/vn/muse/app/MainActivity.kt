@@ -16,6 +16,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -50,6 +51,14 @@ class MainActivity : ComponentActivity() {
     private var customCb: WebChromeClient.CustomViewCallback? = null
 
     private val askNotif = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    // Camera cho WebView (quét QR): web xin -> xin quyền Android -> cấp lại cho web.
+    private var camReq: PermissionRequest? = null
+    private val askCam = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        val r = camReq; camReq = null
+        if (r == null) return@registerForActivityResult
+        if (ok) r.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) else r.deny()
+    }
     private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         fileCb?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(r.resultCode, r.data))
         fileCb = null
@@ -145,6 +154,24 @@ class MainActivity : ComponentActivity() {
     }
 
     private val chrome = object : WebChromeClient() {
+        override fun onPermissionRequest(request: PermissionRequest) {
+            runOnUiThread {
+                // Chỉ cho phép camera (không micro); các quyền khác từ chối.
+                if (!request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) { request.deny(); return@runOnUiThread }
+                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    request.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                } else {
+                    camReq?.deny()
+                    camReq = request
+                    askCam.launch(Manifest.permission.CAMERA)
+                }
+            }
+        }
+
+        override fun onPermissionRequestCanceled(request: PermissionRequest) {
+            if (camReq === request) camReq = null
+        }
+
         override fun onShowFileChooser(
             view: WebView, cb: ValueCallback<Array<Uri>>, params: WebChromeClient.FileChooserParams,
         ): Boolean {
