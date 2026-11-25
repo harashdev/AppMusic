@@ -1259,10 +1259,6 @@ body.dl-det.dd-menu #side{display:flex!important;flex-direction:column;position:
 .skins.pe-skins .sk.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
 .pe-bar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px 4px;background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
 .pe-bar small{flex:1;color:var(--sub);font-size:12.5px;min-height:1em}
-/* Điều chỉnh chữ trên hồ sơ */
-.pe-chips{display:flex;gap:7px;flex-wrap:wrap}.pe-chip{border:1px solid var(--line);background:transparent;color:inherit;border-radius:99px;padding:6px 13px;font-size:12.5px;cursor:pointer}.pe-chip.s{background:var(--accent,#8ecbff);border-color:transparent;color:#10202e;font-weight:700}
-.pe-tsw{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.tdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer;display:block;padding:0}.tdot.s{border-color:#fff;box-shadow:0 0 0 2px var(--accent,#8ecbff)}
-.pe-tsw input[type=color]{width:34px;height:28px;padding:1px;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
 .pe-rw input[type=range]{flex:0 1 150px;accent-color:var(--accent,#8ecbff)}
 /* Thanh trượt hai chiều: vạch giữa = giá trị mặc định của chữ đang chọn; nửa nào không còn chỗ chỉnh thì mờ đi và không kéo vào được */
 .pe-rw input[type=range].pe-bi{flex:0 1 170px;height:6px;border-radius:3px;
@@ -5210,12 +5206,6 @@ const pages={
       <div class="pe-sec"><h4>Nền hồ sơ</h4><div class="pe-card"><div class="skins pe-skins" id="skins">${skins.map(([v,l,bg])=>`<div class="sk ${(me.bg||'')===v?'sel':''}" data-v="${v}" style="${bg?'background:'+bg:''}"><span>${l}</span></div>`).join('')}</div>
         <div id="bgCustom" style="display:${me.bg==='custom'?'block':'none'};padding:0 16px 14px"><div class="bnrow"><button id="bgBtn">Tải ảnh nền (GIF được)</button><input type="file" id="bgFile" accept="image/png,image/jpeg,image/gif,image/webp" hidden><input id="bgUrl" value="${esc(me.bg_url)}" placeholder="…hoặc dán link https://…/anh-nen.jpg" style="flex:1;min-width:180px"></div><small class="hint">Ảnh nền ≤ 10MB. Áp dụng ngay lên app, bấm Lưu để giữ lại.</small></div></div></div>
       <div class="pe-sec"><div class="pe-card"><div class="pe-rw"><b>Màu chủ đạo</b><div class="pe-sw" id="swA">${dots(swA,'swA',me.accent||'')}<input type="color" id="accent" value="${esc(me.accent)}" aria-label="Chọn màu khác"></div></div></div></div>
-      <div class="pe-sec"><h4>Điều chỉnh chữ</h4><div class="pe-card"><div class="pe-rw"><div class="pe-chips" id="txChips"></div></div>
-        <div class="pe-rw"><b>Màu chữ</b><div class="pe-tsw" id="txSw"></div></div>
-        <div class="pe-rw"><b>Shadow</b><input type="range" class="pe-sl" id="txS" min="-100" max="100" step="1" value="0" aria-label="Shadow"><span class="pe-tn" id="txN" style="min-width:64px"></span><button class="pe-b" id="txRs">Đặt lại</button></div>
-        <div class="pe-rw"><b>Độ đậm</b><input type="range" class="pe-sl" id="txW" min="-100" max="100" step="1" value="0" aria-label="Độ đậm"><span class="pe-tn" id="txWn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Độ rõ</b><input type="range" class="pe-sl" id="txO" min="-100" max="100" step="1" value="0" aria-label="Độ rõ"><span class="pe-tn" id="txOn" style="min-width:56px"></span></div>
-        <div class="pe-rw"><b>Cỡ chữ</b><input type="range" class="pe-sl" id="txZ" min="-100" max="100" step="1" value="0" aria-label="Cỡ chữ"><span class="pe-tn" id="txZn" style="min-width:56px"></span></div></div></div>
     </div>
     <div class="pe-bar"><small id="profMsg"></small><button class="pe-b" id="peCancel">Hủy</button><button class="pe-b p" id="saveProfile">Lưu</button></div>
     </div>`;
@@ -5321,59 +5311,9 @@ const pages={
       try{ refresh(); }catch{} appPrev=false; pmsg('Đã lưu ✔ 100%'); }catch(e){ pmsg(e.message); } };
     $('#saveProfile').onclick=()=>{ const btn=$('#saveProfile'); if(btn.disabled) return; btn.disabled=true; pmsg('Đang lưu…');
       window.__profSaveChain=(window.__profSaveChain||Promise.resolve()).then(runSave,runSave).finally(()=>{ btn.disabled=false; }); };
-    /* ===== Điều chỉnh chữ: mỗi chữ có màu + shadow riêng. Lưu theo tài khoản trong máy (LS), không đụng tới dữ liệu hồ sơ trên server. ===== */
-    const TX_K=[['name','Tên'],['un','@username'],['st','Trạng thái'],['fan','Fan'],['fol','Theo dõi'],['like','Lượt thích']];
-    const TX_SEL={name:'#peName',un:'.pe-un>span',st:'#peBio',fan:'#peS1',fol:'#peS2',like:'#peS3'};
-    const TX_COLS=['#ffffff','#ffd166','#7ee787','#ff7eb6','#c4b5fd','#111111'];
-    const txKey='muse_tx2_'+(me.id||'');
-    /* Mỗi thuộc tính lưu dưới dạng ĐỘ LỆCH so với mặc định của chính chữ đó: 0 = giữ nguyên (nằm giữa thanh trượt).
-       s: mức bóng (±5 quanh mức 5 mặc định) · w: bậc đậm (×100) · o: độ rõ (điểm %) · z: cỡ chữ (điểm %) */
-    const txLoad=()=>txOf(me);   /* CHỈ đọc từ hồ sơ của tài khoản đang đăng nhập (server), không dùng bản lưu trên máy → đổi tài khoản không bị dính kiểu chữ của tài khoản khác */
-    let TX=txLoad(), txCur='name';
-    const TXB={};   /* mặc định đo được của từng chữ (độ đậm gốc) để biết còn bao nhiêu chỗ chỉnh mỗi phía */
-    const TX_U={s:1,w:1,o:5,z:5};
-    const TX_DEF=()=>({c:'',s:0,w:0,o:0,z:0});
-    const txShadow=n=>n<=0?'none':`0 ${(n*.2).toFixed(2)}px ${(n*1.2).toFixed(1)}px rgba(0,0,0,${Math.min(.95,.1+n*.12).toFixed(2)})`;   /* n=5 ≈ bóng mặc định của khung hồ sơ */
-    /* Còn bao nhiêu chỗ chỉnh về bên trái (giảm) và bên phải (tăng) so với mặc định, tùy từng thuộc tính và từng chữ */
-    const txRoom=(p,k)=>{ const w=(TXB[k]&&TXB[k].w)||400;
-      if(p==='s') return [5,5];
-      if(p==='w') return [Math.max(0,Math.floor((w-300)/100)),Math.max(0,Math.floor((900-w)/100))];
-      if(p==='o') return [60,0];          /* đã rõ 100% thì chỉ có thể mờ đi */
-      return [30,40]; };                  /* cỡ chữ 70% … 140% */
-    const d2t=(p,k,d)=>{ const [L,R]=txRoom(p,k); return d<0?(L?d/L*100:0):(R?d/R*100:0); };
-    const t2d=(p,k,t)=>{ const [L,R]=txRoom(p,k), u=TX_U[p]; if(t<0) return L?-Math.round(-t/100*L/u)*u:0; return R?Math.round(t/100*R/u)*u:0; };
-    const txApply=()=>{ TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(!el) return; const st=/^peS\d$/.test(el.id), v=TX[k], box=st?el.parentElement:el, tg=st?[...box.children]:[el];
-      box.style.opacity=''; tg.forEach(t=>{ t.style.color=''; t.style.textShadow=''; t.style.fontWeight=''; t.style.fontSize=''; });   /* gỡ chỉnh sửa để đo mặc định thật */
-      const base=tg.map(t=>{ const cs=getComputedStyle(t); return {w:parseInt(cs.fontWeight,10)||400,z:parseFloat(cs.fontSize)||0}; });
-      TXB[k]={w:base[0].w};
-      const dw=Math.max(-txRoom('w',k)[0],Math.min(txRoom('w',k)[1],v.w));
-      if(v.o) box.style.opacity=((100+v.o)/100).toFixed(2);
-      tg.forEach((t,i)=>{ if(v.c) t.style.color=v.c; if(v.s) t.style.textShadow=txShadow(5+v.s);
-        if(dw) t.style.fontWeight=Math.max(300,Math.min(900,base[i].w+dw*100));
-        if(v.z&&base[i].z) t.style.fontSize=(base[i].z*(100+v.z)/100).toFixed(1)+'px'; }); }); };
-    /* Thanh trượt dùng GIÁ TRỊ THẬT trên cả thanh (không có vạch giữa cố định, không chặn nửa nào): bóng 0–10, độ đậm 300–900, độ rõ 40–100%, cỡ chữ 70–140%. Lưu vẫn là độ lệch so với mặc định. */
-    const TXR={s:[0,10,1],w:[300,900,100],o:[40,100,1],z:[70,140,1]};
-    const txAbs=(p,k)=>{ const d=TX[k][p]; return p==='s'?5+d:p==='w'?Math.max(300,Math.min(900,((TXB[k]&&TXB[k].w)||400)+d*100)):100+d; };
-    const txFromAbs=(p,k,v)=>p==='s'?v-5:p==='w'?Math.round((v-((TXB[k]&&TXB[k].w)||400))/100):v-100;
-    const txPaint=(id,p)=>{ const inp=$('#'+id), [lo,hi,st]=TXR[p]; inp.min=lo; inp.max=hi; inp.step=st; inp.value=txAbs(p,txCur); inp.style.setProperty('--f',((inp.value-lo)/(hi-lo)*100)+'%'); };
-    const txLbl=(id,txt)=>{ const el=$('#'+id); el.textContent=txt; el.classList.remove('dflt'); };
-    const txUi=()=>{ const v=TX[txCur], w0=(TXB[txCur]&&TXB[txCur].w)||400;
-      m.querySelectorAll('#txChips .pe-chip').forEach(b=>b.classList.toggle('s',b.dataset.k===txCur));
-      m.querySelectorAll('#txSw .tdot').forEach(b=>b.classList.toggle('s',b.dataset.c===v.c));
-      if(v.c) $('#txCol').value=v.c;
-      txPaint('txS','s'); txPaint('txW','w'); txPaint('txO','o'); txPaint('txZ','z');
-      txLbl('txN',String(5+v.s)); txLbl('txWn',String(txAbs('w',txCur))); txLbl('txOn',(100+v.o)+'%'); txLbl('txZn',(100+v.z)+'%'); };
-    const txChanged=()=>{ txApply(); txUi(); if(peReady) pmsg('Chưa lưu thay đổi'); };
-    const txSave=()=>{ try{ Object.keys(localStorage).filter(k=>/^muse_(tx2|shtx)_/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{} };   /* dọn kiểu chữ cũ còn lưu trên máy */
-    $('#txChips').innerHTML=TX_K.map(([k,l])=>`<button type="button" class="pe-chip" data-k="${k}">${l}</button>`).join('');
-    $('#txSw').innerHTML=TX_COLS.map(c=>`<button type="button" class="tdot" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')+'<input type="color" id="txCol" value="#ffffff" aria-label="Chọn màu chữ khác">';
-    $('#txChips').onclick=e=>{ const b=e.target.closest('.pe-chip'); if(!b) return; txCur=b.dataset.k; txUi(); };
-    $('#txSw').onclick=e=>{ const b=e.target.closest('.tdot'); if(!b) return; TX[txCur].c=b.dataset.c; txChanged(); };
-    $('#txCol').oninput=e=>{ TX[txCur].c=e.target.value.toLowerCase(); txChanged(); };
-    [['txS','s'],['txW','w'],['txO','o'],['txZ','z']].forEach(([id,p])=>{ $('#'+id).oninput=e=>{ TX[txCur][p]=txFromAbs(p,txCur,+e.target.value); txChanged(); }; });   /* kéo sang phải = tăng, sang trái = giảm; chạm giữa = về mặc định; nửa hết chỗ chỉnh thì thanh bị chặn */
-    $('#txRs').onclick=()=>{ TX[txCur]=TX_DEF(); txChanged(); };
-    TX_K.forEach(([k])=>{ const el=m.querySelector(TX_SEL[k]); if(el) el.addEventListener('click',()=>{ txCur=k; txUi(); },true); });   /* bấm chữ trên thẻ → chọn đúng chữ đó để chỉnh (không chặn việc sửa tên/trạng thái có sẵn) */
-    txApply(); txUi();
+    /* Giữ nguyên kiểu chữ đã lưu của hồ sơ (không còn giao diện chỉnh) để lưu hồ sơ không làm mất dữ liệu cũ. */
+    const TX=txOf(me);
+    const txSave=()=>{ try{ Object.keys(localStorage).filter(k=>/^muse_(tx2|shtx)_/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch{} };
     refresh(); peReady=true;
   },
   async settings(m){
