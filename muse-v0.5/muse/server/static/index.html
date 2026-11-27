@@ -1031,11 +1031,11 @@ button *,#gear *,#meAv *{pointer-events:none}
 .coll .cch{display:flex;align-items:center;gap:12px;margin:16px 4px 8px}.coll .cct{flex:1;min-width:0}.coll .cct b{display:block;font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coll .cct span{display:block;font-size:14px;color:var(--sub);margin-top:2px}
 .coll .cpb{flex:none;width:52px;height:52px;border-radius:50%;border:0;background:var(--hover2);color:inherit;display:grid;place-items:center;cursor:pointer}.coll .cpb:hover{background:var(--accent);color:var(--on)}
 .coll .qk{padding-left:4px}
-.blb{position:relative;overflow:hidden;border-radius:24px;background:#d6d2fb;min-height:168px;padding:22px 24px;cursor:pointer;color:#ff5a1f;transition:transform .15s}.blb:hover{transform:scale(1.005)}
+.blb{position:relative;overflow:hidden;border-radius:24px;background:#d6d2fb;min-height:168px;padding:22px 24px;cursor:default;color:#ff5a1f}
 .blb .blt{position:relative;z-index:2;max-width:54%;font-size:22px;line-height:1.3;font-weight:600}
-.blb .bla{position:absolute;left:24px;bottom:20px;z-index:2;width:44px;height:44px;border-radius:50%;background:#ffffff66;display:grid;place-items:center}
+.blb .bla{position:absolute;left:24px;bottom:20px;z-index:2;width:44px;height:44px;border-radius:50%;background:#ffffff66;display:grid;place-items:center;cursor:pointer;transition:transform .18s,background .18s}.blb .bla:hover,.blb .bla:focus-visible{transform:scale(1.12);background:#ffffffcc}
 .blb .bg1,.blb .bg2{position:absolute;right:6%;width:42%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 100%,#ff5a1f,#ff8a5c 55%,#ffd2c0)}.blb .bg1{top:-34%}.blb .bg2{bottom:-34%;transform:scaleY(-1)}
-.blb .bgp{position:absolute;right:14%;top:50%;transform:translateY(-50%);width:68px;height:68px;border-radius:50%;background:#ff5a1f;color:#fff;display:grid;place-items:center;z-index:1;font-size:40px;font-weight:300}
+.blb .bgp{position:absolute;right:14%;top:50%;transform:translateY(-50%);width:68px;height:68px;border-radius:50%;background:#ff5a1f;color:#fff;display:grid;place-items:center;z-index:1;font-size:40px;font-weight:300;cursor:pointer;transition:transform .18s,box-shadow .18s}.blb .bgp:hover,.blb .bgp:focus-visible{transform:translateY(-50%) scale(1.12) rotate(90deg);box-shadow:0 8px 24px #ff5a1f66}
 @media(max-width:700px){.blb .blt{font-size:19px;max-width:58%}.blb{min-height:150px;padding:18px}}
 .nmh h3{font-size:30px;letter-spacing:-.01em}
 .nmh .more.pill{border:1px solid var(--line);border-radius:999px;padding:8px 16px;margin-right:0;font-size:14px;font-weight:600;color:var(--text)}.nmh .more.pill:hover{background:var(--hover)}
@@ -5065,8 +5065,8 @@ const pages={
       loadForgotten(taste).then(r=>{ const box=$('#fg'); if(!Array.isArray(r)||r.length<4||!box) return; const k=reg(r,'Những bản nhạc yêu thích dần trôi vào quên lãng');
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Những bản nhạc yêu thích dần trôi vào quên lãng</h3></div><div class="shr"><a class="more" data-hp="${k}" data-sh="0">Phát tất cả</a><button class="nv" data-nv="-1">${ic('chev','flip sm')}</button><button class="nv" data-nv="1">${ic('chev','sm')}</button></div></div>${gridHtml(r,'Những bản nhạc yêu thích dần trôi vào quên lãng')}</section>`; markNow(); }).catch(()=>{});
       { const box=$('#bl'); if(box&&!guest){
-        box.innerHTML=`<section class="sec"><div class="blb" data-go="blend" role="button" tabindex="0"><div class="blt">Hoà trộn gu với bạn bè trong một danh sách phát</div><div class="bg1"></div><div class="bgp">+</div><div class="bg2"></div><div class="bla">${ic('chev')}</div></div></section>`;
-        const b=box.querySelector('.blb'); if(b) b.onkeydown=e=>{ if(e.key==='Enter') go('blend'); }; } }
+        box.innerHTML=`<section class="sec"><div class="blb"><div class="blt">Hoà trộn gu với bạn bè trong một danh sách phát</div><div class="bg1"></div><div class="bgp" data-go="blend" role="button" tabindex="0" aria-label="Hoà trộn gu">+</div><div class="bg2"></div><div class="bla" data-go="blend" role="button" tabindex="0" aria-label="Hoà trộn gu">${ic('chev')}</div></div></section>`;
+        box.querySelectorAll('.blb .bla,.blb .bgp').forEach(b=>{ b.onkeydown=e=>{ if(e.key==='Enter') go('blend'); }; }); } }
       { const box=$('#ex'); if(box){ const Yx=new Date().getFullYear();
         box.innerHTML=`<section class="sec"><div class="sh"><div><h3>Khám phá</h3></div></div><div class="tiles"><div class="tl" data-gs="nhạc mới ra mắt ${Yx}" style="background:linear-gradient(135deg,#f7971e,#d9423e)" tabindex="0">Bản phát hành mới${ic('note')}</div><div class="tl" data-go="charts" style="background:linear-gradient(135deg,#11998e,#38ef7d)" tabindex="0">Bảng xếp hạng${ic('trend')}</div><div class="tl" data-go="mix" style="background:linear-gradient(135deg,#8e2de2,#4a00e0)" tabindex="0">Mix${ic('shuffle')}</div></div></section>`; } }
       api('/api/history').then(h=>{ const box=$('#hs'); if(!Array.isArray(h)||!h.length||!box) return;
