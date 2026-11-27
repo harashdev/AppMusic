@@ -1613,7 +1613,7 @@ body.skin-custom{--peb:#050507}
     'Pop dễ nghe':'Easy pop',
     'Nhạc từ YouTube Music, phát bằng player của YouTube.':'Music from YouTube Music, played with YouTube’s own player.',
     'bài hát':'songs','Nghe lại':'Listen again','Những bản nhạc bạn yêu thích':'Music you love','Mix yêu thích':'Favorites mix','Mix nghe lại':'Listen-again mix',
-    'Mix nhạc Việt':'Vietnamese mix','Mix quốc tế':'International mix','Bấm vào một mix để nghe ngẫu nhiên.':'Tap a mix to listen on shuffle.','Phát ngẫu nhiên':'Shuffle play',
+    'Mix nhạc Việt':'Vietnamese mix','Mix quốc tế':'International mix','Bấm vào một mix để nghe ngẫu nhiên.':'Tap a mix to listen on shuffle.','Các mix được tạo theo gu nghe của bạn. Bấm vào một mix để nghe ngẫu nhiên.':'Mixes made from your listening taste. Tap one to shuffle.','Bấm vào một mix để nghe ngẫu nhiên. Nghe và thả tim thêm vài bài để mix hợp gu bạn hơn.':'Tap a mix to shuffle. Listen to and like a few more songs to make your mixes fit you better.','Thể loại bạn hay nghe':'A genre you often play','Gần gu của bạn':'Close to your taste','Nghệ sĩ bạn hay nghe':'An artist you often play','Phát ngẫu nhiên':'Shuffle play',
     'Việt Nam':'Vietnam','Quốc tế':'International','Đang tải…':'Loading…',
     'Tìm bài hát, nghệ sĩ… hoặc dán link YouTube':'Search songs, artists… or paste a YouTube link',
     'Tìm kiếm gần đây':'Recent searches','Xóa tất cả':'Clear all','Xóa khỏi lịch sử':'Remove from history','Đang chuẩn bị mix…':'Preparing your mix…',
@@ -1908,6 +1908,7 @@ body.skin-custom{--peb:#050507}
     [/^Hoà trộn: (.+)$/,(m)=>'Blend: '+m[1]],
     [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
     [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you often listen to '+m[1]],
+    [/^Mix (.+)$/,(m)=>tr(m[1])+' mix'],
     [/^Vì bạn nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
     [/^Dành cho người hâm mộ (.+)$/,(m)=>'For fans of '+m[1]],
     [/^Nếu bạn thích (.+)$/,(m)=>'If you like '+m[1]],
@@ -5100,8 +5101,13 @@ const pages={
         if(homeFail>=secs.length&&!document.querySelector('#main .sec .grid')){ const mm=$('#main'); if(mm&&!mm.querySelector('#homeOff')) mm.insertAdjacentHTML('beforeend','<p class="empty" id="homeOff">Không kết nối được YouTube Music. Hãy thử lại sau.</p>'); } } });
   },
   async mix(m){
-    const mixes=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock'],['Mix nhạc Việt','viet','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','intl','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
-    m.innerHTML=`<h2>Mix</h2><p class="sub" style="margin-top:-8px">Bấm vào một mix để nghe ngẫu nhiên.</p><div class="tiles">${mixes.map(([n,q,bg,i])=>`<div class="tl" data-mix="${esc(q)}" data-name="${esc(n)}" style="background:${bg};height:130px" tabindex="0">${esc(n)}<small>Phát ngẫu nhiên</small>${ic(i)}</div>`).join('')}</div>`;
+    const draw=p=>{
+      const mixes=mixList(p), pers=p&&p.n>0&&mixes.some(x=>x[4]);
+      m.innerHTML=`<h2>Mix</h2><p class="sub" style="margin-top:-8px" data-mixpg="1">${pers?'Các mix được tạo theo gu nghe của bạn. Bấm vào một mix để nghe ngẫu nhiên.':'Bấm vào một mix để nghe ngẫu nhiên. Nghe và thả tim thêm vài bài để mix hợp gu bạn hơn.'}</p><div class="tiles">${mixes.map(([n,q,bg,i,sub])=>`<div class="tl" data-mix="${esc(q)}" data-name="${esc(n)}" style="background:${bg};height:130px" tabindex="0">${esc(n)}<small>${esc(sub||'Phát ngẫu nhiên')}</small>${ic(i)}</div>`).join('')}</div>`;
+      return mixes.map(x=>x[1]).join('|');
+    };
+    let sig=draw(tasteQuick());
+    try{ const p=await tasteProfile(); if(m.isConnected&&m.querySelector('[data-mixpg]')){ const probe=mixList(p).map(x=>x[1]).join('|'); if(probe!==sig) sig=draw(p); } }catch{}
   },
   async charts(m,idx=0){
     const Y=new Date().getFullYear();
@@ -5803,6 +5809,7 @@ function mixClean(list,spec,seen){
   const out=[], mx=(spec&&spec.max)||480;
   for(const t of list||[]){
     if(!t||!t.id||blocked(t)||isUnplay(t)) continue;
+    if(spec&&spec.no&&spec.no(t)) continue;
     if(t.dur&&(t.dur<60||t.dur>mx)) continue;
     if(MIX_BAD.test(t.title||'')) continue;
     const sg=mixSig(t); if(seen.has(sg)) continue;
@@ -5820,6 +5827,33 @@ async function mixFetch(q,tok){
     mixLastAt=Date.now();
   }
   return ytSearch(q,true);
+}
+/* ===== MIX THEO GU NGHE: tạo danh sách mix từ hồ sơ gu (thể loại + nghệ sĩ hay nghe, hay thả tim) ===== */
+const MIX_STYLE={'Nhạc Việt':['linear-gradient(135deg,#f7971e,#d9423e)','note'],'Lofi / Chill':['linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],'EDM / Remix':['linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle'],'K-Pop':['linear-gradient(135deg,#ff6a95,#a044ff)','heart'],'Nhạc Nhật':['linear-gradient(135deg,#e96443,#904e95)','note'],'Anime & Game':['linear-gradient(135deg,#00c6ff,#0072ff)','shuffle'],'Nhạc Hoa':['linear-gradient(135deg,#cb2d3e,#ef473a)','note'],'Rap / Hip-hop':['linear-gradient(135deg,#434343,#7a7f87)','trend'],'Bolero':['linear-gradient(135deg,#b79891,#94716b)','clock'],'Ballad / Buồn':['linear-gradient(135deg,#4b6cb7,#182848)','heart'],'Acoustic':['linear-gradient(135deg,#d38312,#a83279)','note'],'Piano / Không lời':['linear-gradient(135deg,#3a7bd5,#00d2ff)','radio']};
+const MIX_ART_BG=['linear-gradient(135deg,#ff4d6a,#7b2ff7)','linear-gradient(135deg,#2193b0,#6dd5ed)','linear-gradient(135deg,#11998e,#38ef7d)'];
+const MIX_DEFAULT=[['Mix nhạc Việt','viet','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','intl','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
+function mixList(p){
+  const out=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock']];
+  const has=p&&p.n>0&&((p.top&&p.top.length)||(p.arts&&p.arts.length));
+  if(!has) return out.concat(MIX_DEFAULT);
+  const avoidA=p.avoid||new Set(), avoidG=p.avoidGenres||new Set(), skip=p.skipKeys||new Set();
+  const no=t=>{ try{ if(skip.has(key(t))) return true; if(splitArtists(t.artist).some(a=>avoidA.has(a.toLowerCase()))) return true; for(const g of tasteTags(t)) if(avoidG.has(g)) return true; }catch{} return false; };
+  // Thể loại hay nghe nhất (tối đa 4); thiếu thì bù bằng thể loại gần gu
+  const gen=[], addG=(n,near)=>{ if(gen.length>=4||gen.some(x=>x[0]===n)||avoidG.has(n)) return; const g=GENRES.find(x=>x[0]===n); const qs=g&&(g[2]||[]).map(x=>x[1]); if(qs&&qs.length) gen.push([n,qs,near]); };
+  (p.top||[]).forEach(n=>addG(n,false));
+  (p.top||[]).forEach(n=>(ADJ[n]||[]).forEach(a=>addG(a,true)));
+  gen.forEach(([n,qs,near])=>{
+    const k='tg:'+n, st=MIX_STYLE[n]||['linear-gradient(135deg,#667eea,#764ba2)','shuffle'];
+    MIXES[k]={qs,no,max:/Lofi|EDM|Piano/.test(n)?420:undefined,ok:n==='Nhạc Việt'?isVn:undefined};
+    out.push(['Mix '+n,k,st[0],st[1],near?'Gần gu của bạn':'Thể loại bạn hay nghe']);
+  });
+  // Nghệ sĩ hay nghe nhất (tối đa 3)
+  (p.arts||[]).slice(0,3).forEach((a,i)=>{
+    const k='ta:'+a.n;
+    MIXES[k]={qs:[a.n+' hay nhất','sim:'+a.n,a.n+' best songs'],no};
+    out.push(['Mix '+a.n,k,MIX_ART_BG[i%MIX_ART_BG.length],i%2?'shuffle':'note','Nghệ sĩ bạn hay nghe']);
+  });
+  return out;
 }
 function mixSeeds(favs_){
   const c=new Map();
