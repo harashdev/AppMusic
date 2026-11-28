@@ -1909,6 +1909,7 @@ body.skin-custom{--peb:#050507}
     [/^Thịnh hành · (.+)$/,(m)=>'Trending · '+tr(m[1])],
     [/^Vì bạn hay nghe (.+)$/,(m)=>'Because you often listen to '+m[1]],
     [/^Mix (.+)$/,(m)=>tr(m[1])+' mix'],
+    [/^Từ (\d+) bài bạn đã nghe$/,(m)=>'From '+plural(m[1],'song','songs')+' you played'],
     [/^Vì bạn nghe (.+)$/,(m)=>'Because you listen to '+m[1]],
     [/^Dành cho người hâm mộ (.+)$/,(m)=>'For fans of '+m[1]],
     [/^Nếu bạn thích (.+)$/,(m)=>'If you like '+m[1]],
@@ -4677,7 +4678,7 @@ const GENRES=[
     [['Acoustic nhẹ nhàng','acoustic chill songs'],['Acoustic tình cảm','acoustic love songs'],['Guitar cover','guitar cover songs']]],
   ['Piano / Không lời',/piano|instrumental|không lời|orchestra|classical/i,
     [['Piano thư giãn','relaxing piano music'],['Nhạc không lời','instrumental focus music'],['Nhạc cổ điển','classical study music']]],
-  ['Nhạc Việt',/[ăâđêôơư]|[àáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i,
+  ['Nhạc Việt',/[đơưăâêôũĐƠƯĂÂÊÔŨạảấầẩẫậắằẳẵặẹẻẽếềểễệỉĩịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i,
     [['Nhạc Việt thịnh hành','nhạc việt hot'],['Nhạc trẻ mới nhất','nhạc trẻ mới nhất'],['Indie Việt','indie việt hay nhất']]]
 ];
 function tasteTags(t){
@@ -4717,7 +4718,7 @@ function noteListen(t,sec,dur,auto){
   }catch{}
 }
 const recW=ts=>ts?Math.max(.15,Math.pow(.5,(Date.now()-ts)/(30*864e5))):.5;
-function buildProfile(gc,ac,seen,n,skipKeys){
+function buildProfile(gc,ac,seen,n,skipKeys,gn){
   const pos=Object.values(gc).reduce((s,c)=>s+Math.max(0,c),0)||1;
   const early=n<10;
   const top=Object.entries(gc).filter(([nm,c])=>c>=(early?1:2)&&c/pos>=.08&&GENRES.some(g=>g[0]===nm)).sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>x[0]);
@@ -4727,11 +4728,11 @@ function buildProfile(gc,ac,seen,n,skipKeys){
   const artsAll=aList.filter(a=>a.c>=(early?1:2.5)).sort((x,y)=>y.c-x.c).slice(0,16);
   const avoid=new Set(aList.filter(a=>a.c<=-2.5).map(a=>a.n.toLowerCase()));
   const mx=arts.length?arts[0].c:1, artW={}; arts.forEach(a=>{ artW[a.n.toLowerCase()]=a.c/mx; });
-  return {top,arts,artsAll,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc};
+  return {top,arts,artsAll,artW,avoid,avoidGenres,skipKeys:skipKeys||new Set(),seen:seen||new Set(),n:n||0,gc,gn:gn||null};
 }
 const TASTE_KEY='muse_taste3_dev';
 let tasteLast=null; // hồ sơ gần nhất đã tính xong (kể cả khi tasteCache đã bị xoá do vừa nghe bài)
-function tasteSaved(){ try{ const o=JSON.parse(LS.get(TASTE_KEY,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set()); } }catch{} return null; }
+function tasteSaved(){ try{ const o=JSON.parse(LS.get(TASTE_KEY,'null')); if(o&&o.gc&&Array.isArray(o.ac)){ const ac={}; o.ac.filter(a=>a&&goodArtist(a.n)).forEach(a=>{ const cn=canonArtist(a.n), k=cn.toLowerCase(); (ac[k]=ac[k]||{n:cn,c:0}).c+=(+a.c||0); }); return buildProfile(o.gc,ac,new Set(),o.n||0,new Set(),o.gn&&typeof o.gn==='object'?o.gn:null); } }catch{} return null; }
 // Lấy hồ sơ gu nghe NGAY (đồng bộ, không chờ mạng) để vẽ Home tức thì; null nếu chưa có gì.
 function tasteQuick(){ return (tasteCache&&tasteCache.v)||tasteLast||tasteSaved(); }
 async function tasteProfile(){
@@ -4755,20 +4756,22 @@ async function tasteProfile(){
     ...Object.values(L).filter(e=>e&&e.t).map(e=>[e.t,Math.max(-6,Math.min(6,(1.2*(e.ok||0)-1.8*(e.sk||0))*recW(e.last)))])
   ];
   if(all.filter(x=>x[1]>0).length<1) return saved()||empty;
-  const gc={}, ac={}, seen=new Set(), skipKeys=new Set();
+  const gc={}, ac={}, seen=new Set(), skipKeys=new Set(), gset={}, posKeys=new Set();
   for(const [t,w] of all){
     if(!t) continue; seen.add(key(t));
-    tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; });
+    if(w>0) posKeys.add(key(t));
+    tasteTags(t).forEach(n=>{ gc[n]=(gc[n]||0)+w; if(w>0) (gset[n]=gset[n]||new Set()).add(key(t)); });
     splitArtists(t.artist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=w; });
   }
   followGet().filter(goodArtist).map(canonArtist).forEach(a=>{ const k=a.toLowerCase(); (ac[k]=ac[k]||{n:a,c:0}).c+=4; });
   Object.entries(L).forEach(([k,e])=>{ if(e&&(e.sk||0)>(e.ok||0)) skipKeys.add(k); });
+  const gn={__t:posKeys.size}; Object.keys(gset).forEach(k=>{ gn[k]=gset[k].size; });
   try{
     const al=Object.values(ac).sort((x,y)=>y.c-x.c), keep=al.slice(0,24).concat(al.slice(-6).filter(a=>a.c<0));
     const gk=Object.entries(gc).sort((x,y)=>y[1]-x[1]), gs={}; gk.slice(0,12).concat(gk.slice(-3).filter(x=>x[1]<0)).forEach(([k,v])=>{ gs[k]=v; });
-    LS.set(tk,JSON.stringify({gc:gs,ac:keep,n:all.length}));
+    LS.set(tk,JSON.stringify({gc:gs,ac:keep,n:all.length,gn}));
   }catch{}
-  const v=buildProfile(gc,ac,seen,all.length,skipKeys); tasteCache={at:Date.now(),v}; tasteLast=v; return v;
+  const v=buildProfile(gc,ac,seen,all.length,skipKeys,gn); tasteCache={at:Date.now(),v}; tasteLast=v; return v;
 }
 const strHash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
 const rngMake=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; };
@@ -5794,7 +5797,7 @@ pages.thisis=async function(m,x){
    - Yêu cầu nào lỗi (nghi bị bắt là bot…) thì bỏ qua, nghỉ lâu hơn rồi tiếp tục nạp chậm; lỗi liên tiếp nhiều lần thì dừng hẳn. */
 const MIX_GAP=4500, MIX_JIT=3000, MIX_AHEAD=40, MIX_MAX=150, MIX_PER_Q=16;
 const MIX_BAD=/(?:\b\d{1,2}\s*(?:hours?|hrs?|giờ)\b|full album|non[\s-]?stop|liên khúc|24\/7|live\s?stream|podcast|compilation|playlist)/i;
-const VN_RE=/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+const VN_RE=/[đơưăâêôũĐƠƯĂÂÊÔŨạảấầẩẫậắằẳẵặẹẻẽếềểễệỉĩịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
 const isVn=t=>VN_RE.test((t.title||'')+' '+(t.artist||''));
 const MIXES={
   viet:{qs:['nhạc việt hot','v-pop hits mới nhất','nhạc trẻ hay nhất','ballad việt hay nhất','rap việt hay nhất'],ok:isVn},
@@ -5834,25 +5837,26 @@ const MIX_ART_BG=['linear-gradient(135deg,#ff4d6a,#7b2ff7)','linear-gradient(135
 const MIX_DEFAULT=[['Mix nhạc Việt','viet','linear-gradient(135deg,#f7971e,#d9423e)','note'],['Mix Lofi','lofi','linear-gradient(135deg,#5b5ea6,#2b2d5e)','radio'],['Mix quốc tế','intl','linear-gradient(135deg,#11998e,#38ef7d)','trend'],['Mix EDM','edm','linear-gradient(135deg,#8e2de2,#4a00e0)','shuffle']];
 function mixList(p){
   const out=[['Mix yêu thích','fav','linear-gradient(135deg,#ff4d6a,#7b2ff7)','heart'],['Mix nghe lại','hist','linear-gradient(135deg,#2193b0,#6dd5ed)','clock']];
-  const has=p&&p.n>0&&((p.top&&p.top.length)||(p.arts&&p.arts.length));
-  if(!has) return out.concat(MIX_DEFAULT);
+  if(!(p&&p.n>0)) return out.concat(MIX_DEFAULT);
   const avoidA=p.avoid||new Set(), avoidG=p.avoidGenres||new Set(), skip=p.skipKeys||new Set();
   const no=t=>{ try{ if(skip.has(key(t))) return true; if(splitArtists(t.artist).some(a=>avoidA.has(a.toLowerCase()))) return true; for(const g of tasteTags(t)) if(avoidG.has(g)) return true; }catch{} return false; };
-  // Thể loại hay nghe nhất (tối đa 4); thiếu thì bù bằng thể loại gần gu
-  const gen=[], addG=(n,near)=>{ if(gen.length>=4||gen.some(x=>x[0]===n)||avoidG.has(n)) return; const g=GENRES.find(x=>x[0]===n); const qs=g&&(g[2]||[]).map(x=>x[1]); if(qs&&qs.length) gen.push([n,qs,near]); };
-  (p.top||[]).forEach(n=>addG(n,false));
-  (p.top||[]).forEach(n=>(ADJ[n]||[]).forEach(a=>addG(a,true)));
-  gen.forEach(([n,qs,near])=>{
+  // Thể loại: chỉ hiện khi bạn đã thật sự nghe nhiều bài thuộc thể loại đó (>=3 bài khác nhau và >=15% số bài bạn nghe)
+  const gn=p.gn||{}, tot=gn.__t||0, gen=[];
+  Object.entries(gn).filter(([n,c])=>n!=='__t'&&!avoidG.has(n)&&c>=(tot<12?2:3)&&c/Math.max(1,tot)>=.15).sort((x,y)=>y[1]-x[1]).forEach(([n,c])=>{
+    if(gen.length>=4) return; const g=GENRES.find(x=>x[0]===n); const qs=g&&(g[2]||[]).map(x=>x[1]); if(qs&&qs.length) gen.push([n,qs,c]);
+  });
+  gen.forEach(([n,qs,c])=>{
     const k='tg:'+n, st=MIX_STYLE[n]||['linear-gradient(135deg,#667eea,#764ba2)','shuffle'];
     MIXES[k]={qs,no,max:/Lofi|EDM|Piano/.test(n)?420:undefined,ok:n==='Nhạc Việt'?isVn:undefined};
-    out.push(['Mix '+n,k,st[0],st[1],near?'Gần gu của bạn':'Thể loại bạn hay nghe']);
+    out.push(['Mix '+n,k,st[0],st[1],'Từ '+c+' bài bạn đã nghe']);
   });
-  // Nghệ sĩ hay nghe nhất (tối đa 3)
-  (p.arts||[]).slice(0,3).forEach((a,i)=>{
+  // Nghệ sĩ bạn hay nghe: ít thể loại thì thêm nghệ sĩ thay vào (tối đa 6)
+  (p.arts||[]).slice(0,Math.min(6,3+(4-gen.length))).forEach((a,i)=>{
     const k='ta:'+a.n;
     MIXES[k]={qs:[a.n+' hay nhất','sim:'+a.n,a.n+' best songs'],no};
     out.push(['Mix '+a.n,k,MIX_ART_BG[i%MIX_ART_BG.length],i%2?'shuffle':'note','Nghệ sĩ bạn hay nghe']);
   });
+  if(out.length<=2) return out.concat(MIX_DEFAULT);
   return out;
 }
 function mixSeeds(favs_){
