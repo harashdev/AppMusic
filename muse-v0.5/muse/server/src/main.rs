@@ -1257,14 +1257,9 @@ fn gw_retry_page() -> Response {
 }
 
 // Chuyển tiếp nguyên một yêu cầu HTTP lên server chính rồi trả lại phản hồi (không giải nén, không tự theo chuyển hướng).
-async fn gw_http(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, req: Request<Body>) -> Response {
+async fn gw_http(State(st): State<AppState>, ConnectInfo(_addr): ConnectInfo<std::net::SocketAddr>, req: Request<Body>) -> Response {
     let Some(g) = st.gateway.clone() else { return StatusCode::NOT_FOUND.into_response() };
     let (parts, body) = req.into_parts();
-    // Mã ghép admin: chỉ máy mở cổng nhà (127.0.0.1) mới xin được; cổng nhà gắn ADMIN_PAIR_KEY (env của máy này) khi chuyển lên server chính.
-    let is_pair = parts.method == axum::http::Method::POST && parts.uri.path() == "/api/admin/pair-code";
-    if is_pair && !is_local_request(&addr, &parts.headers) {
-        return (StatusCode::FORBIDDEN, "Chỉ tạo được mã ghép từ chính máy chạy cổng nhà (mở http://127.0.0.1)").into_response();
-    }
     if parts.method == axum::http::Method::GET && matches!(parts.uri.path(), "/" | "/index.html") && gw_local_ui() {
         return (
             [("content-type", "text/html; charset=utf-8"), ("cache-control", "no-cache")],
@@ -1292,14 +1287,6 @@ async fn gw_http(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std:
             continue;
         }
         rb = rb.header(k, v);
-    }
-    if is_pair {
-        if let Ok(k) = std::env::var("ADMIN_PAIR_KEY") {
-            let k = k.trim().to_string();
-            if !k.is_empty() {
-                rb = rb.header("x-pair-key", k);
-            }
-        }
     }
     if !bytes.is_empty() {
         rb = rb.body(bytes);
@@ -1468,7 +1455,6 @@ async fn main() {
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
         .route("/api/ws-ticket", post(ws_ticket))
-        .route("/api/admin/pair-code", post(admin_pair_code))
         .route("/api/kofi/webhook", post(kofi_webhook))
         .route("/api/qr/new", post(qr_new))
         .route("/api/qr/poll/:id", get(qr_poll))
@@ -2482,26 +2468,6 @@ fn take_ws_ticket(st: &AppState, ticket: &str) -> Option<User> {
     if exp > now_secs() { Some(u) } else { None }
 }
 
-// Mã ghép thiết bị dùng một lần: chỉ máy đang chạy server mới tạo được mã (loopback),
-// để đăng nhập nhanh tài khoản ADMIN_USER trên desktop/Android khác mà không cần gõ mật khẩu
-// và không bao giờ đóng mật khẩu/token vào các bản build phân phát chung.
-// "Chính máy chạy server" = kết nối đến từ loopback, KHÔNG đi qua reverse proxy/tunnel (Caddy, nginx, cloudflared, ngrok... đều
-// kết nối từ 127.0.0.1 nhưng gắn header chuyển tiếp) và Host là localhost. Chỉ kiểm tra IP thì khi Caddy chạy cùng máy,
-// MỌI người trên internet đều bị coi là "localhost" và tự lấy được mã admin.
-fn is_local_request(addr: &std::net::SocketAddr, h: &HeaderMap) -> bool {
-    if !addr.ip().is_loopback() {
-        return false;
-    }
-    for k in ["x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip", "forwarded", "via", "cf-connecting-ip", "true-client-ip"] {
-        if h.contains_key(k) {
-            return false;
-        }
-    }
-    let host = h.get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("").trim().to_lowercase();
-    let name = if let Some(rest) = host.strip_prefix('[') { rest.split(']').next().unwrap_or("") } else { host.split(':').next().unwrap_or("") };
-    matches!(name, "localhost" | "127.0.0.1" | "::1")
-}
-
 #[derive(Deserialize)]
 struct PairRedeem {
     code: String,
@@ -2715,57 +2681,6 @@ async fn admin_reset_avatar(State(st): State<AppState>, headers: HeaderMap, Json
     Ok(Json(json!({ "ok": true })))
 }
 
-// POST /api/admin/pair-code — chỉ gọi được từ chính máy chạy server (127.0.0.1/::1).
-fn ct_eq(a: &str, b: &str) -> bool {
-    let (a, b) = (a.as_bytes(), b.as_bytes());
-    if a.len() != b.len() {
-        return false;
-    }
-    a.iter().zip(b.iter()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
-}
-
-// Hai cách được cấp mã admin: (1) gọi từ chính máy chạy server (loopback, không qua proxy); (2) kèm header x-pair-key khớp biến môi trường
-// ADMIN_PAIR_KEY (chuỗi ngẫu nhiên >= 24 ký tự, chỉ đặt trong env của server chính và của máy nhà chạy cổng nhà — KHÔNG đưa vào repo).
-// Cách (2) là đường của cổng nhà: giao diện mở ở http://127.0.0.1:PORT, cổng nhà tự kiểm tra là máy mình rồi gắn khoá khi chuyển tiếp lên server chính.
-async fn admin_pair_code(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>, headers: HeaderMap) -> R<Value> {
-    if rl_blocked(&st, "pairkey:all", 10, 600) {
-        return Err(too_many());
-    }
-    let key_ok = match (std::env::var("ADMIN_PAIR_KEY").ok(), headers.get("x-pair-key").and_then(|v| v.to_str().ok())) {
-        (Some(k), Some(v)) => {
-            let k = k.trim();
-            k.len() >= 24 && ct_eq(v.trim(), k)
-        }
-        _ => false,
-    };
-    if headers.contains_key("x-pair-key") && !key_ok {
-        rl_hit(&st, "pairkey:all", 600);
-    }
-    if !key_ok && !is_local_request(&addr, &headers) {
-        return Err((StatusCode::FORBIDDEN, "Server từ chối: chỉ tạo được mã ở chính máy chạy server, hoặc đặt cùng một ADMIN_PAIR_KEY (≥ 24 ký tự) ở server chính và ở máy chạy cổng nhà".into()));
-    }
-    let Ok(admin_user) = std::env::var("ADMIN_USER") else {
-        return Err(bad("Chưa đặt ADMIN_USER"));
-    };
-    let admin_user = admin_user.trim().to_lowercase();
-    let uid: i64 = {
-        let db = st.db.lock().unwrap();
-        db.query_row("SELECT id FROM users WHERE username=?1 AND is_admin=1", [&admin_user], |r| r.get(0))
-            .map_err(|_| bad("Chưa có tài khoản admin (kiểm tra ADMIN_USER/ADMIN_PASS rồi khởi động lại server)"))?
-    };
-    let now = now_secs();
-    let mut g = st.pair_codes.lock().unwrap();
-    g.retain(|_, (_, exp)| *exp > now);
-    // Chỉ giữ một mã hiệu lực tại một thời điểm: tạo mã mới thì mã cũ (nếu còn) mất hiệu lực.
-    g.retain(|_, (u, _)| *u != uid);
-    let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
-    let exp = now + 300;
-    g.insert(code.clone(), (uid, exp));
-    // base: domain public (nếu có PUBLIC_URL) để link redeem dùng được từ máy khác, không chỉ trên localhost.
-    let base = std::env::var("PUBLIC_URL").unwrap_or_default().trim().trim_end_matches('/').to_string();
-    Ok(Json(json!({ "code": code, "expires_in": 300, "base": base })))
-}
-
 #[derive(Deserialize)]
 struct PairCreateReq {
     password: String,
@@ -2792,34 +2707,6 @@ async fn pair_create(State(st): State<AppState>, ConnectInfo(addr): ConnectInfo<
         return Err(bad("Sai mật khẩu"));
     }
     rl_clear(&st, &ukey);
-    // Server chạy ở máy nhà (localhost) nhưng ứng dụng đăng nhập vào server chính: đặt PAIR_REMOTE=<địa chỉ server chính> và cùng ADMIN_PAIR_KEY
-    // ở hai nơi thì mã được xin THẲNG từ server chính (tài khoản ADMIN_USER của server chính), nên nhập ở ứng dụng là vào được.
-    // Chỉ admin của server này, hoặc người đang ngồi ở chính máy này (localhost), mới dùng được đường này.
-    if let (Ok(remote), Ok(key)) = (std::env::var("PAIR_REMOTE"), std::env::var("ADMIN_PAIR_KEY")) {
-        let (remote, key) = (remote.trim().trim_end_matches('/').to_string(), key.trim().to_string());
-        if !remote.is_empty() && key.len() >= 24 && (user.is_admin || is_local_request(&addr, &headers)) {
-            let resp = st
-                .http
-                .post(format!("{remote}/api/admin/pair-code"))
-                .header("x-pair-key", key)
-                .send()
-                .await
-                .map_err(|e| (StatusCode::BAD_GATEWAY, format!("Không nối được server chính {remote}: {e}")))?;
-            let status = resp.status();
-            if !status.is_success() {
-                let t = resp.text().await.unwrap_or_default();
-                return Err((StatusCode::BAD_GATEWAY, format!("Server chính từ chối ({}): {}", status.as_u16(), t.trim())));
-            }
-            let mut j = resp.json::<Value>().await.map_err(|_| (StatusCode::BAD_GATEWAY, "Server chính trả dữ liệu lạ".to_string()))?;
-            if let Some(o) = j.as_object_mut() {
-                let empty = o.get("base").and_then(|b| b.as_str()).map(|b| b.is_empty()).unwrap_or(true);
-                if empty {
-                    o.insert("base".into(), json!(remote));
-                }
-            }
-            return Ok(Json(j));
-        }
-    }
     let now = now_secs();
     let code = format!("{:06}", uuid::Uuid::new_v4().as_u128() % 1_000_000);
     {
