@@ -12,8 +12,6 @@ rem (Tuy chon) Neu YouTube bao "Sign in to confirm you're not a bot": bo "rem" o
 rem set YT_BROWSER=firefox
 set YTDLP_PATH=
 set YT_COOKIES=
-rem Dang nhap admin tu localhost: tao file gateway.local.bat (da bi gitignore) chua dong:  set ADMIN_PAIR_KEY=<chuoi ngau nhien >= 24 ky tu>
-rem va dat DUNG chuoi do cho ADMIN_PAIR_KEY o server chinh (Render -> Environment), roi khoi dong lai ca hai.
 if exist gateway.local.bat call gateway.local.bat
 set "PATH=%CD%;%PATH%"
 muse-server.exe
