@@ -443,13 +443,6 @@ mod gateway {
                 }
             }
         }
-        // Khoá mã ghép admin: ghi cùng một chuỗi (>= 24 ký tự) vào file admin-pair-key.txt cạnh app, và đặt ADMIN_PAIR_KEY y hệt ở server chính.
-        if let Ok(k) = std::fs::read_to_string(dir.join("admin-pair-key.txt")) {
-            let k = k.trim();
-            if !k.is_empty() {
-                cmd.env("ADMIN_PAIR_KEY", k);
-            }
-        }
         cmd.current_dir(&dir)
             .env("GATEWAY_REMOTE", remote)
             .env("PORT", PORT.to_string())
