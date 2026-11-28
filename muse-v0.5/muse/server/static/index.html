@@ -3682,18 +3682,7 @@ function qrLoginDialog(){
   pg.onclick=go; pi.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
 }
 $('#aPairBtn').onclick=qrLoginDialog;
-/* Localhost: một chạm vào tài khoản admin (xin mã admin rồi đổi mã ngay; cổng nhà tự gắn ADMIN_PAIR_KEY). */
-(function(){
-  const b=$('#aAdminLocal'); if(!b||!/^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname)) return;
-  b.style.display='';
-  b.onclick=async()=>{
-    b.disabled=true; const t=b.textContent; b.textContent='Đang đăng nhập…';
-    try{ const r=await pairFetch('/api/admin/pair-code',{method:'POST'}); await pairRedeem(r.code); }
-    catch(e){ notify((e&&e.message)||'Không đăng nhập được admin'); }
-    b.disabled=false; b.textContent=t;
-  };
-})();
-/* MÃ GHÉP (pair code): mã 6 số dùng một lần do server cấp (hiện ở trang localhost của máy chạy server) → đăng nhập không cần mật khẩu.
+/* MÃ GHÉP (pair code): mã 6 số dùng một lần do server cấp do tài khoản của bạn tạo ở Cài đặt → đăng nhập thiết bị khác không cần gõ mật khẩu.
    Dùng fetch trực tiếp vì api() coi mọi 401 là "hết phiên" và bật lại màn hình đăng nhập. */
 async function pairFetch(path,opt){
   const r=await fetch(path,opt); const t=await r.text();
